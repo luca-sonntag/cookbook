@@ -22,10 +22,14 @@ Use **winget** to install the official binary:
 winget install ngrok.ngrok --accept-source-agreements --accept-package-agreements
 ```
 
-> **Windows PATH caveat:** If you previously installed the old npm package (`npm install -g ngrok`), a broken `.ps1` shim at `C:\Users\<you>\AppData\Roaming\npm\ngrok.ps1` will shadow the real binary. Use the full path to the real binary until the shim is removed:
+> **Windows PATH caveat:** If you previously installed the old npm package (`npm install -g ngrok`), a broken `.ps1` shim at `C:\Users\<you>\AppData\Roaming\npm\ngrok.ps1` will shadow the real binary. Fix it permanently:
 >
-> ```
-> C:\Users\<you>\AppData\Local\Microsoft\WinGet\Links\ngrok.exe
+> ```powershell
+> npm uninstall -g ngrok
+> Remove-Item "$env:APPDATA\npm\ngrok.ps1" -Force
+> Remove-Item "$env:APPDATA\npm\ngrok.cmd" -Force -ErrorAction SilentlyContinue
+> Remove-Item "$env:APPDATA\npm\ngrok" -Force -ErrorAction SilentlyContinue
+> ngrok version  # should now show the WinGet binary
 > ```
 
 ### Update to the latest version
