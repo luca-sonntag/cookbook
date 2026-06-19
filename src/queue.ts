@@ -1,8 +1,8 @@
 import fs from 'fs/promises';
 import { createWriteStream } from 'fs';
-import { Readable } from 'stream';
-import { pipeline } from 'stream/promises';
 import path from 'path';
+import https from 'https';
+import http from 'http';
 import { getNextPendingJob, updateJob } from './db.js';
 import { scrapeReel } from './apify.js';
 import { extractRecipeFromAudio } from './gemini.js';
@@ -11,25 +11,51 @@ let isRunning = false;
 let workerInterval: NodeJS.Timeout | null = null;
 
 /**
- * Downloads a file from a URL to a local destination.
+ * Downloads a file from a URL to a local destination, following HTTP/HTTPS redirects.
  */
 async function downloadFile(url: string, destPath: string): Promise<string> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to download audio file from ${url}: HTTP ${response.status} ${response.statusText}`);
-  }
+  return new Promise((resolve, reject) => {
+    function attemptGet(currentUrl: string) {
+      const protocol = currentUrl.startsWith('https') ? https : http;
+      const request = protocol.get(currentUrl, (response) => {
+        // Handle redirect
+        if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 307 || response.statusCode === 308) {
+          const redirectUrl = response.headers.location;
+          if (redirectUrl) {
+            attemptGet(redirectUrl);
+            return;
+          }
+        }
 
-  const mimeType = response.headers.get('content-type') || 'audio/mp4';
-  const body = response.body;
-  if (!body) {
-    throw new Error('Download response body is empty.');
-  }
+        if (response.statusCode !== 200) {
+          reject(new Error(`Failed to download audio file from ${currentUrl}: HTTP ${response.statusCode} ${response.statusMessage}`));
+          return;
+        }
 
-  const fileStream = createWriteStream(destPath);
-  const nodeStream = Readable.fromWeb(body as any);
-  await pipeline(nodeStream, fileStream);
+        const mimeType = response.headers['content-type'] || 'audio/mp4';
+        const fileStream = createWriteStream(destPath);
+        
+        response.pipe(fileStream);
 
-  return mimeType;
+        fileStream.on('finish', () => {
+          fileStream.close(() => {
+            resolve(mimeType);
+          });
+        });
+
+        fileStream.on('error', (err) => {
+          fs.unlink(destPath).catch(() => {});
+          reject(err);
+        });
+      });
+
+      request.on('error', (err) => {
+        reject(err);
+      });
+    }
+
+    attemptGet(url);
+  });
 }
 
 /**
