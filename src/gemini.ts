@@ -140,7 +140,7 @@ export async function extractRecipeFromAudio(
     
 Combine the two sources to reconstruct the complete recipe. The creator might mention specific measurements or ingredients in the audio that are missing or abbreviated in the text, and vice versa. Resolve any contradictions by prioritizing the instructions that make the most logical sense culinary-wise.
 
-Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., only music, background noise, or silence), set the "transcript" field to an empty string ("") or a note stating that there is no spoken audio in the target language.
+Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to "(Keine gesprochene Sprache)" (or the equivalent translation in the target language). Do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
 
 Translate and write the entire final recipe output (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, and the transcript) into the following language: ${config.RECIPE_LANGUAGE}.
 
