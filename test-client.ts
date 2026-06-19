@@ -74,6 +74,14 @@ async function runTestClient() {
       }
     }
 
+    if (!job) {
+      const pollResponse = await fetch(`${SERVER_URL}/api/jobs/${jobId}`);
+      if (pollResponse.ok) {
+        const pollData = await pollResponse.json() as any;
+        job = pollData.job;
+      }
+    }
+
     if (status === 'failed') {
       console.error(`\n[Job Failed] Extraction failed: ${job?.error}`);
       process.exit(1);
