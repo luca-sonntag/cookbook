@@ -1,0 +1,57 @@
+{
+  "version": 3,
+  "categories": [
+    {
+      "id": "1",
+      "name": "Recipe Extractor",
+      "shortcuts": [
+        {
+          "id": "2",
+          "name": "🍳 Extract Recipe",
+          "description": "Share an Instagram Reel to extract the recipe via AI",
+          "iconName": "restaurant_menu",
+          "method": "POST",
+          "url": "{base_url}/api/extract-recipe",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "bodyType": "custom_text",
+          "bodyContent": "{\"url\": \"{share_text}\"}",
+          "executionType": "scripting",
+          "codeOnPrepare": "if (!variables.get('base_url') || variables.get('base_url') === 'https://YOUR-NGROK-URL') {\n  alert('⚠️ Please set your ngrok URL first!\\n\\nEdit the base_url variable in HTTP Shortcuts settings.');\n  abort();\n}",
+          "codeOnSuccess": "// Parse the initial job response\nconst jobResponse = JSON.parse(response.body);\nconst jobId = jobResponse.jobId;\n\nif (!jobId) {\n  // Duplicate detected - server returned existing result\n  if (jobResponse.result) {\n    const recipe = jobResponse.result;\n    showDialog(recipe.title + '\\n\\n' + '⚡ Already extracted (from cache)' + '\\n\\n🥘 ' + (recipe.ingredients ? recipe.ingredients.length : 0) + ' ingredients · ' + (recipe.steps ? recipe.steps.length : 0) + ' steps');\n    clipboard.copy(JSON.stringify(recipe, null, 2));\n  } else {\n    alert('Unexpected response: ' + response.body);\n  }\n  return;\n}\n\ntoast('🚀 Job queued: ' + jobId);\n\n// Poll every 6 seconds, up to 50 times (5 minutes)\nconst baseUrl = variables.get('base_url');\nlet attempts = 0;\nlet status = 'pending';\nlet job = null;\n\nwhile (attempts < 50) {\n  wait(6000);\n  attempts++;\n\n  const statusRes = http.get(baseUrl + '/api/jobs/' + jobId);\n  if (statusRes.statusCode !== 200) {\n    toast('⚠️ Status check failed (attempt ' + attempts + ')');\n    continue;\n  }\n\n  job = JSON.parse(statusRes.body);\n  status = job.status;\n\n  if (status === 'completed') break;\n  if (status === 'failed') break;\n\n  toast('⏳ ' + status + '... (attempt ' + attempts + ')');\n}\n\nif (status === 'completed' && job && job.result) {\n  const recipe = job.result;\n  const title = recipe.title || 'Untitled Recipe';\n  const ingredients = recipe.ingredients ? recipe.ingredients.length : 0;\n  const steps = recipe.steps ? recipe.steps.length : 0;\n  const cuisine = recipe.cuisineType || '';\n\n  clipboard.copy(JSON.stringify(recipe, null, 2));\n\n  showDialog(\n    '✅ ' + title + '\\n\\n' +\n    (cuisine ? '🌍 ' + cuisine + '\\n' : '') +\n    '🥘 ' + ingredients + ' ingredients\\n' +\n    '📋 ' + steps + ' steps\\n\\n' +\n    '📋 Full JSON copied to clipboard!'\n  );\n} else if (status === 'failed') {\n  const errMsg = job && job.error ? job.error : 'Unknown error';\n  alert('❌ Extraction failed:\\n' + errMsg);\n} else {\n  alert('⏰ Timed out after ' + attempts + ' attempts. Check manually with Job ID:\\n' + jobId);\n}",
+          "codeOnFailure": "alert('❌ Request failed (HTTP ' + response.statusCode + '):\\n' + response.body);"
+        }
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "id": "3",
+      "key": "base_url",
+      "type": "constant",
+      "value": "https://stature-velcro-creasing.ngrok-free.dev",
+      "title": "ngrok Base URL",
+      "urlEncode": false
+    },
+    {
+      "id": "4",
+      "key": "share_text",
+      "type": "text",
+      "value": "",
+      "title": "Shared Text",
+      "message": "The text shared from Instagram",
+      "rememberValue": false,
+      "urlEncode": false,
+      "jsonEncode": false,
+      "isShareText": true,
+      "isShareTitle": false,
+      "isMultiline": false,
+      "isExcludeValueFromExport": false,
+      "isSecret": false
+    }
+  ]
+}
