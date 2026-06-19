@@ -81,6 +81,7 @@ const recipeSchema = {
     'ingredients',
     'instructions',
     'equipment',
+    'transcript',
   ],
 };
 
@@ -139,9 +140,9 @@ export async function extractRecipeFromAudio(
     
 Combine the two sources to reconstruct the complete recipe. The creator might mention specific measurements or ingredients in the audio that are missing or abbreviated in the text, and vice versa. Resolve any contradictions by prioritizing the instructions that make the most logical sense culinary-wise.
 
-Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), do NOT include the "transcript" field in the JSON response. Do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
+Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
 
-Translate and write the entire final recipe output (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, and the transcript if present) into the following language: ${config.RECIPE_LANGUAGE}.
+Translate and write the entire final recipe output (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, and the transcript) into the following language: ${config.RECIPE_LANGUAGE}.
 
 Description/Caption:
 """
@@ -165,6 +166,17 @@ ${caption}
 
     // Parse the output schema
     const recipe: Recipe = JSON.parse(responseText);
+
+    // Clean up transcript if there were no spoken words
+    if (
+      recipe.transcript === 'NO_SPOKEN_WORDS' ||
+      recipe.transcript === 'Keine gesprochene Sprache' ||
+      !recipe.transcript ||
+      recipe.transcript.trim() === ''
+    ) {
+      delete recipe.transcript;
+    }
+
     return recipe;
   } finally {
     // 4. Ensure cleanup of the uploaded file on Gemini servers
