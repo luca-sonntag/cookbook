@@ -1,7 +1,7 @@
 node_modules/
 dist/
 .env
-database.db
+database.json
 *.log
 *.mp3
 *.mp4
