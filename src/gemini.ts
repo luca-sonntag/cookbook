@@ -127,8 +127,8 @@ export async function extractRecipeFromAudio(
       model: config.GEMINI_MODEL,
       generationConfig: {
         responseMimeType: 'application/json',
-        responseSchema: recipeSchema as any,
-      },
+        responseSchema: recipeSchema,
+      } as any,
     });
 
     const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.

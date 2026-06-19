@@ -39,7 +39,7 @@ async function runTestClient() {
       body: JSON.stringify({ url: reelUrl }),
     });
 
-    const data = await response.json();
+    const data = await response.json() as any;
 
     if (!response.ok) {
       throw new Error(`API error (${response.status}): ${data.error || JSON.stringify(data)}`);
@@ -60,7 +60,7 @@ async function runTestClient() {
         throw new Error(`Failed to poll status: HTTP ${pollResponse.status}`);
       }
 
-      const pollData = await pollResponse.json();
+      const pollData = await pollResponse.json() as any;
       job = pollData.job;
       if (!job) {
         throw new Error('Received empty job structure from API.');
