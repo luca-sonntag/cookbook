@@ -174,7 +174,7 @@ ${caption}
       !recipe.transcript ||
       recipe.transcript.trim() === ''
     ) {
-      delete recipe.transcript;
+      recipe.transcript = null;
     }
 
     return recipe;
