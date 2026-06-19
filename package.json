@@ -10,7 +10,8 @@
     "start": "node dist/index.js",
     "test-client": "node node_modules/tsx/dist/cli.mjs test-client.ts",
     "tunnel": "ngrok start cli-quickstart",
-    "tunnel:server": "node ngrok-quickstart/server.cjs"
+    "tunnel:server": "node ngrok-quickstart/server.cjs",
+    "kill-server": "powershell -Command \"Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue).OwningProcess -Force\""
   },
   "dependencies": {
     "@google/generative-ai": "^0.11.0",
