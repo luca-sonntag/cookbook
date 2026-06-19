@@ -7,6 +7,7 @@ This guide provides critical context, architectural choices, and execution instr
 ## 🏗️ Project Architecture & Workflow
 
 The application is a TypeScript Express.js API designed to run as an asynchronous job queue:
+
 1. **Client Submission:** Client submits a Reel URL to `POST /api/extract-recipe`.
 2. **Database Job Creation:** A `pending` job is created in `database.json`.
 3. **Scraping (Apify):** The background queue worker picks up the job and calls Apify's `apify/instagram-reel-scraper` actor to scrape the caption and CDN `audioUrl`.
@@ -22,6 +23,7 @@ The application is a TypeScript Express.js API designed to run as an asynchronou
 ## ⚠️ Important Environment & Workspace Constraints
 
 ### 1. Windows Execution & Path Issues
+
 On this system, running scripts via `npx` or `npm run` (e.g., `npx tsx` or `npm run dev`) fails with:
 `Das System kann den angegebenen Pfad nicht finden.`
 
@@ -32,13 +34,16 @@ On this system, running scripts via `npx` or `npm run` (e.g., `npx tsx` or `npm 
 * **Rule for dependencies installation:** Always add `--ignore-scripts` during installation (`npm install --ignore-scripts`) to bypass native compile script failures during npm postinstalls.
 
 ### 2. Database Fallback (JSON Storage)
+
 * **Problem:** SQLite compiler modules (`sqlite3` and `better-sqlite3`) fail to build on this Windows host due to missing native compilation build tools.
-* **Solution:** The database uses a custom JSON-file-based storage implementation in `src/db.ts`. 
+* **Solution:** The database uses a custom JSON-file-based storage implementation in `src/db.ts`.
 * **Details:** It features serializing in-memory locks and atomic temp-write-and-rename cycles (`database.json`) to prevent race conditions during parallel client-server queries. Do not try to re-install or replace this with SQLite unless native compilation is resolved.
 
 ### 3. Gemini SDK Type Casting Workaround
+
 * **Problem:** The installed `@google/generative-ai` SDK (`^0.11.0`) contains TypeScript type declarations for `GenerationConfig` that do not recognize the `responseSchema` property.
 * **Solution:** To pass typescript checks successfully, the config object in `getGenerativeModel` must be cast to `any`:
+
   ```typescript
   const model = genAI.getGenerativeModel({
     model: config.GEMINI_MODEL,
@@ -48,7 +53,9 @@ On this system, running scripts via `npx` or `npm run` (e.g., `npx tsx` or `npm 
     } as any,
   });
   ```
+
 * **Files API:** Import the file manager from the subpath `@google/generative-ai/files`:
+
   ```typescript
   import { GoogleAIFileManager } from '@google/generative-ai/files';
   ```
