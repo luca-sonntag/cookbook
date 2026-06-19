@@ -8,7 +8,9 @@
     "dev": "node node_modules/tsx/dist/cli.mjs watch src/index.ts",
     "build": "node node_modules/typescript/bin/tsc",
     "start": "node dist/index.js",
-    "test-client": "node node_modules/tsx/dist/cli.mjs test-client.ts"
+    "test-client": "node node_modules/tsx/dist/cli.mjs test-client.ts",
+    "tunnel": "C:\\Users\\lucas\\AppData\\Local\\Microsoft\\WinGet\\Links\\ngrok.exe start cli-quickstart",
+    "tunnel:server": "node ngrok-quickstart/server.cjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.11.0",
