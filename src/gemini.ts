@@ -138,6 +138,8 @@ export async function extractRecipeFromAudio(
     
 Combine the two sources to reconstruct the complete recipe. The creator might mention specific measurements or ingredients in the audio that are missing or abbreviated in the text, and vice versa. Resolve any contradictions by prioritizing the instructions that make the most logical sense culinary-wise.
 
+Translate and write the entire final recipe output (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes) into the following language: ${config.RECIPE_LANGUAGE}.
+
 Description/Caption:
 """
 ${caption}
