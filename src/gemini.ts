@@ -100,9 +100,12 @@ export async function extractRecipeFromAudio(
   let uploadResult: any;
 
   try {
+    // If the MIME type is video/mp4 but it's audio-only, force audio/mp4 to avoid Gemini video-processing failures
+    const uploadMimeType = mimeType === 'video/mp4' ? 'audio/mp4' : mimeType;
+
     // 1. Upload the file to Google AI File API
     uploadResult = await fileManager.uploadFile(audioFilePath, {
-      mimeType,
+      mimeType: uploadMimeType,
       displayName: `instagram-reel-audio-${Date.now()}`,
     });
 
