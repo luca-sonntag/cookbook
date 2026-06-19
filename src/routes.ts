@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, getJob } from './db.js';
+import { createJob, getJob, findCompletedJobByUrl } from './db.js';
 
 export const apiRouter = Router();
 
@@ -36,8 +36,21 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       return;
     }
 
+    // Check if job for this URL has already successfully completed
+    const existingJob = await findCompletedJobByUrl(trimmedUrl);
+    if (existingJob) {
+      res.status(200).json({
+        success: true,
+        jobId: existingJob.id,
+        status: existingJob.status,
+        message: 'Recipe already extracted successfully.',
+      });
+      return;
+    }
+
     // Create a new pending job in the database
     const job = await createJob(trimmedUrl);
+
 
     res.status(202).json({
       success: true,

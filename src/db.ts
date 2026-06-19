@@ -111,3 +111,13 @@ export async function getNextPendingJob(): Promise<Job | null> {
     return pendingJob || null;
   });
 }
+
+// Retrieve a completed job by URL
+export async function findCompletedJobByUrl(url: string): Promise<Job | null> {
+  return runLocked(async () => {
+    const jobs = await readJobsRaw();
+    const completedJob = jobs.find(j => j.url === url && j.status === 'completed');
+    return completedJob || null;
+  });
+}
+
