@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { config } from './config.js';
-import { Job, JobStatus, Recipe } from './types.js';
+import { Job } from './types.js';
 
 // Simple in-memory lock to prevent race conditions during file read/write operations
 let dbLock = Promise.resolve();
@@ -9,8 +9,8 @@ let dbLock = Promise.resolve();
 async function runLocked<T>(fn: () => Promise<T>): Promise<T> {
   const resultPromise = dbLock.then(fn);
   dbLock = resultPromise.then(
-    () => {},
-    () => {}
+    () => { },
+    () => { }
   );
   return resultPromise;
 }
@@ -36,8 +36,15 @@ export async function initDb(): Promise<void> {
 // Read all jobs from file
 async function readJobsRaw(): Promise<Job[]> {
   const dbPath = path.resolve(config.DATABASE_PATH);
-  const data = await fs.readFile(dbPath, 'utf-8');
-  return JSON.parse(data) as Job[];
+  try {
+    const data = await fs.readFile(dbPath, 'utf-8');
+    return JSON.parse(data) as Job[];
+  } catch (err: any) {
+    if (err.code === 'ENOENT') {
+      return [];
+    }
+    throw err;
+  }
 }
 
 // Write all jobs to file atomically
