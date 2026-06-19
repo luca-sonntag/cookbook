@@ -35,6 +35,7 @@ export interface Recipe {
   nutritionalEstimates?: NutritionalEstimates;
   tips?: string[];
   alternativeIngredients?: AlternativeIngredient[];
+  transcript?: string;
 }
 
 export type JobStatus = 'pending' | 'scraping' | 'processing' | 'completed' | 'failed';

@@ -126,6 +126,11 @@ async function runTestClient() {
         });
       }
 
+      if (recipe.transcript) {
+        console.log('\n--- TRANSCRIPT ---');
+        console.log(recipe.transcript);
+      }
+
       console.log('==================================================\n');
       console.log(`Full JSON response saved in sqlite/JSON local file database.`);
     }
