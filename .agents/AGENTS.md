@@ -34,6 +34,18 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 ### 4. Frontend- & PWA-Layer (React & HeroUI)
 
 * **Technologie:** React 19, Vite, TypeScript, HeroUI v3 (React Aria-basiert), Tailwind CSS v4, `vite-plugin-pwa` (Service Worker & Manifest).
+* **Architektur & Modul-Struktur (React Best Practices):**
+  * **Schlanker App-Shell (`App.tsx`):** Die Hauptkomponente verwaltet primär den globalen Zustand, die API-Kommunikation (Polling-Mechanismus für die Queue, API-Key-Validierung) und das Routing/Umschalten zwischen den Hauptansichten.
+  * **Komponententrennung (`frontend/src/components/`):**
+    * **`ThemeToggle.tsx`:** Kontrolliert den clientseitigen Hell- und Dunkelmodus.
+    * **`ApiConfig.tsx`:** Modularisiertes Einstellungen-Panel zur Verwaltung des API-Keys.
+    * **`InstallBanner.tsx`:** Kapselt den PWA-Installationshinweis.
+    * **`ExtractForm.tsx`:** Formular zur Eingabe und automatischen Validierung der Instagram-Reels-URLs.
+    * **`ProgressTracker.tsx`:** Visualisiert den aktuellen Status des Extraktionsprozesses in Echtzeit.
+    * **`ErrorBanner.tsx`:** Zeigt detaillierte Fehler und ermöglicht erneutes Ausführen.
+    * **`RecipeDetails.tsx`:** Bildet das Herzstück für Kochinteraktionen ab (Zutaten- und Zubereitungs-Checklisten, Portionsrechner, Meta-Statistiken, Nährwerttabellen und Markdown-Kopierfunktion).
+    * **`SavedCatalog.tsx`:** Verwaltet das Grid-Layout der Rezept-Historie inklusive Suchfilterung und Löschvorgängen.
+  * **Typensicherheit (`src/types.ts`):** Zentralisierte TypeScript-Modelle für Rezepte, Zutaten, Nährwerte und API-Jobs. Nutzung von `type`-only Imports zur Einhaltung von Compiler-Richtlinien (wie `verbatimModuleSyntax`).
 * **Visuelles Design:** Theme-gesteuert (Hell- & Dunkelmodus) mit modernem Glassmorphismus und harmonischen Akzentfarben (Smaragdgrün/Emerald-Grün). Optimiert für mobile Displays mit flüssigen Übergängen.
 * **Theme-Steuerung:** Bietet einen Header-Schalter (Sonne/Mond), um das Erscheinungsbild umzuschalten. Die Auswahl wird im `localStorage` persistiert und ein Inline-Interceptor im `<head>` der `index.html` verhindert das Aufblitzen des hellen Designs beim App-Start.
 * **PWA & Share Target Integration:**
