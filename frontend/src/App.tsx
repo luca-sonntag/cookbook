@@ -17,8 +17,10 @@ import { useTheme } from './hooks/useTheme';
 import { usePwaInstall } from './hooks/usePwaInstall';
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
 import { useShoppingList } from './hooks/useShoppingList';
+import { useDialog } from './context/DialogContext';
 
 export default function App() {
+  const dialog = useDialog();
   // Config & Secrets
   const [apiKey, setApiKey] = useState<string>(() => {
     return localStorage.getItem('recipe_api_key') || 'recipe_extractor_secret_key_12345';
@@ -82,7 +84,14 @@ export default function App() {
 
   const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this recipe from your saved recipes?')) {
+    const confirmed = await dialog.confirm({
+      title: 'Rezept löschen?',
+      message: 'Möchtest du dieses Rezept wirklich aus den gespeicherten Rezepten löschen?',
+      confirmLabel: 'Löschen',
+      cancelLabel: 'Abbrechen',
+      status: 'danger'
+    });
+    if (!confirmed) {
       return;
     }
 
@@ -100,11 +109,19 @@ export default function App() {
           setSelectedJob(null);
         }
       } else {
-        alert('Failed to delete recipe.');
+        dialog.alert({
+          title: 'Fehler beim Löschen',
+          message: 'Das Rezept konnte nicht gelöscht werden.',
+          status: 'danger'
+        });
       }
     } catch (err) {
       console.error('Error deleting recipe:', err);
-      alert('Connection error occurred.');
+      dialog.alert({
+        title: 'Verbindungsfehler',
+        message: 'Es konnte keine Verbindung zum Server hergestellt werden.',
+        status: 'danger'
+      });
     }
   };
 
