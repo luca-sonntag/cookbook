@@ -3,6 +3,7 @@ import { Card, Button } from '@heroui/react';
 import { ShoppingCart, Plus, Trash2, Check, X } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../types';
 import { translateCategory, getCategoryIcon, categoryOrder } from '../i18n';
+import { useDialog } from '../context/DialogContext';
 
 interface ShoppingListProps {
   aggregatedList: {
@@ -24,6 +25,7 @@ export default function ShoppingList({
   clearAll,
   clearChecked
 }: ShoppingListProps) {
+  const dialog = useDialog();
   // Manual item state
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
@@ -52,8 +54,15 @@ export default function ShoppingList({
     return `${rounded}${unitStr}`;
   };
 
-  const handleClearAll = () => {
-    if (confirm('Möchtest du wirklich alle Einträge von der Einkaufsliste löschen?')) {
+  const handleClearAll = async () => {
+    const confirmed = await dialog.confirm({
+      title: 'Einkaufsliste leeren?',
+      message: 'Möchtest du wirklich alle Einträge von der Einkaufsliste löschen?',
+      confirmLabel: 'Leeren',
+      cancelLabel: 'Abbrechen',
+      status: 'danger'
+    });
+    if (confirmed) {
       clearAll();
     }
   };
