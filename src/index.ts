@@ -25,6 +25,10 @@ async function bootstrap() {
     app.use(cors());
     app.use(express.json());
 
+    // Serve static files from React build directory
+    const frontendDistPath = path.resolve(__dirname, '..', 'frontend', 'dist');
+    app.use(express.static(frontendDistPath));
+
     // 4. Register API routes
     app.use('/api', apiRouter);
 
@@ -39,6 +43,14 @@ async function bootstrap() {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', 'attachment; filename="recipe-extractor.json"');
       res.sendFile(jsonPath);
+    });
+
+    // Fallback for React routing (SPA)
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/shortcuts') || req.path.startsWith('/health')) {
+        return next();
+      }
+      res.sendFile(path.resolve(frontendDistPath, 'index.html'));
     });
 
     // Start server
