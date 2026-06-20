@@ -2,6 +2,7 @@ import ffmpegStatic from 'ffmpeg-static';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
 import fs from 'fs/promises';
+import { spawn } from 'child_process';
 
 // Point fluent-ffmpeg at the bundled static binary
 const ffmpegPath = ffmpegStatic as unknown as string;
@@ -63,3 +64,85 @@ export async function extractFrames(
 
   return framePaths;
 }
+
+/**
+ * Creates a tiled grid image from an array of frame image paths.
+ * Each frame is cropped to a centered square, scaled to 300x300, and labeled with its index.
+ * The final grid is combined using the ffmpeg xstack filter.
+ */
+export async function createImageGrid(
+  framePaths: string[],
+  outputPath: string
+): Promise<string> {
+  if (framePaths.length === 0) {
+    throw new Error('No frames provided for grid creation.');
+  }
+
+  const count = framePaths.length;
+  const colCount = Math.ceil(Math.sqrt(count));
+  const rowCount = Math.ceil(count / colCount);
+  const scaleSize = 300;
+
+  // Find standard font file for text drawing
+  let fontOption = "font='Arial'";
+  try {
+    const winFont = 'C:\\Windows\\Fonts\\arial.ttf';
+    await fs.access(winFont);
+    fontOption = `fontfile='C\\\\:/Windows/Fonts/arial.ttf'`;
+  } catch {
+    // Keep fallback to Arial font query
+  }
+
+  return new Promise((resolve, reject) => {
+    const args: string[] = [];
+
+    // Add inputs
+    for (const framePath of framePaths) {
+      args.push('-i', framePath);
+    }
+
+    // Build filter complex
+    let filterComplex = '';
+    for (let i = 0; i < count; i++) {
+      filterComplex += `[${i}:v]crop=w=in_w:h=in_w,scale=${scaleSize}:${scaleSize},drawtext=text='${i}':${fontOption}:fontcolor=white:fontsize=36:box=1:boxcolor=black@0.6:boxborderw=8:x=15:y=15[v${i}];`;
+    }
+
+    // Build xstack layout
+    let xstackLayout = '';
+    for (let r = 0; r < rowCount; r++) {
+      for (let c = 0; c < colCount; c++) {
+        const x = c * scaleSize;
+        const y = r * scaleSize;
+        xstackLayout += `${x}_${y}|`;
+      }
+    }
+    xstackLayout = xstackLayout.slice(0, -1);
+
+    const xstackInputs = Array.from({ length: count }, (_, i) => `[v${i}]`).join('');
+    filterComplex += `${xstackInputs}xstack=inputs=${count}:layout=${xstackLayout}[outv]`;
+
+    args.push('-filter_complex', filterComplex);
+    args.push('-map', '[outv]');
+    args.push('-y', outputPath);
+
+    const cp = spawn(ffmpegPath, args);
+
+    let stderr = '';
+    cp.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+
+    cp.on('close', (code) => {
+      if (code === 0) {
+        resolve(outputPath);
+      } else {
+        reject(new Error(`ffmpeg grid creation exited with code ${code}. Stderr: ${stderr}`));
+      }
+    });
+
+    cp.on('error', (err) => {
+      reject(err);
+    });
+  });
+}
+
