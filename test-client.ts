@@ -1,4 +1,8 @@
 import { Job } from './src/types.js';
+import dotenv from 'dotenv';
+
+// Load .env file
+dotenv.config();
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -35,6 +39,7 @@ async function runTestClient() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-Key': process.env.API_KEY || '',
       },
       body: JSON.stringify({ url: reelUrl }),
     });
@@ -55,7 +60,11 @@ async function runTestClient() {
 
     while (status === 'pending' || status === 'scraping' || status === 'processing') {
       await wait(3000);
-      const pollResponse = await fetch(`${SERVER_URL}/api/jobs/${jobId}`);
+      const pollResponse = await fetch(`${SERVER_URL}/api/jobs/${jobId}`, {
+        headers: {
+          'X-API-Key': process.env.API_KEY || '',
+        },
+      });
       if (!pollResponse.ok) {
         throw new Error(`Failed to poll status: HTTP ${pollResponse.status}`);
       }
@@ -75,7 +84,11 @@ async function runTestClient() {
     }
 
     if (!job) {
-      const pollResponse = await fetch(`${SERVER_URL}/api/jobs/${jobId}`);
+      const pollResponse = await fetch(`${SERVER_URL}/api/jobs/${jobId}`, {
+        headers: {
+          'X-API-Key': process.env.API_KEY || '',
+        },
+      });
       if (pollResponse.ok) {
         const pollData = await pollResponse.json() as any;
         job = pollData.job;
