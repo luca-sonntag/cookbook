@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, Button, Tabs } from '@heroui/react';
 import { 
   Check, 
@@ -26,6 +26,17 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
 
   // Fullscreen image state
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (fullscreenImage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [fullscreenImage]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
