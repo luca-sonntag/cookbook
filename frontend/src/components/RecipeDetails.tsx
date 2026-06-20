@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, Button, Tabs } from '@heroui/react';
 import { 
   Check, 
@@ -7,6 +7,7 @@ import {
   Utensils, 
   ListChecks, 
   ChevronRight, 
+  ChevronLeft,
   ChefHat,
   X
 } from 'lucide-react';
@@ -27,7 +28,17 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
   // Fullscreen image state
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  const scrollGallery = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = scrollContainerRef.current.clientWidth;
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const toggleIngredient = (name: string) => {
     setCheckedIngredients(prev => ({
@@ -89,23 +100,49 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
       <Card className="glass-panel p-6 rounded-2xl overflow-hidden">
         {/* Image Gallery */}
         {(recipe.imageUrls && recipe.imageUrls.length > 0) ? (
-          <div className="-mt-6 -mx-6 mb-6 flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {recipe.imageUrls.map((img, idx) => {
-              const src = img.startsWith('/') ? img : `/api/image?url=${encodeURIComponent(img)}`;
-              return (
-                <div key={idx} className="w-full shrink-0 snap-center relative group">
-                  <img
-                    src={src}
-                    alt={`${recipe.title} - view ${idx + 1}`}
-                    className="w-full h-56 object-cover object-center cursor-pointer transition-transform duration-300"
-                    onClick={() => setFullscreenImage(src)}
-                  />
-                  <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full pointer-events-none opacity-80 backdrop-blur-sm">
-                    {idx + 1} / {recipe.imageUrls?.length}
+          <div className="-mt-6 -mx-6 mb-6 relative group">
+            <div 
+              ref={scrollContainerRef}
+              className="flex overflow-x-auto snap-x snap-mandatory" 
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {recipe.imageUrls.map((img, idx) => {
+                const src = img.startsWith('/') ? img : `/api/image?url=${encodeURIComponent(img)}`;
+                return (
+                  <div key={idx} className="w-full shrink-0 snap-center relative">
+                    <img
+                      src={src}
+                      alt={`${recipe.title} - view ${idx + 1}`}
+                      className="w-full h-56 object-cover object-center cursor-pointer transition-transform duration-300"
+                      onClick={() => setFullscreenImage(src)}
+                    />
+                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full pointer-events-none opacity-80 backdrop-blur-sm">
+                      {idx + 1} / {recipe.imageUrls?.length}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+            
+            {/* Desktop Navigation Arrows */}
+            {recipe.imageUrls.length > 1 && (
+              <>
+                <button 
+                  onClick={() => scrollGallery('left')}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hidden md:block"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <button 
+                  onClick={() => scrollGallery('right')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hidden md:block"
+                  aria-label="Next image"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </>
+            )}
           </div>
         ) : recipe.imageUrl ? (
           <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5 relative">
