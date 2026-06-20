@@ -33,12 +33,35 @@ export async function initDb(): Promise<void> {
   });
 }
 
+// Helper to normalize older recipe ingredients structure
+function normalizeRecipe(recipe: any): void {
+  if (!recipe) return;
+  if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+    const needsConversion = recipe.ingredients.length === 0 || 
+      (recipe.ingredients[0] && !Array.isArray(recipe.ingredients[0].items));
+    if (needsConversion) {
+      recipe.ingredients = [
+        {
+          name: 'Ingredients',
+          items: recipe.ingredients,
+        },
+      ];
+    }
+  }
+}
+
 // Read all jobs from file
 async function readJobsRaw(): Promise<Job[]> {
   const dbPath = path.resolve(config.DATABASE_PATH);
   try {
     const data = await fs.readFile(dbPath, 'utf-8');
-    return JSON.parse(data) as Job[];
+    const jobs = JSON.parse(data) as Job[];
+    for (const job of jobs) {
+      if (job.recipe) {
+        normalizeRecipe(job.recipe);
+      }
+    }
+    return jobs;
   } catch (err: any) {
     if (err.code === 'ENOENT') {
       return [];
