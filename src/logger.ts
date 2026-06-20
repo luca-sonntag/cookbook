@@ -25,49 +25,73 @@ interface ModelPricing {
 }
 
 const PRICING: Record<string, ModelPricing> = {
+  // ── Gemini 1.5 family ────────────────────────────────────────────────────
   'gemini-1.5-flash': {
-    inputShort: 0.075,
-    inputLong:  0.15,
-    outputShort: 0.30,
-    outputLong:  0.60,
+    inputShort: 0.075,  inputLong:  0.15,
+    outputShort: 0.30,  outputLong:  0.60,
   },
   'gemini-1.5-flash-8b': {
-    inputShort: 0.0375,
-    inputLong:  0.075,
-    outputShort: 0.15,
-    outputLong:  0.30,
+    inputShort: 0.0375, inputLong:  0.075,
+    outputShort: 0.15,  outputLong:  0.30,
   },
   'gemini-1.5-pro': {
-    inputShort: 1.25,
-    inputLong:  2.50,
-    outputShort: 5.00,
-    outputLong:  10.00,
+    inputShort: 1.25,   inputLong:  2.50,
+    outputShort: 5.00,  outputLong:  10.00,
   },
+
+  // ── Gemini 2.0 family ────────────────────────────────────────────────────
   'gemini-2.0-flash': {
-    inputShort: 0.10,
-    inputLong:  0.10,
-    outputShort: 0.40,
-    outputLong:  0.40,
+    inputShort: 0.10,   inputLong:  0.10,
+    outputShort: 0.40,  outputLong:  0.40,
   },
   'gemini-2.0-flash-lite': {
-    inputShort: 0.075,
-    inputLong:  0.075,
-    outputShort: 0.30,
-    outputLong:  0.30,
+    inputShort: 0.075,  inputLong:  0.075,
+    outputShort: 0.30,  outputLong:  0.30,
   },
+
+  // ── Gemini 2.5 family ────────────────────────────────────────────────────
   'gemini-2.5-flash': {
-    inputShort: 0.15,
-    inputLong:  0.15,
-    outputShort: 0.60,
-    outputLong:  2.50, // thinking tokens are more expensive
+    inputShort: 0.15,   inputLong:  0.15,
+    outputShort: 0.60,  outputLong:  2.50,  // thinking tokens at higher rate
+  },
+  'gemini-2.5-flash-lite': {
+    inputShort: 0.10,   inputLong:  0.10,
+    outputShort: 0.40,  outputLong:  0.40,
   },
   'gemini-2.5-pro': {
-    inputShort: 1.25,
-    inputLong:  2.50,
-    outputShort: 10.00,
-    outputLong:  15.00,
+    inputShort: 1.25,   inputLong:  2.50,
+    outputShort: 10.00, outputLong:  15.00,
+  },
+
+  // ── Gemini 3.0 / 3 Flash ─────────────────────────────────────────────────
+  // Note: Google markets this as "Gemini 3 Flash"; API may surface as gemini-3.0-flash
+  'gemini-3-flash': {
+    inputShort: 0.50,   inputLong:  0.50,
+    outputShort: 3.00,  outputLong:  3.00,
+  },
+  'gemini-3.0-flash': {
+    inputShort: 0.50,   inputLong:  0.50,
+    outputShort: 3.00,  outputLong:  3.00,
+  },
+
+  // ── Gemini 3.1 family ────────────────────────────────────────────────────
+  'gemini-3.1-flash-lite': {
+    inputShort: 0.25,   inputLong:  0.25,
+    outputShort: 1.50,  outputLong:  1.50,
+  },
+  'gemini-3.1-pro': {
+    // ≤200K context window; no separate long-context rate published yet
+    inputShort: 2.00,   inputLong:  2.00,
+    outputShort: 12.00, outputLong:  12.00,
+  },
+
+  // ── Gemini 3.5 family ────────────────────────────────────────────────────
+  'gemini-3.5-flash': {
+    inputShort: 1.50,   inputLong:  1.50,
+    outputShort: 9.00,  outputLong:  9.00,
   },
 };
+
 
 /** 128K token boundary used for short vs. long pricing */
 const LONG_CONTEXT_THRESHOLD = 128_000;
