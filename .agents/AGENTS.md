@@ -34,18 +34,26 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 ### 4. Frontend- & PWA-Layer (React & HeroUI)
 
 * **Technologie:** React 19, Vite, TypeScript, HeroUI v3 (React Aria-basiert), Tailwind CSS v4, `vite-plugin-pwa` (Service Worker & Manifest).
-* **Architektur & Modul-Struktur (React Best Practices):**
-  * **Schlanker App-Shell (`App.tsx`):** Die Hauptkomponente verwaltet primär den globalen Zustand, die API-Kommunikation (Polling-Mechanismus für die Queue, API-Key-Validierung) und das Routing/Umschalten zwischen den Hauptansichten.
-  * **Komponententrennung (`frontend/src/components/`):**
-    * **`ThemeToggle.tsx`:** Kontrolliert den clientseitigen Hell- und Dunkelmodus.
-    * **`ApiConfig.tsx`:** Modularisiertes Einstellungen-Panel zur Verwaltung des API-Keys.
-    * **`InstallBanner.tsx`:** Kapselt den PWA-Installationshinweis.
-    * **`ExtractForm.tsx`:** Formular zur Eingabe und automatischen Validierung der Instagram-Reels-URLs.
-    * **`ProgressTracker.tsx`:** Visualisiert den aktuellen Status des Extraktionsprozesses in Echtzeit.
-    * **`ErrorBanner.tsx`:** Zeigt detaillierte Fehler und ermöglicht erneutes Ausführen.
-    * **`RecipeDetails.tsx`:** Bildet das Herzstück für Kochinteraktionen ab (Zutaten- und Zubereitungs-Checklisten, Portionsrechner, Meta-Statistiken, Nährwerttabellen und Markdown-Kopierfunktion).
-    * **`SavedCatalog.tsx`:** Verwaltet das Grid-Layout der Rezept-Historie inklusive Suchfilterung und Löschvorgängen.
-  * **Typensicherheit (`src/types.ts`):** Zentralisierte TypeScript-Modelle für Rezepte, Zutaten, Nährwerte und API-Jobs. Nutzung von `type`-only Imports zur Einhaltung von Compiler-Richtlinien (wie `verbatimModuleSyntax`).
+  * **Architektur & Modul-Struktur (React Best Practices):**
+    * **Schlanker App-Shell (`App.tsx`):** Die Hauptkomponente ist modular gestaltet und delegiert komplexe Zustände an spezialisierte Custom Hooks.
+    * **Zentralisierte Hooks (`frontend/src/hooks/`):**
+      * **`useTheme.ts`:** Steuert das clientseitige Umschalten des Hell- und Dunkelmodus und persistiert die Einstellung im `localStorage`.
+      * **`usePwaInstall.ts`:** Kapselt das Abfangen des `beforeinstallprompt`-Events und steuert die Installationslogik.
+      * **`useRecipeExtraction.ts`:** Orchestriert die Validierung der URLs, die Job-Übermittlung und das asynchrone Polling des Queue-Status.
+      * **`useRecipeScaling.ts`:** Berechnet Skalierungsfaktoren für Zutaten und Nährwerte. Discrete Einheiten (z.B. Stück, Zehen, EL, TL) werden in küchenübliche gemischte Brüche (z.B. `1 ½`) formatiert, während kontinuierliche Gewichte/Volumina als Ganz- oder Dezimalzahlen gerendert werden. Die ausgewählte Portionsgröße wird persistent im `localStorage` gespeichert.
+      * **`useRecipeProgress.ts`:** Persistiert den Abhakk-Zustand (Checklisten-Fortschritt) von Zutaten und Zubereitungsschritten im `localStorage` auf Rezeptbasis.
+      * **`useMobileNavigationBack.ts`:** Kapselt die native Browser-Verlaufssteuerung (`pushState`/`popstate`-Event-Listener) und mobile Wischgesten (Swipe-to-Go-Back), um eine native Mobile-Erfahrung beim Schließen der Detailansicht zu gewährleisten.
+      * **`useImageGallery.ts`:** Übernimmt die komplexe Pointer-Mathematik für das horizontale Scrollen, Swipen, Double-Tap-to-Zoom und das freie Panning der Galeriebilder im Vollbildmodus.
+    * **Komponententrennung (`frontend/src/components/`):**
+      * **`ThemeToggle.tsx`:** Kontrolliert den clientseitigen Hell- und Dunkelmodus.
+      * **`ApiConfig.tsx`:** Settings-Panel zur API-Key-Verwaltung.
+      * **`InstallBanner.tsx`:** Kapselt den PWA-Installationshinweis.
+      * **`ExtractForm.tsx`:** Formular zur Eingabe und Validierung der Reels-URLs.
+      * **`ProgressTracker.tsx`:** Visualisiert den aktuellen Job-Status in Echtzeit.
+      * **`ErrorBanner.tsx`:** Zeigt detaillierte Fehler und ermöglicht erneutes Ausführen.
+      * **`RecipeDetails.tsx`:** Herzstück für Kochinteraktionen (Zutaten- und Zubereitungs-Checklisten, Portionsrechner, Meta-Statistiken, Nährwerttabellen und Markdown-Kopierfunktion).
+      * **`SavedCatalog.tsx`:** Grid-Layout der Rezept-Historie inklusive Suchfilterung und Löschvorgängen.
+    * **Typensicherheit (`src/types.ts`):** Zentralisierte TypeScript-Modelle für Rezepte, Zutaten, Nährwerte und API-Jobs. Nutzung von `type`-only Imports zur Einhaltung von Compiler-Richtlinien (wie `verbatimModuleSyntax`).
 * **Visuelles Design:** Theme-gesteuert (Hell- & Dunkelmodus) mit modernem Glassmorphismus und harmonischen Akzentfarben (Smaragdgrün/Emerald-Grün). Optimiert für mobile Displays mit flüssigen Übergängen.
 * **Theme-Steuerung:** Bietet einen Header-Schalter (Sonne/Mond), um das Erscheinungsbild umzuschalten. Die Auswahl wird im `localStorage` persistiert und ein Inline-Interceptor im `<head>` der `index.html` verhindert das Aufblitzen des hellen Designs beim App-Start.
 * **PWA & Share Target Integration:**
