@@ -3,6 +3,8 @@ import { GoogleAIFileManager } from '@google/generative-ai/files';
 import { config } from './config.js';
 import { Recipe } from './types.js';
 import fs from 'fs/promises';
+import path from 'path';
+import { createImageGrid } from './frameExtractor.js';
 import { writeGeminiLog, estimateCost, type TokenUsage } from './logger.js';
 
 // Initialize Gemini Generative AI and File Manager
@@ -254,48 +256,56 @@ ${caption}
 }
 
 /**
- * Uploads video frames to Gemini File API, asks which shows the finished dish
- * most appetizingly, and returns the top 5 indices.
- * All uploaded files are cleaned up afterwards.
+ * Uploads a combined tiled grid image of video frames to Gemini File API,
+ * asks which shows the finished dish most appetizingly, and returns the top 5 indices.
+ * The uploaded grid image and the local temporary grid file are cleaned up afterwards.
  */
 export async function selectBestFoodFrame(framePaths: string[]): Promise<number[]> {
-  const uploadedFileNames: string[] = [];
+  if (framePaths.length === 0) {
+    return [];
+  }
+
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
   let rawOutput: string | undefined;
+  let uploadResult: any;
+
+  const framesDir = path.dirname(framePaths[0]);
+  const gridPath = path.join(framesDir, 'grid.jpg');
 
   try {
-    // Upload all frames in parallel
-    const uploads = await Promise.all(
-      framePaths.map(async (framePath, i) => {
-        const data = await fs.readFile(framePath);
-        const result = await fileManager.uploadFile(framePath, {
-          mimeType: 'image/jpeg',
-          displayName: `frame-${i}.jpg`,
-        });
-        uploadedFileNames.push(result.file.name);
-        return result;
-      })
-    );
+    // 1. Create the tiled grid image from the frame paths
+    console.log(`[selectBestFoodFrame] Creating tiled frame grid at ${gridPath}...`);
+    await createImageGrid(framePaths, gridPath);
 
-    // Build multimodal prompt parts: all images + question
-    const imageParts = uploads.map((upload) => ({
-      fileData: {
-        fileUri: upload.file.uri,
-        mimeType: 'image/jpeg' as const,
-      },
-    }));
+    // 2. Upload the grid image to Google AI File API
+    console.log('[selectBestFoodFrame] Uploading grid image to Gemini File API...');
+    uploadResult = await fileManager.uploadFile(gridPath, {
+      mimeType: 'image/jpeg',
+      displayName: `frames-grid-${Date.now()}.jpg`,
+    });
 
     const model = genAI.getGenerativeModel({ model: config.GEMINI_MODEL });
 
     const prompt =
-      `You are a food photography expert. You are given ${framePaths.length} frames (numbered 0 to ${framePaths.length - 1
-      }) from an Instagram cooking reel. ` +
+      `You are a food photography expert. You are given a grid containing ${framePaths.length} frames ` +
+      `(numbered 0 to ${framePaths.length - 1}) from an Instagram cooking reel. ` +
       'Your task: identify the 5 frames that best show the FINISHED, fully plated or cooked dish in the most appetizing way. ' +
       'Prefer frames where the food fills most of the image. Ignore frames that only show the cook/presenter, raw ingredients, text overlays, or partial preparation steps. ' +
-      'Respond with ONLY a comma-separated list of the 5 best frame indices, ordered from absolute best to worst (e.g. "14, 12, 15, 8, 2"). The FIRST index MUST be the absolute best representative of the final dish. No explanation.';
+      `Respond with ONLY a comma-separated list of the 5 best frame indices, ordered from absolute best to worst (e.g. "14, 12, 15, 8, 2"). ` +
+      'The FIRST index MUST be the absolute best representative of the final dish. No explanation.';
 
-    const result = await model.generateContent([...imageParts, prompt]);
+    console.log('[selectBestFoodFrame] Requesting best frames from Gemini...');
+    const result = await model.generateContent([
+      {
+        fileData: {
+          fileUri: uploadResult.file.uri,
+          mimeType: 'image/jpeg',
+        },
+      },
+      prompt,
+    ]);
+
     rawOutput = result.response.text().trim();
     
     let indices = rawOutput
@@ -362,9 +372,19 @@ export async function selectBestFoodFrame(framePaths: string[]): Promise<number[
     });
     throw err;
   } finally {
-    // Cleanup all uploaded frames from Gemini File API
-    await Promise.allSettled(
-      uploadedFileNames.map((name) => fileManager.deleteFile(name))
-    );
+    // Clean up uploaded grid image from Gemini File API
+    if (uploadResult?.file?.name) {
+      try {
+        await fileManager.deleteFile(uploadResult.file.name);
+      } catch (err: any) {
+        console.error(`Failed to clean up file ${uploadResult.file.name} from Gemini File API:`, err.message);
+      }
+    }
+    // Clean up local grid image
+    try {
+      await fs.unlink(gridPath);
+    } catch {
+      // Ignore if it was not created or already deleted
+    }
   }
 }
