@@ -6,9 +6,12 @@ import {
   Clock, 
   Utensils, 
   ListChecks, 
+  ChevronLeft,
   ChevronRight, 
   ChefHat,
-  X
+  X,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import type { Recipe, Ingredient, InstructionStep } from '../types';
 
@@ -25,18 +28,129 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
   const [isCopied, setIsCopied] = useState(false);
 
   // Fullscreen image state
-  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(null);
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [swipeTranslation, setSwipeTranslation] = useState(0);
+
+  const fullscreenContainerRef = useRef<HTMLDivElement>(null);
+
+  // Derive images list
+  const images = recipe.imageUrls && recipe.imageUrls.length > 0
+    ? recipe.imageUrls
+    : (recipe.imageUrl ? [recipe.imageUrl] : []);
 
   useEffect(() => {
-    if (fullscreenImage) {
+    if (fullscreenIndex !== null) {
       document.body.style.overflow = 'hidden';
+      // Auto focus container to listen for keyboard events
+      setTimeout(() => {
+        fullscreenContainerRef.current?.focus();
+      }, 50);
     } else {
       document.body.style.overflow = 'unset';
+      setScale(1);
+      setOffset({ x: 0, y: 0 });
+      setSwipeTranslation(0);
     }
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [fullscreenImage]);
+  }, [fullscreenIndex]);
+
+  const handleNextImage = () => {
+    if (fullscreenIndex === null) return;
+    if (fullscreenIndex < images.length - 1) {
+      setFullscreenIndex(fullscreenIndex + 1);
+      setScale(1);
+      setOffset({ x: 0, y: 0 });
+    }
+  };
+
+  const handlePrevImage = () => {
+    if (fullscreenIndex === null) return;
+    if (fullscreenIndex > 0) {
+      setFullscreenIndex(fullscreenIndex - 1);
+      setScale(1);
+      setOffset({ x: 0, y: 0 });
+    }
+  };
+
+  const handleDoubleTap = () => {
+    if (scale > 1) {
+      setScale(1);
+      setOffset({ x: 0, y: 0 });
+    } else {
+      setScale(2.5);
+      setOffset({ x: 0, y: 0 });
+    }
+  };
+
+  const handleFullscreenPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return; // Only left click / touch
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsDraggingImage(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleFullscreenPointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingImage) return;
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+
+    if (scale > 1) {
+      // Pan the image itself
+      setOffset(prev => ({
+        x: prev.x + dx,
+        y: prev.y + dy
+      }));
+      setDragStart({ x: e.clientX, y: e.clientY });
+    } else {
+      // Swipe visual preview
+      if (images.length > 1) {
+        setSwipeTranslation(dx);
+      }
+    }
+  };
+
+  const handleFullscreenPointerUp = (e: React.PointerEvent) => {
+    if (!isDraggingImage) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (err) {
+      // Ignore capture release errors
+    }
+    setIsDraggingImage(false);
+
+    if (scale === 1 && images.length > 1 && fullscreenIndex !== null) {
+      const threshold = 80;
+      if (swipeTranslation < -threshold && fullscreenIndex < images.length - 1) {
+        handleNextImage();
+      } else if (swipeTranslation > threshold && fullscreenIndex > 0) {
+        handlePrevImage();
+      }
+    }
+    setSwipeTranslation(0);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setFullscreenIndex(null);
+    } else if (e.key === 'ArrowRight') {
+      handleNextImage();
+    } else if (e.key === 'ArrowLeft') {
+      handlePrevImage();
+    }
+  };
+
+  const handleFullscreenContainerClick = (e: React.MouseEvent) => {
+    // Close only when clicking outside controls and the active image slide
+    if (e.target === e.currentTarget) {
+      setFullscreenIndex(null);
+    }
+  };
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -99,9 +213,9 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
     scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  const handleImageClick = (src: string) => {
+  const handleImageClick = (idx: number) => {
     if (!hasDragged) {
-      setFullscreenImage(src);
+      setFullscreenIndex(idx);
     }
   };
 
@@ -184,7 +298,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
                       draggable={false}
                       alt={`${recipe.title} - view ${idx + 1}`}
                       className="w-full h-56 object-cover object-center transition-transform duration-300"
-                      onClick={() => handleImageClick(src)}
+                      onClick={() => handleImageClick(idx)}
                     />
                     <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full pointer-events-none opacity-80 backdrop-blur-sm">
                       {idx + 1} / {recipe.imageUrls?.length}
@@ -201,8 +315,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
               alt={recipe.title} 
               className="w-full h-56 object-cover object-center cursor-pointer"
               onClick={() => {
-                const src = recipe.imageUrl!.startsWith('/') ? recipe.imageUrl! : `/api/image?url=${encodeURIComponent(recipe.imageUrl!)}`;
-                setFullscreenImage(src);
+                setFullscreenIndex(0);
               }}
             />
           </div>
@@ -426,24 +539,115 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
       </Tabs>
 
       {/* Fullscreen Image Overlay */}
-      {fullscreenImage && (
+      {fullscreenIndex !== null && images.length > 0 && (
         <div 
-          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-0 m-0 cursor-zoom-out"
-          onClick={() => setFullscreenImage(null)}
+          ref={fullscreenContainerRef}
+          className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-0 m-0 select-none overflow-hidden touch-none outline-none"
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+          onClick={handleFullscreenContainerClick}
         >
-          <Button
-            isIconOnly
-            variant="ghost"
-            onPress={() => setFullscreenImage(null)}
-            className="absolute top-4 right-4 z-[101] text-white/70 hover:text-white border-none"
+          {/* Top Controls Overlay */}
+          <div className="absolute top-4 right-4 z-[101] flex items-center gap-2">
+            {/* Zoom Toggle Button */}
+            <Button
+              isIconOnly
+              variant="ghost"
+              onPress={handleDoubleTap}
+              className="text-white/70 hover:text-white bg-black/40 hover:bg-black/60 rounded-full border-none"
+              aria-label={scale > 1 ? "Zoom Out" : "Zoom In"}
+            >
+              {scale > 1 ? <ZoomOut size={22} /> : <ZoomIn size={22} />}
+            </Button>
+            {/* Close Button */}
+            <Button
+              isIconOnly
+              variant="ghost"
+              onPress={() => setFullscreenIndex(null)}
+              className="text-white/70 hover:text-white bg-black/40 hover:bg-black/60 rounded-full border-none"
+              aria-label="Close fullscreen"
+            >
+              <X size={22} />
+            </Button>
+          </div>
+
+          {/* Carousel Slider */}
+          <div 
+            className="w-full h-full flex items-center justify-center relative"
+            onPointerDown={handleFullscreenPointerDown}
+            onPointerMove={handleFullscreenPointerMove}
+            onPointerUp={handleFullscreenPointerUp}
+            onPointerCancel={handleFullscreenPointerUp}
+            onDoubleClick={handleDoubleTap}
           >
-            <X size={32} />
-          </Button>
-          <img 
-            src={fullscreenImage} 
-            alt="Fullscreen view" 
-            className="max-w-full max-h-[100dvh] object-contain"
-          />
+            <div
+              className={`flex w-full h-full ${!isDraggingImage ? 'transition-transform duration-300 ease-out' : ''}`}
+              style={{
+                transform: `translateX(calc(-${fullscreenIndex * 100}% + ${swipeTranslation}px))`
+              }}
+            >
+              {images.map((imgUrl, idx) => {
+                const src = imgUrl.startsWith('/') ? imgUrl : `/api/image?url=${encodeURIComponent(imgUrl)}`;
+                return (
+                  <div 
+                    key={idx} 
+                    className="w-full h-full shrink-0 flex items-center justify-center overflow-hidden"
+                    onClick={(e) => {
+                      // Prevent background click handler from closing when clicking inside the slide
+                      e.stopPropagation();
+                    }}
+                  >
+                    <img 
+                      src={src}
+                      alt={`Fullscreen view ${idx + 1}`} 
+                      draggable={false}
+                      className="max-w-full max-h-[100dvh] object-contain select-none pointer-events-auto"
+                      style={{
+                        transform: idx === fullscreenIndex ? `translate(${offset.x}px, ${offset.y}px) scale(${scale})` : 'scale(1)',
+                        cursor: idx === fullscreenIndex && scale > 1 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
+                        transition: idx === fullscreenIndex && !isDraggingImage ? 'transform 200ms ease-out' : 'none',
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Navigation Arrows (Desktop) */}
+          {images.length > 1 && scale === 1 && (
+            <>
+              {fullscreenIndex > 0 && (
+                <Button
+                  isIconOnly
+                  variant="ghost"
+                  onPress={handlePrevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-[101] text-white/50 hover:text-white bg-black/30 hover:bg-black/60 rounded-full border-none hidden md:flex"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft size={28} />
+                </Button>
+              )}
+              {fullscreenIndex < images.length - 1 && (
+                <Button
+                  isIconOnly
+                  variant="ghost"
+                  onPress={handleNextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-[101] text-white/50 hover:text-white bg-black/30 hover:bg-black/60 rounded-full border-none hidden md:flex"
+                  aria-label="Next image"
+                >
+                  <ChevronRight size={28} />
+                </Button>
+              )}
+            </>
+          )}
+
+          {/* Page Indicator */}
+          {images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full pointer-events-none z-[101] backdrop-blur-sm">
+              {fullscreenIndex + 1} / {images.length}
+            </div>
+          )}
         </div>
       )}
     </article>
