@@ -61,9 +61,31 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
-    if (e.pointerType !== 'mouse') return;
+    if (e.pointerType !== 'mouse' || !scrollContainerRef.current) return;
     e.currentTarget.releasePointerCapture(e.pointerId);
     setIsDragging(false);
+
+    const dragDistance = (e.clientX - scrollContainerRef.current.offsetLeft) - startX;
+    const containerWidth = scrollContainerRef.current.clientWidth;
+    
+    // If dragged more than 50px, act as a swipe
+    if (Math.abs(dragDistance) > 50) {
+      const direction = dragDistance < 0 ? 1 : -1; // drag left means go next
+      const currentIndex = Math.round(scrollLeft / containerWidth);
+      const nextIndex = Math.max(0, Math.min(currentIndex + direction, (recipe.imageUrls?.length || 1) - 1));
+      
+      scrollContainerRef.current.scrollTo({
+        left: nextIndex * containerWidth,
+        behavior: 'smooth'
+      });
+    } else {
+      // Snap back to current image if not dragged enough
+      const currentIndex = Math.round(scrollLeft / containerWidth);
+      scrollContainerRef.current.scrollTo({
+        left: currentIndex * containerWidth,
+        behavior: 'smooth'
+      });
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
