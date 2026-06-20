@@ -25,6 +25,7 @@ import {
   categoryOrder, 
   legacyCategoryMap
 } from '../i18n';
+import { useDialog } from '../context/DialogContext';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
@@ -32,6 +33,7 @@ interface RecipeDetailsProps {
 }
 
 export default function RecipeDetails({ recipe, onAddIngredients }: RecipeDetailsProps) {
+  const dialog = useDialog();
   // Checklists state (persisted in localStorage!)
   const {
     checkedIngredients,
@@ -134,7 +136,11 @@ export default function RecipeDetails({ recipe, onAddIngredients }: RecipeDetail
     });
 
     if (itemsToAdd.length === 0) {
-      alert('Alle Zutaten dieses Rezepts sind bereits abgehakt!');
+      dialog.alert({
+        title: 'Bereits hinzugefügt',
+        message: 'Alle Zutaten dieses Rezepts sind bereits abgehakt!',
+        status: 'warning'
+      });
       return;
     }
 
