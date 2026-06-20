@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@heroui/react';
 import { Key, ChefHat } from 'lucide-react';
 
-import type { Recipe, Job } from './types';
+import type { Recipe, Job, BeforeInstallPromptEvent } from './types';
 import ThemeToggle from './components/ThemeToggle';
 import ApiConfig from './components/ApiConfig';
 import InstallBanner from './components/InstallBanner';
@@ -31,7 +31,7 @@ export default function App() {
 
   // PWA states
   const [isInstallable, setIsInstallable] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installStatus, setInstallStatus] = useState<'installed' | 'standalone' | 'browser'>('browser');
 
   // History & Multi-view states
@@ -54,7 +54,7 @@ export default function App() {
   }, [theme]);
 
   // Fetch recipe extraction history
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     try {
       const response = await fetch('/api/jobs', {
         headers: {
@@ -68,12 +68,15 @@ export default function App() {
     } catch (err) {
       console.error('Failed to fetch history:', err);
     }
-  };
+  }, [apiKey]);
 
   // Fetch history on load and when API key changes
   useEffect(() => {
-    fetchHistory();
-  }, [apiKey]);
+    const timer = setTimeout(() => {
+      fetchHistory();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchHistory]);
 
   const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -106,15 +109,18 @@ export default function App() {
   // Check display mode
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    if (isStandalone) {
-      setInstallStatus('standalone');
-    } else if ((window.navigator as any).standalone) {
-      setInstallStatus('standalone');
+    const isIOSStandalone = 'standalone' in window.navigator && 
+      (window.navigator as Navigator & { standalone?: boolean }).standalone;
+
+    if (isStandalone || isIOSStandalone) {
+      setTimeout(() => {
+        setInstallStatus('standalone');
+      }, 0);
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 
@@ -125,25 +131,7 @@ export default function App() {
     };
   }, []);
 
-  // Web Share Target Interceptor
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const text = params.get('text');
-    const urlParam = params.get('url');
-    const title = params.get('title');
 
-    if (text || urlParam || title) {
-      const combinedSearch = [text, urlParam, title].filter(Boolean).join(' ');
-      const regex = /(https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels|p)\/[A-Za-z0-9_-]+)/i;
-      const match = combinedSearch.match(regex);
-      if (match) {
-        const extractedUrl = match[1];
-        setUrl(extractedUrl);
-        window.history.replaceState({}, document.title, '/');
-        triggerExtraction(extractedUrl);
-      }
-    }
-  }, []);
 
   const saveApiKey = (newKey: string) => {
     setApiKey(newKey);
@@ -207,7 +195,7 @@ export default function App() {
           setJobError(job.error || 'The recipe extraction failed.');
           setIsPending(false);
         }
-      } catch (err: any) {
+      } catch {
         clearInterval(interval);
         setJobStatus('failed');
         setJobError('Lost connection to backend server.');
@@ -247,12 +235,37 @@ export default function App() {
 
       setJobStatus(data.status);
       startPolling(data.jobId);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setJobStatus('failed');
-      setJobError(err.message || 'An error occurred during submission.');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during submission.';
+      setJobError(errorMessage);
       setIsPending(false);
     }
   };
+
+  // Web Share Target Interceptor
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const text = params.get('text');
+    const urlParam = params.get('url');
+    const title = params.get('title');
+
+    if (text || urlParam || title) {
+      const combinedSearch = [text, urlParam, title].filter(Boolean).join(' ');
+      const regex = /(https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels|p)\/[A-Za-z0-9_-]+)/i;
+      const match = combinedSearch.match(regex);
+      if (match) {
+        const extractedUrl = match[1];
+        window.history.replaceState({}, document.title, '/');
+        // Defer state update to avoid calling setState synchronously in effect
+        setTimeout(() => {
+          setUrl(extractedUrl);
+          triggerExtraction(extractedUrl);
+        }, 0);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -369,7 +382,7 @@ export default function App() {
             />
 
             {/* Recipe Display Card */}
-            {recipe && <RecipeDetails recipe={recipe} />}
+            {recipe && <RecipeDetails key={recipe.title} recipe={recipe} />}
           </>
         ) : (
           /* SAVED RECIPES TAB */

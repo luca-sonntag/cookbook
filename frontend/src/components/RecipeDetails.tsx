@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, Button, Tabs } from '@heroui/react';
 import { 
   Check, 
@@ -23,11 +23,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
   // Copy state (encapsulated locally!)
   const [isCopied, setIsCopied] = useState(false);
 
-  // Reset checklists when recipe changes
-  useEffect(() => {
-    setCheckedIngredients({});
-    setCheckedSteps({});
-  }, [recipe]);
+
 
   const toggleIngredient = (name: string) => {
     setCheckedIngredients(prev => ({

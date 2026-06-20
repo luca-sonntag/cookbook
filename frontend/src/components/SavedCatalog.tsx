@@ -46,7 +46,7 @@ export default function SavedCatalog({
             </a>
           </div>
 
-          {selectedJob.recipe && <RecipeDetails recipe={selectedJob.recipe} />}
+          {selectedJob.recipe && <RecipeDetails key={selectedJob.id} recipe={selectedJob.recipe} />}
         </div>
       ) : (
         /* LIST VIEW OF SAVED RECIPES */
