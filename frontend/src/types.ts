@@ -3,6 +3,7 @@ export interface Ingredient {
   amount: number;
   unit: string;
   notes?: string;
+  category?: string;
 }
 
 export interface IngredientGroup {
@@ -75,6 +76,7 @@ export interface ShoppingListItem {
   checked: boolean;
   notes?: string;
   createdAt: string;
+  category?: string;
 }
 
 export interface AggregatedShoppingItem {
@@ -82,6 +84,7 @@ export interface AggregatedShoppingItem {
   unit: string;
   amount: number;
   checked: boolean;
+  category?: string;
   sources: { recipeId?: string; recipeTitle?: string; amount: number; unit: string }[];
 }
 

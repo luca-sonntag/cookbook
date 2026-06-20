@@ -3,6 +3,7 @@ export interface Ingredient {
   amount: number;
   unit: string;
   notes?: string;
+  category?: string;
 }
 
 export interface IngredientGroup {
