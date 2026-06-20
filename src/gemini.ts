@@ -206,6 +206,8 @@ Also, provide an accurate transcription of the spoken audio track in the "transc
 
 Translate and write the entire final recipe output (including title, description, ingredient group names, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, and the transcript) into the following language: ${config.RECIPE_LANGUAGE}.
 
+CRITICAL INSTRUCTION FOR MISSING DATA: If any information for a specific field is missing, not mentioned, or not specified in the reel, you MUST leave that field completely empty (e.g., use an empty string "", null, or an empty array [], depending on the field type). Do NOT under any circumstances use placeholder text like "Daten nicht spezifiziert", "Nicht angegeben", "N/A", "None", or similar. If it's missing, leave it empty.
+
 Description/Caption:
 """
 ${caption}
