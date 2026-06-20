@@ -22,9 +22,10 @@ import { useRecipeProgress } from '../hooks/useRecipeProgress';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
+  onAddIngredients?: (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => void;
 }
 
-export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
+export default function RecipeDetails({ recipe, onAddIngredients }: RecipeDetailsProps) {
   // Checklists state (persisted in localStorage!)
   const {
     checkedIngredients,
@@ -37,12 +38,14 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
   const {
     servings,
     setServings,
+    scaleFactor,
     formatAmount,
     formatNutritionValue
   } = useRecipeScaling(recipe);
 
-  // Copy state (encapsulated locally!)
+  // Added/copied states (encapsulated locally!)
   const [isCopied, setIsCopied] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
 
   // Derive images list
   const images = recipe.imageUrls && recipe.imageUrls.length > 0
@@ -74,8 +77,37 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
     handlePointerMove,
     handleImageClick,
   } = useImageGallery(images);
+  const handleAddToShoppingList = () => {
+    if (!onAddIngredients) return;
 
+    const itemsToAdd: Ingredient[] = [];
+    recipe.ingredients.forEach((group: IngredientGroup, groupIdx) => {
+      group.items.forEach((ing, idx) => {
+        const uniqueId = `${ing.name}-${groupIdx}-${idx}`;
+        const isChecked = !!checkedIngredients[uniqueId];
+        if (!isChecked) {
+          const baseAmount = ing.amount || 0;
+          const scaledAmount = baseAmount * scaleFactor;
+          itemsToAdd.push({
+            name: ing.name,
+            amount: scaledAmount,
+            unit: ing.unit || '',
+            notes: ing.notes
+          });
+        }
+      });
+    });
 
+    if (itemsToAdd.length === 0) {
+      alert('Alle Zutaten dieses Rezepts sind bereits abgehakt!');
+      return;
+    }
+
+    const recipeId = recipe.id || recipe.title;
+    onAddIngredients(itemsToAdd, recipeId, recipe.title);
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
+  };
 
   const copyRecipeMarkdown = () => {
     let md = `# ${recipe.title}\n\n${recipe.description}\n\n`;
@@ -327,6 +359,26 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
                 </div>
               ))}
             </div>
+            {onAddIngredients && (
+              <Button
+                className={`w-full mt-5 py-2.5 rounded-xl font-semibold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-white ${
+                  isAdded ? 'bg-emerald-500' : 'bg-emerald-600 hover:bg-emerald-500'
+                }`}
+                onPress={handleAddToShoppingList}
+              >
+                {isAdded ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>In Einkaufsliste hinzugefügt!</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Zur Einkaufsliste hinzufügen</span>
+                  </>
+                )}
+              </Button>
+            )}
           </Card>
 
           {recipe.alternativeIngredients && recipe.alternativeIngredients.length > 0 && (

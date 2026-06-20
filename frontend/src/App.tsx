@@ -11,10 +11,12 @@ import ProgressTracker from './components/ProgressTracker';
 import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog';
+import ShoppingList from './components/ShoppingList';
 
 import { useTheme } from './hooks/useTheme';
 import { usePwaInstall } from './hooks/usePwaInstall';
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
+import { useShoppingList } from './hooks/useShoppingList';
 
 export default function App() {
   // Config & Secrets
@@ -25,12 +27,21 @@ export default function App() {
 
   // History & Multi-view states
   const [history, setHistory] = useState<Job[]>([]);
-  const [activeView, setActiveView] = useState<'extract' | 'history'>('history');
+  const [activeView, setActiveView] = useState<'extract' | 'history' | 'shopping-list'>('history');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
-  // Custom Hooks for Theme, PWA Installation, and Recipe Extraction
+  // Custom Hooks for Theme, PWA Installation, Recipe Extraction, and Shopping List
   const [theme, setTheme] = useTheme();
   const { isInstallable, installStatus, handleInstallClick } = usePwaInstall();
+  const {
+    aggregatedList,
+    addRecipeIngredients,
+    addCustomItem,
+    toggleItemGroup,
+    deleteItemGroup,
+    clearAll,
+    clearChecked
+  } = useShoppingList();
 
   // Fetch recipe extraction history
   const fetchHistory = useCallback(async () => {
@@ -209,6 +220,16 @@ export default function App() {
           >
             Gespeicherte Rezepte ({history.filter(h => h.status === 'completed').length})
           </button>
+          <button
+            onClick={() => setActiveView('shopping-list')}
+            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+              activeView === 'shopping-list' 
+                ? 'bg-emerald-600 text-white shadow-lg' 
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            Einkaufsliste {aggregatedList.unchecked.length > 0 && `(${aggregatedList.unchecked.length})`}
+          </button>
         </div>
 
         {/* API config drawer */}
@@ -242,15 +263,32 @@ export default function App() {
             />
 
             {/* Recipe Display Card */}
-            {recipe && <RecipeDetails key={recipe.title} recipe={recipe} />}
+            {recipe && (
+              <RecipeDetails 
+                key={recipe.id || recipe.title} 
+                recipe={recipe} 
+                onAddIngredients={addRecipeIngredients} 
+              />
+            )}
           </>
-        ) : (
+        ) : activeView === 'history' ? (
           /* SAVED RECIPES TAB */
           <SavedCatalog 
             history={history} 
             selectedJob={selectedJob} 
             setSelectedJob={setSelectedJob} 
             handleDeleteJob={handleDeleteJob} 
+            onAddIngredients={addRecipeIngredients}
+          />
+        ) : (
+          /* SHOPPING LIST TAB */
+          <ShoppingList
+            aggregatedList={aggregatedList}
+            addCustomItem={addCustomItem}
+            toggleItemGroup={toggleItemGroup}
+            deleteItemGroup={deleteItemGroup}
+            clearAll={clearAll}
+            clearChecked={clearChecked}
           />
         )}
       </main>

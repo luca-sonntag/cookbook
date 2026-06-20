@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Button } from '@heroui/react';
 import { Globe, Utensils, Clock, Trash2, ArrowLeft } from 'lucide-react';
-import type { Job } from '../types';
+import type { Job, Ingredient } from '../types';
 import RecipeDetails from './RecipeDetails';
 import { useMobileNavigationBack } from '../hooks/useMobileNavigationBack';
 
@@ -10,13 +10,15 @@ interface SavedCatalogProps {
   selectedJob: Job | null;
   setSelectedJob: (job: Job | null) => void;
   handleDeleteJob: (e: React.MouseEvent, id: string) => void;
+  onAddIngredients?: (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => void;
 }
 
 export default function SavedCatalog({
   history,
   selectedJob,
   setSelectedJob,
-  handleDeleteJob
+  handleDeleteJob,
+  onAddIngredients
 }: SavedCatalogProps) {
   const completedJobs = history.filter(h => h.status === 'completed' && h.recipe);
 
@@ -55,7 +57,13 @@ export default function SavedCatalog({
             </div>
           </div>
 
-          {selectedJob.recipe && <RecipeDetails key={selectedJob.id} recipe={selectedJob.recipe} />}
+          {selectedJob.recipe && (
+            <RecipeDetails 
+              key={selectedJob.id} 
+              recipe={selectedJob.recipe} 
+              onAddIngredients={onAddIngredients} 
+            />
+          )}
         </div>
       ) : (
         /* LIST VIEW OF SAVED RECIPES */
