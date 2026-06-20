@@ -44,6 +44,20 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
     return Math.round(scaled * 100) / 100;
   };
 
+  const formatNutritionValue = (val: string | number | undefined | null) => {
+    if (val === undefined || val === null) return '';
+    if (typeof val === 'number') {
+      return Math.round(val * scaleFactor);
+    }
+    const match = val.match(/^([\d.,]+)\s*([a-zA-Z%]*)$/);
+    if (!match) return val;
+    const numPart = parseFloat(match[1].replace(',', '.'));
+    if (isNaN(numPart)) return val;
+    const scaled = Math.round(numPart * scaleFactor * 10) / 10;
+    const unit = match[2] || 'g';
+    return `${scaled}${unit}`;
+  };
+
   // Copy state (encapsulated locally!)
   const [isCopied, setIsCopied] = useState(false);
 
@@ -418,19 +432,19 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
             <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Nutritional Estimates</h4>
             <div className="grid grid-cols-4 gap-2 text-center text-xs">
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{recipe.nutritionalEstimates.calories}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.calories)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">kcal</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{recipe.nutritionalEstimates.protein}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.protein)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">Protein</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{recipe.nutritionalEstimates.carbs}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.carbs)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">Carbs</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{recipe.nutritionalEstimates.fat}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.fat)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">Fat</div>
               </div>
             </div>
