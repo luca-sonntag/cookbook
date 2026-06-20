@@ -27,9 +27,12 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 
 ### 3. KI-Layer (Google Gemini)
 
-* **Technologie:** `@google/generative-ai` SDK (Gemini 1.5/2.5/3.1 Flash).
+* **Technologie:** `@google/generative-ai` SDK (Gemini 1.5/2.5/3.1/3.5 Flash).
 * **Funktion:** Die Audiodatei wird über die Google AI File API hochgeladen. Gemini verarbeitet Audio und Text (`caption`) in einem einzigen multimodalen Aufruf.
-* **Structured Outputs:** Gemini wird durch ein strenges JSON-Schema gezwungen, das Rezept exakt nach einem detaillierten Schema (Titel, Beschreibung, Zutaten mit Mengen/Einheiten, Schritte, Ausrüstung, Nährwertschätzungen, Kochtipps und Alternativzutaten) zu strukturieren.
+* **Structured Outputs & Clean Parsing:** Gemini wird durch ein strenges JSON-Schema gezwungen, das Rezept exakt nach einem detaillierten Schema (Titel, Beschreibung, Zutaten mit Mengen/Einheiten, Schritte, Ausrüstung, Nährwertschätzungen, Kochtipps und Alternativzutaten) zu strukturieren.
+  * **Kategorisierung & Standardisierung:** Das Schema erzwingt die Zuordnung von Zutaten in feste englische Enum-Supermarktkategorien (z.B. `PRODUCE`, `DAIRY_EGGS`) und generiert pro Zutat einen `baseName` (z.B. "Zwiebel" statt "rote Zwiebeln") für eine deterministische Gruppierung in der Einkaufsliste.
+  * **Bereinigung der Zutatennamen:** Zutatennamen (`name`) werden im Prompt explizit von Mengen, Zahlen und Maßeinheiten gesäubert; diese Daten fließen sauber in die dedizierten Felder `amount` und `unit`.
+  * **Dekomposition von Verbundzutaten:** Im Prompt ist geregelt, dass während des Rezept-Videos zubereitete Verbundkomponenten (wie "Smash Burger Patties" oder "selbstgemachtes Pesto") in ihre atomaren Rohbestandteile zersetzt werden müssen (z. B. Rinderhack, Chesterkäse, Basilikum, Olivenöl), anstatt das fertige Zwischenprodukt als Zutat aufzuführen.
 * **Auto-Cleanup:** Lokale Audiodateien und Google-API-Dateien werden nach der Verarbeitung sofort gelöscht.
 
 ### 4. Frontend- & PWA-Layer (React & HeroUI)
@@ -37,13 +40,20 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 * **Technologie:** React 19, Vite, TypeScript, HeroUI v3 (React Aria-basiert), Tailwind CSS v4, `vite-plugin-pwa` (Service Worker & Manifest).
   * **Architektur & Modul-Struktur (React Best Practices):**
     * **Schlanker App-Shell (`App.tsx`):** Die Hauptkomponente ist modular gestaltet und delegiert komplexe Zustände an spezialisierte Custom Hooks.
+    * **Zentralisierte Kontexte (`frontend/src/context/`):**
+      * **`DialogContext.tsx`:** Stellt einen globalen Dialog-Service (`useDialog()`) bereit, um native Browser-Dialoge (`confirm` / `alert`) durch moderne, nicht-blockierende HeroUI-Dialoge mit wählbaren Status (z. B. `danger`, `warning`) zu ersetzen.
+    * **Lokalisierung & Übersetzung (`frontend/src/i18n.ts`):**
+      * Verwaltet das Übersetzungsmapping für Supermarktabteilungen (`IngredientCategory`).
+      * Ordnet den Kategorien passende Emojis/Icons zu.
+      * Definiert die Supermarkt-Laufrichtung zur Sortierung von Zutaten.
+      * Mappt über `legacyCategoryMap` alte Rezeptkategorien transparent auf das neue Schema, um Abwärtskompatibilität zu sichern.
     * **Zentralisierte Hooks (`frontend/src/hooks/`):**
       * **`useTheme.ts`:** Steuert das clientseitige Umschalten des Hell- und Dunkelmodus und persistiert die Einstellung im `localStorage`.
       * **`usePwaInstall.ts`:** Kapselt das Abfangen des `beforeinstallprompt`-Events und steuert die Installationslogik.
-      * **`useRecipeExtraction.ts`:** Orchestriert die Validierung der URLs, die Job-Übermittlung und das asynchrone Polling des Queue-Status.
+      * **`useRecipeExtraction.ts`:** Orchestriert die Validierung der URLs, die Job-Übermittlung und das asynchrone Polling des Queue-Status, gekoppelt mit dynamischen Lade-Animationen.
       * **`useRecipeScaling.ts`:** Berechnet Skalierungsfaktoren für Zutaten und Nährwerte. Discrete Einheiten (z.B. Stück, Zehen, EL, TL) werden in küchenübliche gemischte Brüche (z.B. `1 ½`) formatiert, während kontinuierliche Gewichte/Volumina als Ganz- oder Dezimalzahlen gerendert werden. Die ausgewählte Portionsgröße wird persistent im `localStorage` unter Verwendung des ID-basierten Schlüssels gespeichert.
       * **`useRecipeProgress.ts`:** Persistiert den Abhakk-Zustand (Checklisten-Fortschritt) von Zutaten und Zubereitungsschritten im `localStorage` basierend auf der eindeutigen Rezept-ID.
-      * **`useShoppingList.ts`:** Verwaltet den Zustand der Einkaufsliste im `localStorage` (`recipe_shopping_list`), führt neue Rezepte rezept- und portionsgenau ein, filtert abgehakte Zutaten heraus und gruppiert/aggregiert gleiche Artikel rezeptübergreifend.
+      * **`useShoppingList.ts`:** Verwaltet den Zustand der Einkaufsliste im `localStorage` (`recipe_shopping_list`), führt neue Rezepte rezept- und portionsgenau ein, filtert abgehakte Zutaten heraus und gruppiert/aggregiert gleiche Artikel rezeptübergreifend. Die Gruppierung erfolgt intelligent auf Basis des von der KI generierten `baseName`.
       * **`useMobileNavigationBack.ts`:** Kapselt die native Browser-Verlaufssteuerung (`pushState`/`popstate`-Event-Listener) und mobile Wischgesten (Swipe-to-Go-Back), um eine native Mobile-Erfahrung beim Schließen der Detailansicht zu gewährleisten.
       * **`useImageGallery.ts`:** Übernimmt die komplexe Pointer-Mathematik für das horizontale Scrollen, Swipen, Double-Tap-to-Zoom und das freie Panning der Galeriebilder im Vollbildmodus.
     * **Komponententrennung (`frontend/src/components/`):**
@@ -51,12 +61,12 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **`ApiConfig.tsx`:** Settings-Panel zur API-Key-Verwaltung.
       * **`InstallBanner.tsx`:** Kapselt den PWA-Installationshinweis.
       * **`ExtractForm.tsx`:** Formular zur Eingabe und Validierung der Reels-URLs.
-      * **`ProgressTracker.tsx`:** Visualisiert den aktuellen Job-Status in Echtzeit.
+      * **`ProgressTracker.tsx`:** Visualisiert den aktuellen Job-Status in Echtzeit, untermalt durch dynamische Cooking-Fun-Facts, Fortschrittsbalken und humorvolle Ladebotschaften.
       * **`ErrorBanner.tsx`:** Zeigt detaillierte Fehler und ermöglicht erneutes Ausführen.
-      * **`RecipeDetails.tsx`:** Herzstück für Kochinteraktionen (Zutaten- und Zubereitungs-Checklisten, Portionsrechner, Meta-Statistiken, Nährwerttabellen, Markdown-Kopierfunktion sowie der *"Zur Einkaufsliste hinzufügen"*-Button).
+      * **`RecipeDetails.tsx`:** Herzstück für Kochinteraktionen (Zutaten- und Zubereitungs-Checklisten, Portionsrechner, Meta-Statistiken, Nährwerttabellen, Markdown-Kopierfunktion sowie der *"Zur Einkaufsliste hinzufügen"*-Button). Die Zutatengruppen werden hierbei sortiert nach Supermarktlaufrichtung samt Übersetzung und passenden Icons gerendert. Haken-Zustände bleiben dank stabiler `originalIdx`-IDs von Sortierungen unberührt.
       * **`SavedCatalog.tsx`:** Grid-Layout der Rezept-Historie inklusive Suchfilterung, Löschvorgängen und Weiterleitung von Einkaufslisten-Befehlen.
-      * **`ShoppingList.tsx`:** Anzeige und Interaktions-Panel der smarten Einkaufsliste. Beinhaltet ein Zettelformular für manuelle freie Einkäufe, Vorschlagsbuttons für Einheiten und getrennte Listen für noch zu kaufende und im Korb befindliche Artikel.
-    * **Typensicherheit (`src/types.ts`):** Zentralisierte TypeScript-Modelle für Rezepte, Zutaten, Nährwerte und API-Jobs. Nutzung von `type`-only Imports zur Einhaltung von Compiler-Richtlinien (wie `verbatimModuleSyntax`).
+      * **`ShoppingList.tsx`:** Anzeige und Interaktions-Panel der smarten Einkaufsliste. Beinhaltet ein Zettelformular für manuelle freie Einkäufe, Vorschlagsbuttons für Einheiten und getrennte Listen für noch zu kaufende und im Korb befindliche Artikel. Die noch zu kaufenden Artikel werden nach Supermarkt-Kategorien gruppiert und sortiert angezeigt.
+    * **Typensicherheit (`src/types.ts` & `frontend/src/types.ts`):** Zentralisierte TypeScript-Modelle für Rezepte, Zutaten, Nährwerte und API-Jobs. Nutzung von `type`-only Imports zur Einhaltung von Compiler-Richtlinien (wie `verbatimModuleSyntax`).
 * **Visuelles Design:** Theme-gesteuert (Hell- & Dunkelmodus) mit modernem Glassmorphismus und harmonischen Akzentfarben (Smaragdgrün/Emerald-Grün). Optimiert für mobile Displays mit flüssigen Übergängen.
 * **Theme-Steuerung:** Bietet einen Header-Schalter (Sonne/Mond), um das Erscheinungsbild umzuschalten. Die Auswahl wird im `localStorage` persistiert und ein Inline-Interceptor im `<head>` der `index.html` verhindert das Aufblitzen des hellen Designs beim App-Start.
 * **PWA & Share Target Integration:**
@@ -85,7 +95,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
    * Über das Tab-Menü "Saved Recipes" kann der Nutzer jederzeit auf den Verlauf zugreifen, alte Rezepte öffnen, kochen oder Rezepte dauerhaft löschen.
 9. **Smarte Einkaufsliste:**
    * Über den Button *"Zur Einkaufsliste hinzufügen"* im Rezept werden alle aktuell nicht abgehakten Zutaten skaliert in den `localStorage` geladen.
-   * Der Tab *"Einkaufsliste"* fasst Artikel mit identischen Einheiten summiert zusammen, weist deren Herkunftsrezepte sowie Mengen-Teile aus und erlaubt eigene freie Zettel-Einträge. Offene Einkäufe werden als Badge-Zahl in der Hauptnavigation visualisiert.
+   * Der Tab *"Einkaufsliste"* fasst Artikel mit identischen Einheiten und KI-standardisierten Namen (`baseName`) summiert zusammen, weist deren Herkunftsrezepte sowie Mengen-Teile aus und erlaubt eigene freie Zettel-Einträge. Offene Einkäufe werden als Badge-Zahl in der Hauptnavigation visualisiert.
 
 ---
 
