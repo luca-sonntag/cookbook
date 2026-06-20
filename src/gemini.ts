@@ -13,6 +13,7 @@ const fileManager = new GoogleAIFileManager(config.GEMINI_API_KEY);
 const recipeSchema = {
   type: FunctionDeclarationSchemaType.OBJECT,
   properties: {
+    isRecipe: { type: FunctionDeclarationSchemaType.BOOLEAN },
     title: { type: FunctionDeclarationSchemaType.STRING },
     description: { type: FunctionDeclarationSchemaType.STRING },
     prepTime: { type: FunctionDeclarationSchemaType.STRING },
@@ -75,6 +76,7 @@ const recipeSchema = {
     transcript: { type: FunctionDeclarationSchemaType.STRING },
   },
   required: [
+    'isRecipe',
     'title',
     'description',
     'prepTime',
@@ -142,7 +144,10 @@ export async function extractRecipeFromAudio(
     });
 
     const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.
-    
+
+First, determine if this reel actually contains a food recipe. If it does NOT contain a recipe (e.g. it's just a vlog, comedy, or unrelated content), set the "isRecipe" field to false, and fill the remaining required fields with empty or generic placeholder values (they will be ignored).
+If it IS a recipe, set "isRecipe" to true and extract the recipe as normal.
+
 Combine the two sources to reconstruct the complete recipe. The creator might mention specific measurements or ingredients in the audio that are missing or abbreviated in the text, and vice versa. Resolve any contradictions by prioritizing the instructions that make the most logical sense culinary-wise.
 
 Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
@@ -170,7 +175,13 @@ ${caption}
     }
 
     // Parse the output schema
-    const recipe: Recipe = JSON.parse(rawOutput);
+    const rawRecipe = JSON.parse(rawOutput);
+
+    if (rawRecipe.isRecipe === false) {
+      throw new Error('The provided video does not appear to contain a food recipe.');
+    }
+
+    const recipe: Recipe = rawRecipe;
 
     // Clean up transcript if there were no spoken words
     if (
@@ -186,10 +197,10 @@ ${caption}
     const usageMeta = result.response.usageMetadata;
     const tokenUsage: TokenUsage | undefined = usageMeta
       ? {
-          promptTokens:    usageMeta.promptTokenCount    ?? 0,
-          candidateTokens: usageMeta.candidatesTokenCount ?? 0,
-          totalTokens:     usageMeta.totalTokenCount      ?? 0,
-        }
+        promptTokens: usageMeta.promptTokenCount ?? 0,
+        candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+        totalTokens: usageMeta.totalTokenCount ?? 0,
+      }
       : undefined;
     const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
 
@@ -244,10 +255,10 @@ ${caption}
 
 /**
  * Uploads video frames to Gemini File API, asks which shows the finished dish
- * most appetizingly, and returns the index of the best frame.
+ * most appetizingly, and returns the top 5 indices.
  * All uploaded files are cleaned up afterwards.
  */
-export async function selectBestFoodFrame(framePaths: string[]): Promise<number> {
+export async function selectBestFoodFrame(framePaths: string[]): Promise<number[]> {
   const uploadedFileNames: string[] = [];
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
@@ -278,29 +289,32 @@ export async function selectBestFoodFrame(framePaths: string[]): Promise<number>
     const model = genAI.getGenerativeModel({ model: config.GEMINI_MODEL });
 
     const prompt =
-      `You are a food photography expert. You are given ${framePaths.length} frames (numbered 0 to ${
-        framePaths.length - 1
+      `You are a food photography expert. You are given ${framePaths.length} frames (numbered 0 to ${framePaths.length - 1
       }) from an Instagram cooking reel. ` +
-      'Your task: identify which single frame best shows the FINISHED, fully plated or cooked dish in the most appetizing way. ' +
+      'Your task: identify the 5 frames that best show the FINISHED, fully plated or cooked dish in the most appetizing way. ' +
       'Prefer frames where the food fills most of the image. Ignore frames that only show the cook/presenter, raw ingredients, text overlays, or partial preparation steps. ' +
-      'Respond with ONLY the integer index of the best frame (e.g. "3"). No explanation.';
+      'Respond with ONLY a comma-separated list of the 5 best frame indices, ordered from absolute best to worst (e.g. "14, 12, 15, 8, 2"). The FIRST index MUST be the absolute best representative of the final dish. No explanation.';
 
     const result = await model.generateContent([...imageParts, prompt]);
     rawOutput = result.response.text().trim();
-    const index = parseInt(rawOutput, 10);
+    
+    let indices = rawOutput
+      .split(',')
+      .map((s) => parseInt(s.trim(), 10))
+      .filter((n) => !isNaN(n) && n >= 0 && n < framePaths.length);
 
     // Extract token usage and compute cost
     const usageMeta = result.response.usageMetadata;
     const tokenUsage: TokenUsage | undefined = usageMeta
       ? {
-          promptTokens:    usageMeta.promptTokenCount    ?? 0,
-          candidateTokens: usageMeta.candidatesTokenCount ?? 0,
-          totalTokens:     usageMeta.totalTokenCount      ?? 0,
-        }
+        promptTokens: usageMeta.promptTokenCount ?? 0,
+        candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+        totalTokens: usageMeta.totalTokenCount ?? 0,
+      }
       : undefined;
     const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
 
-    if (isNaN(index) || index < 0 || index >= framePaths.length) {
+    if (indices.length === 0) {
       console.warn(`[selectBestFoodFrame] Unexpected response "${rawOutput}", defaulting to last frame`);
 
       await writeGeminiLog({
@@ -312,12 +326,12 @@ export async function selectBestFoodFrame(framePaths: string[]): Promise<number>
         error: `Unexpected index response: "${rawOutput}"`,
         input: { frameCount: framePaths.length, framePaths, prompt },
         rawOutput,
-        parsedOutput: { selectedIndex: framePaths.length - 1, fallback: true },
+        parsedOutput: { selectedIndices: [framePaths.length - 1], fallback: true },
         tokenUsage,
         costEstimate,
       });
 
-      return framePaths.length - 1; // last frame is often the finished dish
+      return [framePaths.length - 1]; // fallback
     }
 
     await writeGeminiLog({
@@ -328,12 +342,13 @@ export async function selectBestFoodFrame(framePaths: string[]): Promise<number>
       success: true,
       input: { frameCount: framePaths.length, framePaths, prompt },
       rawOutput,
-      parsedOutput: { selectedIndex: index },
+      parsedOutput: { selectedIndices: indices },
       tokenUsage,
       costEstimate,
     });
 
-    return index;
+    // Ensure we don't return more than 5
+    return indices.slice(0, 5);
   } catch (err: any) {
     await writeGeminiLog({
       timestamp,

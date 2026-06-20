@@ -34,7 +34,7 @@ async function downloadFile(url: string, destPath: string): Promise<string> {
 
         const mimeType = response.headers['content-type'] || 'audio/mp4';
         const fileStream = createWriteStream(destPath);
-        
+
         response.pipe(fileStream);
 
         fileStream.on('finish', () => {
@@ -44,7 +44,7 @@ async function downloadFile(url: string, destPath: string): Promise<string> {
         });
 
         fileStream.on('error', (err) => {
-          fs.unlink(destPath).catch(() => {});
+          fs.unlink(destPath).catch(() => { });
           reject(err);
         });
       });
@@ -102,38 +102,53 @@ async function processJob(jobId: string, url: string): Promise<void> {
     // 6. Run Gemini recipe extraction AND frame selection in parallel
     console.log(`[Job ${jobId}] Running recipe extraction and frame selection in parallel...`);
 
-    const frameSelectionPromise: Promise<string | null> = videoFilePath
+    const frameSelectionPromise: Promise<string[] | null> = videoFilePath
       ? (async () => {
-          try {
-            const { extractFrames } = await import('./frameExtractor.js');
-            const { selectBestFoodFrame } = await import('./gemini.js');
-            const framePaths = await extractFrames(videoFilePath, framesDir, 8);
-            console.log(`[Job ${jobId}] Extracted ${framePaths.length} frames, asking Gemini to pick best food shot...`);
-            const bestIndex = await selectBestFoodFrame(framePaths);
-            console.log(`[Job ${jobId}] Best frame selected: index ${bestIndex}`);
+        try {
+          const { extractFrames } = await import('./frameExtractor.js');
+          const { selectBestFoodFrame } = await import('./gemini.js');
+          const framePaths = await extractFrames(videoFilePath, framesDir, 16);
+          console.log(`[Job ${jobId}] Extracted ${framePaths.length} frames, asking Gemini to pick best food shots...`);
+          const bestIndices = await selectBestFoodFrame(framePaths);
+          console.log(`[Job ${jobId}] Best frames selected: indices ${bestIndices.join(', ')}`);
 
-            // Save best frame permanently as a local file
-            const recipeImagesDir = path.resolve('public', 'recipe-images');
-            await fs.mkdir(recipeImagesDir, { recursive: true });
-            const savedImagePath = path.join(recipeImagesDir, `${jobId}.jpg`);
-            await fs.copyFile(framePaths[bestIndex], savedImagePath);
-            return `/recipe-images/${jobId}.jpg`;
-          } catch (err: any) {
-            console.warn(`[Job ${jobId}] Frame selection failed (falling back to cover): ${err.message}`);
-            return null;
+          // Save best frames permanently as local files
+          const recipeImagesDir = path.resolve('public', 'recipe-images');
+          await fs.mkdir(recipeImagesDir, { recursive: true });
+          
+          const savedUrls: string[] = [];
+          for (let i = 0; i < bestIndices.length; i++) {
+            const idx = bestIndices[i];
+            const savedImagePath = path.join(recipeImagesDir, `${jobId}-${i}.jpg`);
+            await fs.copyFile(framePaths[idx], savedImagePath);
+            savedUrls.push(`/recipe-images/${jobId}-${i}.jpg`);
           }
-        })()
+
+          return savedUrls;
+        } catch (err: any) {
+          console.warn(`[Job ${jobId}] Frame selection failed (falling back to cover): ${err.message}`);
+          return null;
+        }
+      })()
       : Promise.resolve(null);
 
-    const [recipe, selectedImageUrl] = await Promise.all([
+    const [recipe, selectedImageUrls] = await Promise.all([
       extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption),
       frameSelectionPromise,
     ]);
 
     console.log(`[Job ${jobId}] Recipe extracted: "${recipe.title}"`);
 
-    // Assign image: prefer Gemini-selected frame, fall back to Apify cover thumbnail
-    recipe.imageUrl = selectedImageUrl ?? scrapeResult.imageUrl ?? null;
+    // Assign image: prefer Gemini-selected frames, fall back to Apify cover thumbnail
+    if (selectedImageUrls && selectedImageUrls.length > 0) {
+      recipe.imageUrls = selectedImageUrls;
+      recipe.imageUrl = selectedImageUrls[0];
+    } else {
+      recipe.imageUrl = scrapeResult.imageUrl ?? null;
+      if (recipe.imageUrl) {
+        recipe.imageUrls = [recipe.imageUrl];
+      }
+    }
 
     // 7. Update job as completed
     await updateJob(jobId, {
@@ -148,12 +163,10 @@ async function processJob(jobId: string, url: string): Promise<void> {
       error: error.message || 'Unknown error occurred during processing.',
     });
   } finally {
-    // 8. Cleanup local audio and video files
+    // 8. Cleanup local audio and video files (frames are kept for inspection)
     const cleanupPaths = [audioFilePath, videoFilePath].filter(Boolean);
-    await Promise.allSettled(cleanupPaths.map((p) => fs.unlink(p).catch(() => {})));
-    // Cleanup temp frames dir
-    await fs.rm(framesDir, { recursive: true, force: true }).catch(() => {});
-    console.log(`[Job ${jobId}] Temp files cleaned up.`);
+    await Promise.allSettled(cleanupPaths.map((p) => fs.unlink(p).catch(() => { })));
+    console.log(`[Job ${jobId}] Temp files cleaned up. Frames kept in: ${framesDir}`);
   }
 }
 

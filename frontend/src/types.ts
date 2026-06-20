@@ -37,6 +37,7 @@ export interface Recipe {
   alternativeIngredients?: AlternativeIngredient[];
   transcript?: string | null;
   imageUrl?: string | null;
+  imageUrls?: string[];
 }
 
 export interface Job {

@@ -24,6 +24,7 @@ export interface NutritionalEstimates {
 }
 
 export interface Recipe {
+  isRecipe?: boolean;
   title: string;
   description: string;
   prepTime: string; // e.g. "15 mins"
@@ -37,6 +38,7 @@ export interface Recipe {
   alternativeIngredients?: AlternativeIngredient[];
   transcript?: string | null;
   imageUrl?: string | null;
+  imageUrls?: string[];
 }
 
 export type JobStatus = 'pending' | 'scraping' | 'processing' | 'completed' | 'failed';

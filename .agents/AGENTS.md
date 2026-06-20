@@ -80,6 +80,6 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 * **Höchste Datenqualität:** Multimodale Erfassung löst Diskrepanzen zwischen geschriebener Bildunterschrift und gesprochenem Audio logisch auf.
 * **Native-artiges Mobile-Erlebnis:** Kein manuelles Kopieren/Einfügen von Links dank Web-Share-Target-Integration unter Android.
 * **Serverless Ready:** Keine Abhängigkeit von Binär-Tools wie FFmpeg. Geringer Memory-Footprint.
-* **Einfache Validierung:** Lokaler HTTP-Shortcut-Import (`/shortcuts`) sowie automatisierte Testläufe ermöglichen einfache Systemprüfung.
+* **Einfache Validierung:** Automatisierte Testläufe ermöglichen einfache Systemprüfung.
 * **Windows-Kompatibel:** Kompilierungsfreie JSON-DB verhindert Node-gyp-Fehler bei Windows-Systemen.
 

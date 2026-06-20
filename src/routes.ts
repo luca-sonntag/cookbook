@@ -10,7 +10,7 @@ apiRouter.use(requireApiKey);
 // Examples:
 // - https://www.instagram.com/reel/C8C_jApt_2j/
 // - https://instagram.com/reel/C8C_jApt_2j
-const INSTAGRAM_REEL_REGEX = /^(https?:\/\/)?(www\.)?instagram\.com\/reel\/[A-Za-z0-9_-]+\/?(\?.*)?$/;
+const INSTAGRAM_REEL_REGEX = /^(https?:\/\/)?(www\.)?instagram\.com\/(?:reel|reels|p)\/[A-Za-z0-9_-]+\/?(\?.*)?$/i;
 
 /**
  * Endpoint to submit an Instagram Reel URL for recipe extraction.

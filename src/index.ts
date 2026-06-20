@@ -69,19 +69,11 @@ async function bootstrap() {
       res.json({ status: 'OK', uptime: process.uptime() });
     });
 
-    // Serve HTTP Shortcuts import file for easy phone setup
-    app.get('/shortcuts', (req, res) => {
-      const jsonPath = path.resolve(__dirname, '..', 'http-shortcuts', 'recipe-extractor.json');
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 'attachment; filename="recipe-extractor.json"');
-      res.sendFile(jsonPath);
-    });
-
 
 
     // Fallback for React routing (SPA)
     app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api') || req.path.startsWith('/shortcuts') || req.path.startsWith('/health') || req.path.startsWith('/proxy')) {
+      if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/proxy')) {
         return next();
       }
       res.sendFile(path.resolve(frontendDistPath, 'index.html'));
@@ -93,7 +85,6 @@ async function bootstrap() {
       console.log(`API endpoints:`);
       console.log(`- POST http://localhost:${config.PORT}/api/extract-recipe`);
       console.log(`- GET  http://localhost:${config.PORT}/api/jobs/:id`);
-      console.log(`- GET  http://localhost:${config.PORT}/shortcuts  ← HTTP Shortcuts import URL`);
     });
 
     // Graceful shutdown handling

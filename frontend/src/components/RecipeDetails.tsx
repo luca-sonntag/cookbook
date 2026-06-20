@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Button, Tabs } from '@heroui/react';
+import { Card, Button, Tabs, Modal, ModalContent, ModalBody } from '@heroui/react';
 import { 
   Check, 
   Copy, 
@@ -7,7 +7,8 @@ import {
   Utensils, 
   ListChecks, 
   ChevronRight, 
-  ChefHat 
+  ChefHat,
+  X
 } from 'lucide-react';
 import type { Recipe, Ingredient, InstructionStep } from '../types';
 
@@ -22,6 +23,9 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
 
   // Copy state (encapsulated locally!)
   const [isCopied, setIsCopied] = useState(false);
+
+  // Fullscreen image state
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
 
 
@@ -83,15 +87,39 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
   return (
     <article className="flex flex-col gap-6">
       <Card className="glass-panel p-6 rounded-2xl overflow-hidden">
-        {recipe.imageUrl && (
-          <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5">
+        {/* Image Gallery */}
+        {(recipe.imageUrls && recipe.imageUrls.length > 0) ? (
+          <div className="-mt-6 -mx-6 mb-6 flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {recipe.imageUrls.map((img, idx) => {
+              const src = img.startsWith('/') ? img : `/api/image?url=${encodeURIComponent(img)}`;
+              return (
+                <div key={idx} className="w-full shrink-0 snap-center relative group">
+                  <img
+                    src={src}
+                    alt={`${recipe.title} - view ${idx + 1}`}
+                    className="w-full h-56 object-cover object-center cursor-pointer transition-transform duration-300"
+                    onClick={() => setFullscreenImage(src)}
+                  />
+                  <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full pointer-events-none opacity-80 backdrop-blur-sm">
+                    {idx + 1} / {recipe.imageUrls?.length}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : recipe.imageUrl ? (
+          <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5 relative">
             <img 
               src={recipe.imageUrl.startsWith('/') ? recipe.imageUrl : `/api/image?url=${encodeURIComponent(recipe.imageUrl)}`}
               alt={recipe.title} 
-              className="w-full h-56 object-cover object-center"
+              className="w-full h-56 object-cover object-center cursor-pointer"
+              onClick={() => {
+                const src = recipe.imageUrl!.startsWith('/') ? recipe.imageUrl! : `/api/image?url=${encodeURIComponent(recipe.imageUrl!)}`;
+                setFullscreenImage(src);
+              }}
             />
           </div>
-        )}
+        ) : null}
         
         {/* Recipe title header */}
         <div className="flex justify-between items-start gap-4 pb-4 border-b border-black/5 dark:border-white/5">
@@ -309,6 +337,49 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
           )}
         </Tabs.Panel>
       </Tabs>
+
+      {/* Fullscreen Image Modal */}
+      <Modal 
+        isOpen={!!fullscreenImage} 
+        onOpenChange={(isOpen) => !isOpen && setFullscreenImage(null)}
+        size="full"
+        classNames={{
+          base: "bg-black/90 m-0 rounded-none sm:m-0 max-w-full max-h-full",
+          wrapper: "z-[100]",
+          backdrop: "z-[99] bg-black/90"
+        }}
+        hideCloseButton
+        motionProps={{
+          variants: {
+            enter: { opacity: 1, scale: 1 },
+            exit: { opacity: 0, scale: 0.95 },
+          }
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <Button
+                isIconOnly
+                variant="light"
+                onPress={onClose}
+                className="absolute top-4 right-4 z-50 text-white/70 hover:text-white"
+              >
+                <X size={32} />
+              </Button>
+              <ModalBody className="p-0 flex items-center justify-center h-[100dvh] cursor-zoom-out" onClick={onClose}>
+                {fullscreenImage && (
+                  <img 
+                    src={fullscreenImage} 
+                    alt="Fullscreen view" 
+                    className="max-w-full max-h-[100dvh] object-contain"
+                  />
+                )}
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </article>
   );
 }
