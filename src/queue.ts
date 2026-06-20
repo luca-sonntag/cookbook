@@ -99,17 +99,33 @@ async function processJob(jobId: string, url: string): Promise<void> {
     ]);
     console.log(`[Job ${jobId}] Downloads complete.`);
 
-    // 6. Run Gemini recipe extraction AND frame selection in parallel
+    // 6. If video is available, extract frames and create grid first
+    let gridImagePath: string | undefined;
+    let framePaths: string[] = [];
+
+    if (videoFilePath) {
+      try {
+        const { extractFrames, createImageGrid } = await import('./frameExtractor.js');
+        console.log(`[Job ${jobId}] Extracting frames from video...`);
+        framePaths = await extractFrames(videoFilePath, framesDir, 16);
+        
+        const localGridPath = path.join(framesDir, 'grid.jpg');
+        console.log(`[Job ${jobId}] Creating tiled frame grid at ${localGridPath}...`);
+        await createImageGrid(framePaths, localGridPath);
+        gridImagePath = localGridPath;
+      } catch (err: any) {
+        console.warn(`[Job ${jobId}] Frame extraction / grid generation failed: ${err.message}`);
+      }
+    }
+
     console.log(`[Job ${jobId}] Running recipe extraction and frame selection in parallel...`);
 
-    const frameSelectionPromise: Promise<string[] | null> = videoFilePath
+    const frameSelectionPromise: Promise<string[] | null> = (gridImagePath && framePaths.length > 0)
       ? (async () => {
         try {
-          const { extractFrames } = await import('./frameExtractor.js');
           const { selectBestFoodFrame } = await import('./gemini.js');
-          const framePaths = await extractFrames(videoFilePath, framesDir, 16);
-          console.log(`[Job ${jobId}] Extracted ${framePaths.length} frames, asking Gemini to pick best food shots...`);
-          const bestIndices = await selectBestFoodFrame(framePaths);
+          console.log(`[Job ${jobId}] Asking Gemini to pick best food shots from grid...`);
+          const bestIndices = await selectBestFoodFrame(framePaths, gridImagePath);
           console.log(`[Job ${jobId}] Best frames selected: indices ${bestIndices.join(', ')}`);
 
           // Save best frames permanently as local files
@@ -133,7 +149,7 @@ async function processJob(jobId: string, url: string): Promise<void> {
       : Promise.resolve(null);
 
     const [recipe, selectedImageUrls] = await Promise.all([
-      extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption),
+      extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption, gridImagePath),
       frameSelectionPromise,
     ]);
 
