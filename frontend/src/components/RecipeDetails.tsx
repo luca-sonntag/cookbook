@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Button, Tabs, Modal, ModalContent, ModalBody } from '@heroui/react';
+import { Card, Button, Tabs } from '@heroui/react';
 import { 
   Check, 
   Copy, 
@@ -338,48 +338,27 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
         </Tabs.Panel>
       </Tabs>
 
-      {/* Fullscreen Image Modal */}
-      <Modal 
-        isOpen={!!fullscreenImage} 
-        onOpenChange={(isOpen) => !isOpen && setFullscreenImage(null)}
-        size="full"
-        classNames={{
-          base: "bg-black/90 m-0 rounded-none sm:m-0 max-w-full max-h-full",
-          wrapper: "z-[100]",
-          backdrop: "z-[99] bg-black/90"
-        }}
-        hideCloseButton
-        motionProps={{
-          variants: {
-            enter: { opacity: 1, scale: 1 },
-            exit: { opacity: 0, scale: 0.95 },
-          }
-        }}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <Button
-                isIconOnly
-                variant="light"
-                onPress={onClose}
-                className="absolute top-4 right-4 z-50 text-white/70 hover:text-white"
-              >
-                <X size={32} />
-              </Button>
-              <ModalBody className="p-0 flex items-center justify-center h-[100dvh] cursor-zoom-out" onClick={onClose}>
-                {fullscreenImage && (
-                  <img 
-                    src={fullscreenImage} 
-                    alt="Fullscreen view" 
-                    className="max-w-full max-h-[100dvh] object-contain"
-                  />
-                )}
-              </ModalBody>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+      {/* Fullscreen Image Overlay */}
+      {fullscreenImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-0 m-0 cursor-zoom-out"
+          onClick={() => setFullscreenImage(null)}
+        >
+          <Button
+            isIconOnly
+            variant="ghost"
+            onPress={() => setFullscreenImage(null)}
+            className="absolute top-4 right-4 z-[101] text-white/70 hover:text-white border-none"
+          >
+            <X size={32} />
+          </Button>
+          <img 
+            src={fullscreenImage} 
+            alt="Fullscreen view" 
+            className="max-w-full max-h-[100dvh] object-contain"
+          />
+        </div>
+      )}
     </article>
   );
 }
