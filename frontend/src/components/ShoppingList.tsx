@@ -226,7 +226,7 @@ export default function ShoppingList({
                               className="flex items-start justify-between gap-3 py-1.5 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
                             >
                               <div 
-                                onClick={() => toggleItemGroup(item.name, item.unit, true)}
+                                onClick={() => toggleItemGroup(item.baseName || item.name, item.unit, true)}
                                 className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
                               >
                                 <div className="w-5 h-5 rounded-md border border-black/20 dark:border-white/20 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all">
@@ -260,7 +260,7 @@ export default function ShoppingList({
                               </div>
 
                               <button
-                                onClick={() => deleteItemGroup(item.name, item.unit)}
+                                onClick={() => deleteItemGroup(item.baseName || item.name, item.unit)}
                                 className="text-gray-400 hover:text-red-500 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer flex-shrink-0 self-center"
                                 aria-label="Eintrag löschen"
                               >
@@ -293,7 +293,7 @@ export default function ShoppingList({
                         className="flex items-start justify-between gap-3 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
                       >
                         <div 
-                          onClick={() => toggleItemGroup(item.name, item.unit, false)}
+                          onClick={() => toggleItemGroup(item.baseName || item.name, item.unit, false)}
                           className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
                         >
                           <div className="w-5 h-5 rounded-md bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all">
@@ -310,7 +310,7 @@ export default function ShoppingList({
                         </div>
 
                         <button
-                          onClick={() => deleteItemGroup(item.name, item.unit)}
+                          onClick={() => deleteItemGroup(item.baseName || item.name, item.unit)}
                           className="text-gray-400 hover:text-red-500 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer flex-shrink-0 self-center"
                           aria-label="Eintrag löschen"
                         >

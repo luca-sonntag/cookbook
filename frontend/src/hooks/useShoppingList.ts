@@ -29,6 +29,7 @@ export function useShoppingList() {
     const newItems: ShoppingListItem[] = ingredients.map((ing, idx) => ({
       id: `${recipeId}-${encodeURIComponent(ing.name)}-${idx}-${Date.now()}`,
       name: ing.name,
+      baseName: ing.baseName,
       amount: ing.amount || 0,
       unit: ing.unit || '',
       recipeId,
@@ -58,12 +59,13 @@ export function useShoppingList() {
   };
 
   // Toggle check state of an aggregated group
-  const toggleItemGroup = (name: string, unit: string, targetChecked: boolean) => {
-    const keyName = name.toLowerCase().trim();
+  const toggleItemGroup = (groupKeyName: string, unit: string, targetChecked: boolean) => {
+    const keyName = groupKeyName.toLowerCase().trim();
     const keyUnit = unit.toLowerCase().trim();
 
     const updatedList = shoppingList.map(item => {
-      if (item.name.toLowerCase().trim() === keyName && item.unit.toLowerCase().trim() === keyUnit) {
+      const matchName = (item.baseName || item.name).toLowerCase().trim() === keyName;
+      if (matchName && item.unit.toLowerCase().trim() === keyUnit) {
         return { ...item, checked: targetChecked };
       }
       return item;
@@ -73,12 +75,12 @@ export function useShoppingList() {
   };
 
   // Delete all items of an aggregated group
-  const deleteItemGroup = (name: string, unit: string) => {
-    const keyName = name.toLowerCase().trim();
+  const deleteItemGroup = (groupKeyName: string, unit: string) => {
+    const keyName = groupKeyName.toLowerCase().trim();
     const keyUnit = unit.toLowerCase().trim();
 
     const updatedList = shoppingList.filter(item => {
-      const matchName = item.name.toLowerCase().trim() === keyName;
+      const matchName = (item.baseName || item.name).toLowerCase().trim() === keyName;
       const matchUnit = item.unit.toLowerCase().trim() === keyUnit;
       return !(matchName && matchUnit);
     });
@@ -102,7 +104,8 @@ export function useShoppingList() {
     const checkedMap = new Map<string, AggregatedShoppingItem>();
 
     shoppingList.forEach(item => {
-      const key = `${item.name.toLowerCase().trim()}|${item.unit.toLowerCase().trim()}`;
+      const groupKeyName = item.baseName || item.name;
+      const key = `${groupKeyName.toLowerCase().trim()}|${item.unit.toLowerCase().trim()}`;
       const targetMap = item.checked ? checkedMap : uncheckedMap;
 
       const existing = targetMap.get(key);
@@ -130,6 +133,7 @@ export function useShoppingList() {
       } else {
         targetMap.set(key, {
           name: item.name, // Keep the display name of the first item
+          baseName: item.baseName,
           unit: item.unit,
           amount: item.amount,
           checked: item.checked,
