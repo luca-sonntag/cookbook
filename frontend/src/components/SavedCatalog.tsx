@@ -97,7 +97,7 @@ export default function SavedCatalog({
                 rel="noopener noreferrer"
                 className="flex-shrink-0 text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 text-xs flex items-center gap-1 font-medium ml-3"
               >
-                <Globe className="w-3.5 h-3.5" /> View original Reel
+                <Globe className="w-3.5 h-3.5" /> View Reel
               </a>
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function SavedCatalog({
           <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1">
             Saved Recipes Catalog
           </h3>
-          
+
           {completedJobs.length === 0 ? (
             <Card className="glass-panel p-8 rounded-2xl text-center flex flex-col items-center justify-center border border-black/5 dark:border-white/5">
               <Utensils className="w-8 h-8 text-gray-500 mb-3 animate-pulse-slow" />
@@ -124,17 +124,17 @@ export default function SavedCatalog({
               {completedJobs.map(job => {
                 const r = job.recipe!;
                 return (
-                  <Card 
-                    key={job.id} 
+                  <Card
+                    key={job.id}
                     className="glass-panel rounded-2xl hover:border-emerald-500/30 cursor-pointer active:scale-[0.99] transition-all flex flex-col justify-between overflow-hidden"
                     onClick={() => setSelectedJob(job)}
                   >
                     <div>
                       {r.imageUrl && (
                         <div className="h-32 w-full mb-3 bg-black/5 dark:bg-white/5">
-                          <img 
+                          <img
                             src={r.imageUrl.startsWith('/') ? r.imageUrl : `/api/image?url=${encodeURIComponent(r.imageUrl)}`}
-                            alt={r.title} 
+                            alt={r.title}
                             className="w-full h-full object-cover object-center"
                           />
                         </div>
@@ -155,7 +155,7 @@ export default function SavedCatalog({
                         {r.description}
                       </p>
                     </div>
-                    
+
                     <div className="flex items-center justify-between mt-4 pt-3 pb-5 px-5 border-t border-black/5 dark:border-white/5 text-[10px] text-gray-500 dark:text-gray-400">
                       <div className="flex gap-2">
                         <span className="flex items-center gap-1 font-medium">

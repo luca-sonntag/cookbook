@@ -296,7 +296,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
               onPointerLeave={handlePointerLeave}
               onPointerUp={handlePointerUp}
               onPointerMove={handlePointerMove}
-              className={`flex overflow-x-auto ${isDragging ? 'cursor-grabbing' : 'cursor-grab snap-x snap-mandatory'}`}
+              className={`flex overflow-x-auto ${isDragging ? 'cursor-grabbing' : 'md:cursor-pointer cursor-grab snap-x snap-mandatory'}`}
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {recipe.imageUrls.map((img, idx) => {
@@ -624,10 +624,10 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
                       src={src}
                       alt={`Fullscreen view ${idx + 1}`} 
                       draggable={false}
-                      className="max-w-full max-h-[100dvh] object-contain select-none pointer-events-auto"
+                      className="max-w-[80%] max-h-[80dvh] object-contain select-none pointer-events-auto"
                       style={{
                         transform: idx === fullscreenIndex ? `translate(${offset.x}px, ${offset.y}px) scale(${scale})` : 'scale(1)',
-                        cursor: idx === fullscreenIndex && scale > 1 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
+                        cursor: idx === fullscreenIndex && scale > 1 ? (isDraggingImage ? 'grabbing' : 'grab') : 'pointer',
                         transition: idx === fullscreenIndex && !isDraggingImage ? 'transform 200ms ease-out' : 'none',
                       }}
                     />
