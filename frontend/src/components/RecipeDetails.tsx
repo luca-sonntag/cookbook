@@ -46,27 +46,31 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [hasDragged, setHasDragged] = useState(false);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!scrollContainerRef.current) return;
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse' || !scrollContainerRef.current) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
     setIsDragging(true);
     setHasDragged(false);
-    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setStartX(e.clientX - scrollContainerRef.current.offsetLeft);
     setScrollLeft(scrollContainerRef.current.scrollLeft);
   };
 
-  const handleMouseLeave = () => {
+  const handlePointerLeave = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse') return;
     setIsDragging(false);
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse') return;
+    e.currentTarget.releasePointerCapture(e.pointerId);
     setIsDragging(false);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !scrollContainerRef.current) return;
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging || e.pointerType !== 'mouse' || !scrollContainerRef.current) return;
     e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // scroll speed multiplier
+    const x = e.clientX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX); // 1:1 scroll speed
     
     if (Math.abs(walk) > 5) {
       setHasDragged(true);
@@ -144,10 +148,10 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
           <div className="-mt-6 -mx-6 mb-6 relative group">
             <div 
               ref={scrollContainerRef}
-              onMouseDown={handleMouseDown}
-              onMouseLeave={handleMouseLeave}
-              onMouseUp={handleMouseUp}
-              onMouseMove={handleMouseMove}
+              onPointerDown={handlePointerDown}
+              onPointerLeave={handlePointerLeave}
+              onPointerUp={handlePointerUp}
+              onPointerMove={handlePointerMove}
               className={`flex overflow-x-auto ${isDragging ? 'cursor-grabbing' : 'cursor-grab snap-x snap-mandatory'}`}
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
