@@ -24,11 +24,21 @@ const recipeSchema = {
         type: FunctionDeclarationSchemaType.OBJECT,
         properties: {
           name: { type: FunctionDeclarationSchemaType.STRING },
-          amount: { type: FunctionDeclarationSchemaType.NUMBER },
-          unit: { type: FunctionDeclarationSchemaType.STRING },
-          notes: { type: FunctionDeclarationSchemaType.STRING },
+          items: {
+            type: FunctionDeclarationSchemaType.ARRAY,
+            items: {
+              type: FunctionDeclarationSchemaType.OBJECT,
+              properties: {
+                name: { type: FunctionDeclarationSchemaType.STRING },
+                amount: { type: FunctionDeclarationSchemaType.NUMBER },
+                unit: { type: FunctionDeclarationSchemaType.STRING },
+                notes: { type: FunctionDeclarationSchemaType.STRING },
+              },
+              required: ['name', 'amount', 'unit'],
+            },
+          },
         },
-        required: ['name', 'amount', 'unit'],
+        required: ['name', 'items'],
       },
     },
     instructions: {
@@ -176,9 +186,11 @@ If it IS a recipe, set "isRecipe" to true and extract the recipe as normal.
 
 Combine the${gridImagePath ? ' three' : ' two'} sources to reconstruct the complete recipe. The creator might mention specific measurements or ingredients in the audio that are missing or abbreviated in the text, and vice versa.${gridImagePath ? ' Use the visual frames in the grid to resolve ambiguities, confirm ingredients, verify cooking techniques, or see the final plated dish.' : ''} Resolve any contradictions by prioritizing the instructions that make the most logical sense culinary-wise.
 
+Organize the ingredients into logical groups/categories (e.g., "For the dough", "For the filling", "Vegetables", "Dressing", "Main Ingredients", etc.) based on how they are used or presented. If there is no clear distinction or it's a simple recipe, use a single group named "Ingredients".
+
 Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
 
-Translate and write the entire final recipe output (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, and the transcript) into the following language: ${config.RECIPE_LANGUAGE}.
+Translate and write the entire final recipe output (including title, description, ingredient group names, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, and the transcript) into the following language: ${config.RECIPE_LANGUAGE}.
 
 Description/Caption:
 """

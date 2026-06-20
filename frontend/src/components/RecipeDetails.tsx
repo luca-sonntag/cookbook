@@ -13,7 +13,7 @@ import {
   ZoomIn,
   ZoomOut
 } from 'lucide-react';
-import type { Recipe, Ingredient, InstructionStep } from '../types';
+import type { Recipe, Ingredient, IngredientGroup, InstructionStep } from '../types';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
@@ -238,13 +238,23 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
     md += `**Prep Time:** ${recipe.prepTime} | **Cook Time:** ${recipe.cookTime} | **Servings:** ${recipe.servings}\n\n`;
     
     md += `## Ingredients\n`;
-    recipe.ingredients.forEach((ing: Ingredient) => {
-      const amountStr = ing.amount ? `${ing.amount} ` : '';
-      const unitStr = ing.unit ? `${ing.unit} ` : '';
-      const noteStr = ing.notes ? ` (${ing.notes})` : '';
-      md += `- ${amountStr}${unitStr}${ing.name}${noteStr}\n`;
+    recipe.ingredients.forEach((group: IngredientGroup) => {
+      if (recipe.ingredients.length > 1) {
+        md += `### ${group.name}\n`;
+      }
+      group.items.forEach((ing: Ingredient) => {
+        const amountStr = ing.amount ? `${ing.amount} ` : '';
+        const unitStr = ing.unit ? `${ing.unit} ` : '';
+        const noteStr = ing.notes ? ` (${ing.notes})` : '';
+        md += `- ${amountStr}${unitStr}${ing.name}${noteStr}\n`;
+      });
+      if (recipe.ingredients.length > 1) {
+        md += `\n`;
+      }
     });
-    md += `\n`;
+    if (recipe.ingredients.length <= 1) {
+      md += `\n`;
+    }
 
     md += `## Instructions\n`;
     recipe.instructions.forEach((step: InstructionStep) => {
@@ -297,7 +307,9 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
                       src={src}
                       draggable={false}
                       alt={`${recipe.title} - view ${idx + 1}`}
-                      className="w-full h-56 object-cover object-center transition-transform duration-300"
+                      className={`w-full h-56 object-cover object-center transition-transform duration-300 ${
+                        isDragging ? 'cursor-grabbing' : 'cursor-pointer'
+                      }`}
                       onClick={() => handleImageClick(idx)}
                     />
                     <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full pointer-events-none opacity-80 backdrop-blur-sm">
@@ -406,36 +418,47 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
               <span>Ingredients Checklist</span>
               <span className="text-xs text-gray-500 dark:text-gray-400 normal-case font-normal">Check ingredients you have prepared</span>
             </h3>
-            <ul className="flex flex-col gap-3">
-              {recipe.ingredients.map((ing, idx) => {
-                const amountStr = ing.amount ? `${ing.amount} ` : '';
-                const unitStr = ing.unit ? `${ing.unit} ` : '';
-                const name = ing.name;
-                const uniqueId = `${name}-${idx}`;
-                const isChecked = !!checkedIngredients[uniqueId];
+            <div className="flex flex-col gap-6">
+              {recipe.ingredients.map((group: IngredientGroup, groupIdx) => (
+                <div key={groupIdx} className="flex flex-col gap-2.5">
+                  {recipe.ingredients.length > 1 && (
+                    <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider px-3 border-l-2 border-emerald-500">
+                      {group.name}
+                    </h4>
+                  )}
+                  <ul className="flex flex-col gap-2">
+                    {group.items.map((ing, idx) => {
+                      const amountStr = ing.amount ? `${ing.amount} ` : '';
+                      const unitStr = ing.unit ? `${ing.unit} ` : '';
+                      const name = ing.name;
+                      const uniqueId = `${name}-${groupIdx}-${idx}`;
+                      const isChecked = !!checkedIngredients[uniqueId];
 
-                return (
-                  <li 
-                    key={uniqueId}
-                    onClick={() => toggleIngredient(uniqueId)}
-                    className="flex items-center gap-3 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
-                  >
-                    <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
-                      isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
-                    }`}>
-                      {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
-                    </div>
-                    <span className={`text-sm select-none transition-all ${
-                      isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
-                    }`}>
-                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">{amountStr}{unitStr}</span>
-                      <span>{name}</span>
-                      {ing.notes && <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">{ing.notes}</span>}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+                      return (
+                        <li 
+                          key={uniqueId}
+                          onClick={() => toggleIngredient(uniqueId)}
+                          className="flex items-center gap-3 py-1.5 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                        >
+                          <div className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition-all ${
+                            isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
+                          }`}>
+                            {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
+                          </div>
+                          <span className={`text-sm select-none transition-all ${
+                            isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
+                          }`}>
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">{amountStr}{unitStr}</span>
+                            <span>{name}</span>
+                            {ing.notes && <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">{ing.notes}</span>}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </Card>
 
           {recipe.alternativeIngredients && recipe.alternativeIngredients.length > 0 && (
