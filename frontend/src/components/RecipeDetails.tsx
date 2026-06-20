@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, Button, Tabs } from '@heroui/react';
 import { 
   Check, 
@@ -15,10 +15,16 @@ import {
   Minus,
   Plus
 } from 'lucide-react';
-import type { Recipe, Ingredient, IngredientGroup, InstructionStep } from '../types';
+import type { Recipe, Ingredient, InstructionStep } from '../types';
 import { useRecipeScaling } from '../hooks/useRecipeScaling';
 import { useImageGallery } from '../hooks/useImageGallery';
 import { useRecipeProgress } from '../hooks/useRecipeProgress';
+import { 
+  translateCategory, 
+  getCategoryIcon, 
+  categoryOrder, 
+  legacyCategoryMap
+} from '../i18n';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
@@ -77,13 +83,41 @@ export default function RecipeDetails({ recipe, onAddIngredients }: RecipeDetail
     handlePointerMove,
     handleImageClick,
   } = useImageGallery(images);
+  // Sort ingredient groups based on categoryOrder
+  const sortedIngredients = useMemo(() => {
+    if (!recipe.ingredients) return [];
+    
+    // Map each group to include its original index for correct checklist progress tracking
+    const mapped = recipe.ingredients.map((group, originalIdx) => ({
+      group,
+      originalIdx
+    }));
+    
+    return mapped.sort((a, b) => {
+      const getCategoryIndex = (name: string) => {
+        const cleanName = name.trim().toUpperCase();
+        let idx = categoryOrder.indexOf(cleanName as any);
+        if (idx !== -1) return idx;
+        
+        const lowerName = name.trim().toLowerCase();
+        const enumKey = legacyCategoryMap[lowerName];
+        if (enumKey) {
+          return categoryOrder.indexOf(enumKey);
+        }
+        return 999;
+      };
+      
+      return getCategoryIndex(a.group.name) - getCategoryIndex(b.group.name);
+    });
+  }, [recipe.ingredients]);
+
   const handleAddToShoppingList = () => {
     if (!onAddIngredients) return;
 
     const itemsToAdd: Ingredient[] = [];
-    recipe.ingredients.forEach((group: IngredientGroup, groupIdx) => {
+    sortedIngredients.forEach(({ group, originalIdx }) => {
       group.items.forEach((ing, idx) => {
-        const uniqueId = `${ing.name}-${groupIdx}-${idx}`;
+        const uniqueId = `${ing.name}-${originalIdx}-${idx}`;
         const isChecked = !!checkedIngredients[uniqueId];
         if (!isChecked) {
           const baseAmount = ing.amount || 0;
@@ -92,7 +126,8 @@ export default function RecipeDetails({ recipe, onAddIngredients }: RecipeDetail
             name: ing.name,
             amount: scaledAmount,
             unit: ing.unit || '',
-            notes: ing.notes
+            notes: ing.notes,
+            category: group.name
           });
         }
       });
@@ -114,9 +149,9 @@ export default function RecipeDetails({ recipe, onAddIngredients }: RecipeDetail
     md += `**Prep Time:** ${recipe.prepTime} | **Cook Time:** ${recipe.cookTime} | **Servings:** ${servings}\n\n`;
     
     md += `## Ingredients\n`;
-    recipe.ingredients.forEach((group: IngredientGroup) => {
+    sortedIngredients.forEach(({ group }) => {
       if (recipe.ingredients.length > 1) {
-        md += `### ${group.name}\n`;
+        md += `### ${getCategoryIcon(group.name)} ${translateCategory(group.name)}\n`;
       }
       group.items.forEach((ing: Ingredient) => {
         const scaledAmount = formatAmount(ing.amount, ing.unit);
@@ -315,11 +350,12 @@ export default function RecipeDetails({ recipe, onAddIngredients }: RecipeDetail
               <span className="text-xs text-gray-500 dark:text-gray-400 normal-case font-normal">Check ingredients you have prepared</span>
             </h3>
             <div className="flex flex-col gap-6">
-              {recipe.ingredients.map((group: IngredientGroup, groupIdx) => (
-                <div key={groupIdx} className="flex flex-col gap-2.5">
+              {sortedIngredients.map(({ group, originalIdx }, sortedIdx) => (
+                <div key={sortedIdx} className="flex flex-col gap-2.5">
                   {recipe.ingredients.length > 1 && (
-                    <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider px-3 border-l-2 border-emerald-500">
-                      {group.name}
+                    <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider px-3 border-l-2 border-emerald-500 flex items-center gap-1.5">
+                      <span className="text-sm">{getCategoryIcon(group.name)}</span>
+                      <span>{translateCategory(group.name)}</span>
                     </h4>
                   )}
                   <ul className="flex flex-col gap-2">
@@ -328,7 +364,7 @@ export default function RecipeDetails({ recipe, onAddIngredients }: RecipeDetail
                       const amountStr = scaledAmount ? `${scaledAmount} ` : '';
                       const unitStr = ing.unit ? `${ing.unit} ` : '';
                       const name = ing.name;
-                      const uniqueId = `${name}-${groupIdx}-${idx}`;
+                      const uniqueId = `${name}-${originalIdx}-${idx}`;
                       const isChecked = !!checkedIngredients[uniqueId];
 
                       return (

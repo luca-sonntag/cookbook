@@ -35,7 +35,8 @@ export function useShoppingList() {
       recipeTitle,
       checked: false,
       notes: ing.notes,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      category: ing.category
     }));
 
     saveList([...filteredList, ...newItems]);
@@ -50,7 +51,8 @@ export function useShoppingList() {
       unit: unit || '',
       checked: false,
       notes,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      category: 'OTHER'
     };
     saveList([...shoppingList, newItem]);
   };
@@ -106,6 +108,9 @@ export function useShoppingList() {
       const existing = targetMap.get(key);
       if (existing) {
         existing.amount += item.amount;
+        if (!existing.category && item.category) {
+          existing.category = item.category;
+        }
         // Avoid duplicate sources for the same recipe
         const hasSource = existing.sources.some(s => s.recipeId === item.recipeId);
         if (!hasSource) {
@@ -128,6 +133,7 @@ export function useShoppingList() {
           unit: item.unit,
           amount: item.amount,
           checked: item.checked,
+          category: item.category,
           sources: [{
             recipeId: item.recipeId,
             recipeTitle: item.recipeTitle,
