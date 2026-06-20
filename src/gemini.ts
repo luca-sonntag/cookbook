@@ -223,6 +223,9 @@ Always place "Produce/Obst & Gemüse" first, followed by dry goods/pantry items,
 
 For every ingredient, the "name" property MUST contain only the description/name of the ingredient WITHOUT any quantity, amount, number, or unit (e.g. use "Zwiebel, frisch" instead of "1 Zwiebel, frisch" or "1 Stück Zwiebel, frisch"; use "Chester Käse (Halbfettstufe)" instead of "40 g Chester Käse (Halbfettstufe)"; use "Rinderhackfleisch Light" instead of "100 g Rinderhackfleisch Light"). All amounts must go into the "amount" field and units into the "unit" field.
 
+Decompose composite prepared elements: If a composite element (such as "Smash Burger Patties", "selbstgemachtes Pesto", "Knoblauch-Dip", "Karamellsauce") is prepared during the recipe from raw ingredients, you MUST list the raw ingredients (e.g. "Rinderhackfleisch", "Basilikum", "Knoblauch", "Butter", "Sahne", "Zucker") individually in the ingredients list rather than listing the finished prepared item. Only list composite items as a single ingredient if they are bought pre-made (e.g. "Ketchup", "Sojasauce", "Toastbrot").
+
+
 For every ingredient, additionally generate a 'baseName'. This MUST be the absolute core standard noun in singular form (e.g. if name is 'rote Zwiebeln', baseName is 'Zwiebel'. If name is 'Cherrytomaten', baseName is 'Tomate'). This will be used as a database key to group similar ingredients in a shopping list.
 
 Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
