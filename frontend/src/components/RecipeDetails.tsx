@@ -48,7 +48,6 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType !== 'mouse' || !scrollContainerRef.current) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
     setIsDragging(true);
     setHasDragged(false);
     setStartX(e.clientX - scrollContainerRef.current.offsetLeft);
@@ -62,7 +61,6 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (e.pointerType !== 'mouse' || !scrollContainerRef.current) return;
-    e.currentTarget.releasePointerCapture(e.pointerId);
     setIsDragging(false);
 
     const dragDistance = (e.clientX - scrollContainerRef.current.offsetLeft) - startX;
