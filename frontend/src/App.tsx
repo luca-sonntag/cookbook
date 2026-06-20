@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@heroui/react';
 import { Key, ChefHat } from 'lucide-react';
 
-import type { Recipe, Job, BeforeInstallPromptEvent } from './types';
+import type { Job } from './types';
 import ThemeToggle from './components/ThemeToggle';
 import ApiConfig from './components/ApiConfig';
 import InstallBanner from './components/InstallBanner';
@@ -12,6 +12,10 @@ import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog';
 
+import { useTheme } from './hooks/useTheme';
+import { usePwaInstall } from './hooks/usePwaInstall';
+import { useRecipeExtraction } from './hooks/useRecipeExtraction';
+
 export default function App() {
   // Config & Secrets
   const [apiKey, setApiKey] = useState<string>(() => {
@@ -19,39 +23,14 @@ export default function App() {
   });
   const [showApiConfig, setShowApiConfig] = useState(false);
 
-  // Form URL
-  const [url, setUrl] = useState('');
-  const [urlError, setUrlError] = useState('');
-
-  // Job orchestration states
-  const [isPending, setIsPending] = useState(false);
-  const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
-  const [jobError, setJobError] = useState<string | null>(null);
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
-
-  // PWA states
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [installStatus, setInstallStatus] = useState<'installed' | 'standalone' | 'browser'>('browser');
-
   // History & Multi-view states
   const [history, setHistory] = useState<Job[]>([]);
   const [activeView, setActiveView] = useState<'extract' | 'history'>('history');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
-  // Theme state & Syncing effect
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    return (localStorage.getItem('theme') as 'light' | 'dark') || 'dark';
-  });
-
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  // Custom Hooks for Theme, PWA Installation, and Recipe Extraction
+  const [theme, setTheme] = useTheme();
+  const { isInstallable, installStatus, handleInstallClick } = usePwaInstall();
 
   // Fetch recipe extraction history
   const fetchHistory = useCallback(async () => {
@@ -69,6 +48,18 @@ export default function App() {
       console.error('Failed to fetch history:', err);
     }
   }, [apiKey]);
+
+  const {
+    isPending,
+    jobStatus,
+    jobError,
+    recipe,
+    url,
+    setUrl,
+    urlError,
+    validateUrl,
+    triggerExtraction,
+  } = useRecipeExtraction(apiKey, fetchHistory);
 
   // Fetch history on load and when API key changes
   useEffect(() => {
@@ -106,141 +97,9 @@ export default function App() {
     }
   };
 
-  // Check display mode
-  useEffect(() => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    const isIOSStandalone = 'standalone' in window.navigator && 
-      (window.navigator as Navigator & { standalone?: boolean }).standalone;
-
-    if (isStandalone || isIOSStandalone) {
-      setTimeout(() => {
-        setInstallStatus('standalone');
-      }, 0);
-    }
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setIsInstallable(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
-
-
-
   const saveApiKey = (newKey: string) => {
     setApiKey(newKey);
     localStorage.setItem('recipe_api_key', newKey);
-  };
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
-      if (choiceResult.outcome === 'accepted') {
-        setInstallStatus('installed');
-        setIsInstallable(false);
-      }
-      setDeferredPrompt(null);
-    }
-  };
-
-  const validateUrl = (testUrl: string): boolean => {
-    if (!testUrl.trim()) {
-      setUrlError('Instagram Reel URL is required.');
-      return false;
-    }
-    const regex = /^https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels|p)\/[A-Za-z0-9_-]+\/?/i;
-    if (!regex.test(testUrl.trim())) {
-      setUrlError('Must be a valid Instagram Reel URL (e.g., https://www.instagram.com/reel/...).');
-      return false;
-    }
-    setUrlError('');
-    return true;
-  };
-
-  const startPolling = (id: string) => {
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`/api/jobs/${id}`, {
-          headers: {
-            'X-API-Key': apiKey
-          }
-        });
-        const data = await response.json();
-        
-        if (!response.ok || !data.success) {
-          clearInterval(interval);
-          setJobStatus('failed');
-          setJobError(data.error || 'Failed to check status from server.');
-          setIsPending(false);
-          return;
-        }
-
-        const job = data.job;
-        setJobStatus(job.status);
-
-        if (job.status === 'completed') {
-          clearInterval(interval);
-          setRecipe(job.recipe);
-          setIsPending(false);
-          fetchHistory();
-        } else if (job.status === 'failed') {
-          clearInterval(interval);
-          setJobError(job.error || 'The recipe extraction failed.');
-          setIsPending(false);
-        }
-      } catch {
-        clearInterval(interval);
-        setJobStatus('failed');
-        setJobError('Lost connection to backend server.');
-        setIsPending(false);
-      }
-    }, 2000);
-  };
-
-  const triggerExtraction = async (targetUrl: string) => {
-    const cleanUrl = targetUrl.trim();
-    if (!validateUrl(cleanUrl)) return;
-
-    setIsPending(true);
-    setJobStatus('pending');
-    setJobError(null);
-    setRecipe(null);
-
-    try {
-      const response = await fetch('/api/extract-recipe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': apiKey
-        },
-        body: JSON.stringify({ url: cleanUrl })
-      });
-
-      const data = await response.json();
-      
-      if (response.status === 401) {
-        throw new Error('Unauthorized. Please verify your API Key in Settings.');
-      }
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to submit extraction job.');
-      }
-
-      setJobStatus(data.status);
-      startPolling(data.jobId);
-    } catch (err: unknown) {
-      setJobStatus('failed');
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred during submission.';
-      setJobError(errorMessage);
-      setIsPending(false);
-    }
   };
 
   // Web Share Target Interceptor
