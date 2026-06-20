@@ -7,7 +7,6 @@ import {
   Utensils, 
   ListChecks, 
   ChevronRight, 
-  ChevronLeft,
   ChefHat,
   X
 } from 'lucide-react';
@@ -30,13 +29,44 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollGallery = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = scrollContainerRef.current.clientWidth;
-      scrollContainerRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
+  // Drag to scroll state
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [hasDragged, setHasDragged] = useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setHasDragged(false);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // scroll speed multiplier
+    
+    if (Math.abs(walk) > 5) {
+      setHasDragged(true);
+    }
+    
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleImageClick = (src: string) => {
+    if (!hasDragged) {
+      setFullscreenImage(src);
     }
   };
 
@@ -103,7 +133,11 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
           <div className="-mt-6 -mx-6 mb-6 relative group">
             <div 
               ref={scrollContainerRef}
-              className="flex overflow-x-auto snap-x snap-mandatory" 
+              onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseLeave}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              className={`flex overflow-x-auto ${isDragging ? 'cursor-grabbing' : 'cursor-grab snap-x snap-mandatory'}`}
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {recipe.imageUrls.map((img, idx) => {
@@ -112,9 +146,10 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
                   <div key={idx} className="w-full shrink-0 snap-center relative">
                     <img
                       src={src}
+                      draggable={false}
                       alt={`${recipe.title} - view ${idx + 1}`}
-                      className="w-full h-56 object-cover object-center cursor-pointer transition-transform duration-300"
-                      onClick={() => setFullscreenImage(src)}
+                      className="w-full h-56 object-cover object-center transition-transform duration-300"
+                      onClick={() => handleImageClick(src)}
                     />
                     <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full pointer-events-none opacity-80 backdrop-blur-sm">
                       {idx + 1} / {recipe.imageUrls?.length}
@@ -123,26 +158,6 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
                 );
               })}
             </div>
-            
-            {/* Desktop Navigation Arrows */}
-            {recipe.imageUrls.length > 1 && (
-              <>
-                <button 
-                  onClick={() => scrollGallery('left')}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hidden md:block"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <button 
-                  onClick={() => scrollGallery('right')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hidden md:block"
-                  aria-label="Next image"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </>
-            )}
           </div>
         ) : recipe.imageUrl ? (
           <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5 relative">
