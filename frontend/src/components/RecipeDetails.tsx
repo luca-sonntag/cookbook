@@ -324,6 +324,24 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
               })}
             </ul>
           </Card>
+
+          {recipe.alternativeIngredients && recipe.alternativeIngredients.length > 0 && (
+            <Card className="glass-panel p-5 rounded-2xl">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">Alternative Ingredients</h3>
+              <div className="flex flex-col gap-3">
+                {recipe.alternativeIngredients.map((alt, idx) => (
+                  <div key={idx} className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 text-xs">
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-red-600 dark:text-red-400 line-through">{alt.original}</span>
+                      <span className="text-gray-500">→</span>
+                      <span className="text-emerald-600 dark:text-emerald-400">{alt.substitute}</span>
+                    </div>
+                    {alt.notes && <p className="text-gray-500 dark:text-gray-400 mt-1.5 leading-normal">{alt.notes}</p>}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </Tabs.Panel>
 
         {/* Instructions tab */}
@@ -393,24 +411,6 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
                   </li>
                 ))}
               </ul>
-            </Card>
-          )}
-
-          {recipe.alternativeIngredients && recipe.alternativeIngredients.length > 0 && (
-            <Card className="glass-panel p-5 rounded-2xl">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">Alternative Ingredients</h3>
-              <div className="flex flex-col gap-3">
-                {recipe.alternativeIngredients.map((alt, idx) => (
-                  <div key={idx} className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 text-xs">
-                    <div className="flex items-center justify-between font-semibold">
-                      <span className="text-red-600 dark:text-red-400 line-through">{alt.original}</span>
-                      <span className="text-gray-500">→</span>
-                      <span className="text-emerald-600 dark:text-emerald-400">{alt.substitute}</span>
-                    </div>
-                    {alt.notes && <p className="text-gray-500 dark:text-gray-400 mt-1.5 leading-normal">{alt.notes}</p>}
-                  </div>
-                ))}
-              </div>
             </Card>
           )}
 
