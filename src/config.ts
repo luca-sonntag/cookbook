@@ -11,6 +11,7 @@ export interface Config {
   DATABASE_PATH: string;
   GEMINI_MODEL: string;
   RECIPE_LANGUAGE: string;
+  API_KEY: string;
 }
 
 // Validation helper
@@ -29,4 +30,5 @@ export const config: Config = {
   DATABASE_PATH: getEnv('DATABASE_PATH', 'database.json'), // Use database.json as the persistent JSON file store
   GEMINI_MODEL: getEnv('GEMINI_MODEL', 'gemini-1.5-flash'),
   RECIPE_LANGUAGE: getEnv('RECIPE_LANGUAGE', 'German'),
+  API_KEY: getEnv('API_KEY'),
 };

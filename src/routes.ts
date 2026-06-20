@@ -1,7 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { createJob, getJob, findCompletedJobByUrl } from './db.js';
+import { requireApiKey } from './auth.js';
 
 export const apiRouter = Router();
+
+apiRouter.use(requireApiKey);
 
 // Regular expression to validate basic Instagram Reel URLs
 // Examples:
@@ -26,9 +29,10 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const trimmedUrl = url.trim();
+    // Clean up the URL by stripping leading/trailing curly braces, parentheses, quotes, or spaces
+    const cleanUrl = url.trim().replace(/^[{("'\s]+|[})"'\s]+$/g, '');
 
-    if (!INSTAGRAM_REEL_REGEX.test(trimmedUrl)) {
+    if (!INSTAGRAM_REEL_REGEX.test(cleanUrl)) {
       res.status(400).json({
         success: false,
         error: 'Invalid URL. Must be a valid Instagram Reel URL (e.g., https://www.instagram.com/reel/.../ ).',
@@ -37,7 +41,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     }
 
     // Check if job for this URL has already successfully completed
-    const existingJob = await findCompletedJobByUrl(trimmedUrl);
+    const existingJob = await findCompletedJobByUrl(cleanUrl);
     if (existingJob) {
       res.status(200).json({
         success: true,
@@ -49,7 +53,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     }
 
     // Create a new pending job in the database
-    const job = await createJob(trimmedUrl);
+    const job = await createJob(cleanUrl);
 
 
     res.status(202).json({
