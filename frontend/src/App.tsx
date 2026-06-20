@@ -15,7 +15,9 @@ import {
   Cpu,
   RefreshCw,
   Trash2,
-  Globe
+  Globe,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface Ingredient {
@@ -91,6 +93,20 @@ export default function App() {
   const [history, setHistory] = useState<any[]>([]);
   const [activeView, setActiveView] = useState<'extract' | 'history'>('extract');
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
+  
+  // Theme state & Syncing effect
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('theme') as 'light' | 'dark') || 'dark';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   // Fetch recipe extraction history
   const fetchHistory = async () => {
@@ -391,61 +407,61 @@ export default function App() {
         <Card className="glass-panel p-6 rounded-2xl">
           
           {/* Recipe title header */}
-          <div className="flex justify-between items-start gap-4 pb-4 border-b border-white/5">
+          <div className="flex justify-between items-start gap-4 pb-4 border-b border-black/5 dark:border-white/5">
             <div>
-              <h2 className="text-xl font-bold text-white leading-tight">{recipe.title}</h2>
-              <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">{recipe.description}</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">{recipe.title}</h2>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed">{recipe.description}</p>
             </div>
             <Button
               isIconOnly
               variant="outline"
-              className="text-gray-400 hover:text-white border-white/10 hover:bg-white/5"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
               onPress={copyRecipeMarkdown}
               aria-label="Copy recipe"
             >
-              {isCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
             </Button>
           </div>
 
           {/* Cooking stats summary */}
           <div className="grid grid-cols-3 gap-2 py-4">
-            <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
-              <Clock className="w-4 h-4 text-emerald-400 mb-1" />
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Prep</span>
-              <span className="text-xs font-bold text-white mt-0.5">{recipe.prepTime || 'N/A'}</span>
+            <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center justify-center text-center">
+              <Clock className="w-4 h-4 text-emerald-500 mb-1" />
+              <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Prep</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{recipe.prepTime || 'N/A'}</span>
             </div>
-            <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
-              <Utensils className="w-4 h-4 text-emerald-400 mb-1" />
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Cook</span>
-              <span className="text-xs font-bold text-white mt-0.5">{recipe.cookTime || 'N/A'}</span>
+            <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center justify-center text-center">
+              <Utensils className="w-4 h-4 text-emerald-500 mb-1" />
+              <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Cook</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{recipe.cookTime || 'N/A'}</span>
             </div>
-            <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
-              <ListChecks className="w-4 h-4 text-emerald-400 mb-1" />
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Serves</span>
-              <span className="text-xs font-bold text-white mt-0.5">{recipe.servings || 'N/A'}</span>
+            <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center justify-center text-center">
+              <ListChecks className="w-4 h-4 text-emerald-500 mb-1" />
+              <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Serves</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{recipe.servings || 'N/A'}</span>
             </div>
           </div>
 
           {/* Nutrition estimate */}
           {recipe.nutritionalEstimates && (
-            <div className="bg-white/5 p-3.5 rounded-xl border border-white/5">
-              <h4 className="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Nutritional Estimates</h4>
+            <div className="bg-black/5 dark:bg-white/5 p-3.5 rounded-xl border border-black/5 dark:border-white/5">
+              <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Nutritional Estimates</h4>
               <div className="grid grid-cols-4 gap-2 text-center text-xs">
                 <div>
-                  <div className="text-white font-bold">{recipe.nutritionalEstimates.calories}</div>
-                  <div className="text-[9px] text-gray-400">kcal</div>
+                  <div className="text-gray-900 dark:text-white font-bold">{recipe.nutritionalEstimates.calories}</div>
+                  <div className="text-[9px] text-gray-500 dark:text-gray-400">kcal</div>
                 </div>
                 <div>
-                  <div className="text-white font-bold">{recipe.nutritionalEstimates.protein}</div>
-                  <div className="text-[9px] text-gray-400">Protein</div>
+                  <div className="text-gray-900 dark:text-white font-bold">{recipe.nutritionalEstimates.protein}</div>
+                  <div className="text-[9px] text-gray-500 dark:text-gray-400">Protein</div>
                 </div>
                 <div>
-                  <div className="text-white font-bold">{recipe.nutritionalEstimates.carbs}</div>
-                  <div className="text-[9px] text-gray-400">Carbs</div>
+                  <div className="text-gray-900 dark:text-white font-bold">{recipe.nutritionalEstimates.carbs}</div>
+                  <div className="text-[9px] text-gray-500 dark:text-gray-400">Carbs</div>
                 </div>
                 <div>
-                  <div className="text-white font-bold">{recipe.nutritionalEstimates.fat}</div>
-                  <div className="text-[9px] text-gray-400">Fat</div>
+                  <div className="text-gray-900 dark:text-white font-bold">{recipe.nutritionalEstimates.fat}</div>
+                  <div className="text-[9px] text-gray-500 dark:text-gray-400">Fat</div>
                 </div>
               </div>
             </div>
@@ -455,11 +471,11 @@ export default function App() {
         {/* Tabbed view for recipe items */}
         <Tabs defaultSelectedKey="ingredients" className="w-full">
           <Tabs.ListContainer className="w-full">
-            <Tabs.List className="flex !bg-transparent !p-0 !rounded-none border-b border-white/10 w-full mb-4">
-              <Tabs.Tab id="ingredients" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-500 !text-gray-400 data-[selected=true]:!text-emerald-400 hover:text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none">
+            <Tabs.List className="flex !bg-transparent !p-0 !rounded-none border-b border-black/10 dark:border-white/10 w-full mb-4">
+              <Tabs.Tab id="ingredients" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none">
                 Ingredients
               </Tabs.Tab>
-              <Tabs.Tab id="steps" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-500 !text-gray-400 data-[selected=true]:!text-emerald-400 hover:text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none">
+              <Tabs.Tab id="steps" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none">
                 Instructions
               </Tabs.Tab>
               <Tabs.Tab id="details" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-500 !text-gray-400 data-[selected=true]:!text-emerald-400 hover:text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none">
@@ -471,9 +487,9 @@ export default function App() {
           {/* Ingredients tab */}
           <Tabs.Panel id="ingredients" className="flex flex-col gap-4">
             <Card className="glass-panel p-5 rounded-2xl">
-              <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wider flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider flex items-center justify-between">
                 <span>Ingredients Checklist</span>
-                <span className="text-xs text-gray-400 normal-case font-normal">Check ingredients you have prepared</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 normal-case font-normal">Check ingredients you have prepared</span>
               </h3>
               <ul className="flex flex-col gap-3">
                 {recipe.ingredients.map((ing, idx) => {
@@ -487,19 +503,19 @@ export default function App() {
                     <li 
                       key={uniqueId}
                       onClick={() => toggleIngredient(uniqueId)}
-                      className="flex items-center gap-3 py-2 px-3 rounded-xl hover:bg-white/5 cursor-pointer transition-colors"
+                      className="flex items-center gap-3 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
                     >
                       <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
-                        isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-white/20'
+                        isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
                       }`}>
                         {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
                       </div>
                       <span className={`text-sm select-none transition-all ${
-                        isChecked ? 'text-gray-500 line-through' : 'text-gray-200'
+                        isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
                       }`}>
-                        <span className="font-semibold text-emerald-400">{amountStr}{unitStr}</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{amountStr}{unitStr}</span>
                         <span>{name}</span>
-                        {ing.notes && <span className="text-xs text-gray-400 block mt-0.5">{ing.notes}</span>}
+                        {ing.notes && <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">{ing.notes}</span>}
                       </span>
                     </li>
                   );
@@ -511,7 +527,7 @@ export default function App() {
           {/* Instructions tab */}
           <Tabs.Panel id="steps" className="flex flex-col gap-4">
             <Card className="glass-panel p-5 rounded-2xl">
-              <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Step-by-Step Instructions</h3>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">Step-by-Step Instructions</h3>
               <div className="flex flex-col gap-4">
                 {recipe.instructions.map((step) => {
                   const isChecked = !!checkedSteps[step.step];
@@ -520,20 +536,20 @@ export default function App() {
                     <div 
                       key={step.step}
                       onClick={() => toggleStep(step.step)}
-                      className="flex items-start gap-4 p-3.5 rounded-xl hover:bg-white/5 cursor-pointer transition-colors"
+                      className="flex items-start gap-4 p-3.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
                     >
                       <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
-                        isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-white/20'
+                        isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
                       }`}>
                         {isChecked ? (
                           <Check className="w-3 h-3 text-white" />
                         ) : (
-                          <span className="text-[10px] text-gray-400">{step.step}</span>
+                          <span className="text-[10px] text-gray-500 dark:text-gray-400">{step.step}</span>
                         )}
                       </div>
                       <div className="flex-1">
                         <span className={`text-sm leading-relaxed block select-none transition-all ${
-                          isChecked ? 'text-gray-500 line-through' : 'text-gray-200'
+                          isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
                         }`}>
                           {step.description}
                         </span>
@@ -549,11 +565,11 @@ export default function App() {
           <Tabs.Panel id="details" className="flex flex-col gap-4">
             {recipe.equipment && recipe.equipment.length > 0 && (
               <Card className="glass-panel p-5 rounded-2xl">
-                <h3 className="text-sm font-bold text-white mb-3 uppercase tracking-wider">Required Equipment</h3>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">Required Equipment</h3>
                 <ul className="grid grid-cols-2 gap-2">
                   {recipe.equipment.map((item, idx) => (
-                    <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-white/5 rounded-lg border border-white/5 text-xs text-gray-300">
-                      <ChevronRight className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                    <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
+                      <ChevronRight className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -563,14 +579,14 @@ export default function App() {
 
             {recipe.tips && recipe.tips.length > 0 && (
               <Card className="glass-panel p-5 rounded-2xl border border-emerald-500/10">
-                <h3 className="text-sm font-bold text-emerald-400 mb-3 uppercase tracking-wider flex items-center gap-1.5">
+                <h3 className="text-sm font-bold text-emerald-500 mb-3 uppercase tracking-wider flex items-center gap-1.5">
                   <ChefHat className="w-4 h-4" />
                   <span>Chef Cooking Tips</span>
                 </h3>
-                <ul className="flex flex-col gap-3 text-xs text-gray-300">
+                <ul className="flex flex-col gap-3 text-xs text-gray-700 dark:text-gray-300">
                   {recipe.tips.map((tip, idx) => (
                     <li key={idx} className="flex items-start gap-2.5 leading-normal">
-                      <span className="bg-emerald-500/10 text-emerald-400 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold border border-emerald-500/20">{idx+1}</span>
+                      <span className="bg-emerald-500/10 text-emerald-500 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold border border-emerald-500/20">{idx+1}</span>
                       <span>{tip}</span>
                     </li>
                   ))}
@@ -580,16 +596,16 @@ export default function App() {
 
             {recipe.alternativeIngredients && recipe.alternativeIngredients.length > 0 && (
               <Card className="glass-panel p-5 rounded-2xl">
-                <h3 className="text-sm font-bold text-white mb-3 uppercase tracking-wider">Alternative Ingredients</h3>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">Alternative Ingredients</h3>
                 <div className="flex flex-col gap-3">
                   {recipe.alternativeIngredients.map((alt, idx) => (
-                    <div key={idx} className="bg-white/5 p-3 rounded-xl border border-white/5 text-xs">
+                    <div key={idx} className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 text-xs">
                       <div className="flex items-center justify-between font-semibold">
-                        <span className="text-red-400 line-through">{alt.original}</span>
-                        <span className="text-gray-400">→</span>
-                        <span className="text-emerald-400">{alt.substitute}</span>
+                        <span className="text-red-600 dark:text-red-400 line-through">{alt.original}</span>
+                        <span className="text-gray-500">→</span>
+                        <span className="text-emerald-600 dark:text-emerald-400">{alt.substitute}</span>
                       </div>
-                      {alt.notes && <p className="text-gray-400 mt-1.5 leading-normal">{alt.notes}</p>}
+                      {alt.notes && <p className="text-gray-500 dark:text-gray-400 mt-1.5 leading-normal">{alt.notes}</p>}
                     </div>
                   ))}
                 </div>
@@ -598,8 +614,8 @@ export default function App() {
 
             {recipe.transcript && (
               <Card className="glass-panel p-5 rounded-2xl">
-                <h3 className="text-sm font-bold text-white mb-3 uppercase tracking-wider">Raw Audio Transcript</h3>
-                <p className="text-xs text-gray-400 leading-relaxed max-h-48 overflow-y-auto pr-2 bg-black/20 p-3 rounded-xl font-mono">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">Raw Audio Transcript</h3>
+                <p className="text-xs text-gray-700 dark:text-gray-400 leading-relaxed max-h-48 overflow-y-auto pr-2 bg-black/5 dark:bg-black/20 p-3 rounded-xl font-mono">
                   {recipe.transcript}
                 </p>
               </Card>
@@ -611,7 +627,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen pb-16 flex flex-col items-center">
+    <div className="min-h-screen pb-16 flex flex-col items-center transition-colors duration-300">
       {/* Header Container */}
       <header className="w-full max-w-2xl px-4 mt-8 flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -619,15 +635,24 @@ export default function App() {
             <ChefHat className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white m-0 leading-none">Recipe Extractor</h1>
-            <span className="text-xs text-gray-400">Instagram Reel AI Parser ({installStatus})</span>
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">Recipe Extractor</h1>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Instagram Reel AI Parser ({installStatus})</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
             isIconOnly
             variant="tertiary"
-            className="text-gray-400 hover:text-white"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            onPress={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+            aria-label="Toggle Theme"
+          >
+            {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </Button>
+          <Button
+            isIconOnly
+            variant="tertiary"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             onPress={() => setShowApiConfig(!showApiConfig)}
             aria-label="Settings"
           >
@@ -639,12 +664,12 @@ export default function App() {
       {/* PWA Promotion Banner */}
       {isInstallable && (
         <div className="w-full max-w-2xl px-4 mt-6">
-          <div className="glass-panel p-4 rounded-2xl flex items-center justify-between gap-4 border border-emerald-500/20 bg-emerald-950/20">
+          <div className="glass-panel p-4 rounded-2xl flex items-center justify-between gap-4 border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/20">
             <div className="flex gap-3 items-center">
               <Share2 className="text-emerald-400 w-5 h-5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-white">Install as App (PWA)</p>
-                <p className="text-xs text-gray-300">Share Reels directly to this app to extract recipes fast!</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">Install as App (PWA)</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300">Share Reels directly to this app to extract recipes fast!</p>
               </div>
             </div>
             <Button size="sm" className="bg-emerald-500 hover:bg-emerald-400 text-white font-medium shadow-lg" onPress={handleInstallClick}>
@@ -658,13 +683,13 @@ export default function App() {
       <main className="w-full max-w-2xl px-4 mt-6 flex-1 flex flex-col gap-6">
         
         {/* Navigation Tabs */}
-        <div className="flex border border-white/10 p-1 rounded-xl bg-white/5 w-fit self-center">
+        <div className="flex border border-black/10 dark:border-white/10 p-1 rounded-xl bg-black/5 dark:bg-white/5 w-fit self-center">
           <button
             onClick={() => setActiveView('extract')}
             className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               activeView === 'extract' 
                 ? 'bg-emerald-600 text-white shadow-lg' 
-                : 'text-gray-400 hover:text-white'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             Extract New
@@ -677,7 +702,7 @@ export default function App() {
             className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               activeView === 'history' 
                 ? 'bg-emerald-600 text-white shadow-lg' 
-                : 'text-gray-400 hover:text-white'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             Saved Recipes ({history.filter(h => h.status === 'completed').length})
@@ -687,19 +712,19 @@ export default function App() {
         {/* API config drawer */}
         {showApiConfig && (
           <Card className="glass-panel p-5 rounded-2xl">
-            <Card.Header className="p-0 pb-3 flex justify-between items-center border-b border-white/5">
-              <Card.Title className="text-sm font-semibold text-white">Backend Access Settings</Card.Title>
+            <Card.Header className="p-0 pb-3 flex justify-between items-center border-b border-black/5 dark:border-white/5">
+              <Card.Title className="text-sm font-semibold text-gray-950 dark:text-white">Backend Access Settings</Card.Title>
             </Card.Header>
             <Card.Content className="p-0 pt-4 flex flex-col gap-4">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Configure your secret API Key to communicate with the server backend extractor endpoints.
               </p>
               <TextField fullWidth name="apiKey" value={apiKey} onChange={saveApiKey}>
-                <Label className="text-xs text-gray-400">API Key</Label>
+                <Label className="text-xs text-gray-500 dark:text-gray-400">API Key</Label>
                 <Input 
                   type="password"
                   placeholder="Enter secret API Key" 
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white" 
+                  className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500" 
                 />
               </TextField>
               <div className="flex justify-end gap-2">
@@ -727,17 +752,17 @@ export default function App() {
                   }}
                   isInvalid={!!urlError}
                 >
-                  <Label className="text-sm font-medium text-gray-300">Instagram Reel URL</Label>
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Instagram Reel URL</Label>
                   <div className="relative mt-2">
                     <Input 
                       placeholder="https://www.instagram.com/reel/C8C_jApt_2j/" 
-                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-3 pr-10 py-3 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-3 pr-10 py-3 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none" 
                       disabled={isPending}
                     />
                     {url && (
                       <button
                         type="button"
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                         onClick={() => setUrl('')}
                         disabled={isPending}
                       >
@@ -745,7 +770,7 @@ export default function App() {
                       </button>
                     )}
                   </div>
-                  {urlError && <FieldError className="text-xs text-red-400 mt-1">{urlError}</FieldError>}
+                  {urlError && <FieldError className="text-xs text-red-500 mt-1">{urlError}</FieldError>}
                 </TextField>
 
                 <Button
@@ -779,23 +804,23 @@ export default function App() {
 
             {/* Processing State Tracker */}
             {isPending && statusDetails && (
-              <Card className="glass-panel p-6 rounded-2xl border border-emerald-500/20 bg-emerald-950/5">
+              <Card className="glass-panel p-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/5">
                 <div className="flex items-start gap-4">
                   <div className="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 text-emerald-400 animate-pulse-slow">
                     <Cpu className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-white">{statusDetails.text}</h3>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{statusDetails.text}</h3>
                       <span className="text-xs text-emerald-400 font-mono capitalize">{jobStatus}</span>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">{statusDetails.sub}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{statusDetails.sub}</p>
 
                     {/* Progress bar steps */}
                     <div className="grid grid-cols-3 gap-2 mt-4">
-                      <div className={`h-1.5 rounded-full ${['pending', 'scraping', 'processing', 'completed'].includes(jobStatus || '') ? 'bg-emerald-500' : 'bg-white/10'}`}></div>
-                      <div className={`h-1.5 rounded-full ${['scraping', 'processing', 'completed'].includes(jobStatus || '') ? 'bg-emerald-500' : 'bg-white/10'} ${jobStatus === 'scraping' ? 'animate-pulse-slow' : ''}`}></div>
-                      <div className={`h-1.5 rounded-full ${['processing', 'completed'].includes(jobStatus || '') ? 'bg-emerald-500' : 'bg-white/10'} ${jobStatus === 'processing' ? 'animate-pulse-slow' : ''}`}></div>
+                      <div className={`h-1.5 rounded-full ${['pending', 'scraping', 'processing', 'completed'].includes(jobStatus || '') ? 'bg-emerald-500' : 'bg-black/10 dark:bg-white/10'}`}></div>
+                      <div className={`h-1.5 rounded-full ${['scraping', 'processing', 'completed'].includes(jobStatus || '') ? 'bg-emerald-500' : 'bg-black/10 dark:bg-white/10'} ${jobStatus === 'scraping' ? 'animate-pulse-slow' : ''}`}></div>
+                      <div className={`h-1.5 rounded-full ${['processing', 'completed'].includes(jobStatus || '') ? 'bg-emerald-500' : 'bg-black/10 dark:bg-white/10'} ${jobStatus === 'processing' ? 'animate-pulse-slow' : ''}`}></div>
                     </div>
                   </div>
                 </div>
@@ -804,16 +829,16 @@ export default function App() {
 
             {/* Error State Banner */}
             {!isPending && jobStatus === 'failed' && (
-              <Card className="glass-panel p-5 rounded-2xl border border-red-500/20 bg-red-950/10">
-                <div className="flex items-start gap-3 text-red-400">
+              <Card className="glass-panel p-5 rounded-2xl border border-red-500/20 bg-red-500/5 dark:bg-red-950/10">
+                <div className="flex items-start gap-3 text-red-500">
                   <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="text-sm font-semibold text-white">Extraction Failed</h3>
-                    <p className="text-xs text-red-300 mt-1">{jobError || 'An unknown error occurred while analyzing the Reel.'}</p>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Extraction Failed</h3>
+                    <p className="text-xs text-red-600 dark:text-red-300 mt-1">{jobError || 'An unknown error occurred while analyzing the Reel.'}</p>
                     <Button 
                       size="sm" 
                       variant="tertiary" 
-                      className="mt-3 text-xs text-white border border-white/10 hover:bg-white/5" 
+                      className="mt-3 text-xs text-gray-800 dark:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" 
                       onPress={() => triggerExtraction(url)}
                     >
                       <RefreshCw className="w-3 h-3 mr-1" /> Retry
@@ -834,19 +859,19 @@ export default function App() {
               <div className="flex flex-col gap-4">
                 <Button 
                   variant="tertiary" 
-                  className="self-start flex items-center gap-1.5 border border-white/10 bg-white/5 py-1.5 px-3 text-xs text-gray-300 hover:text-white rounded-xl active:scale-95 transition-all"
+                  className="self-start flex items-center gap-1.5 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 py-1.5 px-3 text-xs text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-xl active:scale-95 transition-all"
                   onPress={() => setSelectedJob(null)}
                 >
                   ← Back to Saved Recipes
                 </Button>
                 
-                <div className="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl p-3 px-4">
-                  <span className="text-xs text-gray-400 font-medium">Saved on {new Date(selectedJob.createdAt).toLocaleDateString()}</span>
+                <div className="flex items-center justify-between bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-3 px-4">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Saved on {new Date(selectedJob.createdAt).toLocaleDateString()}</span>
                   <a 
                     href={selectedJob.url} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="text-emerald-400 hover:text-emerald-300 text-xs flex items-center gap-1 font-medium"
+                    className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 text-xs flex items-center gap-1 font-medium"
                   >
                     <Globe className="w-3.5 h-3.5" /> View original Reel
                   </a>
@@ -857,13 +882,13 @@ export default function App() {
             ) : (
               /* LIST VIEW OF SAVED RECIPES */
               <div className="flex flex-col gap-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-1">Saved Recipes Catalog</h3>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1">Saved Recipes Catalog</h3>
                 
                 {history.filter(h => h.status === 'completed' && h.recipe).length === 0 ? (
-                  <Card className="glass-panel p-8 rounded-2xl text-center flex flex-col items-center justify-center border border-white/5">
+                  <Card className="glass-panel p-8 rounded-2xl text-center flex flex-col items-center justify-center border border-black/5 dark:border-white/5">
                     <Utensils className="w-8 h-8 text-gray-500 mb-3 animate-pulse-slow" />
-                    <h3 className="text-sm font-semibold text-white">No Saved Recipes</h3>
-                    <p className="text-xs text-gray-400 mt-1 max-w-xs leading-normal">
+                    <h3 className="text-sm font-semibold text-gray-950 dark:text-white">No Saved Recipes</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-xs leading-normal">
                       Extract recipes from Instagram Reels in the "Extract New" tab to save them here!
                     </p>
                   </Card>
@@ -881,24 +906,24 @@ export default function App() {
                           >
                             <div>
                               <div className="flex justify-between items-start gap-2">
-                                <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors line-clamp-1">{r.title}</h4>
+                                <h4 className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-emerald-500 transition-colors line-clamp-1">{r.title}</h4>
                                 <button
                                   onClick={(e) => handleDeleteJob(e, job.id)}
-                                  className="text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                                  className="text-gray-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                                   aria-label="Delete recipe"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
                               </div>
-                              <p className="text-xs text-gray-400 mt-1.5 line-clamp-2 leading-relaxed">{r.description}</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed">{r.description}</p>
                             </div>
                             
-                            <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5 text-[10px] text-gray-400">
+                            <div className="flex items-center justify-between mt-4 pt-3 border-t border-black/5 dark:border-white/5 text-[10px] text-gray-500 dark:text-gray-400">
                               <div className="flex gap-2">
-                                <span className="flex items-center gap-1 font-medium"><Clock className="w-3 h-3 text-emerald-400" /> {r.prepTime || 'N/A'}</span>
-                                <span className="flex items-center gap-1 font-medium"><Utensils className="w-3 h-3 text-emerald-400" /> {r.cookTime || 'N/A'}</span>
+                                <span className="flex items-center gap-1 font-medium"><Clock className="w-3 h-3 text-emerald-500" /> {r.prepTime || 'N/A'}</span>
+                                <span className="flex items-center gap-1 font-medium"><Utensils className="w-3 h-3 text-emerald-500" /> {r.cookTime || 'N/A'}</span>
                               </div>
-                              <span className="font-mono text-gray-500">{new Date(job.createdAt).toLocaleDateString()}</span>
+                              <span className="font-mono text-gray-500 dark:text-gray-500">{new Date(job.createdAt).toLocaleDateString()}</span>
                             </div>
                           </Card>
                         );

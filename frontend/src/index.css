@@ -6,14 +6,20 @@
 
 :root {
   font-family: 'Outfit', system-ui, -apple-system, sans-serif;
-  color-scheme: dark;
+  color-scheme: light dark;
 }
 
 body {
   margin: 0;
+  background-color: #f9fafb; /* Light mode background */
+  color: #111827; /* Dark slate text */
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark body {
   background-color: #030712; /* Dark slate background */
   color: #f3f4f6;
-  min-height: 100vh;
 }
 
 /* Custom animations for premium interactions */
@@ -44,8 +50,16 @@ body {
 
 /* Glassmorphism utility */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+html.dark .glass-panel {
+  background: rgba(17, 24, 39, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
