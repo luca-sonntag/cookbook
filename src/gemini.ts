@@ -3,6 +3,7 @@ import { GoogleAIFileManager } from '@google/generative-ai/files';
 import { config } from './config.js';
 import { Recipe } from './types.js';
 import fs from 'fs/promises';
+import { writeGeminiLog, estimateCost, type TokenUsage } from './logger.js';
 
 // Initialize Gemini Generative AI and File Manager
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -100,7 +101,10 @@ export async function extractRecipeFromAudio(
     throw new Error('Gemini API key is not configured in environment variables.');
   }
 
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
   let uploadResult: any;
+  let rawOutput: string | undefined;
 
   try {
     // If the MIME type is video/mp4 but it's audio-only, force audio/mp4 to avoid Gemini video-processing failures
@@ -160,13 +164,13 @@ ${caption}
       prompt,
     ]);
 
-    const responseText = result.response.text();
-    if (!responseText) {
+    rawOutput = result.response.text();
+    if (!rawOutput) {
       throw new Error('Gemini returned an empty response.');
     }
 
     // Parse the output schema
-    const recipe: Recipe = JSON.parse(responseText);
+    const recipe: Recipe = JSON.parse(rawOutput);
 
     // Clean up transcript if there were no spoken words
     if (
@@ -178,7 +182,54 @@ ${caption}
       recipe.transcript = null;
     }
 
+    // Extract token usage and compute cost
+    const usageMeta = result.response.usageMetadata;
+    const tokenUsage: TokenUsage | undefined = usageMeta
+      ? {
+          promptTokens:    usageMeta.promptTokenCount    ?? 0,
+          candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+          totalTokens:     usageMeta.totalTokenCount      ?? 0,
+        }
+      : undefined;
+    const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
+
+    await writeGeminiLog({
+      timestamp,
+      requestType: 'extract_recipe',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: true,
+      input: {
+        audioFilePath,
+        uploadMimeType,
+        captionLength: caption.length,
+        captionPreview: caption.slice(0, 300),
+        prompt,
+      },
+      rawOutput,
+      parsedOutput: recipe,
+      tokenUsage,
+      costEstimate,
+    });
+
     return recipe;
+  } catch (err: any) {
+    await writeGeminiLog({
+      timestamp,
+      requestType: 'extract_recipe',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: false,
+      error: err?.message ?? String(err),
+      input: {
+        audioFilePath,
+        mimeType,
+        captionLength: caption.length,
+        captionPreview: caption.slice(0, 300),
+      },
+      rawOutput,
+    });
+    throw err;
   } finally {
     // 4. Ensure cleanup of the uploaded file on Gemini servers
     if (uploadResult?.file?.name) {
@@ -198,6 +249,9 @@ ${caption}
  */
 export async function selectBestFoodFrame(framePaths: string[]): Promise<number> {
   const uploadedFileNames: string[] = [];
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+  let rawOutput: string | undefined;
 
   try {
     // Upload all frames in parallel
@@ -232,15 +286,66 @@ export async function selectBestFoodFrame(framePaths: string[]): Promise<number>
       'Respond with ONLY the integer index of the best frame (e.g. "3"). No explanation.';
 
     const result = await model.generateContent([...imageParts, prompt]);
-    const text = result.response.text().trim();
-    const index = parseInt(text, 10);
+    rawOutput = result.response.text().trim();
+    const index = parseInt(rawOutput, 10);
+
+    // Extract token usage and compute cost
+    const usageMeta = result.response.usageMetadata;
+    const tokenUsage: TokenUsage | undefined = usageMeta
+      ? {
+          promptTokens:    usageMeta.promptTokenCount    ?? 0,
+          candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+          totalTokens:     usageMeta.totalTokenCount      ?? 0,
+        }
+      : undefined;
+    const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
 
     if (isNaN(index) || index < 0 || index >= framePaths.length) {
-      console.warn(`[selectBestFoodFrame] Unexpected response "${text}", defaulting to last frame`);
+      console.warn(`[selectBestFoodFrame] Unexpected response "${rawOutput}", defaulting to last frame`);
+
+      await writeGeminiLog({
+        timestamp,
+        requestType: 'select_best_frame',
+        model: config.GEMINI_MODEL,
+        durationMs: Date.now() - startTime,
+        success: false,
+        error: `Unexpected index response: "${rawOutput}"`,
+        input: { frameCount: framePaths.length, framePaths, prompt },
+        rawOutput,
+        parsedOutput: { selectedIndex: framePaths.length - 1, fallback: true },
+        tokenUsage,
+        costEstimate,
+      });
+
       return framePaths.length - 1; // last frame is often the finished dish
     }
 
+    await writeGeminiLog({
+      timestamp,
+      requestType: 'select_best_frame',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: true,
+      input: { frameCount: framePaths.length, framePaths, prompt },
+      rawOutput,
+      parsedOutput: { selectedIndex: index },
+      tokenUsage,
+      costEstimate,
+    });
+
     return index;
+  } catch (err: any) {
+    await writeGeminiLog({
+      timestamp,
+      requestType: 'select_best_frame',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: false,
+      error: err?.message ?? String(err),
+      input: { frameCount: framePaths.length, framePaths },
+      rawOutput,
+    });
+    throw err;
   } finally {
     // Cleanup all uploaded frames from Gemini File API
     await Promise.allSettled(

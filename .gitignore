@@ -7,3 +7,4 @@ database.json
 *.mp4
 *.m4a
 *.wav
+logs/
