@@ -5,13 +5,14 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "dev": "node node_modules/tsx/dist/cli.mjs watch src/index.ts",
-    "build": "node node_modules/typescript/bin/tsc",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
     "start": "node dist/index.js",
-    "test-client": "node node_modules/tsx/dist/cli.mjs test-client.ts",
+    "test-client": "tsx test-client.ts",
     "tunnel": "ngrok start recipe-api",
     "tunnel:server": "node ngrok-quickstart/server.cjs",
-    "kill-server": "powershell -Command \"Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue).OwningProcess -Force\""
+    "kill-server": "powershell -Command '$conn = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($conn) { Stop-Process -Id $conn.OwningProcess -Force }; exit 0'",
+    "kill-tunnel": "powershell -Command \"Stop-Process -Name ngrok -ErrorAction SilentlyContinue; exit 0\""
   },
   "dependencies": {
     "@google/generative-ai": "^0.11.0",
