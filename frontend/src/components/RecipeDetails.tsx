@@ -37,11 +37,54 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
   const baseServings = recipe.servings || 1;
   const scaleFactor = servings / baseServings;
 
-  const formatAmount = (amount: number | undefined | null) => {
+  const formatAmount = (amount: number | undefined | null, unit: string | undefined | null) => {
     if (!amount) return '';
     const scaled = amount * scaleFactor;
-    // Round to 2 decimal places to avoid precision errors
-    return Math.round(scaled * 100) / 100;
+
+    const lowerUnit = (unit || '').toLowerCase().trim();
+    const isWeightOrVolume = ['g', 'ml', 'kg', 'l', 'gramm', 'milliliter', 'liter', 'kilogramm'].includes(lowerUnit);
+
+    // For weights, volumes, or large values, display as rounded whole numbers or decimals
+    if (isWeightOrVolume || scaled >= 20) {
+      if (scaled % 1 === 0) {
+        return scaled.toString();
+      }
+      if (scaled >= 10) {
+        return Math.round(scaled).toString();
+      }
+      return (Math.round(scaled * 10) / 10).toString();
+    }
+
+    // Otherwise, use mixed fractions for clean home-cooking measurements
+    const tolerance = 0.05;
+    const intPart = Math.floor(scaled);
+    const decPart = scaled - intPart;
+
+    let fractionStr = '';
+    if (Math.abs(decPart - 0.25) < tolerance) {
+      fractionStr = '¼';
+    } else if (Math.abs(decPart - 0.5) < tolerance) {
+      fractionStr = '½';
+    } else if (Math.abs(decPart - 0.75) < tolerance) {
+      fractionStr = '¾';
+    } else if (Math.abs(decPart - 0.333) < tolerance) {
+      fractionStr = '⅓';
+    } else if (Math.abs(decPart - 0.666) < tolerance) {
+      fractionStr = '⅔';
+    } else if (Math.abs(decPart - 0.125) < tolerance) {
+      fractionStr = '⅛';
+    } else if (decPart > 0.95) {
+      return (intPart + 1).toString();
+    } else if (decPart < 0.05) {
+      return intPart.toString();
+    } else {
+      return (Math.round(scaled * 10) / 10).toString();
+    }
+
+    if (intPart === 0) {
+      return fractionStr;
+    }
+    return `${intPart} ${fractionStr}`;
   };
 
   const formatNutritionValue = (val: string | number | undefined | null) => {
@@ -277,7 +320,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
         md += `### ${group.name}\n`;
       }
       group.items.forEach((ing: Ingredient) => {
-        const scaledAmount = formatAmount(ing.amount);
+        const scaledAmount = formatAmount(ing.amount, ing.unit);
         const amountStr = scaledAmount ? `${scaledAmount} ` : '';
         const unitStr = ing.unit ? `${ing.unit} ` : '';
         const noteStr = ing.notes ? ` (${ing.notes})` : '';
@@ -485,7 +528,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
                   )}
                   <ul className="flex flex-col gap-2">
                     {group.items.map((ing, idx) => {
-                      const scaledAmount = formatAmount(ing.amount);
+                      const scaledAmount = formatAmount(ing.amount, ing.unit);
                       const amountStr = scaledAmount ? `${scaledAmount} ` : '';
                       const unitStr = ing.unit ? `${ing.unit} ` : '';
                       const name = ing.name;
