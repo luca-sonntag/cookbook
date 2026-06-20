@@ -8,3 +8,5 @@ database.json
 *.m4a
 *.wav
 logs/
+public/recipe-images/
+temp-downloads/
