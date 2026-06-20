@@ -2,9 +2,6 @@ import { GoogleGenerativeAI, FunctionDeclarationSchemaType } from '@google/gener
 import { GoogleAIFileManager } from '@google/generative-ai/files';
 import { config } from './config.js';
 import { Recipe } from './types.js';
-import fs from 'fs/promises';
-import path from 'path';
-import { createImageGrid } from './frameExtractor.js';
 import { writeGeminiLog, estimateCost, type TokenUsage } from './logger.js';
 
 // Initialize Gemini Generative AI and File Manager
@@ -174,7 +171,7 @@ export async function extractRecipeFromAudio(
 
     const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.${gridImagePath ? ' You are also given an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating).' : ''}
 
-First, determine if this reel actually contains a food recipe. If it does NOT contain a recipe (e.g. it's just a vlog, comedy, or unrelated content), set the "isRecipe" field to false, and fill the remaining required fields with empty or generic placeholder values (they will be ignored).
+First, determine if this reel actually contains a food recipe. If it does NOT contain a recipe (e.g. it's just a vlog, comedy, or unrelated content), set the "isRecipe" field to false, and fill the remaining required fields with empty values (they will be ignored).
 If it IS a recipe, set "isRecipe" to true and extract the recipe as normal.
 
 Combine the${gridImagePath ? ' three' : ' two'} sources to reconstruct the complete recipe. The creator might mention specific measurements or ingredients in the audio that are missing or abbreviated in the text, and vice versa.${gridImagePath ? ' Use the visual frames in the grid to resolve ambiguities, confirm ingredients, verify cooking techniques, or see the final plated dish.' : ''} Resolve any contradictions by prioritizing the instructions that make the most logical sense culinary-wise.
@@ -328,7 +325,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
     ]);
 
     rawOutput = result.response.text().trim();
-    
+
     let indices = rawOutput
       .split(',')
       .map((s) => parseInt(s.trim(), 10))
