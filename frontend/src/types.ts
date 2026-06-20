@@ -29,6 +29,7 @@ export interface NutritionalEstimates {
 }
 
 export interface Recipe {
+  id?: string;
   title: string;
   description: string;
   prepTime: string;
@@ -63,4 +64,25 @@ export interface BeforeInstallPromptEvent extends Event {
   }>;
   prompt(): Promise<void>;
 }
+
+export interface ShoppingListItem {
+  id: string;
+  name: string;
+  amount: number;
+  unit: string;
+  recipeId?: string;
+  recipeTitle?: string;
+  checked: boolean;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface AggregatedShoppingItem {
+  name: string;
+  unit: string;
+  amount: number;
+  checked: boolean;
+  sources: { recipeId?: string; recipeTitle?: string; amount: number; unit: string }[];
+}
+
 

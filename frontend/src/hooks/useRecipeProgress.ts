@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import type { Recipe } from '../types';
 
 export function useRecipeProgress(recipe: Recipe) {
-  const ingredientsKey = `recipe_ingredients_${recipe.title}`;
-  const stepsKey = `recipe_steps_${recipe.title}`;
+  const recipeId = recipe.id || recipe.title;
+  const ingredientsKey = `recipe_ingredients_${recipeId}`;
+  const stepsKey = `recipe_steps_${recipeId}`;
 
   // Initial load
   const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>(() => {
@@ -24,7 +25,7 @@ export function useRecipeProgress(recipe: Recipe) {
     }
   });
 
-  // Sync state when recipe title changes
+  // Sync state when recipe changes
   useEffect(() => {
     try {
       const savedIngredients = localStorage.getItem(ingredientsKey);
@@ -39,7 +40,7 @@ export function useRecipeProgress(recipe: Recipe) {
     } catch {
       setCheckedSteps({});
     }
-  }, [recipe.title, ingredientsKey, stepsKey]);
+  }, [recipeId, ingredientsKey, stepsKey]);
 
   const toggleIngredient = (id: string) => {
     setCheckedIngredients((prev) => {

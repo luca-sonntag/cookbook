@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import type { Recipe } from '../types';
 
 export function useRecipeScaling(recipe: Recipe) {
-  const storageKey = `recipe_servings_${recipe.title}`;
+  const recipeId = recipe.id || recipe.title;
+  const storageKey = `recipe_servings_${recipeId}`;
 
   const [servings, setServings] = useState<number>(() => {
     const saved = localStorage.getItem(storageKey);
@@ -16,7 +17,7 @@ export function useRecipeScaling(recipe: Recipe) {
     } else {
       setServings(recipe.servings || 4);
     }
-  }, [recipe.title, recipe.servings, storageKey]);
+  }, [recipeId, recipe.servings, storageKey]);
 
   const updateServings = (newServings: number | ((s: number) => number)) => {
     setServings((prev) => {
