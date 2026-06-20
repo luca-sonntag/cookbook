@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Card, Button } from '@heroui/react';
 import { Globe, Utensils, Clock, Trash2, ArrowLeft } from 'lucide-react';
 import type { Job } from '../types';
 import RecipeDetails from './RecipeDetails';
+import { useMobileNavigationBack } from '../hooks/useMobileNavigationBack';
 
 interface SavedCatalogProps {
   history: Job[];
@@ -18,57 +19,9 @@ export default function SavedCatalog({
   handleDeleteJob
 }: SavedCatalogProps) {
   const completedJobs = history.filter(h => h.status === 'completed' && h.recipe);
-  const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
 
-  /* ── History API: push a state when entering detail so Android system
-     back button / gesture triggers popstate → go back ── */
-  useEffect(() => {
-    if (selectedJob) {
-      history.length; // satisfy linter — history prop is separate from window.history
-      window.history.pushState({ recipeDetail: true }, '');
-    }
-  }, [selectedJob?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const onPopState = (e: PopStateEvent) => {
-      // If user pressed system back while in detail view, return to list
-      if (selectedJob) {
-        e.preventDefault?.();
-        setSelectedJob(null);
-      }
-    };
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-  }, [selectedJob, setSelectedJob]);
-
-  /* ── Touch swipe: right-swipe from left edge → go back ── */
-  useEffect(() => {
-    if (!selectedJob) return;
-
-    const onTouchStart = (e: TouchEvent) => {
-      touchStartX.current = e.touches[0].clientX;
-      touchStartY.current = e.touches[0].clientY;
-    };
-
-    const onTouchEnd = (e: TouchEvent) => {
-      const dx = e.changedTouches[0].clientX - touchStartX.current;
-      const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
-      // Swipe starts within 40px of left edge, travels ≥80px right, mostly horizontal
-      if (touchStartX.current <= 40 && dx >= 80 && dy < 60) {
-        setSelectedJob(null);
-      }
-    };
-
-    document.addEventListener('touchstart', onTouchStart, { passive: true });
-    document.addEventListener('touchend', onTouchEnd, { passive: true });
-    return () => {
-      document.removeEventListener('touchstart', onTouchStart);
-      document.removeEventListener('touchend', onTouchEnd);
-    };
-  }, [selectedJob, setSelectedJob]);
-
-
+  // Custom hook for swipe-to-go-back and mobile back button handling
+  useMobileNavigationBack(!!selectedJob, () => setSelectedJob(null));
 
   return (
     <div className="flex flex-col gap-4">
