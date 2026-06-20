@@ -281,7 +281,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
               Instructions
             </Tabs.Tab>
             <Tabs.Tab id="details" className="flex-1 flex-shrink-0 px-3 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none whitespace-nowrap">
-              Equipment & Tips
+              Transcript
             </Tabs.Tab>
           </Tabs.List>
         </Tabs.ListContainer>
@@ -379,10 +379,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
               })}
             </div>
           </Card>
-        </Tabs.Panel>
 
-        {/* Equipment & Tips tab */}
-        <Tabs.Panel id="details" className="flex flex-col gap-4">
           {recipe.equipment && recipe.equipment.length > 0 && (
             <Card className="glass-panel p-5 rounded-2xl">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">Required Equipment</h3>
@@ -413,7 +410,10 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
               </ul>
             </Card>
           )}
+        </Tabs.Panel>
 
+        {/* Equipment & Tips tab */}
+        <Tabs.Panel id="details" className="flex flex-col gap-4">
           {recipe.transcript && (
             <Card className="glass-panel p-5 rounded-2xl">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">Raw Audio Transcript</h3>
