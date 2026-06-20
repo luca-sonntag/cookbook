@@ -111,9 +111,12 @@ async function runTestClient() {
       console.log(`Servings:    ${recipe.servings}`);
       
       console.log('\n--- INGREDIENTS ---');
-      recipe.ingredients.forEach(ing => {
-        const notes = ing.notes ? ` (${ing.notes})` : '';
-        console.log(`- ${ing.amount} ${ing.unit} ${ing.name}${notes}`);
+      recipe.ingredients.forEach(group => {
+        console.log(`[${group.name}]`);
+        group.items.forEach(ing => {
+          const notes = ing.notes ? ` (${ing.notes})` : '';
+          console.log(`  - ${ing.amount} ${ing.unit} ${ing.name}${notes}`);
+        });
       });
 
       console.log('\n--- INSTRUCTIONS ---');
