@@ -29,9 +29,11 @@ export interface NutritionalEstimates {
 }
 
 export interface Recipe {
+  id?: string;
   isRecipe?: boolean;
   title: string;
   description: string;
+
   prepTime: string; // e.g. "15 mins"
   cookTime: string; // e.g. "20 mins"
   servings: number;

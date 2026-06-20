@@ -166,6 +166,9 @@ async function processJob(jobId: string, url: string): Promise<void> {
       }
     }
 
+    // Assign unique recipe ID equal to jobId
+    recipe.id = jobId;
+
     // 7. Update job as completed
     await updateJob(jobId, {
       status: 'completed',

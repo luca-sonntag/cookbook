@@ -34,8 +34,11 @@ export async function initDb(): Promise<void> {
 }
 
 // Helper to normalize older recipe ingredients structure
-function normalizeRecipe(recipe: any): void {
+function normalizeRecipe(recipe: any, jobId: string): void {
   if (!recipe) return;
+  if (!recipe.id) {
+    recipe.id = jobId;
+  }
   if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
     const needsConversion = recipe.ingredients.length === 0 || 
       (recipe.ingredients[0] && !Array.isArray(recipe.ingredients[0].items));
@@ -58,7 +61,7 @@ async function readJobsRaw(): Promise<Job[]> {
     const jobs = JSON.parse(data) as Job[];
     for (const job of jobs) {
       if (job.recipe) {
-        normalizeRecipe(job.recipe);
+        normalizeRecipe(job.recipe, job.id);
       }
     }
     return jobs;
