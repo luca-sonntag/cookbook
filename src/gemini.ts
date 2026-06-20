@@ -92,14 +92,16 @@ const recipeSchema = {
 };
 
 /**
- * Uploads an audio file to the Google AI File API, waits for it to become ACTIVE,
- * prompts Gemini 1.5 with the audio and caption, and extracts a structured recipe.
- * Automatically deletes the file from Gemini storage when done.
+ * Uploads an audio file and optionally a grid image to the Google AI File API,
+ * waits for them to become ACTIVE, prompts Gemini with the audio, caption, and grid image context,
+ * and extracts a structured recipe.
+ * Automatically deletes the files from Gemini storage when done.
  */
 export async function extractRecipeFromAudio(
   audioFilePath: string,
   mimeType: string,
-  caption: string
+  caption: string,
+  gridImagePath?: string
 ): Promise<Recipe> {
   if (!config.GEMINI_API_KEY || config.GEMINI_API_KEY === 'your_gemini_api_key_here') {
     throw new Error('Gemini API key is not configured in environment variables.');
@@ -108,13 +110,14 @@ export async function extractRecipeFromAudio(
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
   let uploadResult: any;
+  let gridUploadResult: any;
   let rawOutput: string | undefined;
 
   try {
     // If the MIME type is video/mp4 but it's audio-only, force audio/mp4 to avoid Gemini video-processing failures
     const uploadMimeType = mimeType === 'video/mp4' ? 'audio/mp4' : mimeType;
 
-    // 1. Upload the file to Google AI File API
+    // 1. Upload the audio file to Google AI File API
     uploadResult = await fileManager.uploadFile(audioFilePath, {
       mimeType: uploadMimeType,
       displayName: `instagram-reel-audio-${Date.now()}`,
@@ -136,6 +139,30 @@ export async function extractRecipeFromAudio(
       throw new Error(`Google AI File API processing failed with state: ${file.state}`);
     }
 
+    // 2b. If a grid image is provided, upload it as well
+    const contentParts: any[] = [
+      {
+        fileData: {
+          fileUri: uploadResult.file.uri,
+          mimeType: uploadResult.file.mimeType,
+        },
+      },
+    ];
+
+    if (gridImagePath) {
+      console.log('[extractRecipeFromAudio] Uploading grid image for recipe extraction context...');
+      gridUploadResult = await fileManager.uploadFile(gridImagePath, {
+        mimeType: 'image/jpeg',
+        displayName: `instagram-reel-grid-${Date.now()}`,
+      });
+      contentParts.push({
+        fileData: {
+          fileUri: gridUploadResult.file.uri,
+          mimeType: 'image/jpeg',
+        },
+      });
+    }
+
     // 3. Request structured content from Gemini
     const model = genAI.getGenerativeModel({
       model: config.GEMINI_MODEL,
@@ -145,12 +172,12 @@ export async function extractRecipeFromAudio(
       } as any,
     });
 
-    const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.
+    const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.${gridImagePath ? ' You are also given an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating).' : ''}
 
 First, determine if this reel actually contains a food recipe. If it does NOT contain a recipe (e.g. it's just a vlog, comedy, or unrelated content), set the "isRecipe" field to false, and fill the remaining required fields with empty or generic placeholder values (they will be ignored).
 If it IS a recipe, set "isRecipe" to true and extract the recipe as normal.
 
-Combine the two sources to reconstruct the complete recipe. The creator might mention specific measurements or ingredients in the audio that are missing or abbreviated in the text, and vice versa. Resolve any contradictions by prioritizing the instructions that make the most logical sense culinary-wise.
+Combine the${gridImagePath ? ' three' : ' two'} sources to reconstruct the complete recipe. The creator might mention specific measurements or ingredients in the audio that are missing or abbreviated in the text, and vice versa.${gridImagePath ? ' Use the visual frames in the grid to resolve ambiguities, confirm ingredients, verify cooking techniques, or see the final plated dish.' : ''} Resolve any contradictions by prioritizing the instructions that make the most logical sense culinary-wise.
 
 Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
 
@@ -161,15 +188,9 @@ Description/Caption:
 ${caption}
 """`;
 
-    const result = await model.generateContent([
-      {
-        fileData: {
-          fileUri: uploadResult.file.uri,
-          mimeType: uploadResult.file.mimeType,
-        },
-      },
-      prompt,
-    ]);
+    contentParts.push(prompt);
+
+    const result = await model.generateContent(contentParts);
 
     rawOutput = result.response.text();
     if (!rawOutput) {
@@ -244,12 +265,19 @@ ${caption}
     });
     throw err;
   } finally {
-    // 4. Ensure cleanup of the uploaded file on Gemini servers
+    // 4. Ensure cleanup of the uploaded files on Gemini servers
     if (uploadResult?.file?.name) {
       try {
         await fileManager.deleteFile(uploadResult.file.name);
       } catch (err: any) {
         console.error(`Failed to clean up file ${uploadResult.file.name} from Gemini File API:`, err.message);
+      }
+    }
+    if (gridUploadResult?.file?.name) {
+      try {
+        await fileManager.deleteFile(gridUploadResult.file.name);
+      } catch (err: any) {
+        console.error(`Failed to clean up file ${gridUploadResult.file.name} from Gemini File API:`, err.message);
       }
     }
   }
@@ -258,9 +286,9 @@ ${caption}
 /**
  * Uploads a combined tiled grid image of video frames to Gemini File API,
  * asks which shows the finished dish most appetizingly, and returns the top 5 indices.
- * The uploaded grid image and the local temporary grid file are cleaned up afterwards.
+ * The uploaded grid image is cleaned up afterwards.
  */
-export async function selectBestFoodFrame(framePaths: string[]): Promise<number[]> {
+export async function selectBestFoodFrame(framePaths: string[], gridImagePath: string): Promise<number[]> {
   if (framePaths.length === 0) {
     return [];
   }
@@ -270,17 +298,10 @@ export async function selectBestFoodFrame(framePaths: string[]): Promise<number[
   let rawOutput: string | undefined;
   let uploadResult: any;
 
-  const framesDir = path.dirname(framePaths[0]);
-  const gridPath = path.join(framesDir, 'grid.jpg');
-
   try {
-    // 1. Create the tiled grid image from the frame paths
-    console.log(`[selectBestFoodFrame] Creating tiled frame grid at ${gridPath}...`);
-    await createImageGrid(framePaths, gridPath);
-
-    // 2. Upload the grid image to Google AI File API
+    // 1. Upload the grid image to Google AI File API
     console.log('[selectBestFoodFrame] Uploading grid image to Gemini File API...');
-    uploadResult = await fileManager.uploadFile(gridPath, {
+    uploadResult = await fileManager.uploadFile(gridImagePath, {
       mimeType: 'image/jpeg',
       displayName: `frames-grid-${Date.now()}.jpg`,
     });
@@ -379,12 +400,6 @@ export async function selectBestFoodFrame(framePaths: string[]): Promise<number[
       } catch (err: any) {
         console.error(`Failed to clean up file ${uploadResult.file.name} from Gemini File API:`, err.message);
       }
-    }
-    // Clean up local grid image
-    try {
-      await fs.unlink(gridPath);
-    } catch {
-      // Ignore if it was not created or already deleted
     }
   }
 }
