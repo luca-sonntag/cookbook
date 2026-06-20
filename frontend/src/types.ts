@@ -1,5 +1,6 @@
 export interface Ingredient {
   name: string;
+  baseName?: string;
   amount: number;
   unit: string;
   notes?: string;
@@ -69,6 +70,7 @@ export interface BeforeInstallPromptEvent extends Event {
 export interface ShoppingListItem {
   id: string;
   name: string;
+  baseName?: string;
   amount: number;
   unit: string;
   recipeId?: string;
@@ -81,6 +83,7 @@ export interface ShoppingListItem {
 
 export interface AggregatedShoppingItem {
   name: string;
+  baseName?: string;
   unit: string;
   amount: number;
   checked: boolean;

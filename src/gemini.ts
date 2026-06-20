@@ -47,11 +47,12 @@ const recipeSchema = {
               type: FunctionDeclarationSchemaType.OBJECT,
               properties: {
                 name: { type: FunctionDeclarationSchemaType.STRING },
+                baseName: { type: FunctionDeclarationSchemaType.STRING },
                 amount: { type: FunctionDeclarationSchemaType.NUMBER },
                 unit: { type: FunctionDeclarationSchemaType.STRING },
                 notes: { type: FunctionDeclarationSchemaType.STRING },
               },
-              required: ['name', 'amount', 'unit'],
+              required: ['name', 'baseName', 'amount', 'unit'],
             },
           },
         },
@@ -218,7 +219,11 @@ Organize the ingredients into groups that correspond to supermarket departments/
 - BEVERAGES: Säfte, Wein zum Kochen, Kaffee, Wasser
 - OTHER: Alles andere, was nicht in die obigen Kategorien passt
 
-Do NOT translate these enum keys in the JSON response structure. Use the exact uppercase enum values.
+Always place "Produce/Obst & Gemüse" first, followed by dry goods/pantry items, then refrigerated products/meats, and finally extras at the very end.
+
+For every ingredient, the "name" property MUST contain only the description/name of the ingredient WITHOUT any quantity, amount, number, or unit (e.g. use "Zwiebel, frisch" instead of "1 Zwiebel, frisch" or "1 Stück Zwiebel, frisch"; use "Chester Käse (Halbfettstufe)" instead of "40 g Chester Käse (Halbfettstufe)"; use "Rinderhackfleisch Light" instead of "100 g Rinderhackfleisch Light"). All amounts must go into the "amount" field and units into the "unit" field.
+
+For every ingredient, additionally generate a 'baseName'. This MUST be the absolute core standard noun in singular form (e.g. if name is 'rote Zwiebeln', baseName is 'Zwiebel'. If name is 'Cherrytomaten', baseName is 'Tomate'). This will be used as a database key to group similar ingredients in a shopping list.
 
 Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
 

@@ -1,5 +1,6 @@
 export interface Ingredient {
   name: string;
+  baseName?: string;
   amount: number;
   unit: string;
   notes?: string;
