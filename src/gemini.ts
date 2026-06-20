@@ -188,6 +188,20 @@ Combine the${gridImagePath ? ' three' : ' two'} sources to reconstruct the compl
 
 Organize the ingredients into groups that correspond to supermarket departments/aisles to make shopping easier. Group related foods together based on where they are typically found in a grocery store (e.g., "Produce", "Meat & Poultry", "Dairy", "Pantry/Canned Goods", "Grains & Pasta", "Spices & Herbs", "Baking", etc.). You MUST translate these category names fully, cleanly, and naturally into the target language: ${config.RECIPE_LANGUAGE} (for example, if translating to German, use clean category names like "Obst & Gemüse", "Fleisch & Geflügel", "Molkereiprodukte", "Konserven & Vorrat", "Getreide & Nudeln", "Gewürze & Kräuter", "Backzutaten", etc.). Make sure there are absolutely no mixed-language names (like "Pantry & Vorrat") or untranslated English words in the category headers.
 
+You MUST sort these ingredient groups in the order a shopper typically encounters them when walking through a standard supermarket layout, from entry to exit:
+1. Produce (e.g., Obst & Gemüse, frische Kräuter)
+2. Bakery (e.g., Brot & Backwaren)
+3. Pantry, Canned Goods & Oils (e.g., Konserven, Vorrat, Öle, Saucen)
+4. Grains, Pasta & Baking (e.g., Getreide, Nudeln, Backzutaten)
+5. Spices & Seasonings (e.g., Gewürze, getrocknete Kräuter)
+6. Dairy, Eggs & Cheese (e.g., Molkereiprodukte, Eier, Käse)
+7. Meat, Poultry, Fish & Alternatives (e.g., Fleisch, Geflügel, Fisch, vegetarischer Fleischersatz)
+8. Frozen Foods (e.g., Tiefkühlkost)
+9. Beverages (e.g., Getränke)
+10. Other / Extras (e.g., Sonstiges, Extras)
+
+Always place "Produce/Obst & Gemüse" first, followed by dry goods/pantry items, then refrigerated products/meats, and finally extras at the very end.
+
 Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
 
 Translate and write the entire final recipe output (including title, description, ingredient group names, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, and the transcript) into the following language: ${config.RECIPE_LANGUAGE}.
