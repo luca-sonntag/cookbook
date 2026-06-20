@@ -32,7 +32,7 @@ export default function ExtractForm({
           }}
           isInvalid={!!urlError}
         >
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Instagram Reel URL</Label>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Instagram Reel Link</Label>
           <div className="relative mt-2">
             <Input 
               placeholder="https://www.instagram.com/reel/C8C_jApt_2j/" 
@@ -68,12 +68,12 @@ export default function ExtractForm({
               {isPending ? (
                 <>
                   <Spinner color="current" size="sm" />
-                  <span>Processing Reel...</span>
+                  <span>Rezept wird gelesen...</span>
                 </>
               ) : (
                 <>
                   <BookOpen className="w-4 h-4" />
-                  <span>Extract Recipe</span>
+                  <span>Rezept erstellen</span>
                 </>
               )}
             </span>

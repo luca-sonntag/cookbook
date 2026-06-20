@@ -82,7 +82,16 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
 
   return (
     <article className="flex flex-col gap-6">
-      <Card className="glass-panel p-6 rounded-2xl">
+      <Card className="glass-panel p-6 rounded-2xl overflow-hidden">
+        {recipe.imageUrl && (
+          <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5">
+            <img 
+              src={recipe.imageUrl.startsWith('/') ? recipe.imageUrl : `/api/image?url=${encodeURIComponent(recipe.imageUrl)}`}
+              alt={recipe.title} 
+              className="w-full h-56 object-cover object-center"
+            />
+          </div>
+        )}
         
         {/* Recipe title header */}
         <div className="flex justify-between items-start gap-4 pb-4 border-b border-black/5 dark:border-white/5">
@@ -93,7 +102,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
           <Button
             isIconOnly
             variant="outline"
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+            className="flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
             onPress={copyRecipeMarkdown}
             aria-label="Copy recipe"
           >
@@ -149,14 +158,14 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
       {/* Tabbed view for recipe items */}
       <Tabs defaultSelectedKey="ingredients" className="w-full">
         <Tabs.ListContainer className="w-full">
-          <Tabs.List className="flex !bg-transparent !p-0 !rounded-none border-b border-black/10 dark:border-white/10 w-full mb-4">
-            <Tabs.Tab id="ingredients" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none">
+          <Tabs.List className="flex !bg-transparent !p-0 !rounded-none border-b border-black/10 dark:border-white/10 w-full mb-4 overflow-x-auto scrollbar-none">
+            <Tabs.Tab id="ingredients" className="flex-1 flex-shrink-0 px-3 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none whitespace-nowrap">
               Ingredients
             </Tabs.Tab>
-            <Tabs.Tab id="steps" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none">
+            <Tabs.Tab id="steps" className="flex-1 flex-shrink-0 px-3 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none whitespace-nowrap">
               Instructions
             </Tabs.Tab>
-            <Tabs.Tab id="details" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none">
+            <Tabs.Tab id="details" className="flex-1 flex-shrink-0 px-3 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none whitespace-nowrap">
               Equipment & Tips
             </Tabs.Tab>
           </Tabs.List>

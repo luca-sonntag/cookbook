@@ -29,6 +29,38 @@ async function bootstrap() {
     const frontendDistPath = path.resolve(__dirname, '..', 'frontend', 'dist');
     app.use(express.static(frontendDistPath));
 
+    // Serve permanently saved recipe food images (extracted video frames)
+    const recipeImagesPath = path.resolve('public', 'recipe-images');
+    app.use('/recipe-images', express.static(recipeImagesPath));
+
+    // Image proxy to bypass Instagram CORP blocks (MUST BE BEFORE apiRouter to bypass API key check)
+    app.get('/api/image', async (req, res) => {
+      const imageUrl = req.query.url as string;
+      if (!imageUrl) {
+         res.status(400).send('Missing url parameter');
+         return;
+      }
+      try {
+        const response = await fetch(imageUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8'
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch image');
+        
+        res.set('Content-Type', response.headers.get('content-type') || 'image/jpeg');
+        res.set('Cache-Control', 'public, max-age=31536000');
+        res.set('Access-Control-Allow-Origin', '*');
+        res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+        
+        const buffer = await response.arrayBuffer();
+        res.send(Buffer.from(buffer));
+      } catch (err) {
+        res.status(500).send('Error proxying image');
+      }
+    });
+
     // 4. Register API routes
     app.use('/api', apiRouter);
 
@@ -45,9 +77,11 @@ async function bootstrap() {
       res.sendFile(jsonPath);
     });
 
+
+
     // Fallback for React routing (SPA)
     app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api') || req.path.startsWith('/shortcuts') || req.path.startsWith('/health')) {
+      if (req.path.startsWith('/api') || req.path.startsWith('/shortcuts') || req.path.startsWith('/health') || req.path.startsWith('/proxy')) {
         return next();
       }
       res.sendFile(path.resolve(frontendDistPath, 'index.html'));

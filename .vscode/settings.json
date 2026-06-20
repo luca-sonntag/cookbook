@@ -1,0 +1,12 @@
+{
+  "typescript.validate.enable": true,
+  "javascript.validate.enable": true,
+  "editor.parameterHints.enabled": true,
+  "typescript.inlayHints.parameterNames.enabled": "none",
+  "typescript.inlayHints.parameterTypes.enabled": false,
+  "typescript.inlayHints.variableTypes.enabled": false,
+  "typescript.inlayHints.propertyDeclarationTypes.enabled": false,
+  "typescript.inlayHints.functionLikeReturnTypes.enabled": false,
+  "typescript.inlayHints.enumMemberValues.enabled": false,
+  "totalTypeScript.hideAllTips": true
+}

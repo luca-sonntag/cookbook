@@ -36,7 +36,7 @@ export default function App() {
 
   // History & Multi-view states
   const [history, setHistory] = useState<Job[]>([]);
-  const [activeView, setActiveView] = useState<'extract' | 'history'>('extract');
+  const [activeView, setActiveView] = useState<'extract' | 'history'>('history');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   // Theme state & Syncing effect
@@ -260,6 +260,7 @@ export default function App() {
         // Defer state update to avoid calling setState synchronously in effect
         setTimeout(() => {
           setUrl(extractedUrl);
+          setActiveView('extract');
           triggerExtraction(extractedUrl);
         }, 0);
       }
@@ -275,15 +276,15 @@ export default function App() {
   const getStatusDetails = () => {
     switch (jobStatus) {
       case 'pending':
-        return { text: 'Enqueuing extraction job...', sub: 'Adding to backend processing queue.' };
+        return { text: 'Auftrag wird eingereiht...', sub: 'Wartet auf Verarbeitung.' };
       case 'scraping':
-        return { text: 'Downloading Reels metadata & audio...', sub: 'Fetching video media stream via Apify Scraper.' };
+        return { text: 'Lade Video und Audio herunter...', sub: 'Greife auf Instagram-Daten zu.' };
       case 'processing':
-        return { text: 'AI Analyzing Reel & Audio track...', sub: 'Google Gemini 1.5 is translating multimodal content into recipe structure.' };
+        return { text: 'KI analysiert das Rezept...', sub: 'Google Gemini erstellt die Rezeptstruktur.' };
       case 'completed':
-        return { text: 'Recipe generated successfully!', sub: 'Enjoy your cooking session.' };
+        return { text: 'Rezept erfolgreich erstellt!', sub: 'Viel Spaß beim Kochen.' };
       case 'failed':
-        return { text: 'Failed to extract recipe.', sub: jobError || 'Unknown processing error.' };
+        return { text: 'Fehler beim Erstellen des Rezepts.', sub: jobError || 'Unbekannter Fehler bei der Verarbeitung.' };
       default:
         return null;
     }
@@ -300,8 +301,8 @@ export default function App() {
             <ChefHat className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">Recipe Extractor</h1>
-            <span className="text-xs text-gray-500 dark:text-gray-400">Instagram Reel AI Parser ({installStatus})</span>
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">KochBuddy</h1>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Instagram Reel Rezept-Assistent ({installStatus})</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -318,7 +319,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* PWA Promotion Banner */}
+      {/* App Install Banner */}
       <InstallBanner isInstallable={isInstallable} handleInstallClick={handleInstallClick} />
 
       {/* Main content body */}
@@ -334,7 +335,7 @@ export default function App() {
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            Extract New
+            Neues Rezept
           </button>
           <button
             onClick={() => {
@@ -347,7 +348,7 @@ export default function App() {
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            Saved Recipes ({history.filter(h => h.status === 'completed').length})
+            Gespeicherte Rezepte ({history.filter(h => h.status === 'completed').length})
           </button>
         </div>
 

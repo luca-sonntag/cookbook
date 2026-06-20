@@ -36,6 +36,7 @@ export interface Recipe {
   tips?: string[];
   alternativeIngredients?: AlternativeIngredient[];
   transcript?: string | null;
+  imageUrl?: string | null;
 }
 
 export type JobStatus = 'pending' | 'scraping' | 'processing' | 'completed' | 'failed';

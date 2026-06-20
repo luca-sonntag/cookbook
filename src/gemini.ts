@@ -2,6 +2,7 @@ import { GoogleGenerativeAI, FunctionDeclarationSchemaType } from '@google/gener
 import { GoogleAIFileManager } from '@google/generative-ai/files';
 import { config } from './config.js';
 import { Recipe } from './types.js';
+import fs from 'fs/promises';
 
 // Initialize Gemini Generative AI and File Manager
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -187,5 +188,63 @@ ${caption}
         console.error(`Failed to clean up file ${uploadResult.file.name} from Gemini File API:`, err.message);
       }
     }
+  }
+}
+
+/**
+ * Uploads video frames to Gemini File API, asks which shows the finished dish
+ * most appetizingly, and returns the index of the best frame.
+ * All uploaded files are cleaned up afterwards.
+ */
+export async function selectBestFoodFrame(framePaths: string[]): Promise<number> {
+  const uploadedFileNames: string[] = [];
+
+  try {
+    // Upload all frames in parallel
+    const uploads = await Promise.all(
+      framePaths.map(async (framePath, i) => {
+        const data = await fs.readFile(framePath);
+        const result = await fileManager.uploadFile(framePath, {
+          mimeType: 'image/jpeg',
+          displayName: `frame-${i}.jpg`,
+        });
+        uploadedFileNames.push(result.file.name);
+        return result;
+      })
+    );
+
+    // Build multimodal prompt parts: all images + question
+    const imageParts = uploads.map((upload) => ({
+      fileData: {
+        fileUri: upload.file.uri,
+        mimeType: 'image/jpeg' as const,
+      },
+    }));
+
+    const model = genAI.getGenerativeModel({ model: config.GEMINI_MODEL });
+
+    const prompt =
+      `You are a food photography expert. You are given ${framePaths.length} frames (numbered 0 to ${
+        framePaths.length - 1
+      }) from an Instagram cooking reel. ` +
+      'Your task: identify which single frame best shows the FINISHED, fully plated or cooked dish in the most appetizing way. ' +
+      'Prefer frames where the food fills most of the image. Ignore frames that only show the cook/presenter, raw ingredients, text overlays, or partial preparation steps. ' +
+      'Respond with ONLY the integer index of the best frame (e.g. "3"). No explanation.';
+
+    const result = await model.generateContent([...imageParts, prompt]);
+    const text = result.response.text().trim();
+    const index = parseInt(text, 10);
+
+    if (isNaN(index) || index < 0 || index >= framePaths.length) {
+      console.warn(`[selectBestFoodFrame] Unexpected response "${text}", defaulting to last frame`);
+      return framePaths.length - 1; // last frame is often the finished dish
+    }
+
+    return index;
+  } finally {
+    // Cleanup all uploaded frames from Gemini File API
+    await Promise.allSettled(
+      uploadedFileNames.map((name) => fileManager.deleteFile(name))
+    );
   }
 }

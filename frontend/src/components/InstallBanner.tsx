@@ -15,12 +15,12 @@ export default function InstallBanner({ isInstallable, handleInstallClick }: Ins
         <div className="flex gap-3 items-center">
           <Share2 className="text-emerald-400 w-5 h-5 flex-shrink-0" />
           <div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Install as App (PWA)</p>
-            <p className="text-xs text-gray-600 dark:text-gray-300">Share Reels directly to this app to extract recipes fast!</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">Als App installieren</p>
+            <p className="text-xs text-gray-600 dark:text-gray-300">Teile Reels direkt aus Instagram mit dieser App, um Rezepte schneller zu speichern!</p>
           </div>
         </div>
         <Button size="sm" className="bg-emerald-500 hover:bg-emerald-400 text-white font-medium shadow-lg" onPress={handleInstallClick}>
-          Install
+          Installieren
         </Button>
       </div>
     </div>

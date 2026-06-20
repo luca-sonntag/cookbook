@@ -63,7 +63,9 @@ async function downloadFile(url: string, destPath: string): Promise<string> {
  */
 async function processJob(jobId: string, url: string): Promise<void> {
   const tempDir = path.resolve('temp-downloads');
+  const framesDir = path.join(tempDir, `frames-${jobId}`);
   let audioFilePath = '';
+  let videoFilePath = '';
 
   try {
     // 1. Mark job as scraping
@@ -77,22 +79,63 @@ async function processJob(jobId: string, url: string): Promise<void> {
     // 3. Mark job as processing
     await updateJob(jobId, { status: 'processing' });
 
-    // 4. Ensure temp directory exists and download audio file
+    // 4. Ensure temp directory exists
     await fs.mkdir(tempDir, { recursive: true });
-    // Determine extension: usually instagram reel audio is mp4 audio (m4a/mp4) or mp3
-    const fileExt = scrapeResult.audioUrl.includes('.mp3') ? '.mp3' : '.mp4';
-    audioFilePath = path.join(tempDir, `${jobId}${fileExt}`);
 
-    console.log(`[Job ${jobId}] Downloading audio file...`);
-    const mimeType = await downloadFile(scrapeResult.audioUrl, audioFilePath);
-    console.log(`[Job ${jobId}] Downloaded to ${audioFilePath} (${mimeType})`);
+    const audioExt = scrapeResult.audioUrl.includes('.mp3') ? '.mp3' : '.mp4';
+    audioFilePath = path.join(tempDir, `${jobId}-audio${audioExt}`);
+    const videoExt = '.mp4';
+    videoFilePath = path.join(tempDir, `${jobId}-video${videoExt}`);
 
-    // 5. Upload to Gemini and extract recipe
-    console.log(`[Job ${jobId}] Uploading to Gemini and extracting recipe...`);
-    const recipe = await extractRecipeFromAudio(audioFilePath, mimeType, scrapeResult.caption);
-    console.log(`[Job ${jobId}] Recipe successfully extracted! Title: "${recipe.title}"`);
+    // 5. Download audio and video in parallel
+    console.log(`[Job ${jobId}] Downloading audio and video in parallel...`);
+    const [mimeType] = await Promise.all([
+      downloadFile(scrapeResult.audioUrl, audioFilePath),
+      downloadFile(scrapeResult.videoUrl, videoFilePath).catch((err) => {
+        // Video download is best-effort — don't fail the job if it fails
+        console.warn(`[Job ${jobId}] Video download failed (will skip frame extraction): ${err.message}`);
+        videoFilePath = '';
+      }),
+    ]);
+    console.log(`[Job ${jobId}] Downloads complete.`);
 
-    // 6. Update job as completed
+    // 6. Run Gemini recipe extraction AND frame selection in parallel
+    console.log(`[Job ${jobId}] Running recipe extraction and frame selection in parallel...`);
+
+    const frameSelectionPromise: Promise<string | null> = videoFilePath
+      ? (async () => {
+          try {
+            const { extractFrames } = await import('./frameExtractor.js');
+            const { selectBestFoodFrame } = await import('./gemini.js');
+            const framePaths = await extractFrames(videoFilePath, framesDir, 8);
+            console.log(`[Job ${jobId}] Extracted ${framePaths.length} frames, asking Gemini to pick best food shot...`);
+            const bestIndex = await selectBestFoodFrame(framePaths);
+            console.log(`[Job ${jobId}] Best frame selected: index ${bestIndex}`);
+
+            // Save best frame permanently as a local file
+            const recipeImagesDir = path.resolve('public', 'recipe-images');
+            await fs.mkdir(recipeImagesDir, { recursive: true });
+            const savedImagePath = path.join(recipeImagesDir, `${jobId}.jpg`);
+            await fs.copyFile(framePaths[bestIndex], savedImagePath);
+            return `/recipe-images/${jobId}.jpg`;
+          } catch (err: any) {
+            console.warn(`[Job ${jobId}] Frame selection failed (falling back to cover): ${err.message}`);
+            return null;
+          }
+        })()
+      : Promise.resolve(null);
+
+    const [recipe, selectedImageUrl] = await Promise.all([
+      extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption),
+      frameSelectionPromise,
+    ]);
+
+    console.log(`[Job ${jobId}] Recipe extracted: "${recipe.title}"`);
+
+    // Assign image: prefer Gemini-selected frame, fall back to Apify cover thumbnail
+    recipe.imageUrl = selectedImageUrl ?? scrapeResult.imageUrl ?? null;
+
+    // 7. Update job as completed
     await updateJob(jobId, {
       status: 'completed',
       recipe,
@@ -105,15 +148,12 @@ async function processJob(jobId: string, url: string): Promise<void> {
       error: error.message || 'Unknown error occurred during processing.',
     });
   } finally {
-    // 7. Cleanup local audio file
-    if (audioFilePath) {
-      try {
-        await fs.unlink(audioFilePath);
-        console.log(`[Job ${jobId}] Cleaned up local file ${audioFilePath}`);
-      } catch (err: any) {
-        // Ignore file not found or already deleted
-      }
-    }
+    // 8. Cleanup local audio and video files
+    const cleanupPaths = [audioFilePath, videoFilePath].filter(Boolean);
+    await Promise.allSettled(cleanupPaths.map((p) => fs.unlink(p).catch(() => {})));
+    // Cleanup temp frames dir
+    await fs.rm(framesDir, { recursive: true, force: true }).catch(() => {});
+    console.log(`[Job ${jobId}] Temp files cleaned up.`);
   }
 }
 

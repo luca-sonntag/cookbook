@@ -5,6 +5,14 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      }
+    }
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -16,9 +24,9 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
       },
       manifest: {
-        name: 'Instagram Reel Recipe Extractor',
-        short_name: 'Recipe Extractor',
-        description: 'Extract and structure recipes from Instagram Reels using AI',
+        name: 'KochBuddy - Dein Reel-Rezeptbuch',
+        short_name: 'KochBuddy',
+        description: 'Verwandle Instagram Reels in interaktive Kochrezepte',
         theme_color: '#064e3b',
         background_color: '#064e3b',
         display: 'standalone',

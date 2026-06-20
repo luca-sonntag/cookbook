@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Card, Button } from '@heroui/react';
-import { Globe, Utensils, Clock, Trash2 } from 'lucide-react';
+import { Globe, Utensils, Clock, Trash2, ArrowLeft } from 'lucide-react';
 import type { Job } from '../types';
 import RecipeDetails from './RecipeDetails';
 
@@ -18,32 +18,88 @@ export default function SavedCatalog({
   handleDeleteJob
 }: SavedCatalogProps) {
   const completedJobs = history.filter(h => h.status === 'completed' && h.recipe);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+
+  /* ── History API: push a state when entering detail so Android system
+     back button / gesture triggers popstate → go back ── */
+  useEffect(() => {
+    if (selectedJob) {
+      history.length; // satisfy linter — history prop is separate from window.history
+      window.history.pushState({ recipeDetail: true }, '');
+    }
+  }, [selectedJob?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const onPopState = (e: PopStateEvent) => {
+      // If user pressed system back while in detail view, return to list
+      if (selectedJob) {
+        e.preventDefault?.();
+        setSelectedJob(null);
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [selectedJob, setSelectedJob]);
+
+  /* ── Touch swipe: right-swipe from left edge → go back ── */
+  useEffect(() => {
+    if (!selectedJob) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const dx = e.changedTouches[0].clientX - touchStartX.current;
+      const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
+      // Swipe starts within 40px of left edge, travels ≥80px right, mostly horizontal
+      if (touchStartX.current <= 40 && dx >= 80 && dy < 60) {
+        setSelectedJob(null);
+      }
+    };
+
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchend', onTouchEnd, { passive: true });
+    return () => {
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [selectedJob, setSelectedJob]);
+
+
 
   return (
     <div className="flex flex-col gap-4">
       {selectedJob ? (
         /* DETAIL VIEW FOR SAVED RECIPE */
         <div className="flex flex-col gap-4">
-          <Button 
-            variant="tertiary" 
-            className="self-start flex items-center gap-1.5 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 py-1.5 px-3 text-xs text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-xl active:scale-95 transition-all"
-            onPress={() => setSelectedJob(null)}
-          >
-            ← Back to Saved Recipes
-          </Button>
-          
-          <div className="flex items-center justify-between bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-3 px-4">
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-              Saved on {new Date(selectedJob.createdAt).toLocaleDateString()}
-            </span>
-            <a 
-              href={selectedJob.url} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 text-xs flex items-center gap-1 font-medium"
+          <div className="flex items-center gap-2">
+            {/* Icon-only back button in its own container */}
+            <Button
+              variant="tertiary"
+              className="flex-shrink-0 flex items-center justify-center bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 w-9 h-9 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white active:scale-95 transition-all text-base leading-none"
+              onPress={() => setSelectedJob(null)}
+              aria-label="Back to Saved Recipes"
             >
-              <Globe className="w-3.5 h-3.5" /> View original Reel
-            </a>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+
+            {/* Saved on / View original Reel bar */}
+            <div className="flex-1 flex items-center justify-between bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-2.5 px-4 min-w-0">
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">
+                Saved on {new Date(selectedJob.createdAt).toLocaleDateString()}
+              </span>
+              <a
+                href={selectedJob.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 text-xs flex items-center gap-1 font-medium ml-3"
+              >
+                <Globe className="w-3.5 h-3.5" /> View original Reel
+              </a>
+            </div>
           </div>
 
           {selectedJob.recipe && <RecipeDetails key={selectedJob.id} recipe={selectedJob.recipe} />}
@@ -70,28 +126,37 @@ export default function SavedCatalog({
                 return (
                   <Card 
                     key={job.id} 
-                    className="glass-panel p-5 rounded-2xl hover:border-emerald-500/30 cursor-pointer active:scale-[0.99] transition-all flex flex-col justify-between"
+                    className="glass-panel rounded-2xl hover:border-emerald-500/30 cursor-pointer active:scale-[0.99] transition-all flex flex-col justify-between overflow-hidden"
                     onClick={() => setSelectedJob(job)}
                   >
                     <div>
-                      <div className="flex justify-between items-start gap-2">
+                      {r.imageUrl && (
+                        <div className="h-32 w-full mb-3 bg-black/5 dark:bg-white/5">
+                          <img 
+                            src={r.imageUrl.startsWith('/') ? r.imageUrl : `/api/image?url=${encodeURIComponent(r.imageUrl)}`}
+                            alt={r.title} 
+                            className="w-full h-full object-cover object-center"
+                          />
+                        </div>
+                      )}
+                      <div className="flex justify-between items-start gap-2 px-5 pt-2">
                         <h4 className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-emerald-500 transition-colors line-clamp-1">
                           {r.title}
                         </h4>
                         <button
                           onClick={(e) => handleDeleteJob(e, job.id)}
-                          className="text-gray-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                          className="flex-shrink-0 text-gray-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer -mt-1 -mr-2"
                           aria-label="Delete recipe"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed px-5">
                         {r.description}
                       </p>
                     </div>
                     
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-black/5 dark:border-white/5 text-[10px] text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center justify-between mt-4 pt-3 pb-5 px-5 border-t border-black/5 dark:border-white/5 text-[10px] text-gray-500 dark:text-gray-400">
                       <div className="flex gap-2">
                         <span className="flex items-center gap-1 font-medium">
                           <Clock className="w-3 h-3 text-emerald-500" /> {r.prepTime || 'N/A'}

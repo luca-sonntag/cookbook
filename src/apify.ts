@@ -9,6 +9,8 @@ const client = new ApifyClient({
 export interface ScrapingResult {
   caption: string;
   audioUrl: string;
+  videoUrl: string;
+  imageUrl: string;
 }
 
 /**
@@ -38,6 +40,8 @@ export async function scrapeReel(reelUrl: string): Promise<ScrapingResult> {
   // Extract caption and audioUrl
   const caption = (item.caption as string) || '';
   const audioUrl = (item.audioUrl as string) || '';
+  const videoUrl = (item.videoUrl || item.video_url || (item.videoVersions as any[])?.[0]?.url || audioUrl) as string;
+  const imageUrl = (item.displayUrl || item.thumbnail_url || item.thumbnailUrl || item.videoCover || '') as string;
 
   if (!audioUrl) {
     throw new Error('Audio URL was not found in the scraped reel metadata.');
@@ -46,5 +50,7 @@ export async function scrapeReel(reelUrl: string): Promise<ScrapingResult> {
   return {
     caption,
     audioUrl,
+    videoUrl,
+    imageUrl,
   };
 }
