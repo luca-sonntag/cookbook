@@ -121,3 +121,26 @@ export async function findCompletedJobByUrl(url: string): Promise<Job | null> {
   });
 }
 
+// Retrieve all jobs sorted by creation date (newest first)
+export async function getAllJobs(): Promise<Job[]> {
+  return runLocked(async () => {
+    const jobs = await readJobsRaw();
+    return jobs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  });
+}
+
+// Delete a job by ID
+export async function deleteJob(id: string): Promise<boolean> {
+  return runLocked(async () => {
+    const jobs = await readJobsRaw();
+    const index = jobs.findIndex(j => j.id === id);
+    if (index === -1) {
+      return false;
+    }
+    jobs.splice(index, 1);
+    await writeJobsRaw(jobs);
+    return true;
+  });
+}
+
+
