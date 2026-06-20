@@ -453,20 +453,20 @@ export default function App() {
         </Card>
 
         {/* Tabbed view for recipe items */}
-        <Tabs defaultSelectedKey="ingredients" className="w-full">
+        <Tabs defaultSelectedKey="ingredients" className="w-full" variant="secondary">
           <Tabs.ListContainer className="w-full">
             <Tabs.List className="flex border-b border-white/10 w-full mb-4">
-              <Tabs.Tab id="ingredients" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-500 data-[selected=true]:text-white text-gray-400 hover:text-white transition-all cursor-pointer">
+              <Tabs.Tab id="ingredients" className="flex-1 text-center py-2 text-sm font-medium data-[selected=true]:text-white text-gray-400 hover:text-white transition-all cursor-pointer">
                 Ingredients
-                <Tabs.Indicator />
+                <Tabs.Indicator className="bg-emerald-500" />
               </Tabs.Tab>
-              <Tabs.Tab id="steps" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-500 data-[selected=true]:text-white text-gray-400 hover:text-white transition-all cursor-pointer">
+              <Tabs.Tab id="steps" className="flex-1 text-center py-2 text-sm font-medium data-[selected=true]:text-white text-gray-400 hover:text-white transition-all cursor-pointer">
                 Instructions
-                <Tabs.Indicator />
+                <Tabs.Indicator className="bg-emerald-500" />
               </Tabs.Tab>
-              <Tabs.Tab id="details" className="flex-1 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-500 data-[selected=true]:text-white text-gray-400 hover:text-white transition-all cursor-pointer">
+              <Tabs.Tab id="details" className="flex-1 text-center py-2 text-sm font-medium data-[selected=true]:text-white text-gray-400 hover:text-white transition-all cursor-pointer">
                 Equipment & Tips
-                <Tabs.Indicator />
+                <Tabs.Indicator className="bg-emerald-500" />
               </Tabs.Tab>
             </Tabs.List>
           </Tabs.ListContainer>
