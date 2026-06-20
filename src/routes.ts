@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, getJob, findCompletedJobByUrl } from './db.js';
+import { createJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob } from './db.js';
 import { requireApiKey } from './auth.js';
 
 export const apiRouter = Router();
@@ -114,6 +114,54 @@ apiRouter.get('/jobs/:id', async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({
       success: false,
       error: 'Internal server error while retrieving job.',
+    });
+  }
+});
+
+/**
+ * Endpoint to retrieve all recipe extraction jobs.
+ * GET /api/jobs
+ */
+apiRouter.get('/jobs', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const jobs = await getAllJobs();
+    res.status(200).json({
+      success: true,
+      jobs,
+    });
+  } catch (error: any) {
+    console.error('Error fetching recipe history:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error while retrieving recipe history.',
+    });
+  }
+});
+
+/**
+ * Endpoint to delete a specific recipe extraction job.
+ * DELETE /api/jobs/:id
+ */
+apiRouter.delete('/jobs/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const deleted = await deleteJob(id);
+    if (!deleted) {
+      res.status(404).json({
+        success: false,
+        error: 'Job not found.',
+      });
+      return;
+    }
+    res.status(200).json({
+      success: true,
+      message: 'Job deleted successfully.',
+    });
+  } catch (error: any) {
+    console.error('Error deleting job:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error while deleting job.',
     });
   }
 });
