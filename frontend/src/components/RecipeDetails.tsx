@@ -11,7 +11,9 @@ import {
   ChefHat,
   X,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Minus,
+  Plus
 } from 'lucide-react';
 import type { Recipe, Ingredient, IngredientGroup, InstructionStep } from '../types';
 
@@ -23,6 +25,24 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
   // Checklists state (encapsulated locally!)
   const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>({});
   const [checkedSteps, setCheckedSteps] = useState<Record<number, boolean>>({});
+
+  // Configurable servings state
+  const [servings, setServings] = useState<number>(recipe.servings || 4);
+
+  // Sync servings when recipe changes
+  useEffect(() => {
+    setServings(recipe.servings || 4);
+  }, [recipe.servings]);
+
+  const baseServings = recipe.servings || 1;
+  const scaleFactor = servings / baseServings;
+
+  const formatAmount = (amount: number | undefined | null) => {
+    if (!amount) return '';
+    const scaled = amount * scaleFactor;
+    // Round to 2 decimal places to avoid precision errors
+    return Math.round(scaled * 100) / 100;
+  };
 
   // Copy state (encapsulated locally!)
   const [isCopied, setIsCopied] = useState(false);
@@ -235,7 +255,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
 
   const copyRecipeMarkdown = () => {
     let md = `# ${recipe.title}\n\n${recipe.description}\n\n`;
-    md += `**Prep Time:** ${recipe.prepTime} | **Cook Time:** ${recipe.cookTime} | **Servings:** ${recipe.servings}\n\n`;
+    md += `**Prep Time:** ${recipe.prepTime} | **Cook Time:** ${recipe.cookTime} | **Servings:** ${servings}\n\n`;
     
     md += `## Ingredients\n`;
     recipe.ingredients.forEach((group: IngredientGroup) => {
@@ -243,7 +263,8 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
         md += `### ${group.name}\n`;
       }
       group.items.forEach((ing: Ingredient) => {
-        const amountStr = ing.amount ? `${ing.amount} ` : '';
+        const scaledAmount = formatAmount(ing.amount);
+        const amountStr = scaledAmount ? `${scaledAmount} ` : '';
         const unitStr = ing.unit ? `${ing.unit} ` : '';
         const noteStr = ing.notes ? ` (${ing.notes})` : '';
         md += `- ${amountStr}${unitStr}${ing.name}${noteStr}\n`;
@@ -365,7 +386,29 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
           <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center justify-center text-center">
             <ListChecks className="w-4 h-4 text-emerald-500 mb-1" />
             <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Serves</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{recipe.servings || 'N/A'}</span>
+            <div className="flex items-center gap-1.5 mt-1">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="tertiary"
+                className="w-6 h-6 min-w-[24px] min-h-[24px] p-0 text-gray-500 dark:text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-full"
+                onPress={() => setServings(s => Math.max(1, s - 1))}
+                aria-label="Decrease servings"
+              >
+                <Minus className="w-3.5 h-3.5" />
+              </Button>
+              <span className="text-xs font-bold text-gray-900 dark:text-white min-w-[1.2rem]">{servings}</span>
+              <Button
+                isIconOnly
+                size="sm"
+                variant="tertiary"
+                className="w-6 h-6 min-w-[24px] min-h-[24px] p-0 text-gray-500 dark:text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-full"
+                onPress={() => setServings(s => s + 1)}
+                aria-label="Increase servings"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -428,7 +471,8 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
                   )}
                   <ul className="flex flex-col gap-2">
                     {group.items.map((ing, idx) => {
-                      const amountStr = ing.amount ? `${ing.amount} ` : '';
+                      const scaledAmount = formatAmount(ing.amount);
+                      const amountStr = scaledAmount ? `${scaledAmount} ` : '';
                       const unitStr = ing.unit ? `${ing.unit} ` : '';
                       const name = ing.name;
                       const uniqueId = `${name}-${groupIdx}-${idx}`;
