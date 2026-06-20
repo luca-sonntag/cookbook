@@ -5,6 +5,11 @@ export interface Ingredient {
   notes?: string;
 }
 
+export interface IngredientGroup {
+  name: string;
+  items: Ingredient[];
+}
+
 export interface InstructionStep {
   step: number;
   description: string;
@@ -29,7 +34,7 @@ export interface Recipe {
   prepTime: string;
   cookTime: string;
   servings: number;
-  ingredients: Ingredient[];
+  ingredients: IngredientGroup[];
   instructions: InstructionStep[];
   equipment: string[];
   nutritionalEstimates?: NutritionalEstimates;
