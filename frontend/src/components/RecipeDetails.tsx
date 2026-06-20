@@ -18,15 +18,20 @@ import {
 import type { Recipe, Ingredient, IngredientGroup, InstructionStep } from '../types';
 import { useRecipeScaling } from '../hooks/useRecipeScaling';
 import { useImageGallery } from '../hooks/useImageGallery';
+import { useRecipeProgress } from '../hooks/useRecipeProgress';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
 }
 
 export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
-  // Checklists state (encapsulated locally!)
-  const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>({});
-  const [checkedSteps, setCheckedSteps] = useState<Record<number, boolean>>({});
+  // Checklists state (persisted in localStorage!)
+  const {
+    checkedIngredients,
+    checkedSteps,
+    toggleIngredient,
+    toggleStep
+  } = useRecipeProgress(recipe);
 
   // Configurable servings & scaling hook
   const {
@@ -70,19 +75,7 @@ export default function RecipeDetails({ recipe }: RecipeDetailsProps) {
     handleImageClick,
   } = useImageGallery(images);
 
-  const toggleIngredient = (name: string) => {
-    setCheckedIngredients(prev => ({
-      ...prev,
-      [name]: !prev[name]
-    }));
-  };
 
-  const toggleStep = (stepNum: number) => {
-    setCheckedSteps(prev => ({
-      ...prev,
-      [stepNum]: !prev[stepNum]
-    }));
-  };
 
   const copyRecipeMarkdown = () => {
     let md = `# ${recipe.title}\n\n${recipe.description}\n\n`;

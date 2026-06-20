@@ -2,11 +2,29 @@ import { useState, useEffect } from 'react';
 import type { Recipe } from '../types';
 
 export function useRecipeScaling(recipe: Recipe) {
-  const [servings, setServings] = useState<number>(recipe.servings || 4);
+  const storageKey = `recipe_servings_${recipe.title}`;
+
+  const [servings, setServings] = useState<number>(() => {
+    const saved = localStorage.getItem(storageKey);
+    return saved ? parseInt(saved, 10) : (recipe.servings || 4);
+  });
 
   useEffect(() => {
-    setServings(recipe.servings || 4);
-  }, [recipe.servings]);
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      setServings(parseInt(saved, 10));
+    } else {
+      setServings(recipe.servings || 4);
+    }
+  }, [recipe.title, recipe.servings, storageKey]);
+
+  const updateServings = (newServings: number | ((s: number) => number)) => {
+    setServings((prev) => {
+      const next = typeof newServings === 'function' ? newServings(prev) : newServings;
+      localStorage.setItem(storageKey, next.toString());
+      return next;
+    });
+  };
 
   const baseServings = recipe.servings || 1;
   const scaleFactor = servings / baseServings;
@@ -77,7 +95,7 @@ export function useRecipeScaling(recipe: Recipe) {
 
   return {
     servings,
-    setServings,
+    setServings: updateServings,
     scaleFactor,
     formatAmount,
     formatNutritionValue,
