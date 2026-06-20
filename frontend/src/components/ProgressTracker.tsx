@@ -73,7 +73,7 @@ export default function ProgressTracker({ isPending, jobStatus, statusDetails }:
 
     const interval = setInterval(() => {
       setFunnyText(prev => pickRandom(prev));
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [jobStatus, isPending]);
