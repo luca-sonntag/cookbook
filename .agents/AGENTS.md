@@ -19,9 +19,10 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 * **Technologie:** Express.js, TypeScript (ausgeführt über `tsx` / Direct-Node execution), native Node.js 18+ `fetch` API.
 * **Datenbank:** Eine thread-sichere, dateibasierte JSON-Datenbank (`src/db.ts`) mit Schreibsperren (Locks) und atomaren Dateioperationen.
 * **Funktion:** Das Backend dient als asynchroner Job-Orchestrator, verwaltet Jobs und lädt Audiodateien temporär herunter.
-* **History & Verwaltung:**
+* **History, ID-Vergabe & Verwaltung:**
   * Bietet Helper-Funktionen (`getAllJobs()` und `deleteJob(id)`) zur persistenten Abfrage und Bereinigung von Extraktionen.
   * Stellt REST-Endpunkte bereit: `GET /api/jobs` (liefert den Extraktionsverlauf sortiert nach Erstellungsdatum) und `DELETE /api/jobs/:id` (löscht ein bestimmtes Rezept).
+  * **Eindeutige Identifikation:** Normalisiert Rezepte bei Abfragen und versieht sie mit einer eindeutigen `id` (entspricht der `jobId`), um Kollisionen zwischen Rezepten mit gleichem Titel zu unterbinden.
 * **Frontend-Hosting:** Express dient gleichzeitig als Webserver für die React-Frontend-Assets (`frontend/dist`) und leitet alle Nicht-API-Routen (`*`) zwecks SPA-Routing an die `index.html` weiter.
 
 ### 3. KI-Layer (Google Gemini)
@@ -40,8 +41,9 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **`useTheme.ts`:** Steuert das clientseitige Umschalten des Hell- und Dunkelmodus und persistiert die Einstellung im `localStorage`.
       * **`usePwaInstall.ts`:** Kapselt das Abfangen des `beforeinstallprompt`-Events und steuert die Installationslogik.
       * **`useRecipeExtraction.ts`:** Orchestriert die Validierung der URLs, die Job-Übermittlung und das asynchrone Polling des Queue-Status.
-      * **`useRecipeScaling.ts`:** Berechnet Skalierungsfaktoren für Zutaten und Nährwerte. Discrete Einheiten (z.B. Stück, Zehen, EL, TL) werden in küchenübliche gemischte Brüche (z.B. `1 ½`) formatiert, während kontinuierliche Gewichte/Volumina als Ganz- oder Dezimalzahlen gerendert werden. Die ausgewählte Portionsgröße wird persistent im `localStorage` gespeichert.
-      * **`useRecipeProgress.ts`:** Persistiert den Abhakk-Zustand (Checklisten-Fortschritt) von Zutaten und Zubereitungsschritten im `localStorage` auf Rezeptbasis.
+      * **`useRecipeScaling.ts`:** Berechnet Skalierungsfaktoren für Zutaten und Nährwerte. Discrete Einheiten (z.B. Stück, Zehen, EL, TL) werden in küchenübliche gemischte Brüche (z.B. `1 ½`) formatiert, während kontinuierliche Gewichte/Volumina als Ganz- oder Dezimalzahlen gerendert werden. Die ausgewählte Portionsgröße wird persistent im `localStorage` unter Verwendung des ID-basierten Schlüssels gespeichert.
+      * **`useRecipeProgress.ts`:** Persistiert den Abhakk-Zustand (Checklisten-Fortschritt) von Zutaten und Zubereitungsschritten im `localStorage` basierend auf der eindeutigen Rezept-ID.
+      * **`useShoppingList.ts`:** Verwaltet den Zustand der Einkaufsliste im `localStorage` (`recipe_shopping_list`), führt neue Rezepte rezept- und portionsgenau ein, filtert abgehakte Zutaten heraus und gruppiert/aggregiert gleiche Artikel rezeptübergreifend.
       * **`useMobileNavigationBack.ts`:** Kapselt die native Browser-Verlaufssteuerung (`pushState`/`popstate`-Event-Listener) und mobile Wischgesten (Swipe-to-Go-Back), um eine native Mobile-Erfahrung beim Schließen der Detailansicht zu gewährleisten.
       * **`useImageGallery.ts`:** Übernimmt die komplexe Pointer-Mathematik für das horizontale Scrollen, Swipen, Double-Tap-to-Zoom und das freie Panning der Galeriebilder im Vollbildmodus.
     * **Komponententrennung (`frontend/src/components/`):**
@@ -51,8 +53,9 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **`ExtractForm.tsx`:** Formular zur Eingabe und Validierung der Reels-URLs.
       * **`ProgressTracker.tsx`:** Visualisiert den aktuellen Job-Status in Echtzeit.
       * **`ErrorBanner.tsx`:** Zeigt detaillierte Fehler und ermöglicht erneutes Ausführen.
-      * **`RecipeDetails.tsx`:** Herzstück für Kochinteraktionen (Zutaten- und Zubereitungs-Checklisten, Portionsrechner, Meta-Statistiken, Nährwerttabellen und Markdown-Kopierfunktion).
-      * **`SavedCatalog.tsx`:** Grid-Layout der Rezept-Historie inklusive Suchfilterung und Löschvorgängen.
+      * **`RecipeDetails.tsx`:** Herzstück für Kochinteraktionen (Zutaten- und Zubereitungs-Checklisten, Portionsrechner, Meta-Statistiken, Nährwerttabellen, Markdown-Kopierfunktion sowie der *"Zur Einkaufsliste hinzufügen"*-Button).
+      * **`SavedCatalog.tsx`:** Grid-Layout der Rezept-Historie inklusive Suchfilterung, Löschvorgängen und Weiterleitung von Einkaufslisten-Befehlen.
+      * **`ShoppingList.tsx`:** Anzeige und Interaktions-Panel der smarten Einkaufsliste. Beinhaltet ein Zettelformular für manuelle freie Einkäufe, Vorschlagsbuttons für Einheiten und getrennte Listen für noch zu kaufende und im Korb befindliche Artikel.
     * **Typensicherheit (`src/types.ts`):** Zentralisierte TypeScript-Modelle für Rezepte, Zutaten, Nährwerte und API-Jobs. Nutzung von `type`-only Imports zur Einhaltung von Compiler-Richtlinien (wie `verbatimModuleSyntax`).
 * **Visuelles Design:** Theme-gesteuert (Hell- & Dunkelmodus) mit modernem Glassmorphismus und harmonischen Akzentfarben (Smaragdgrün/Emerald-Grün). Optimiert für mobile Displays mit flüssigen Übergängen.
 * **Theme-Steuerung:** Bietet einen Header-Schalter (Sonne/Mond), um das Erscheinungsbild umzuschalten. Die Auswahl wird im `localStorage` persistiert und ein Inline-Interceptor im `<head>` der `index.html` verhindert das Aufblitzen des hellen Designs beim App-Start.
@@ -78,8 +81,11 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 6. **Verarbeitung:** Der Server aktualisiert den Status (`scraping` -> `processing`), lädt die Tonspur herunter und lässt Gemini das Rezept analysieren.
 7. **Fertigstellung & Speicherung:** Sobald der Job den Status `completed` erreicht, stoppt das Polling. Das fertige JSON-Rezept wird an das Frontend übergeben und dauerhaft in der JSON-Datenbank als Teil der Recipe History gespeichert.
 8. **Interaktion & Verlauf:**
-   * Das Frontend rendert das Rezept mit interaktiven Checklisten für Zutaten und Anleitungen.
+   * Das Frontend renders das Rezept mit interaktiven Checklisten für Zutaten und Anleitungen.
    * Über das Tab-Menü "Saved Recipes" kann der Nutzer jederzeit auf den Verlauf zugreifen, alte Rezepte öffnen, kochen oder Rezepte dauerhaft löschen.
+9. **Smarte Einkaufsliste:**
+   * Über den Button *"Zur Einkaufsliste hinzufügen"* im Rezept werden alle aktuell nicht abgehakten Zutaten skaliert in den `localStorage` geladen.
+   * Der Tab *"Einkaufsliste"* fasst Artikel mit identischen Einheiten summiert zusammen, weist deren Herkunftsrezepte sowie Mengen-Teile aus und erlaubt eigene freie Zettel-Einträge. Offene Einkäufe werden als Badge-Zahl in der Hauptnavigation visualisiert.
 
 ---
 
