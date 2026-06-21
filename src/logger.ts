@@ -173,6 +173,8 @@ export interface GeminiLogEntry {
   tokenUsage?: TokenUsage;
   /** Approximate cost breakdown */
   costEstimate?: CostEstimate;
+  /** The job ID that initiated this request, if any */
+  jobId?: string;
 }
 
 /**
@@ -184,7 +186,10 @@ export interface GeminiLogEntry {
  */
 export async function writeGeminiLog(entry: GeminiLogEntry): Promise<void> {
   try {
-    await ensureLogDir();
+    const targetDir = entry.jobId
+      ? path.resolve('logs', `run-${entry.jobId}`)
+      : LOG_DIR;
+    await fs.mkdir(targetDir, { recursive: true });
 
     // Replace colons and periods with dashes so the filename is Windows-safe
     const safeTimestamp = entry.timestamp.replace(/[:.]/g, '-');
@@ -192,7 +197,7 @@ export async function writeGeminiLog(entry: GeminiLogEntry): Promise<void> {
       .toString(16)
       .padStart(4, '0');
     const filename = `${safeTimestamp}_${entry.requestType}_${suffix}.json`;
-    const filepath = path.join(LOG_DIR, filename);
+    const filepath = path.join(targetDir, filename);
 
     await fs.writeFile(filepath, JSON.stringify(entry, null, 2), 'utf-8');
 
