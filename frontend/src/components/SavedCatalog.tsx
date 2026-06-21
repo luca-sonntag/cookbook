@@ -601,10 +601,10 @@ export default function SavedCatalog({
                           {!isSelectMode && (
                             <div className="flex items-center gap-2">
                               <button
-                                className={`w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer ${
+                                className={`active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
                                   addedRecipeIds[job.id] 
-                                    ? 'bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent' 
-                                    : 'bg-black/5 dark:bg-white/5 text-gray-500 hover:text-emerald-500'
+                                    ? 'w-8 h-8 rounded-lg bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent text-xs' 
+                                    : 'text-gray-500 hover:text-emerald-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors'
                                 }`}
                                 onClick={(e) => handleDirectAddToShoppingList(e, job)}
                                 aria-label="Direct add"
@@ -612,15 +612,15 @@ export default function SavedCatalog({
                                 {addedRecipeIds[job.id] ? (
                                   <Check className="w-3.5 h-3.5 animate-scale-up" />
                                 ) : (
-                                  <ShoppingCart className="w-3.5 h-3.5" />
+                                  <ShoppingCart className="w-4 h-4" />
                                 )}
                               </button>
                               <button
                                 onClick={(e) => handleDeleteJob(e, job.id)}
-                                className="w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer bg-black/5 dark:bg-white/5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/20"
+                                className="text-gray-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                                 aria-label={t('catalog.deleteRecipe')}
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           )}
@@ -697,10 +697,10 @@ export default function SavedCatalog({
                         {!isSelectMode && (
                           <div className="flex items-center gap-1 shrink-0">
                             <button
-                              className={`w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer ${
+                              className={`active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
                                 addedRecipeIds[job.id] 
-                                  ? 'bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent' 
-                                  : 'bg-black/5 dark:bg-white/5 text-gray-500 hover:text-emerald-500'
+                                  ? 'w-8 h-8 rounded-lg bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent text-xs' 
+                                  : 'text-gray-500 hover:text-emerald-500 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors'
                               }`}
                               onClick={(e) => handleDirectAddToShoppingList(e, job)}
                               aria-label="Direct add"
@@ -708,15 +708,15 @@ export default function SavedCatalog({
                               {addedRecipeIds[job.id] ? (
                                 <Check className="w-3.5 h-3.5 animate-scale-up" />
                               ) : (
-                                <ShoppingCart className="w-3.5 h-3.5" />
+                                <ShoppingCart className="w-4 h-4" />
                               )}
                             </button>
                             <button
                               onClick={(e) => handleDeleteJob(e, job.id)}
-                              className="w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer bg-black/5 dark:bg-white/5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/20"
+                              className="text-gray-500 hover:text-red-500 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                               aria-label={t('catalog.deleteRecipe')}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         )}
