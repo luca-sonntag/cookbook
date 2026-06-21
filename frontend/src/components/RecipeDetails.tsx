@@ -18,6 +18,7 @@ import {
 import type { Recipe, Ingredient, InstructionStep } from '../types';
 import { useRecipeScaling } from '../hooks/useRecipeScaling';
 import { useRecipeProgress } from '../hooks/useRecipeProgress';
+import { useRecipeNutrition } from '../hooks/useRecipeNutrition';
 import {
   categoryOrder,
   legacyCategoryMap
@@ -29,6 +30,7 @@ import { useI18n } from '../context/I18nContext';
 import RecipeImageGallery from './RecipeImageGallery';
 import RecipeInstructionText from './RecipeInstructionText';
 import CookingMode from './CookingMode';
+import AiNotice from './AiNotice';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
@@ -94,17 +96,8 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
   }, [recipe.instructions, checkedSteps]);
   const progressPercent = totalStepsCount > 0 ? (completedStepsCount / totalStepsCount) * 100 : 0;
 
-  // Determine if there is any valid nutritional estimation to show
-  const hasNutritionInfo = useMemo(() => {
-    const n = recipe.nutritionalEstimates;
-    if (!n) return false;
-    return (
-      (n.calories !== undefined && n.calories !== null && n.calories !== 0) ||
-      (n.protein !== undefined && n.protein !== null && n.protein !== '') ||
-      (n.carbs !== undefined && n.carbs !== null && n.carbs !== '') ||
-      (n.fat !== undefined && n.fat !== null && n.fat !== '')
-    );
-  }, [recipe.nutritionalEstimates]);
+  // Get nutritional info (either reel-level or aggregated per-ingredient AI estimates)
+  const { nutritionalEstimates, isAiEstimated, hasNutritionInfo } = useRecipeNutrition(recipe);
 
   // Sort ingredient groups based on categoryOrder
   const sortedIngredients = useMemo(() => {
@@ -327,24 +320,27 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         </div>
 
         {/* Nutrition estimate */}
-        {hasNutritionInfo && recipe.nutritionalEstimates && (
+        {hasNutritionInfo && nutritionalEstimates && (
           <div className="bg-black/5 dark:bg-white/5 p-3.5 rounded-xl border border-black/5 dark:border-white/5">
-            <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">{t('recipe.nutritionTitle')}</h4>
+            <div className="flex justify-between items-center mb-2.5">
+              <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{t('recipe.nutritionTitle')}</h4>
+              {isAiEstimated && <AiNotice type="badge" />}
+            </div>
             <div className="grid grid-cols-4 gap-2 text-center text-xs">
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.calories)}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(nutritionalEstimates.calories)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionCalories')}</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.protein)}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(nutritionalEstimates.protein)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionProtein')}</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.carbs)}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(nutritionalEstimates.carbs)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionCarbs')}</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.fat)}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(nutritionalEstimates.fat)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionFat')}</div>
               </div>
             </div>
@@ -403,6 +399,20 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                             }`}>
                             <span className="font-semibold text-emerald-600 dark:text-emerald-400">{amountStr}{unitStr}</span>
                             <span>{name}</span>
+                            {(() => {
+                              const parts = [];
+                              if (ing.calories) parts.push(`${Math.round(ing.calories * scaleFactor)} kcal`);
+                              if (ing.protein) parts.push(`${Math.round(ing.protein * scaleFactor * 10) / 10}g ${t('recipe.nutritionProteinShort')}`);
+                              if (ing.carbs) parts.push(`${Math.round(ing.carbs * scaleFactor * 10) / 10}g ${t('recipe.nutritionCarbsShort')}`);
+                              if (ing.fat) parts.push(`${Math.round(ing.fat * scaleFactor * 10) / 10}g ${t('recipe.nutritionFatShort')}`);
+                              
+                              if (parts.length === 0) return null;
+                              return (
+                                <span className="inline-flex gap-1 ml-2 text-[10px] text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded-md font-medium select-none align-middle">
+                                  {parts.join(' | ')}
+                                </span>
+                              );
+                            })()}
                             {ing.notes && <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">{ing.notes}</span>}
                           </span>
                         </li>
