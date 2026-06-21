@@ -18,9 +18,11 @@ export default function AiNotice({ type = 'badge', label, tooltipText, className
   if (type === 'badge') {
     return (
       <div className={`inline-flex items-center gap-1.5 ${className}`}>
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 dark:bg-emerald-400/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 select-none">
-          <Sparkles className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
-          <span>{defaultLabel}</span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-emerald-500/10 to-indigo-500/10 dark:from-emerald-400/10 dark:to-indigo-400/10 border border-emerald-500/20 dark:border-indigo-500/20 select-none">
+          <Sparkles className="w-3 h-3 text-emerald-500 dark:text-indigo-400 animate-pulse" />
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-indigo-600 dark:from-emerald-400 dark:to-indigo-400">
+            {defaultLabel}
+          </span>
         </span>
         <Popover>
           <Popover.Trigger>

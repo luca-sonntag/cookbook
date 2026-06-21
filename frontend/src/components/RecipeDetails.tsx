@@ -367,7 +367,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         {hasNutritionInfo && nutritionalValues && (
           <div className={`p-3.5 rounded-xl border transition-all duration-300 ${
             isAiEstimated
-              ? 'bg-emerald-500/[0.02] dark:bg-emerald-400/[0.01] border-dashed border-emerald-500/30 dark:border-emerald-400/25 shadow-[0_0_12px_rgba(16,185,129,0.03)]'
+              ? 'bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] border-emerald-500/25 dark:border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
               : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5'
           }`}>
             <div className="flex justify-between items-center mb-2.5">
