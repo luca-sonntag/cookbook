@@ -10,6 +10,25 @@ import {
 import type { Recipe } from '../types';
 import { useImageGallery } from '../hooks/useImageGallery';
 
+const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
+
 interface RecipeImageGalleryProps {
   recipe: Recipe;
 }
@@ -73,6 +92,12 @@ export default function RecipeImageGallery({ recipe }: RecipeImageGalleryProps) 
                       }`}
                     onClick={() => handleImageClick(idx)}
                   />
+                  {recipe.instagramHandle && (
+                    <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 font-semibold backdrop-blur-sm pointer-events-none select-none z-[5] border border-white/10 shadow-md">
+                      <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
+                      <span>{recipe.instagramHandle}</span>
+                    </div>
+                  )}
                   <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full pointer-events-none opacity-80 backdrop-blur-sm">
                     {idx + 1} / {recipe.imageUrls?.length}
                   </div>
@@ -82,7 +107,7 @@ export default function RecipeImageGallery({ recipe }: RecipeImageGalleryProps) 
           </div>
         </div>
       ) : recipe.imageUrl ? (
-        <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5 relative">
+        <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5 relative group">
           <img
             src={recipe.imageUrl.startsWith('/') ? recipe.imageUrl : `/api/image?url=${encodeURIComponent(recipe.imageUrl)}`}
             alt={recipe.title}
@@ -91,6 +116,12 @@ export default function RecipeImageGallery({ recipe }: RecipeImageGalleryProps) 
               setFullscreenIndex(0);
             }}
           />
+          {recipe.instagramHandle && (
+            <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 font-semibold backdrop-blur-sm pointer-events-none select-none z-[5] border border-white/10 shadow-md">
+              <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
+              <span>{recipe.instagramHandle}</span>
+            </div>
+          )}
         </div>
       ) : null}
 

@@ -307,6 +307,7 @@ export default function App() {
             setSelectedJob={setSelectedJob} 
             handleDeleteJob={handleDeleteJob} 
             onAddIngredients={addRecipeIngredients}
+            fetchHistory={fetchHistory}
           />
         ) : (
           /* SHOPPING LIST TAB */

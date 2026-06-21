@@ -94,12 +94,12 @@ export const legacyCategoryMap: Record<string, IngredientCategory> = {
 export function translateCategory(category: string, lang: SupportedLanguage = 'de'): string {
   if (!category) return categoryTranslations[lang][IngredientCategory.OTHER];
   const cleanCategory = category.trim().toUpperCase();
-  
+
   // 1. If it's already a valid enum key, translate it directly
   if (cleanCategory in IngredientCategory) {
     return categoryTranslations[lang][cleanCategory as IngredientCategory] || category;
   }
-  
+
   // 2. Backward compatibility: check if it's a legacy category name
   const lowerCategory = category.trim().toLowerCase();
   const mappedKey = legacyCategoryMap[lowerCategory];
@@ -265,11 +265,22 @@ export const uiTranslations = {
     catalog: {
       savedOn: 'Gespeichert am {date}',
       viewReel: 'Reel ansehen',
-      title: 'Katalog der gespeicherten Rezepte',
+      title: 'Gespeicherte Rezepte',
       emptyTitle: 'Keine gespeicherten Rezepte',
       emptyDesc: 'Extrahiere Rezepte aus Instagram Reels im "Neues Rezept" Tab, um sie hier zu speichern!',
       deleteRecipe: 'Rezept löschen',
       backToSaved: 'Zurück zu gespeicherten Rezepten',
+      searchPlaceholder: 'Rezepte nach Name, Zutaten oder Tags filtern...',
+      viewToggle: 'Ansicht umschalten',
+      allFilter: 'Alle Rezepte',
+      under15: 'Unter 15 Min.',
+      under30: 'Unter 30 Min.',
+      deleteSelected: 'Ausgewählte löschen',
+      addToShoppingList: 'Zutaten auf die Einkaufsliste werfen',
+      addedToShoppingList: 'Hinzugefügt!',
+      itemsSelected: '{count} Rezepte ausgewählt',
+      confirmBulkDeleteTitle: 'Rezepte löschen?',
+      confirmBulkDeleteMessage: 'Möchtest du die {count} ausgewählten Rezepte wirklich unwiderruflich löschen?',
     },
     shopping: {
       addTitle: 'Eintrag hinzufügen',
@@ -408,11 +419,22 @@ export const uiTranslations = {
     catalog: {
       savedOn: 'Saved on {date}',
       viewReel: 'View Reel',
-      title: 'Saved Recipes Catalog',
+      title: 'Saved Recipes',
       emptyTitle: 'No Saved Recipes',
       emptyDesc: 'Extract recipes from Instagram Reels in the "Extract New" tab to save them here!',
       deleteRecipe: 'Delete recipe',
       backToSaved: 'Back to Saved Recipes',
+      searchPlaceholder: 'Search recipes by name, ingredients or tags...',
+      viewToggle: 'Switch view',
+      allFilter: 'All Recipes',
+      under15: 'Under 15 Min',
+      under30: 'Under 30 Min',
+      deleteSelected: 'Delete selected',
+      addToShoppingList: 'Add ingredients to shopping list',
+      addedToShoppingList: 'Added!',
+      itemsSelected: '{count} recipes selected',
+      confirmBulkDeleteTitle: 'Delete selected recipes?',
+      confirmBulkDeleteMessage: 'Are you sure you want to permanently delete the {count} selected recipes?',
     },
     shopping: {
       addTitle: 'Add Item',
