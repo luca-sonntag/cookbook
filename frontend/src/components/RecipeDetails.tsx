@@ -90,6 +90,41 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
   // Cooking Mode states
   const [isCookingMode, setIsCookingMode] = useState(false);
 
+  // Show ingredient nutrition state (persisted in localStorage)
+  const [showIngredientNutrition, setShowIngredientNutrition] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('recipe_show_ingredient_nutrition');
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleIngredientNutrition = () => {
+    setShowIngredientNutrition(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('recipe_show_ingredient_nutrition', JSON.stringify(next));
+      } catch (e) {
+        console.error('Error saving showIngredientNutrition to localStorage', e);
+      }
+      return next;
+    });
+  };
+
+  // Check if at least one ingredient has nutrition values estimated/defined
+  const hasIngredientNutrition = useMemo(() => {
+    if (!recipe.ingredients) return false;
+    return recipe.ingredients.some(group =>
+      group.items.some(ing =>
+        (ing.calories !== undefined && ing.calories !== null && ing.calories > 0) ||
+        (ing.protein !== undefined && ing.protein !== null && ing.protein > 0) ||
+        (ing.carbs !== undefined && ing.carbs !== null && ing.carbs > 0) ||
+        (ing.fat !== undefined && ing.fat !== null && ing.fat > 0)
+      )
+    );
+  }, [recipe.ingredients]);
+
   // Find the first uncompleted step to highlight it
   const activeStepNum = useMemo(() => {
     if (!recipe.instructions) return null;
@@ -373,10 +408,31 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         {/* Ingredients tab */}
         <Tabs.Panel id="ingredients" className="flex flex-col gap-4">
           <Card className="glass-panel p-5 rounded-2xl">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider flex items-center justify-between">
-              <span>{t('recipe.ingredientsTitle')}</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 normal-case font-normal">{t('recipe.ingredientsSubtitle')}</span>
-            </h3>
+            <div className="flex flex-col gap-2 mb-4 border-b border-black/5 dark:border-white/5 pb-3">
+              <div className="flex flex-wrap justify-between items-baseline gap-2">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                  {t('recipe.ingredientsTitle')}
+                </h3>
+                <span className="text-xs text-gray-500 dark:text-gray-400 normal-case font-normal">
+                  {t('recipe.ingredientsSubtitle')}
+                </span>
+              </div>
+              {hasIngredientNutrition && (
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleToggleIngredientNutrition}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold select-none cursor-pointer transition-all border ${
+                      showIngredientNutrition
+                        ? 'bg-emerald-500/10 dark:bg-emerald-400/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:opacity-90'
+                        : 'bg-black/5 dark:bg-white/5 border-transparent text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'
+                    }`}
+                  >
+                    <Sparkles className={`w-3 h-3 ${showIngredientNutrition ? 'text-emerald-500 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`} />
+                    <span>{t('recipe.showNutritionPerIngredient')}</span>
+                  </button>
+                </div>
+              )}
+            </div>
             <div className="flex flex-col gap-6">
               {sortedIngredients.map(({ group, originalIdx }, sortedIdx) => (
                 <div key={sortedIdx} className="flex flex-col gap-2.5">
@@ -408,7 +464,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                             }`}>
                             <span className="font-semibold text-emerald-600 dark:text-emerald-400">{amountStr}{unitStr}</span>
                             <span>{name}</span>
-                            {(() => {
+                            {showIngredientNutrition && (() => {
                               const parts = [];
                               if (ing.calories) parts.push(`${Math.round(ing.calories * scaleFactor)} kcal`);
                               if (ing.protein) parts.push(`${Math.round(ing.protein * scaleFactor * 10) / 10}g ${t('recipe.nutritionProteinShort')}`);
