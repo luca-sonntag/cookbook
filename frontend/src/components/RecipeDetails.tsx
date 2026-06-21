@@ -27,7 +27,6 @@ import { useImageGallery } from '../hooks/useImageGallery';
 import { useRecipeProgress } from '../hooks/useRecipeProgress';
 import {
   translateCategory,
-  getCategoryIcon,
   categoryOrder,
   legacyCategoryMap
 } from '../i18n';
@@ -116,12 +115,16 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
       const amountStr = scaledAmount ? `${scaledAmount} ` : '';
       const unitStr = ing.unit ? `${ing.unit} ` : '';
       const noteStr = ing.notes ? ` (${ing.notes})` : '';
-      const info = `Zutat: ${ing.name} (${amountStr}${unitStr}${noteStr})`.trim();
+      let info = `${ing.name}`.trim();
+      if (noteStr) {
+        info += ` ,${noteStr}`;
+      }
+      info += ` (${amountStr}${unitStr})`;
 
-      if (ing.name && ing.name.length > 2) {
+      if (ing.name && ing.name.length >= 2) {
         terms.push({ term: ing.name.toLowerCase(), type: 'ingredient', original: ing.name, info });
       }
-      if (ing.baseName && ing.baseName.length > 2) {
+      if (ing.baseName && ing.baseName.length >= 2) {
         terms.push({ term: ing.baseName.toLowerCase(), type: 'ingredient', original: ing.name, info });
       }
     });
@@ -145,7 +148,13 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
 
     if (uniqueTerms.length === 0) return <span>{text}</span>;
 
-    const escapedTerms = uniqueTerms.map(t => t.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+    const escapedTerms = uniqueTerms.map(t => {
+      let esc = t.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      if (t.term.length <= 3) {
+        esc = `(?<=^|[\\s.,:;!?()\\[\\]{}'"\\-\\/])${esc}(?=$|[\\s.,:;!?()\\[\\]{}'"\\-\\/])`;
+      }
+      return esc;
+    });
     const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
 
     const parts = text.split(regex);
@@ -160,8 +169,8 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                 <Popover>
                   <Popover.Trigger>
                     <span className={`inline-block font-semibold decoration-dotted underline underline-offset-4 cursor-pointer transition-all outline-none ${isIng
-                        ? 'text-emerald-600 dark:text-emerald-400 decoration-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-300'
-                        : 'text-amber-600 dark:text-amber-400 decoration-amber-500 hover:text-amber-500 dark:hover:text-amber-300'
+                      ? 'text-emerald-600 dark:text-emerald-400 decoration-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-300'
+                      : 'text-amber-600 dark:text-amber-400 decoration-amber-500 hover:text-amber-500 dark:hover:text-amber-300'
                       }`}>
                       {part}
                     </span>
@@ -188,11 +197,22 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
   const getIngredientsForStep = (description: string) => {
     if (!description) return [];
     const mentioned: Ingredient[] = [];
+    
+    const isMatch = (term: string | undefined, text: string) => {
+      if (!term) return false;
+      const lowerTerm = term.toLowerCase();
+      const lowerText = text.toLowerCase();
+      
+      if (term.length <= 3) {
+        const escapedTerm = term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regex = new RegExp(`(?<=^|[\\s.,:;!?()\\[\\]{}'"\\-\\/])${escapedTerm}(?=$|[\\s.,:;!?()\\[\\]{}'"\\-\\/])`, 'i');
+        return regex.test(text);
+      }
+      return lowerText.includes(lowerTerm);
+    };
+
     allIngredients.forEach(ing => {
-      const term1 = ing.baseName?.toLowerCase();
-      const term2 = ing.name.toLowerCase();
-      const descLower = description.toLowerCase();
-      if ((term1 && descLower.includes(term1)) || descLower.includes(term2)) {
+      if (isMatch(ing.baseName, description) || isMatch(ing.name, description)) {
         if (!mentioned.some(m => m.name === ing.name)) {
           mentioned.push(ing);
         }
@@ -398,7 +418,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
     md += `## Ingredients\n`;
     sortedIngredients.forEach(({ group }) => {
       if (recipe.ingredients.length > 1) {
-        md += `### ${getCategoryIcon(group.name)} ${translateCategory(group.name)}\n`;
+        md += `### ${translateCategory(group.name)}\n`;
       }
       group.items.forEach((ing: Ingredient) => {
         const scaledAmount = formatAmount(ing.amount, ing.unit);
@@ -639,7 +659,6 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                 <div key={sortedIdx} className="flex flex-col gap-2.5">
                   {recipe.ingredients.length > 1 && (
                     <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider px-3 border-l-2 border-emerald-500 flex items-center gap-1.5">
-                      <span className="text-sm">{getCategoryIcon(group.name)}</span>
                       <span>{translateCategory(group.name)}</span>
                     </h4>
                   )}
@@ -771,10 +790,10 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                     key={step.step}
                     onClick={() => toggleStep(step.step)}
                     className={`flex items-start gap-4 p-3.5 rounded-xl cursor-pointer transition-all duration-200 border ${isActive
-                        ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)] scale-[1.01]'
-                        : isChecked
-                          ? 'bg-black/2 dark:bg-white/2 border-transparent opacity-65'
-                          : 'bg-transparent border-transparent hover:bg-black/5 dark:hover:bg-white/5'
+                      ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)] scale-[1.01]'
+                      : isChecked
+                        ? 'bg-black/2 dark:bg-white/2 border-transparent opacity-65'
+                        : 'bg-transparent border-transparent hover:bg-black/5 dark:hover:bg-white/5'
                       }`}
                   >
                     <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
