@@ -138,11 +138,41 @@ export async function getNextPendingJob(): Promise<Job | null> {
   });
 }
 
+/**
+ * Normalizes a URL for duplicate check comparisons.
+ * In dev env (process.env.NODE_ENV !== 'production'), we keep the query string so different queries are not duplicates.
+ * In prod env, we strip the query string so the same Reel with different query params is considered a duplicate.
+ */
+export function normalizeUrlForComparison(urlStr: string, keepQuery: boolean): string {
+  // Strip protocol and www.
+  let clean = urlStr.replace(/^(https?:\/\/)?(www\.)?/i, '');
+  
+  // Split at query string
+  let [base, ...queryParts] = clean.split('?');
+  
+  // Strip trailing slash from base
+  if (base.endsWith('/')) {
+    base = base.slice(0, -1);
+  }
+  
+  base = base.toLowerCase();
+  
+  if (keepQuery && queryParts.length > 0) {
+    return `${base}?${queryParts.join('?')}`;
+  }
+  return base;
+}
+
 // Retrieve a completed job by URL
 export async function findCompletedJobByUrl(url: string): Promise<Job | null> {
   return runLocked(async () => {
     const jobs = await readJobsRaw();
-    const completedJob = jobs.find(j => j.url === url && j.status === 'completed');
+    const isDev = process.env.NODE_ENV !== 'production';
+    const targetNormalized = normalizeUrlForComparison(url, isDev);
+    const completedJob = jobs.find(j => {
+      if (j.status !== 'completed') return false;
+      return normalizeUrlForComparison(j.url, isDev) === targetNormalized;
+    });
     return completedJob || null;
   });
 }
