@@ -672,41 +672,42 @@ export default function RecipeDetails({
         </Tabs.Panel>
       </Tabs>
 
-      {/* Floating Action Button (FAB) for Shopping List (Bottom-Left) */}
-      {!isCookingMode && onNavigateToShoppingList && (
-        <div className="fixed bottom-6 left-6 z-40 animate-fade-in-up">
-          <Button
-            className="bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-gray-100 hover:text-emerald-500 dark:hover:text-emerald-400 border border-black/10 dark:border-white/10 shadow-lg font-semibold px-4 h-10 rounded-full flex items-center gap-2 active:scale-95 transition-all duration-300 hover:scale-105"
-            onPress={onNavigateToShoppingList}
-            aria-label="Go to shopping list"
-          >
-            <div className="relative flex items-center">
-              <ShoppingCart className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              {shoppingListCount !== undefined && shoppingListCount > 0 && (
-                <span className="absolute -top-2.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-1 ring-white dark:ring-gray-900 animate-pulse-slow">
-                  {shoppingListCount}
-                </span>
-              )}
-            </div>
-            {shoppingListCount !== undefined && shoppingListCount > 0 && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                {shoppingListCount}
-              </span>
+      {/* Unified Floating Action Dock (Bottom-Center) */}
+      {!isCookingMode && (totalStepsCount > 0 || onNavigateToShoppingList) && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up">
+          <div className="flex items-center gap-3.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-4 py-2.5 rounded-full border border-black/10 dark:border-white/10 shadow-2xl">
+            {/* Shopping List Button */}
+            {onNavigateToShoppingList && (
+              <button
+                onClick={onNavigateToShoppingList}
+                className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none border-none"
+                aria-label="Go to shopping list"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {shoppingListCount !== undefined && shoppingListCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
+                    {shoppingListCount}
+                  </span>
+                )}
+              </button>
             )}
-          </Button>
-        </div>
-      )}
 
-      {/* Floating Action Button (FAB) for Start Cooking */}
-      {!isCookingMode && totalStepsCount > 0 && (
-        <div className="fixed bottom-6 right-6 z-40 animate-fade-in-up">
-          <Button
-            className="bg-emerald-600/90 hover:bg-emerald-500/95 dark:bg-emerald-500/90 dark:hover:bg-emerald-400/95 backdrop-blur-xs text-white font-semibold px-4 h-10 rounded-full shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all duration-300 border border-white/10"
-            onPress={() => setIsCookingMode(true)}
-          >
-            <Play className="w-3.5 h-3.5 fill-white" />
-            <span className="text-xs tracking-wide">{t('recipe.startCooking')}</span>
-          </Button>
+            {/* Vertical Divider */}
+            {onNavigateToShoppingList && totalStepsCount > 0 && (
+              <div className="w-[1px] h-5 bg-black/10 dark:bg-white/10" />
+            )}
+
+            {/* Start Cooking Button */}
+            {totalStepsCount > 0 && (
+              <Button
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold pl-3.5 pr-4 h-9 rounded-full flex items-center gap-1.5 active:scale-95 transition-all text-xs border border-emerald-500/10 shadow-sm"
+                onPress={() => setIsCookingMode(true)}
+              >
+                <Play className="w-3.5 h-3.5 fill-white" />
+                <span>{t('recipe.startCooking')}</span>
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
