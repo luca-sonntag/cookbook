@@ -642,14 +642,15 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
       {!isCookingMode && totalStepsCount > 0 && (
         <div className="fixed bottom-6 right-6 z-40 animate-fade-in-up">
           <Button
-            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-6 py-6 rounded-full shadow-2xl shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all duration-300 border-none"
+            className="bg-emerald-600/90 hover:bg-emerald-500/95 dark:bg-emerald-500/90 dark:hover:bg-emerald-400/95 backdrop-blur-xs text-white font-semibold px-4 h-10 rounded-full shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all duration-300 border border-white/10"
             onPress={() => setIsCookingMode(true)}
           >
-            <Play className="w-4 h-4 fill-white" />
-            <span className="text-sm tracking-wide">{t('recipe.startCooking')}</span>
+            <Play className="w-3.5 h-3.5 fill-white" />
+            <span className="text-xs tracking-wide">{t('recipe.startCooking')}</span>
           </Button>
         </div>
       )}
+
 
       {/* Cooking Mode Fullscreen Overlay */}
       {isCookingMode && (
