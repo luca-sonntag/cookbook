@@ -196,6 +196,12 @@ export async function extractRecipeFromAudio(
       } as any,
     });
 
+    const tempInstruction = config.PREFERRED_TEMPERATURE_UNIT.toLowerCase() === 'both'
+      ? 'Format all temperature values mentioned in the instructions, description, tips, or title using both Celsius and Fahrenheit (e.g., "200°C (400°F)").'
+      : `Format all temperature values mentioned in the instructions, description, tips, or title using the preferred unit: ${config.PREFERRED_TEMPERATURE_UNIT} (e.g., convert and format as "200°C" or "400°F" depending on preference).`;
+
+    const unitSystemInstruction = `Format all ingredient weights, volumes, and measurements using the preferred unit system: ${config.PREFERRED_UNIT_SYSTEM} (e.g., metric units like grams, milliliters, kilograms, or imperial units like ounces, cups, pounds, fluid ounces) and perform conversions where appropriate.`;
+
     const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.${gridImagePath ? ' You are also given an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating).' : ''}
 
 First, determine if this reel actually contains a food recipe. If it does NOT contain a recipe (e.g. it's just a vlog, comedy, or unrelated content), set the "isRecipe" field to false, and fill the remaining required fields with empty values (they will be ignored).
@@ -230,6 +236,10 @@ For every ingredient, additionally generate a 'baseName'. This MUST be the absol
 Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
 
 Translate and write the entire final recipe output (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, and the transcript) into the following language: ${config.RECIPE_LANGUAGE}. Do NOT translate the ingredient group name keys (the category keys), keep them as the uppercase English enum values.
+
+Preferred Units Configuration:
+- Temperature Units: ${tempInstruction}
+- Weight & Volume Units: ${unitSystemInstruction}
 
 CRITICAL INSTRUCTION FOR MISSING DATA: If any information for a specific field is missing, not mentioned, or not specified in the reel, you MUST leave that field completely empty (e.g., use an empty string "", null, or an empty array [], depending on the field type). Specifically, for the "calories" field under "nutritionalEstimates", if no calorie information is specified or cannot be reliably estimated, omit the field or set it to null rather than using 0. Do NOT under any circumstances use placeholder text like "Daten nicht spezifiziert", "Nicht angegeben", "N/A", "None", or similar. If it's missing, leave it empty.
 
@@ -361,10 +371,11 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
     const prompt =
       `You are a food photography expert. You are given a grid containing ${framePaths.length} frames ` +
       `(numbered 0 to ${framePaths.length - 1}) from an Instagram cooking reel. ` +
-      'Your task: identify the 5 frames that best show the FINISHED, fully plated or cooked dish in the most appetizing way. ' +
-      'Prefer frames where the food fills most of the image. Ignore frames that only show the cook/presenter, raw ingredients, text overlays, or partial preparation steps. ' +
-      `Respond with ONLY a comma-separated list of the 5 best frame indices, ordered from absolute best to worst (e.g. "14, 12, 15, 8, 2"). ` +
-      'The FIRST index MUST be the absolute best representative of the final dish. No explanation.';
+      'Your task: identify the best frames to document the recipe. ' +
+      '1. The FIRST frame you select MUST be the absolute best shot of the FINISHED, fully plated or cooked dish in the most appetizing way. ' +
+      '2. Then, select between 2 to 8 additional frames that show important, distinct chronological steps of the preparation/cooking process. ' +
+      'Only select frames that are clear, informative, and where the subject fills most of the image. Do not select redundant frames. ' +
+      `Respond with ONLY a comma-separated list of the selected frame indices (e.g. "14, 2, 5, 8, 11"). No explanation.`;
 
     console.log('[selectBestFoodFrame] Requesting best frames from Gemini...');
     const result = await model.generateContent([
@@ -428,8 +439,8 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
       costEstimate,
     });
 
-    // Ensure we don't return more than 5
-    return indices.slice(0, 5);
+    // Ensure we don't return an absurd amount, but allow up to 10
+    return indices.slice(0, 10);
   } catch (err: any) {
     await writeGeminiLog({
       timestamp,

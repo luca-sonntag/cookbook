@@ -12,6 +12,8 @@ export interface Config {
   GEMINI_MODEL: string;
   RECIPE_LANGUAGE: string;
   API_KEY: string;
+  PREFERRED_TEMPERATURE_UNIT: string;
+  PREFERRED_UNIT_SYSTEM: string;
 }
 
 // Validation helper
@@ -31,4 +33,6 @@ export const config: Config = {
   GEMINI_MODEL: getEnv('GEMINI_MODEL', 'gemini-1.5-flash'),
   RECIPE_LANGUAGE: getEnv('RECIPE_LANGUAGE', 'German'),
   API_KEY: getEnv('API_KEY'),
+  PREFERRED_TEMPERATURE_UNIT: getEnv('PREFERRED_TEMPERATURE_UNIT', 'Celsius'),
+  PREFERRED_UNIT_SYSTEM: getEnv('PREFERRED_UNIT_SYSTEM', 'metric'),
 };
