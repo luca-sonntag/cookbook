@@ -44,6 +44,7 @@ export function useSavedCatalog({
   // Pointer/Long press logic
   const longPressTimeout = useRef<Record<string, any>>({});
   const pressStartTime = useRef<number>(0);
+  const wasLongPressed = useRef<boolean>(false);
 
   // Format prep and cook time helper supporting both legacy string values and new number values
   const formatTimeValue = (time: any) => {
@@ -153,6 +154,7 @@ export function useSavedCatalog({
       return;
     }
     pressStartTime.current = Date.now();
+    wasLongPressed.current = false;
     longPressTimeout.current[jobId] = setTimeout(() => {
       setIsSelectMode(true);
       setSelectedIds(prev => {
@@ -160,6 +162,7 @@ export function useSavedCatalog({
         next.add(jobId);
         return next;
       });
+      wasLongPressed.current = true;
     }, 600);
   };
 
@@ -172,9 +175,7 @@ export function useSavedCatalog({
       delete longPressTimeout.current[job.id];
     }
     const pressDuration = Date.now() - pressStartTime.current;
-    if (pressDuration < 600) {
-      handleCardClick(e as any, job);
-    } else {
+    if (pressDuration >= 600) {
       e.preventDefault();
       e.stopPropagation();
     }
@@ -196,6 +197,10 @@ export function useSavedCatalog({
   };
 
   const handleCardClick = (e: React.MouseEvent, job: Job) => {
+    if (wasLongPressed.current) {
+      wasLongPressed.current = false;
+      return;
+    }
     if (isInteractiveTarget(e.target as HTMLElement)) {
       return;
     }

@@ -57,7 +57,7 @@ export default function RecipeCard({
   return (
     <Card
       className={`glass-panel rounded-2xl hover:border-emerald-500/30 cursor-pointer active:scale-[0.99] transition-all flex flex-col justify-between overflow-hidden relative border ${
-        isSelected ? 'border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-black/5 dark:border-white/5'
+        isSelected ? '!border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-black/5 dark:border-white/5'
       }`}
       onClick={onClick}
       {...bindLongPress}
