@@ -10,7 +10,7 @@ import ExtractForm from './components/ExtractForm';
 import ProgressTracker from './components/ProgressTracker';
 import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
-import SavedCatalog from './components/SavedCatalog';
+import SavedCatalog from './components/SavedCatalog/index';
 import ShoppingList from './components/ShoppingList';
 
 import { useTheme } from './hooks/useTheme';
