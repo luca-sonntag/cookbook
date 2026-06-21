@@ -38,7 +38,20 @@ interface RecipeDetailsProps {
 
 export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: RecipeDetailsProps) {
   const dialog = useDialog();
-  const { t, translateCategory } = useI18n();
+  const { t, language, translateCategory } = useI18n();
+
+  // Format prep and cook time helper supporting both legacy string values and new number values
+  const formatTimeValue = (time: any) => {
+    if (time === undefined || time === null || time === '') return 'N/A';
+    if (typeof time === 'number') {
+      return `${time} ${language === 'de' ? 'Min.' : 'mins'}`;
+    }
+    const strTime = String(time).trim();
+    if (/^\d+$/.test(strTime)) {
+      return `${strTime} ${language === 'de' ? 'Min.' : 'mins'}`;
+    }
+    return strTime;
+  };
 
   // Checklists state (persisted in localStorage!)
   const {
@@ -159,7 +172,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
 
   const copyRecipeMarkdown = () => {
     let md = `# ${recipe.title}\n\n${recipe.description}\n\n`;
-    md += `**Prep Time:** ${recipe.prepTime} | **Cook Time:** ${recipe.cookTime} | **Servings:** ${servings}\n\n`;
+    md += `**Prep Time:** ${formatTimeValue(recipe.prepTime)} | **Cook Time:** ${formatTimeValue(recipe.cookTime)} | **Servings:** ${servings}\n\n`;
 
     md += `## ${t('recipe.tabIngredients')}\n`;
     sortedIngredients.forEach(({ group }) => {
@@ -276,12 +289,12 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
           <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center justify-center text-center">
             <Clock className="w-4 h-4 text-emerald-500 mb-1" />
             <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">{t('recipe.prep')}</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{recipe.prepTime || 'N/A'}</span>
+            <span className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{formatTimeValue(recipe.prepTime)}</span>
           </div>
           <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center justify-center text-center">
             <Utensils className="w-4 h-4 text-emerald-500 mb-1" />
             <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">{t('recipe.cook')}</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{recipe.cookTime || 'N/A'}</span>
+            <span className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{formatTimeValue(recipe.cookTime)}</span>
           </div>
           <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center justify-center text-center">
             <ListChecks className="w-4 h-4 text-emerald-500 mb-1" />

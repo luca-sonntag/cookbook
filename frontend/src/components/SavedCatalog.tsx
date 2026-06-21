@@ -86,11 +86,24 @@ export default function SavedCatalog({
   // Custom hook for swipe-to-go-back and mobile back button handling
   useMobileNavigationBack(!!selectedJob, () => setSelectedJob(null));
 
+  // Format prep and cook time helper supporting both legacy string values and new number values
+  const formatTimeValue = (time: any) => {
+    if (time === undefined || time === null || time === '') return 'N/A';
+    if (typeof time === 'number') {
+      return `${time} ${language === 'de' ? 'Min.' : 'mins'}`;
+    }
+    const strTime = String(time).trim();
+    if (/^\d+$/.test(strTime)) {
+      return `${strTime} ${language === 'de' ? 'Min.' : 'mins'}`;
+    }
+    return strTime;
+  };
+
   // Fallback tagging logic for old recipes in the database
   // Programmatic duration badge calculation (Frontend only)
   const getDurationBadge = (recipe: any): string | null => {
-    const prep = parseInt(recipe.prepTime) || 0;
-    const cook = parseInt(recipe.cookTime) || 0;
+    const prep = typeof recipe.prepTime === 'number' ? recipe.prepTime : (parseInt(recipe.prepTime) || 0);
+    const cook = typeof recipe.cookTime === 'number' ? recipe.cookTime : (parseInt(recipe.cookTime) || 0);
     const totalTime = prep + cook;
     if (totalTime > 0) {
       if (totalTime < 15) {
@@ -153,13 +166,13 @@ export default function SavedCatalog({
       if (activeFilter && activeFilter !== 'all') {
         const tags = getRecipeTags(r);
         if (activeFilter === 'under15') {
-          const prep = parseInt(r.prepTime) || 0;
-          const cook = parseInt(r.cookTime) || 0;
+          const prep = typeof r.prepTime === 'number' ? r.prepTime : (parseInt(r.prepTime) || 0);
+          const cook = typeof r.cookTime === 'number' ? r.cookTime : (parseInt(r.cookTime) || 0);
           return (prep + cook) > 0 && (prep + cook) < 15;
         }
         if (activeFilter === 'under30') {
-          const prep = parseInt(r.prepTime) || 0;
-          const cook = parseInt(r.cookTime) || 0;
+          const prep = typeof r.prepTime === 'number' ? r.prepTime : (parseInt(r.prepTime) || 0);
+          const cook = typeof r.cookTime === 'number' ? r.cookTime : (parseInt(r.cookTime) || 0);
           return (prep + cook) > 0 && (prep + cook) < 30;
         }
         return tags.includes(activeFilter);
@@ -577,10 +590,10 @@ export default function SavedCatalog({
                         <div className="flex items-center justify-between mt-4 pt-3 pb-4 px-5 border-t border-black/5 dark:border-white/5 text-[10px] text-gray-500 dark:text-gray-400">
                           <div className="flex gap-2">
                             <span className="flex items-center gap-1 font-medium">
-                              <Clock className="w-3.5 h-3.5 text-emerald-500" /> {r.prepTime || 'N/A'}
+                              <Clock className="w-3.5 h-3.5 text-emerald-500" /> {formatTimeValue(r.prepTime)}
                             </span>
                             <span className="flex items-center gap-1 font-medium">
-                              <Utensils className="w-3.5 h-3.5 text-emerald-500" /> {r.cookTime || 'N/A'}
+                              <Utensils className="w-3.5 h-3.5 text-emerald-500" /> {formatTimeValue(r.cookTime)}
                             </span>
                           </div>
 
@@ -670,11 +683,11 @@ export default function SavedCatalog({
                           </div>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2">
                             <span className="flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5 text-emerald-500" /> {r.prepTime || 'N/A'}
+                              <Clock className="w-3.5 h-3.5 text-emerald-500" /> {formatTimeValue(r.prepTime)}
                             </span>
                             <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
                             <span className="flex items-center gap-1">
-                              <Utensils className="w-3.5 h-3.5 text-emerald-500" /> {r.cookTime || 'N/A'}
+                              <Utensils className="w-3.5 h-3.5 text-emerald-500" /> {formatTimeValue(r.cookTime)}
                             </span>
                           </p>
                         </div>
