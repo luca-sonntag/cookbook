@@ -103,6 +103,10 @@ const recipeSchema = {
         required: ['original', 'substitute'],
       },
     },
+    hasExplicitNutritionalValues: {
+      type: FunctionDeclarationSchemaType.BOOLEAN,
+      description: 'True ONLY if the overall recipe nutritional values are explicitly stated in the source text or audio.',
+    },
     transcript: { type: FunctionDeclarationSchemaType.STRING },
     tags: {
       type: FunctionDeclarationSchemaType.ARRAY,
@@ -119,6 +123,7 @@ const recipeSchema = {
     'ingredients',
     'instructions',
     'equipment',
+    'hasExplicitNutritionalValues',
     'transcript',
     'tags',
   ],
@@ -261,7 +266,7 @@ Preferred Units Configuration:
 - Temperature Units: ${tempInstruction}
 - Weight & Volume Units: ${unitSystemInstruction}
 
-CRITICAL INSTRUCTION FOR MISSING DATA: If any information for a specific field is missing, not mentioned, or not specified in the source, you MUST leave that field completely empty (e.g., use an empty string "", null, or an empty array [], depending on the field type). Specifically, you MUST ONLY populate the recipe-level "nutritionalValues" object if the overall recipe nutritional values are EXPLICITLY mentioned in the source description or audio. If they are NOT explicitly mentioned, you MUST set "nutritionalValues" to null. Do NOT estimate or calculate overall nutritional values at the recipe level if they are not explicitly in the source text/audio. When populating the recipe-level "nutritionalValues" object, all fields (calories, protein, carbs, fat) MUST be returned as raw numbers only, without any units (e.g. use 40 instead of "40g", and 75 instead of "75g"). Do NOT under any circumstances use placeholder text like "Daten nicht spezifiziert", "Nicht angegeben", "N/A", "None", or similar. If it's missing, leave it empty.
+CRITICAL INSTRUCTION FOR MISSING DATA: If any information for a specific field is missing, not mentioned, or not specified in the source, you MUST leave that field completely empty (e.g., use an empty string "", null, or an empty array [], depending on the field type). Specifically, you MUST set the "hasExplicitNutritionalValues" boolean flag to true ONLY IF the overall recipe nutritional values are EXPLICITLY mentioned in the source description or audio. If they are NOT explicitly mentioned, you MUST set "hasExplicitNutritionalValues" to false and set "nutritionalValues" to null. Do NOT estimate or calculate overall nutritional values at the recipe level if they are not explicitly in the source text/audio. When populating the recipe-level "nutritionalValues" object, all fields (calories, protein, carbs, fat) MUST be returned as raw numbers only, without any units (e.g. use 40 instead of "40g", and 75 instead of "75g"). Do NOT under any circumstances use placeholder text like "Daten nicht spezifiziert", "Nicht angegeben", "N/A", "None", or similar. If it's missing, leave it empty.
 
 Description/Caption:
 """
@@ -285,6 +290,12 @@ ${caption}
     }
 
     const recipe: Recipe = rawRecipe;
+
+    // Conditionally clear nutritionalValues if the model indicated they weren't explicitly provided
+    if (rawRecipe.hasExplicitNutritionalValues === false) {
+      delete recipe.nutritionalValues;
+    }
+    delete (recipe as any).hasExplicitNutritionalValues;
 
     // Clean up transcript if there were no spoken words
     if (
