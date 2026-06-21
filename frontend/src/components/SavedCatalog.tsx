@@ -102,41 +102,13 @@ export default function SavedCatalog({
     return null;
   };
 
-  // Fallback tagging logic for old recipes in the database, sanitized of time-based tags
+  // Get recipe tags sanitized of any time-based tags
   const getRecipeTags = (recipe: any): string[] => {
     const rawTags = recipe.tags || [];
-    const cleanTags = rawTags.filter((tag: string) => {
+    return rawTags.filter((tag: string) => {
       const t = tag.trim().toLowerCase();
       return !(t.includes('min') || t.startsWith('<') || t.startsWith('unter'));
     });
-
-    if (cleanTags.length > 0) {
-      return cleanTags;
-    }
-    const fallbackTags: string[] = [];
-    
-    // 1. High Protein check
-    const proteinStr = recipe.nutritionalEstimates?.protein;
-    if (proteinStr) {
-      const proteinVal = parseFloat(proteinStr) || 0;
-      if (proteinVal >= 20) {
-        fallbackTags.push('High-Protein');
-      }
-    }
-
-    // 2. Vegan / Vegetarian check based on ingredients or title
-    const titleLower = recipe.title.toLowerCase();
-    const descLower = recipe.description?.toLowerCase() || '';
-    const isVegan = titleLower.includes('vegan') || descLower.includes('vegan');
-    const isVegetarian = titleLower.includes('vegetarisch') || descLower.includes('vegetarisch') || titleLower.includes('veggie') || isVegan;
-
-    if (isVegan) {
-      fallbackTags.push('Vegan');
-    } else if (isVegetarian) {
-      fallbackTags.push('Vegetarisch');
-    }
-    
-    return fallbackTags.slice(0, 2);
   };
 
   // Collect all unique tags dynamically (actual + fallback, filtering out time-based tags to avoid duplicates with dedicated duration chips)
