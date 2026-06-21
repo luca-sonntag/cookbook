@@ -42,7 +42,7 @@ export default function ShoppingList({
 
     const numAmount = parseFloat(amount.replace(',', '.'));
     addCustomItem(name.trim(), isNaN(numAmount) ? 0 : numAmount, unit.trim());
-    
+
     // Reset state
     setName('');
     setAmount('');
@@ -106,7 +106,7 @@ export default function ShoppingList({
           <Plus className="w-4 h-4 text-emerald-500" />
           <span>{t('shopping.addTitle')}</span>
         </h3>
-        
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="grid grid-cols-12 gap-2">
             <div className="col-span-6 md:col-span-6">
@@ -235,7 +235,7 @@ export default function ShoppingList({
                               key={`unchecked-${key}`}
                               className="flex items-start justify-between gap-3 py-1.5 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
                             >
-                              <div 
+                              <div
                                 onClick={() => toggleItemGroup(item.baseName || item.name, item.unit, true)}
                                 className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
                               >
@@ -302,7 +302,7 @@ export default function ShoppingList({
                         key={`checked-${key}`}
                         className="flex items-start justify-between gap-3 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
                       >
-                        <div 
+                        <div
                           onClick={() => toggleItemGroup(item.baseName || item.name, item.unit, false)}
                           className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
                         >
