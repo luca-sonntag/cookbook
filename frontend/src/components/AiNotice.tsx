@@ -1,0 +1,43 @@
+import { Sparkles } from 'lucide-react';
+import { Tooltip } from '@heroui/react';
+import { useI18n } from '../context/I18nContext';
+
+interface AiNoticeProps {
+  type?: 'inline' | 'badge';
+  label?: string;
+  tooltipText?: string;
+  className?: string;
+}
+
+export default function AiNotice({ type = 'badge', label, tooltipText, className = '' }: AiNoticeProps) {
+  const { t } = useI18n();
+
+  const defaultLabel = label || t('recipe.aiEstimateNotice');
+  const defaultTooltip = tooltipText || t('recipe.aiEstimateTooltip');
+
+  if (type === 'badge') {
+    return (
+      <Tooltip closeDelay={150}>
+        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 dark:bg-emerald-400/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 select-none cursor-help hover:opacity-90 transition-opacity ${className}`}>
+          <Sparkles className="w-3 h-3 text-emerald-500 dark:text-emerald-400 animate-pulse" />
+          <span>{defaultLabel}</span>
+        </span>
+        <Tooltip.Content showArrow className="max-w-[280px] p-2.5 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
+          <Tooltip.Arrow />
+          {defaultTooltip}
+        </Tooltip.Content>
+      </Tooltip>
+    );
+  }
+
+  // A card/alert style for inline notices
+  return (
+    <div className={`flex items-start gap-2.5 p-3 rounded-xl bg-gradient-to-r from-emerald-500/5 via-teal-500/5 to-indigo-500/5 border border-emerald-500/10 text-gray-700 dark:text-gray-300 text-xs transition-all ${className}`}>
+      <Sparkles className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+      <div className="flex-1">
+        <span className="font-bold text-emerald-600 dark:text-emerald-400 block mb-0.5">{defaultLabel}</span>
+        <span className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">{defaultTooltip}</span>
+      </div>
+    </div>
+  );
+}

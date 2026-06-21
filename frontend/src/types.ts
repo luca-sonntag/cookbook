@@ -5,6 +5,10 @@ export interface Ingredient {
   unit: string;
   notes?: string;
   category?: string;
+  calories?: number | null;
+  protein?: number | null;
+  carbs?: number | null;
+  fat?: number | null;
 }
 
 export interface IngredientGroup {
