@@ -48,6 +48,9 @@ It uses the **Apify Instagram Reel Scraper** actor to fetch video metadata, desc
    GEMINI_API_KEY=your_real_gemini_api_key
    DATABASE_PATH=database.json
    GEMINI_MODEL=gemini-1.5-flash
+   RECIPE_LANGUAGE=German
+   PREFERRED_TEMPERATURE_UNIT=Celsius
+   PREFERRED_UNIT_SYSTEM=metric
    ```
 
 ---
