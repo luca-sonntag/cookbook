@@ -11,51 +11,58 @@ export function useShoppingList() {
     }
   });
 
-  const saveList = (list: ShoppingListItem[]) => {
-    setShoppingList(list);
-    try {
-      localStorage.setItem('recipe_shopping_list', JSON.stringify(list));
-    } catch (err) {
-      console.error('Failed to save shopping list:', err);
-    }
+  const saveList = (listOrUpdater: ShoppingListItem[] | ((prev: ShoppingListItem[]) => ShoppingListItem[])) => {
+    setShoppingList(prev => {
+      const next = typeof listOrUpdater === 'function' ? listOrUpdater(prev) : listOrUpdater;
+      try {
+        localStorage.setItem('recipe_shopping_list', JSON.stringify(next));
+      } catch (err) {
+        console.error('Failed to save shopping list:', err);
+      }
+      return next;
+    });
   };
 
   // Add scaled, unchecked ingredients from a recipe
   const addRecipeIngredients = (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => {
-    // Remove previous items from this recipe to prevent duplicates on portion adjustments
-    const filteredList = shoppingList.filter(item => item.recipeId !== recipeId);
+    saveList(prevList => {
+      // Remove previous items from this recipe to prevent duplicates on portion adjustments
+      const filteredList = prevList.filter(item => item.recipeId !== recipeId);
 
-    // Map new ingredients
-    const newItems: ShoppingListItem[] = ingredients.map((ing, idx) => ({
-      id: `${recipeId}-${encodeURIComponent(ing.name)}-${idx}-${Date.now()}`,
-      name: ing.name,
-      baseName: ing.baseName,
-      amount: ing.amount || 0,
-      unit: ing.unit || '',
-      recipeId,
-      recipeTitle,
-      checked: false,
-      notes: ing.notes,
-      createdAt: new Date().toISOString(),
-      category: ing.category
-    }));
+      // Map new ingredients
+      const newItems: ShoppingListItem[] = ingredients.map((ing, idx) => ({
+        id: `${recipeId}-${encodeURIComponent(ing.name)}-${idx}-${Date.now()}`,
+        name: ing.name,
+        baseName: ing.baseName,
+        amount: ing.amount || 0,
+        unit: ing.unit || '',
+        recipeId,
+        recipeTitle,
+        checked: false,
+        notes: ing.notes,
+        createdAt: new Date().toISOString(),
+        category: ing.category
+      }));
 
-    saveList([...filteredList, ...newItems]);
+      return [...filteredList, ...newItems];
+    });
   };
 
   // Add custom manual item
   const addCustomItem = (name: string, amount: number, unit: string, notes?: string) => {
-    const newItem: ShoppingListItem = {
-      id: `manual-${encodeURIComponent(name)}-${Date.now()}`,
-      name,
-      amount: amount || 0,
-      unit: unit || '',
-      checked: false,
-      notes,
-      createdAt: new Date().toISOString(),
-      category: 'OTHER'
-    };
-    saveList([...shoppingList, newItem]);
+    saveList(prevList => {
+      const newItem: ShoppingListItem = {
+        id: `manual-${encodeURIComponent(name)}-${Date.now()}`,
+        name,
+        amount: amount || 0,
+        unit: unit || '',
+        checked: false,
+        notes,
+        createdAt: new Date().toISOString(),
+        category: 'OTHER'
+      };
+      return [...prevList, newItem];
+    });
   };
 
   // Toggle check state of an aggregated group
@@ -63,15 +70,15 @@ export function useShoppingList() {
     const keyName = groupKeyName.toLowerCase().trim();
     const keyUnit = unit.toLowerCase().trim();
 
-    const updatedList = shoppingList.map(item => {
-      const matchName = (item.baseName || item.name).toLowerCase().trim() === keyName;
-      if (matchName && item.unit.toLowerCase().trim() === keyUnit) {
-        return { ...item, checked: targetChecked };
-      }
-      return item;
-    });
-
-    saveList(updatedList);
+    saveList(prevList =>
+      prevList.map(item => {
+        const matchName = (item.baseName || item.name).toLowerCase().trim() === keyName;
+        if (matchName && item.unit.toLowerCase().trim() === keyUnit) {
+          return { ...item, checked: targetChecked };
+        }
+        return item;
+      })
+    );
   };
 
   // Delete all items of an aggregated group
@@ -79,13 +86,13 @@ export function useShoppingList() {
     const keyName = groupKeyName.toLowerCase().trim();
     const keyUnit = unit.toLowerCase().trim();
 
-    const updatedList = shoppingList.filter(item => {
-      const matchName = (item.baseName || item.name).toLowerCase().trim() === keyName;
-      const matchUnit = item.unit.toLowerCase().trim() === keyUnit;
-      return !(matchName && matchUnit);
-    });
-
-    saveList(updatedList);
+    saveList(prevList =>
+      prevList.filter(item => {
+        const matchName = (item.baseName || item.name).toLowerCase().trim() === keyName;
+        const matchUnit = item.unit.toLowerCase().trim() === keyUnit;
+        return !(matchName && matchUnit);
+      })
+    );
   };
 
   // Clear all items from the list
@@ -95,7 +102,7 @@ export function useShoppingList() {
 
   // Clear only checked items
   const clearChecked = () => {
-    saveList(shoppingList.filter(item => !item.checked));
+    saveList(prevList => prevList.filter(item => !item.checked));
   };
 
   // Aggregate items: group by lowercase name and unit.
