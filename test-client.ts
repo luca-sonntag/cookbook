@@ -129,12 +129,12 @@ async function runTestClient() {
         console.log(recipe.equipment.map(e => `- ${e}`).join('\n'));
       }
 
-      if (recipe.nutritionalEstimates) {
+      if (recipe.nutritionalValues) {
         console.log('\n--- NUTRITIONAL INFO ---');
-        console.log(`Calories: ${recipe.nutritionalEstimates.calories} kcal`);
-        console.log(`Protein:  ${recipe.nutritionalEstimates.protein}`);
-        console.log(`Carbs:    ${recipe.nutritionalEstimates.carbs}`);
-        console.log(`Fat:      ${recipe.nutritionalEstimates.fat}`);
+        console.log(`Calories: ${recipe.nutritionalValues.calories} kcal`);
+        console.log(`Protein:  ${recipe.nutritionalValues.protein}`);
+        console.log(`Carbs:    ${recipe.nutritionalValues.carbs}`);
+        console.log(`Fat:      ${recipe.nutritionalValues.fat}`);
       }
 
       if (recipe.tips && recipe.tips.length > 0) {

@@ -33,11 +33,15 @@ export async function initDb(): Promise<void> {
   });
 }
 
-// Helper to normalize older recipe ingredients structure
+// Helper to normalize older recipe structure
 function normalizeRecipe(recipe: any, jobId: string): void {
   if (!recipe) return;
   if (!recipe.id) {
     recipe.id = jobId;
+  }
+  if (recipe.nutritionalEstimates && !recipe.nutritionalValues) {
+    recipe.nutritionalValues = recipe.nutritionalEstimates;
+    delete recipe.nutritionalEstimates;
   }
   if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
     const needsConversion = recipe.ingredients.length === 0 || 
