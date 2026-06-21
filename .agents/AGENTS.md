@@ -74,7 +74,13 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **`SavedCatalog.tsx`:** Grid-Layout der Rezept-Historie inklusive Suchfilterung, Löschvorgängen und Weiterleitung von Einkaufslisten-Befehlen.
       * **`ShoppingList.tsx`:** Anzeige und Interaktions-Panel der smarten Einkaufsliste. Beinhaltet ein Zettelformular für manuelle freie Einkäufe, Vorschlagsbuttons für Einheiten und getrennte Listen für noch zu kaufende und im Korb befindliche Artikel. Die noch zu kaufenden Artikel werden nach Supermarkt-Kategorien gruppiert und sortiert angezeigt.
     * **Typensicherheit (`src/types.ts` & `frontend/src/types.ts`):** Zentralisierte TypeScript-Modelle für Rezepte, Zutaten, Nährwerte und API-Jobs. Nutzung von `type`-only Imports zur Einhaltung von Compiler-Richtlinien (wie `verbatimModuleSyntax`).
-* **Visuelles Design:** Theme-gesteuert (Hell- & Dunkelmodus) mit modernem Glassmorphismus und harmonischen Akzentfarben (Smaragdgrün/Emerald-Grün). Optimiert für mobile Displays mit flüssigen Übergängen.
+* **Visuelles Design:** Theme-gesteuert (Hell- & Dunkelmodus) mit modernem Glassmorphismus und harmonischen Akzenten (Smaragdgrün). Optimiert für mobile Displays mit flüssigen Übergängen.
+* **Adaptive Navigation & Header-Architektur (Desktop & Mobile):**
+  * **Desktop (md+):** Ein einzeiliges, platzsparendes Header-Layout. Es vereint Logo/Titel (links), Navigations-Pills (Mitte) und Theme-/Sprach-Toggles/API-Konfiguration (rechts) in einer Zeile.
+  * **Mobile (<md):** Ein kompakter Top-Header für Titel und Toggles, gekoppelt mit einer **festen Bottom Navigation Bar** für die Daumen-optimierte Einhandbedienung. 
+  * **Smarte Badges:** Die Einkaufsliste verfügt über eine mit `animate-pulse-slow` atmende, kreisförmige Benachrichtigungsplakette über dem Shopping-List-Icon (sowohl mobil als auch im Desktop-Header).
+  * **Distraction-Free Mode:** Um den Fokus beim Kochen zu maximieren, schiebt sich die mobile Bottom Navigation bei aktiver Rezept-Detailansicht (sowohl aus der Historie als auch direkt nach der Extraktion) flüssig nach unten aus dem Viewport (`translate-y-full`).
+  * **Erweiterter Back-Workflow:** Durch Einbindung des `useMobileNavigationBack`-Hooks in den Extraktions-Tab wird der Zurück-Gesten- und Back-Button-Workflow auch für neu extrahierte Rezepte bereitgestellt.
 * **Sprach- und Theme-Steuerung:**
   * Bietet einen Header-Schalter (Sonne/Mond) für den Hell- und Dunkelmodus. Die Auswahl wird im `localStorage` persistiert.
   * Bietet einen Header-Sprachwähler (Pill-Button `DE` / `EN`) zur Echtzeit-Umschaltung aller UI-Texte, Fehlermeldungen, Lade-Fakten und Maßeinheit-Vorschläge.
@@ -83,9 +89,9 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * Die Webanwendung ist über den Browser direkt als PWA (Progressive Web App) installierbar.
   * Registriert die **Web Share Target API**, sodass Instagram Reels direkt aus der Instagram-App an die PWA geteilt werden können. Der URL-Parameter wird beim Start der PWA automatisch ausgewertet, bereinigt und an den Extraktor gesendet.
 * **Rezeptverlauf & Interaktion:**
-  * **Saved Recipes:** Ermöglicht das Durchsuchen aller erfolgreich verarbeiteten Rezepte in einer Grid-Ansicht mit Filter- und Löschoptionen.
+  * **Saved Recipes:** Ermöglicht das Durchsuchen aller erfolgreich verarbeiteten Rezepte in einer Grid-Ansicht mit Filter- (z.B. Zeitlimit- und Tag-Filter) und Löschoptionen. Standalone-Seitenüberschriften wurden zugunsten eines cleanen, konsistenten UI-Aufbaus entfernt.
   * **Detailansicht:** Das Laden eines archivierten Rezepts integriert sich nahtlos in die interaktive Checklisten-Oberfläche (Zutaten- und Schritt-Abhaken).
-  * **Navigationshilfen:** Bietet responsive Zurück-Buttons für komfortable Navigation auf Smartphones.
+  * **Navigationshilfen:** Bietet responsive Zurück-Buttons und Edge-Swipe-Navigation für komfortable Bedienung auf Smartphones.
   * Bietet interaktive Checklisten zum Abhaken von Zutaten und Zubereitungsschritten während des Kochens.
   * Unterstützt das Kopieren des Rezepts als formatiertes Markdown.
 
