@@ -62,6 +62,7 @@ export default function SavedCatalog({
               key={selectedJob.id} 
               recipe={selectedJob.recipe} 
               onAddIngredients={onAddIngredients} 
+              onDelete={() => handleDeleteJob({ stopPropagation: () => {} } as any, selectedJob.id)}
             />
           )}
         </div>
