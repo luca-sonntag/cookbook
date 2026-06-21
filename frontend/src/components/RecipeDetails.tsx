@@ -7,6 +7,7 @@ import {
   Utensils,
   ListChecks,
   ChefHat,
+  ChevronRight,
   Minus,
   Plus,
   Play,
@@ -445,7 +446,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
               <ul className="grid grid-cols-2 gap-2">
                 {recipe.equipment.map((item, idx) => (
                   <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
-                    <Minus className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                    <ChevronRight className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
                     <span>{item}</span>
                   </li>
                 ))}
