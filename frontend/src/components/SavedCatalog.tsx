@@ -87,25 +87,35 @@ export default function SavedCatalog({
   useMobileNavigationBack(!!selectedJob, () => setSelectedJob(null));
 
   // Fallback tagging logic for old recipes in the database
-  const getRecipeTags = (recipe: any): string[] => {
-    if (recipe.tags && recipe.tags.length > 0) {
-      return recipe.tags;
-    }
-    const fallbackTags: string[] = [];
-    
-    // 1. Duration check
+  // Programmatic duration badge calculation (Frontend only)
+  const getDurationBadge = (recipe: any): string | null => {
     const prep = parseInt(recipe.prepTime) || 0;
     const cook = parseInt(recipe.cookTime) || 0;
     const totalTime = prep + cook;
     if (totalTime > 0) {
       if (totalTime < 15) {
-        fallbackTags.push(language === 'de' ? 'Unter 15 Min.' : '< 15 Min');
+        return language === 'de' ? 'Unter 15 Min.' : '< 15 Min';
       } else if (totalTime < 30) {
-        fallbackTags.push(language === 'de' ? 'Unter 30 Min.' : '< 30 Min');
+        return language === 'de' ? 'Unter 30 Min.' : '< 30 Min';
       }
     }
+    return null;
+  };
+
+  // Fallback tagging logic for old recipes in the database, sanitized of time-based tags
+  const getRecipeTags = (recipe: any): string[] => {
+    const rawTags = recipe.tags || [];
+    const cleanTags = rawTags.filter((tag: string) => {
+      const t = tag.trim().toLowerCase();
+      return !(t.includes('min') || t.startsWith('<') || t.startsWith('unter'));
+    });
+
+    if (cleanTags.length > 0) {
+      return cleanTags;
+    }
+    const fallbackTags: string[] = [];
     
-    // 2. High Protein check
+    // 1. High Protein check
     const proteinStr = recipe.nutritionalEstimates?.protein;
     if (proteinStr) {
       const proteinVal = parseFloat(proteinStr) || 0;
@@ -114,7 +124,7 @@ export default function SavedCatalog({
       }
     }
 
-    // 3. Vegan / Vegetarian check based on ingredients or title
+    // 2. Vegan / Vegetarian check based on ingredients or title
     const titleLower = recipe.title.toLowerCase();
     const descLower = recipe.description?.toLowerCase() || '';
     const isVegan = titleLower.includes('vegan') || descLower.includes('vegan');
@@ -550,6 +560,11 @@ export default function SavedCatalog({
                               
                               {/* KI Tag Badges Overlays */}
                               <div className="absolute top-2 right-2 flex flex-col gap-1 z-[5]">
+                                {getDurationBadge(r) && (
+                                  <span className="bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm select-none border border-white/5 shadow-sm">
+                                    {getDurationBadge(r)}
+                                  </span>
+                                )}
                                 {getRecipeTags(r).map((tag: string, idx: number) => (
                                   <span key={idx} className="bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm select-none border border-white/5 shadow-sm">
                                     {tag}
@@ -559,20 +574,11 @@ export default function SavedCatalog({
                             </div>
                           )}
 
-                          {/* Title & Delete */}
+                          {/* Title */}
                           <div className="flex justify-between items-start gap-2 px-5 pt-3">
                             <h4 className="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">
                               {r.title}
                             </h4>
-                            {!isSelectMode && (
-                              <button
-                                onClick={(e) => handleDeleteJob(e, job.id)}
-                                className="flex-shrink-0 text-gray-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer -mt-1 -mr-2"
-                                aria-label={t('catalog.deleteRecipe')}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
                           </div>
 
                           {/* Description */}
@@ -581,7 +587,7 @@ export default function SavedCatalog({
                           </p>
                         </div>
 
-                        {/* Footer with stats & direct shopping list button */}
+                        {/* Footer with stats & direct shopping list button + delete button */}
                         <div className="flex items-center justify-between mt-4 pt-3 pb-4 px-5 border-t border-black/5 dark:border-white/5 text-[10px] text-gray-500 dark:text-gray-400">
                           <div className="flex gap-2">
                             <span className="flex items-center gap-1 font-medium">
@@ -593,23 +599,32 @@ export default function SavedCatalog({
                           </div>
 
                           {!isSelectMode && (
-                            <Button
-                              isIconOnly
-                              variant="tertiary"
-                              className={`w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 ${
-                                addedRecipeIds[job.id] 
-                                  ? 'bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent' 
-                                  : 'bg-black/5 dark:bg-white/5 text-gray-500 hover:text-emerald-500'
-                              }`}
-                              onPress={(e) => handleDirectAddToShoppingList(e as any, job)}
-                              aria-label="Direct add"
-                            >
-                              {addedRecipeIds[job.id] ? (
-                                <Check className="w-3.5 h-3.5 animate-scale-up" />
-                              ) : (
-                                <ShoppingCart className="w-3.5 h-3.5" />
-                              )}
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                isIconOnly
+                                variant="tertiary"
+                                className={`w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 ${
+                                  addedRecipeIds[job.id] 
+                                    ? 'bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent' 
+                                    : 'bg-black/5 dark:bg-white/5 text-gray-500 hover:text-emerald-500'
+                                }`}
+                                onPress={(e) => handleDirectAddToShoppingList(e as any, job)}
+                                aria-label="Direct add"
+                              >
+                                {addedRecipeIds[job.id] ? (
+                                  <Check className="w-3.5 h-3.5 animate-scale-up" />
+                                ) : (
+                                  <ShoppingCart className="w-3.5 h-3.5" />
+                                )}
+                              </Button>
+                              <button
+                                onClick={(e) => handleDeleteJob(e, job.id)}
+                                className="text-gray-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                                aria-label={t('catalog.deleteRecipe')}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           )}
                         </div>
                       </Card>
@@ -665,6 +680,11 @@ export default function SavedCatalog({
                               {r.title}
                             </h4>
                             {/* Tag pills (1 in compact view to save space) */}
+                            {getDurationBadge(r) && (
+                              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none">
+                                {getDurationBadge(r)}
+                              </span>
+                            )}
                             {getRecipeTags(r).slice(0, 1).map((tag: string, idx: number) => (
                               <span key={idx} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none">
                                 {tag}

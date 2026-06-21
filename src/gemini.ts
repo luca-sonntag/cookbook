@@ -242,7 +242,7 @@ For every ingredient, additionally generate a 'baseName'. This MUST be the absol
 
 Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
 
-Also, analyze the recipe properties and generate 1-2 highly relevant, concise tags in the target language (e.g., "Vegan", "High-Protein", "Vegetarisch", "Unter 30 Min", "Unter 15 Min", "Herzhaft", "Snack", etc.) based on the preparation time, ingredients, and nutrition details. Place these in the "tags" array.
+Also, analyze the recipe properties and generate 1-2 highly relevant, concise tags in the target language (e.g., "Vegan", "High-Protein", "Vegetarisch", "Herzhaft", "Snack", "Backen", "Low-Carb", etc.) based on the ingredients and nutrition details. Do NOT generate time-based tags (like "Unter 30 Min", "Unter 15 Min", "< 30 Min", etc.), as time-based tags are computed programmatically in the application. Place these in the "tags" array.
 
 Translate and write the entire final recipe output (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, the tags, and the transcript) into the following language: ${config.RECIPE_LANGUAGE}. Do NOT translate the ingredient group name keys (the category keys), keep them as the uppercase English enum values.
 
