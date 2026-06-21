@@ -125,7 +125,8 @@ export async function extractRecipeFromAudio(
   audioFilePath: string,
   mimeType: string,
   caption: string,
-  gridImagePath?: string
+  gridImagePath?: string,
+  jobId?: string
 ): Promise<Recipe> {
   if (!config.GEMINI_API_KEY || config.GEMINI_API_KEY === 'your_gemini_api_key_here') {
     throw new Error('Gemini API key is not configured in environment variables.');
@@ -305,6 +306,7 @@ ${caption}
       parsedOutput: recipe,
       tokenUsage,
       costEstimate,
+      jobId,
     });
 
     return recipe;
@@ -323,6 +325,7 @@ ${caption}
         captionPreview: caption.slice(0, 300),
       },
       rawOutput,
+      jobId,
     });
     throw err;
   } finally {
@@ -349,7 +352,7 @@ ${caption}
  * asks which shows the finished dish most appetizingly, and returns the top 5 indices.
  * The uploaded grid image is cleaned up afterwards.
  */
-export async function selectBestFoodFrame(framePaths: string[], gridImagePath: string): Promise<number[]> {
+export async function selectBestFoodFrame(framePaths: string[], gridImagePath: string, jobId?: string): Promise<number[]> {
   if (framePaths.length === 0) {
     return [];
   }
@@ -380,7 +383,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
       'Your task: identify the best frames to document the recipe. ' +
       '1. The FIRST frame you select MUST be the absolute best shot of the FINISHED, fully plated or cooked dish in the most appetizing way. ' +
       '2. Then, select between 2 to 8 additional frames that show important, distinct chronological steps of the preparation/cooking process. ' +
-      'Only select frames that are clear, informative, and where the subject fills most of the image. Do not select redundant frames. ' +
+      'Only select frames that are sharp, clear, in-focus, and where the subject fills most of the image. Strictly exclude any blurry, shaky, or out-of-focus frames. Do not select redundant frames. ' +
       `Respond with ONLY a comma-separated list of the selected frame indices (e.g. "14, 2, 5, 8, 11"). No explanation.`;
 
     console.log('[selectBestFoodFrame] Requesting best frames from Gemini...');
@@ -427,6 +430,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
         parsedOutput: { selectedIndices: [framePaths.length - 1], fallback: true },
         tokenUsage,
         costEstimate,
+        jobId,
       });
 
       return [framePaths.length - 1]; // fallback
@@ -443,6 +447,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
       parsedOutput: { selectedIndices: indices },
       tokenUsage,
       costEstimate,
+      jobId,
     });
 
     // Ensure we don't return an absurd amount, but allow up to 10
@@ -457,6 +462,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
       error: err?.message ?? String(err),
       input: { frameCount: framePaths.length, framePaths },
       rawOutput,
+      jobId,
     });
     throw err;
   } finally {
