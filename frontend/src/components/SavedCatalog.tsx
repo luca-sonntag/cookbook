@@ -93,8 +93,9 @@ export default function SavedCatalog({
       return t('recipe.minutes', { count: time });
     }
     const strTime = String(time).trim();
-    if (/^\d+$/.test(strTime)) {
-      return t('recipe.minutes', { count: strTime });
+    const match = strTime.match(/\d+/);
+    if (match) {
+      return t('recipe.minutes', { count: match[0] });
     }
     return strTime;
   };

@@ -38,7 +38,7 @@ interface RecipeDetailsProps {
 
 export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: RecipeDetailsProps) {
   const dialog = useDialog();
-  const { t, language, translateCategory } = useI18n();
+  const { t, translateCategory } = useI18n();
 
   // Format prep and cook time helper supporting both legacy string values and new number values
   const formatTimeValue = (time: any) => {
@@ -47,8 +47,9 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
       return t('recipe.minutes', { count: time });
     }
     const strTime = String(time).trim();
-    if (/^\d+$/.test(strTime)) {
-      return t('recipe.minutes', { count: strTime });
+    const match = strTime.match(/\d+/);
+    if (match) {
+      return t('recipe.minutes', { count: match[0] });
     }
     return strTime;
   };
