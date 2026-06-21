@@ -422,7 +422,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                 </span>
               </div>
               {hasIngredientNutrition && (
-                <div className="flex justify-end">
+                <div className="flex justify-end items-center gap-1.5">
                   <button
                     onClick={handleToggleIngredientNutrition}
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold select-none cursor-pointer transition-all border ${
@@ -434,6 +434,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                     <Sparkles className={`w-3 h-3 ${showIngredientNutrition ? 'text-emerald-500 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`} />
                     <span>{t('recipe.showNutritionPerIngredient')}</span>
                   </button>
+                  <AiNotice type="badge" />
                 </div>
               )}
             </div>
