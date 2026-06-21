@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, Button } from '@heroui/react';
 import { ShoppingCart, Plus, Trash2, Check, X } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../types';
-import { translateCategory, getCategoryIcon, categoryOrder } from '../i18n';
+import { translateCategory, categoryOrder } from '../i18n';
 import { useDialog } from '../context/DialogContext';
 
 interface ShoppingListProps {
@@ -216,7 +216,6 @@ export default function ShoppingList({
                   {groupedUnchecked.map((group) => (
                     <div key={group.category} className="flex flex-col gap-2 bg-black/[0.02] dark:bg-white/[0.02] p-3 rounded-2xl border border-black/5 dark:border-white/5">
                       <div className="flex items-center gap-1.5 px-1 py-0.5 border-b border-black/5 dark:border-white/5 pb-2 mb-1">
-                        <span className="text-sm">{getCategoryIcon(group.category)}</span>
                         <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
                           {translateCategory(group.category)}
                         </span>
