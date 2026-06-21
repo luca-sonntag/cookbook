@@ -85,9 +85,23 @@ export default function SavedCatalog({
       ) : (
         /* LIST VIEW OF SAVED RECIPES */
         <div className="flex flex-col gap-4">
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1">
-            {t('catalog.title')}
-          </h3>
+          <div className="flex justify-between items-center mb-1">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <span>{t('catalog.title')}</span>
+              {completedJobs.length > 0 && (
+                <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full font-bold">
+                  {completedJobs.length}
+                </span>
+              )}
+            </h3>
+            {completedJobs.length > 0 && filteredJobs.length < completedJobs.length && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                {language === 'de' 
+                  ? `${filteredJobs.length} von ${completedJobs.length} angezeigt` 
+                  : `Showing ${filteredJobs.length} of ${completedJobs.length}`}
+              </span>
+            )}
+          </div>
 
           {completedJobs.length === 0 ? (
             <CatalogEmptyState />
