@@ -634,6 +634,19 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         </Tabs.Panel>
       </Tabs>
 
+      {/* Floating Action Button (FAB) for Start Cooking */}
+      {!isCookingMode && totalStepsCount > 0 && (
+        <div className="fixed bottom-6 right-6 z-40 animate-fade-in-up">
+          <Button
+            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-6 py-6 rounded-full shadow-2xl shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all duration-300 border-none"
+            onPress={() => setIsCookingMode(true)}
+          >
+            <Play className="w-4 h-4 fill-white" />
+            <span className="text-sm tracking-wide">{t('recipe.startCooking')}</span>
+          </Button>
+        </div>
+      )}
+
       {/* Cooking Mode Fullscreen Overlay */}
       {isCookingMode && (
         <CookingMode
@@ -647,3 +660,4 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
     </article>
   );
 }
+
