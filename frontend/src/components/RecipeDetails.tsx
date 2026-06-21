@@ -434,7 +434,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                     <Sparkles className={`w-3 h-3 ${showIngredientNutrition ? 'text-emerald-500 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`} />
                     <span>{t('recipe.showNutritionPerIngredient')}</span>
                   </button>
-                  <AiNotice type="badge" />
+                  <AiNotice type="badge" tooltipText={t('recipe.aiIngredientsEstimateTooltip')} />
                 </div>
               )}
             </div>

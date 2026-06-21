@@ -166,7 +166,7 @@ export const uiTranslations = {
       subtitle: 'Instagram Reel Rezept-Assistent',
       nav: {
         newRecipe: 'Neues Rezept',
-        savedRecipes: 'Gespeicherte Rezepte',
+        savedRecipes: 'Rezepte',
         shoppingList: 'Einkaufsliste',
       },
       dialog: {
@@ -265,6 +265,7 @@ export const uiTranslations = {
       nutritionFatShort: 'F',
       aiEstimateNotice: 'KI-geschätzte Werte',
       aiEstimateTooltip: 'Diese Nährwerte wurden automatisiert basierend auf den Zutaten und Mengen geschätzt, da in der Quelle keine Angaben vorhanden waren.',
+      aiIngredientsEstimateTooltip: 'Die Nährwerte der einzelnen Zutaten sind von der KI geschätzte Richtwerte und können je nach Sorte, Marke und Zubereitung variieren.',
       tabIngredients: 'Zutaten',
       tabInstructions: 'Zubereitung',
       ingredientsTitle: 'Zutaten-Checkliste',
@@ -351,7 +352,7 @@ export const uiTranslations = {
       subtitle: 'Instagram Reel Recipe Assistant',
       nav: {
         newRecipe: 'Extract New',
-        savedRecipes: 'Saved Recipes',
+        savedRecipes: 'Recipes',
         shoppingList: 'Shopping List',
       },
       dialog: {
@@ -450,6 +451,7 @@ export const uiTranslations = {
       nutritionFatShort: 'F',
       aiEstimateNotice: 'AI-Estimated',
       aiEstimateTooltip: 'These nutritional values were automatically estimated based on the ingredients and quantities since no specifications were present in the source.',
+      aiIngredientsEstimateTooltip: 'The nutritional values for individual ingredients are guidelines estimated by the AI and may vary depending on variety, brand, and preparation.',
       tabIngredients: 'Ingredients',
       tabInstructions: 'Instructions',
       ingredientsTitle: 'Ingredients Checklist',
