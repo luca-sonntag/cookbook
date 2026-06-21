@@ -96,7 +96,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
     const n = recipe.nutritionalEstimates;
     if (!n) return false;
     return (
-      (n.calories !== undefined && n.calories !== null && n.calories !== 0 && n.calories !== '') ||
+      (n.calories !== undefined && n.calories !== null && n.calories !== 0) ||
       (n.protein !== undefined && n.protein !== null && n.protein !== '') ||
       (n.carbs !== undefined && n.carbs !== null && n.carbs !== '') ||
       (n.fat !== undefined && n.fat !== null && n.fat !== '')
@@ -589,7 +589,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         </div>
 
         {/* Nutrition estimate */}
-        {hasNutritionInfo && (
+        {hasNutritionInfo && recipe.nutritionalEstimates && (
           <div className="bg-black/5 dark:bg-white/5 p-3.5 rounded-xl border border-black/5 dark:border-white/5">
             <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Nutritional Estimates</h4>
             <div className="grid grid-cols-4 gap-2 text-center text-xs">
