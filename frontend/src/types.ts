@@ -34,8 +34,8 @@ export interface Recipe {
   id?: string;
   title: string;
   description: string;
-  prepTime: string;
-  cookTime: string;
+  prepTime: number | null;
+  cookTime: number | null;
   servings: number;
   ingredients: IngredientGroup[];
   instructions: InstructionStep[];

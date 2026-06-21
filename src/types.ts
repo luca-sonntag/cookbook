@@ -36,8 +36,8 @@ export interface Recipe {
   title: string;
   description: string;
 
-  prepTime: string; // e.g. "15 mins"
-  cookTime: string; // e.g. "20 mins"
+  prepTime: number | null; // prep time in minutes
+  cookTime: number | null; // cook time in minutes
   servings: number;
   ingredients: IngredientGroup[];
   instructions: InstructionStep[];

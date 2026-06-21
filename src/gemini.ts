@@ -15,8 +15,8 @@ const recipeSchema = {
     isRecipe: { type: FunctionDeclarationSchemaType.BOOLEAN },
     title: { type: FunctionDeclarationSchemaType.STRING },
     description: { type: FunctionDeclarationSchemaType.STRING },
-    prepTime: { type: FunctionDeclarationSchemaType.STRING },
-    cookTime: { type: FunctionDeclarationSchemaType.STRING },
+    prepTime: { type: FunctionDeclarationSchemaType.INTEGER },
+    cookTime: { type: FunctionDeclarationSchemaType.INTEGER },
     servings: { type: FunctionDeclarationSchemaType.INTEGER },
     ingredients: {
       type: FunctionDeclarationSchemaType.ARRAY,
