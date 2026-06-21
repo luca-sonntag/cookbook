@@ -8,7 +8,9 @@ async function runGridTest() {
 
   try {
     const files = await fs.readdir(logsDir);
-    const runFolders = files.filter(f => f.startsWith('run-'));
+    const runFolders = files
+      .filter(f => f.startsWith('run-'))
+      .sort((a, b) => b.localeCompare(a));
 
     if (runFolders.length === 0) {
       console.error('\n❌ Error: No run directory found in logs.');
