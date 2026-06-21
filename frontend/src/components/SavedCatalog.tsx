@@ -169,8 +169,16 @@ export default function SavedCatalog({
     });
   }, [completedJobs, searchQuery, activeFilter, language]);
 
+  // Helper to check if event target is inside an interactive element
+  const isInteractiveTarget = (target: HTMLElement) => {
+    return !!target.closest('button, a, [role="button"]');
+  };
+
   // Long press event handlers
-  const handlePointerDown = (jobId: string) => {
+  const handlePointerDown = (e: React.PointerEvent, jobId: string) => {
+    if (isInteractiveTarget(e.target as HTMLElement)) {
+      return;
+    }
     pressStartTime.current = Date.now();
     longPressTimeout.current[jobId] = setTimeout(() => {
       setIsSelectMode(true);
@@ -183,13 +191,16 @@ export default function SavedCatalog({
   };
 
   const handlePointerUp = (e: React.PointerEvent, job: Job) => {
+    if (isInteractiveTarget(e.target as HTMLElement)) {
+      return;
+    }
     if (longPressTimeout.current[job.id]) {
       clearTimeout(longPressTimeout.current[job.id]);
       delete longPressTimeout.current[job.id];
     }
     const pressDuration = Date.now() - pressStartTime.current;
     if (pressDuration < 600) {
-      handleCardClick(job);
+      handleCardClick(e as any, job);
     } else {
       e.preventDefault();
       e.stopPropagation();
@@ -205,13 +216,16 @@ export default function SavedCatalog({
 
   const bindLongPress = (jobId: string, job: Job) => {
     return {
-      onPointerDown: () => handlePointerDown(jobId),
+      onPointerDown: (e: React.PointerEvent) => handlePointerDown(e, jobId),
       onPointerUp: (e: React.PointerEvent) => handlePointerUp(e, job),
       onPointerLeave: () => handlePointerLeave(jobId),
     };
   };
 
-  const handleCardClick = (job: Job) => {
+  const handleCardClick = (e: React.MouseEvent, job: Job) => {
+    if (isInteractiveTarget(e.target as HTMLElement)) {
+      return;
+    }
     if (isSelectMode) {
       setSelectedIds(prev => {
         const next = new Set(prev);
@@ -499,7 +513,7 @@ export default function SavedCatalog({
                         className={`glass-panel rounded-2xl hover:border-emerald-500/30 cursor-pointer active:scale-[0.99] transition-all flex flex-col justify-between overflow-hidden relative border ${
                           isSelected ? 'border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-black/5 dark:border-white/5'
                         }`}
-                        onClick={() => handleCardClick(job)}
+                        onClick={(e) => handleCardClick(e, job)}
                         {...bindLongPress(job.id, job)}
                       >
                         {/* Checkbox overlay in select mode */}
@@ -615,7 +629,7 @@ export default function SavedCatalog({
                         className={`glass-panel rounded-2xl hover:border-emerald-500/30 cursor-pointer active:scale-[0.99] transition-all p-3 flex flex-row items-center gap-3 overflow-hidden border ${
                           isSelected ? 'border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-black/5 dark:border-white/5'
                         }`}
-                        onClick={() => handleCardClick(job)}
+                        onClick={(e) => handleCardClick(e, job)}
                         {...bindLongPress(job.id, job)}
                       >
                         {/* Select mode checkbox */}
