@@ -23,9 +23,6 @@ export default function BulkActionBar({
         <span className="text-xs font-bold text-gray-900 dark:text-white">
           {t('catalog.itemsSelected', { count: selectedCount })}
         </span>
-        <span className="text-[10px] text-gray-500 dark:text-gray-400">
-          Meal-Prep Plan
-        </span>
       </div>
 
       <div className="flex gap-2">
