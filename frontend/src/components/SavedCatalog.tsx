@@ -245,7 +245,7 @@ export default function SavedCatalog({
   };
 
   // Direct add all ingredients of a recipe to shopping list
-  const handleDirectAddToShoppingList = (e: React.MouseEvent | React.TouchEvent, job: Job) => {
+  const handleDirectAddToShoppingList = (e: React.MouseEvent, job: Job) => {
     e.stopPropagation();
     const r = job.recipe!;
     if (!onAddIngredients) return;
@@ -586,15 +586,13 @@ export default function SavedCatalog({
 
                           {!isSelectMode && (
                             <div className="flex items-center gap-2">
-                              <Button
-                                isIconOnly
-                                variant="tertiary"
-                                className={`w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 ${
+                              <button
+                                className={`w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer ${
                                   addedRecipeIds[job.id] 
                                     ? 'bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent' 
                                     : 'bg-black/5 dark:bg-white/5 text-gray-500 hover:text-emerald-500'
                                 }`}
-                                onPress={(e) => handleDirectAddToShoppingList(e as any, job)}
+                                onClick={(e) => handleDirectAddToShoppingList(e, job)}
                                 aria-label="Direct add"
                               >
                                 {addedRecipeIds[job.id] ? (
@@ -602,7 +600,7 @@ export default function SavedCatalog({
                                 ) : (
                                   <ShoppingCart className="w-3.5 h-3.5" />
                                 )}
-                              </Button>
+                              </button>
                               <button
                                 onClick={(e) => handleDeleteJob(e, job.id)}
                                 className="text-gray-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
@@ -691,15 +689,13 @@ export default function SavedCatalog({
                         {/* Actions */}
                         {!isSelectMode && (
                           <div className="flex items-center gap-1 shrink-0">
-                            <Button
-                              isIconOnly
-                              variant="tertiary"
-                              className={`w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 ${
+                            <button
+                              className={`w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer ${
                                 addedRecipeIds[job.id] 
                                   ? 'bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent' 
                                   : 'bg-black/5 dark:bg-white/5 text-gray-500 hover:text-emerald-500'
                               }`}
-                              onPress={(e) => handleDirectAddToShoppingList(e as any, job)}
+                              onClick={(e) => handleDirectAddToShoppingList(e, job)}
                               aria-label="Direct add"
                             >
                               {addedRecipeIds[job.id] ? (
@@ -707,7 +703,7 @@ export default function SavedCatalog({
                               ) : (
                                 <ShoppingCart className="w-3.5 h-3.5" />
                               )}
-                            </Button>
+                            </button>
                             <button
                               onClick={(e) => handleDeleteJob(e, job.id)}
                               className="text-gray-500 hover:text-red-500 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
