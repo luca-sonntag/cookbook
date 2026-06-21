@@ -62,7 +62,8 @@ async function downloadFile(url: string, destPath: string): Promise<string> {
  * Processes a single job end-to-end.
  */
 async function processJob(jobId: string, url: string): Promise<void> {
-  const runDir = path.resolve('logs', `run-${jobId}`);
+  const safeTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const runDir = path.resolve('logs', `run-${safeTimestamp}_${jobId}`);
   const framesDir = path.join(runDir, 'frames');
   let audioFilePath = '';
   let videoFilePath = '';
@@ -125,7 +126,7 @@ async function processJob(jobId: string, url: string): Promise<void> {
         try {
           const { selectBestFoodFrame } = await import('./gemini.js');
           console.log(`[Job ${jobId}] Asking Gemini to pick best food shots from grid...`);
-          const bestIndices = await selectBestFoodFrame(framePaths, gridImagePath, jobId);
+          const bestIndices = await selectBestFoodFrame(framePaths, gridImagePath, runDir);
           console.log(`[Job ${jobId}] Best frames selected: indices ${bestIndices.join(', ')}`);
 
           // Save best frames permanently as local files
@@ -149,7 +150,7 @@ async function processJob(jobId: string, url: string): Promise<void> {
       : Promise.resolve(null);
 
     const [recipe, selectedImageUrls] = await Promise.all([
-      extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption, gridImagePath, jobId),
+      extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption, gridImagePath, runDir),
       frameSelectionPromise,
     ]);
 
