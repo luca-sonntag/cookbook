@@ -27,11 +27,11 @@ export interface AlternativeIngredient {
   notes?: string;
 }
 
-export interface NutritionalEstimates {
+export interface NutritionalValues {
   calories?: number | null;
-  protein?: string | null;
-  carbs?: string | null;
-  fat?: string | null;
+  protein?: number | null;
+  carbs?: number | null;
+  fat?: number | null;
 }
 
 export interface Recipe {
@@ -44,7 +44,7 @@ export interface Recipe {
   ingredients: IngredientGroup[];
   instructions: InstructionStep[];
   equipment: string[];
-  nutritionalEstimates?: NutritionalEstimates;
+  nutritionalValues?: NutritionalValues;
   tips?: string[];
   alternativeIngredients?: AlternativeIngredient[];
   transcript?: string | null;

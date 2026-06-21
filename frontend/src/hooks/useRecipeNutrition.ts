@@ -1,21 +1,21 @@
 import { useMemo } from 'react';
-import type { Recipe, NutritionalEstimates } from '../types';
+import type { Recipe, NutritionalValues } from '../types';
 
 export function useRecipeNutrition(recipe: Recipe) {
   return useMemo(() => {
-    // 1. Check if recipe has original/extracted nutritional estimates
-    const original = recipe.nutritionalEstimates;
+    // 1. Check if recipe has original/extracted nutritional values
+    const original = recipe.nutritionalValues;
     const hasOriginal = !!(
       original &&
       ((original.calories !== undefined && original.calories !== null && original.calories !== 0) ||
-        (original.protein !== undefined && original.protein !== null && original.protein !== '') ||
-        (original.carbs !== undefined && original.carbs !== null && original.carbs !== '') ||
-        (original.fat !== undefined && original.fat !== null && original.fat !== ''))
+        (original.protein !== undefined && original.protein !== null && original.protein !== 0) ||
+        (original.carbs !== undefined && original.carbs !== null && original.carbs !== 0) ||
+        (original.fat !== undefined && original.fat !== null && original.fat !== 0))
     );
 
     if (hasOriginal) {
       return {
-        nutritionalEstimates: original,
+        nutritionalValues: original,
         isAiEstimated: false,
         hasNutritionInfo: true,
       };
@@ -48,13 +48,12 @@ export function useRecipeNutrition(recipe: Recipe) {
     }
 
     if (hasIngredientEstimates) {
-      // Create NutritionalEstimates formatted values (e.g. "25g")
-      // so it maps perfectly to standard display format and existing formatNutritionValue function
-      const calculated: NutritionalEstimates = {
+      // Create NutritionalValues raw numeric values
+      const calculated: NutritionalValues = {
         calories: totalCalories > 0 ? Math.round(totalCalories) : null,
-        protein: totalProtein > 0 ? `${Math.round(totalProtein * 10) / 10}g` : null,
-        carbs: totalCarbs > 0 ? `${Math.round(totalCarbs * 10) / 10}g` : null,
-        fat: totalFat > 0 ? `${Math.round(totalFat * 10) / 10}g` : null,
+        protein: totalProtein > 0 ? Math.round(totalProtein * 10) / 10 : null,
+        carbs: totalCarbs > 0 ? Math.round(totalCarbs * 10) / 10 : null,
+        fat: totalFat > 0 ? Math.round(totalFat * 10) / 10 : null,
       };
 
       const hasNutritionInfo =
@@ -64,7 +63,7 @@ export function useRecipeNutrition(recipe: Recipe) {
         calculated.fat !== null;
 
       return {
-        nutritionalEstimates: calculated,
+        nutritionalValues: calculated,
         isAiEstimated: true,
         hasNutritionInfo,
       };
@@ -72,7 +71,7 @@ export function useRecipeNutrition(recipe: Recipe) {
 
     // 3. Fallback: no nutrition information
     return {
-      nutritionalEstimates: null,
+      nutritionalValues: null,
       isAiEstimated: false,
       hasNutritionInfo: false,
     };
