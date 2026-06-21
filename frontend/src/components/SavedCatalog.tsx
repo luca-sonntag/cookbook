@@ -617,7 +617,7 @@ export default function SavedCatalog({
                               </button>
                               <button
                                 onClick={(e) => handleDeleteJob(e, job.id)}
-                                className="w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer bg-black/5 dark:bg-white/5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 dark:hover:bg-red-500/20"
+                                className="w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer bg-black/5 dark:bg-white/5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/20"
                                 aria-label={t('catalog.deleteRecipe')}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -693,8 +693,9 @@ export default function SavedCatalog({
                           </p>
                         </div>
 
+                        {/* Actions */}
                         {!isSelectMode && (
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-1 shrink-0">
                             <button
                               className={`w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer ${
                                 addedRecipeIds[job.id] 
@@ -712,7 +713,7 @@ export default function SavedCatalog({
                             </button>
                             <button
                               onClick={(e) => handleDeleteJob(e, job.id)}
-                              className="w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer bg-black/5 dark:bg-white/5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 dark:hover:bg-red-500/20"
+                              className="w-8 h-8 rounded-lg active:scale-95 transition-all text-xs border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer bg-black/5 dark:bg-white/5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/20"
                               aria-label={t('catalog.deleteRecipe')}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
