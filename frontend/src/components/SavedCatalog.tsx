@@ -129,12 +129,18 @@ export default function SavedCatalog({
     return fallbackTags.slice(0, 2);
   };
 
-  // Collect all unique tags dynamically (actual + fallback)
+  // Collect all unique tags dynamically (actual + fallback, filtering out time-based tags to avoid duplicates with dedicated duration chips)
   const allTags = useMemo(() => {
     const tagsSet = new Set<string>();
     completedJobs.forEach(job => {
       if (job.recipe) {
-        getRecipeTags(job.recipe).forEach((tag: string) => tagsSet.add(tag));
+        getRecipeTags(job.recipe).forEach((tag: string) => {
+          const t = tag.trim();
+          const isTimeTag = t.toLowerCase().includes('min') || t.startsWith('<') || t.toLowerCase().startsWith('unter');
+          if (!isTimeTag) {
+            tagsSet.add(t);
+          }
+        });
       }
     });
     return Array.from(tagsSet);
