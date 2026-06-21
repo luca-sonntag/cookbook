@@ -91,6 +91,18 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
   }, [recipe.instructions, checkedSteps]);
   const progressPercent = totalStepsCount > 0 ? (completedStepsCount / totalStepsCount) * 100 : 0;
 
+  // Determine if there is any valid nutritional estimation to show
+  const hasNutritionInfo = useMemo(() => {
+    const n = recipe.nutritionalEstimates;
+    if (!n) return false;
+    return (
+      (n.calories !== undefined && n.calories !== null && n.calories !== 0 && n.calories !== '') ||
+      (n.protein !== undefined && n.protein !== null && n.protein !== '') ||
+      (n.carbs !== undefined && n.carbs !== null && n.carbs !== '') ||
+      (n.fat !== undefined && n.fat !== null && n.fat !== '')
+    );
+  }, [recipe.nutritionalEstimates]);
+
   // Highlights ingredients and equipment in instructions text
   const highlightText = (text: string) => {
     if (!text) return text;
@@ -485,7 +497,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
             <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">{recipe.title}</h2>
             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed">{recipe.description}</p>
           </div>
-          <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen} placement="bottom-end">
+          <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <Popover.Trigger>
               <Button
                 isIconOnly
@@ -496,7 +508,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </Popover.Trigger>
-            <Popover.Content className="p-1 min-w-[160px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
+            <Popover.Content placement="bottom end" className="p-1 min-w-[160px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
               <div className="flex flex-col w-full">
                 <button
                   onClick={() => {
@@ -577,7 +589,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         </div>
 
         {/* Nutrition estimate */}
-        {recipe.nutritionalEstimates && (
+        {hasNutritionInfo && (
           <div className="bg-black/5 dark:bg-white/5 p-3.5 rounded-xl border border-black/5 dark:border-white/5">
             <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Nutritional Estimates</h4>
             <div className="grid grid-cols-4 gap-2 text-center text-xs">

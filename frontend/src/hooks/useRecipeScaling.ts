@@ -81,14 +81,16 @@ export function useRecipeScaling(recipe: Recipe) {
   };
 
   const formatNutritionValue = (val: string | number | undefined | null) => {
-    if (val === undefined || val === null) return '';
+    if (val === undefined || val === null || val === '') return '—';
     if (typeof val === 'number') {
+      if (val === 0) return '—';
       return Math.round(val * scaleFactor);
     }
     const match = val.match(/^([\d.,]+)\s*([a-zA-Z%]*)$/);
     if (!match) return val;
     const numPart = parseFloat(match[1].replace(',', '.'));
     if (isNaN(numPart)) return val;
+    if (numPart === 0) return '—';
     const scaled = Math.round(numPart * scaleFactor * 10) / 10;
     const unit = match[2] || 'g';
     return `${scaled}${unit}`;

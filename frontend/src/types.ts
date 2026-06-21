@@ -24,10 +24,10 @@ export interface AlternativeIngredient {
 }
 
 export interface NutritionalEstimates {
-  calories: number;
-  protein: string;
-  carbs: string;
-  fat: string;
+  calories?: number | null;
+  protein?: string | null;
+  carbs?: string | null;
+  fat?: string | null;
 }
 
 export interface Recipe {
