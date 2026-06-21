@@ -186,6 +186,30 @@ export const uiTranslations = {
         }
       }
     },
+    job: {
+      status: {
+        pending: {
+          text: 'In der Warteschlange...',
+          sub: 'Warte auf Server-Ressourcen...',
+        },
+        scraping: {
+          text: 'Reel wird abgerufen...',
+          sub: 'Instagram-Daten werden ausgelesen...',
+        },
+        processing: {
+          text: 'Rezept wird erstellt...',
+          sub: 'KI analysiert Audio und Text...',
+        },
+        completed: {
+          text: 'Extraktion abgeschlossen!',
+          sub: 'Das Rezept wird geladen...',
+        },
+        failed: {
+          text: 'Extraktion fehlgeschlagen',
+          sub: 'Das Rezept konnte nicht extrahiert werden.',
+        }
+      }
+    },
     theme: {
       toggle: 'Theme umschalten',
     },
@@ -337,6 +361,30 @@ export const uiTranslations = {
         connectionError: {
           title: 'Connection Error',
           message: 'Could not connect to the server.',
+        }
+      }
+    },
+    job: {
+      status: {
+        pending: {
+          text: 'In queue...',
+          sub: 'Waiting for server resources...',
+        },
+        scraping: {
+          text: 'Retrieving Reel...',
+          sub: 'Extracting Instagram data...',
+        },
+        processing: {
+          text: 'Generating recipe...',
+          sub: 'AI is analyzing audio and description...',
+        },
+        completed: {
+          text: 'Extraction completed!',
+          sub: 'Loading recipe details...',
+        },
+        failed: {
+          text: 'Extraction failed',
+          sub: 'Could not extract recipe from Reel.',
         }
       }
     },
