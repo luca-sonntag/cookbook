@@ -290,7 +290,7 @@ export const uiTranslations = {
     catalog: {
       savedOn: 'Gespeichert am {date}',
       viewReel: 'Reel ansehen',
-      title: 'Gespeicherte Rezepte',
+      title: 'Rezepte',
       emptyTitle: 'Keine gespeicherten Rezepte',
       emptyDesc: 'Extrahiere Rezepte aus Instagram Reels im "Neues Rezept" Tab, um sie hier zu speichern!',
       deleteRecipe: 'Rezept löschen',
@@ -469,7 +469,7 @@ export const uiTranslations = {
     catalog: {
       savedOn: 'Saved on {date}',
       viewReel: 'View Reel',
-      title: 'Saved Recipes',
+      title: 'Recipes',
       emptyTitle: 'No Saved Recipes',
       emptyDesc: 'Extract recipes from Instagram Reels in the "Extract New" tab to save them here!',
       deleteRecipe: 'Delete recipe',
