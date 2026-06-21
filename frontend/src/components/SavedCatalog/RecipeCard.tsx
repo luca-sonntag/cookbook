@@ -62,13 +62,13 @@ export default function RecipeCard({
       onClick={onClick}
       {...bindLongPress}
     >
-      {/* Checkbox overlay in select mode */}
-      {isSelectMode && (
+      {/* Fallback Checkbox overlay in select mode when no image exists */}
+      {isSelectMode && !r.imageUrl && (
         <div
-          className={`absolute top-4 left-4 z-10 w-7 h-7 rounded-lg flex items-center justify-center transition-all -translate-x-1/2 -translate-y-1/2 border ${
+          className={`absolute top-4 left-4 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all border ${
             isSelected
               ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
-              : 'bg-black/40 backdrop-blur-sm border-white/30 text-white'
+              : 'bg-black/5 dark:bg-white/5 border-black/20 dark:border-white/20 text-gray-500 dark:text-gray-400'
           }`}
         >
           {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
@@ -84,6 +84,18 @@ export default function RecipeCard({
               alt={r.title}
               className="w-full h-full object-cover object-center rounded-t-2xl"
             />
+            {/* Checkbox overlay inside the thumbnail container */}
+            {isSelectMode && (
+              <div
+                className={`absolute top-2.5 left-2.5 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all border ${
+                  isSelected
+                    ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
+                    : 'bg-black/40 backdrop-blur-sm border-white/30 text-white'
+                }`}
+              >
+                {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
+              </div>
+            )}
             {/* Creator Badge Overlay */}
             {r.instagramHandle && (
               <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 font-semibold backdrop-blur-sm pointer-events-none select-none z-[5] border border-white/10 shadow-md">
