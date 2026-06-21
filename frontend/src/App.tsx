@@ -377,7 +377,7 @@ export default function App() {
               {/* Extract / New Recipe Tab */}
               <button
                 onClick={() => setActiveView('extract')}
-                className={`flex-1 flex flex-col items-center justify-center py-1 relative transition-colors ${
+                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${
                   activeView === 'extract'
                     ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -386,7 +386,7 @@ export default function App() {
                 <Sparkles className="w-5 h-5 mb-0.5" />
                 <span className="text-[10px] tracking-wide">{t('app.nav.newRecipe')}</span>
                 {activeView === 'extract' && (
-                  <span className="absolute bottom-1.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
               </button>
 
@@ -396,7 +396,7 @@ export default function App() {
                   setActiveView('history');
                   fetchHistory();
                 }}
-                className={`flex-1 flex flex-col items-center justify-center py-1 relative transition-colors ${
+                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${
                   activeView === 'history'
                     ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -407,14 +407,14 @@ export default function App() {
                 </div>
                 <span className="text-[10px] tracking-wide">{t('app.nav.savedRecipes')}</span>
                 {activeView === 'history' && (
-                  <span className="absolute bottom-1.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
               </button>
 
               {/* Shopping List Tab */}
               <button
                 onClick={() => setActiveView('shopping-list')}
-                className={`flex-1 flex flex-col items-center justify-center py-1 relative transition-colors ${
+                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${
                   activeView === 'shopping-list'
                     ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -430,7 +430,7 @@ export default function App() {
                 </div>
                 <span className="text-[10px] tracking-wide">{t('app.nav.shoppingList')}</span>
                 {activeView === 'shopping-list' && (
-                  <span className="absolute bottom-1.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
               </button>
             </div>

@@ -13,7 +13,6 @@ import { useCookingMode } from '../hooks/useCookingMode';
 import RecipeInstructionText from './RecipeInstructionText';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
-import { getIngredientTargets, matchesIngredientWord } from '../utils/matching';
 
 interface CookingModeProps {
   recipe: Recipe;
@@ -62,38 +61,28 @@ export default function CookingMode({
   // Find ingredients mentioned in a specific step description
   const getIngredientsForStep = (description: string) => {
     if (!description) return [];
-    
-    // Clean and split the step description into lowercase word tokens
-    const textWords = description
-      .toLowerCase()
-      .replace(/[.,:;!?()\[\]{}'"\/]/g, ' ')
-      .split(/\s+/)
-      .filter(Boolean);
-
     const mentioned: Ingredient[] = [];
+    
+    const isMatch = (term: string | undefined, text: string) => {
+      if (!term) return false;
+      const lowerTerm = term.toLowerCase();
+      const lowerText = text.toLowerCase();
+      
+      if (term.length <= 3) {
+        const escapedTerm = term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regex = new RegExp(`(?<=^|[\\s.,:;!?()\\[\\]{}'"\\-\\/])${escapedTerm}(?=$|[\\s.,:;!?()\\[\\]{}'"\\-\\/])`, 'i');
+        return regex.test(text);
+      }
+      return lowerText.includes(lowerTerm);
+    };
 
     allIngredients.forEach(ing => {
-      const targets = getIngredientTargets(ing);
-      
-      const isMatch = targets.some(target => {
-        if (target.includes(' ')) {
-          // Multi-word target (e.g. "rote zwiebeln"): do a regex word-boundary check
-          const escaped = target.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-          const regex = new RegExp(`(?<=^|[\\s.,:;!?()\\[\\]{}'"\\-\\/])${escaped}(?=$|[\\s.,:;!?()\\[\\]{}'"\\-\\/])`, 'i');
-          return regex.test(description);
-        } else {
-          // Single-word target: match against each token of the description
-          return textWords.some(textWord => matchesIngredientWord(textWord, target));
-        }
-      });
-
-      if (isMatch) {
+      if (isMatch(ing.baseName, description) || isMatch(ing.name, description)) {
         if (!mentioned.some(m => m.name === ing.name)) {
           mentioned.push(ing);
         }
       }
     });
-
     return mentioned;
   };
 

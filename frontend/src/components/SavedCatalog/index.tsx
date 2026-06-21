@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@heroui/react';
 import type { Job, Ingredient } from '../../types';
 import RecipeDetails from '../RecipeDetails';
 import { useMobileNavigationBack } from '../../hooks/useMobileNavigationBack';
@@ -33,7 +32,7 @@ export default function SavedCatalog({
   onNavigateToShoppingList,
   shoppingListCount
 }: SavedCatalogProps) {
-  const { t, language } = useI18n();
+  const { language } = useI18n();
 
   // Custom hook for swipe-to-go-back and mobile back button handling
   useMobileNavigationBack(!!selectedJob, () => setSelectedJob(null));
