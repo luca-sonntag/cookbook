@@ -56,7 +56,7 @@ const recipeSchema = {
                 carbs: { type: FunctionDeclarationSchemaType.NUMBER },
                 fat: { type: FunctionDeclarationSchemaType.NUMBER },
               },
-              required: ['name', 'baseName', 'amount', 'unit'],
+              required: ['name', 'baseName', 'amount', 'unit', 'calories', 'protein', 'carbs', 'fat'],
             },
           },
         },
@@ -249,7 +249,7 @@ For every ingredient, you MUST also estimate the nutritional values for the give
 - "protein" (a number, representing protein in grams)
 - "carbs" (a number, representing carbohydrates in grams)
 - "fat" (a number, representing fat in grams)
-If the ingredient cannot be reliably estimated (e.g. water, non-food item, or spice with negligible value), set these values to null or omit them. Do not write units like 'g' in these numeric fields, output only raw numbers (e.g., 4.5 or 12).
+If the ingredient cannot be reliably estimated (e.g. water, non-food item, or spice with negligible value), set these values to 0. You MUST always output these fields for every ingredient. Do not write units like 'g' in these numeric fields, output only raw numbers (e.g., 4.5 or 12).
 
 Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
 
