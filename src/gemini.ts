@@ -126,7 +126,7 @@ export async function extractRecipeFromAudio(
   mimeType: string,
   caption: string,
   gridImagePath?: string,
-  jobId?: string
+  logDir?: string
 ): Promise<Recipe> {
   if (!config.GEMINI_API_KEY || config.GEMINI_API_KEY === 'your_gemini_api_key_here') {
     throw new Error('Gemini API key is not configured in environment variables.');
@@ -306,7 +306,7 @@ ${caption}
       parsedOutput: recipe,
       tokenUsage,
       costEstimate,
-      jobId,
+      logDir,
     });
 
     return recipe;
@@ -325,7 +325,7 @@ ${caption}
         captionPreview: caption.slice(0, 300),
       },
       rawOutput,
-      jobId,
+      logDir,
     });
     throw err;
   } finally {
@@ -352,7 +352,7 @@ ${caption}
  * asks which shows the finished dish most appetizingly, and returns the top 5 indices.
  * The uploaded grid image is cleaned up afterwards.
  */
-export async function selectBestFoodFrame(framePaths: string[], gridImagePath: string, jobId?: string): Promise<number[]> {
+export async function selectBestFoodFrame(framePaths: string[], gridImagePath: string, logDir?: string): Promise<number[]> {
   if (framePaths.length === 0) {
     return [];
   }
@@ -430,7 +430,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
         parsedOutput: { selectedIndices: [framePaths.length - 1], fallback: true },
         tokenUsage,
         costEstimate,
-        jobId,
+        logDir,
       });
 
       return [framePaths.length - 1]; // fallback
@@ -447,7 +447,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
       parsedOutput: { selectedIndices: indices },
       tokenUsage,
       costEstimate,
-      jobId,
+      logDir,
     });
 
     // Ensure we don't return an absurd amount, but allow up to 10
@@ -462,7 +462,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
       error: err?.message ?? String(err),
       input: { frameCount: framePaths.length, framePaths },
       rawOutput,
-      jobId,
+      logDir,
     });
     throw err;
   } finally {
