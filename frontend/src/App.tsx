@@ -296,6 +296,7 @@ export default function App() {
                 key={recipe.id || recipe.title} 
                 recipe={recipe} 
                 onAddIngredients={addRecipeIngredients} 
+                reelUrl={url}
               />
             )}
           </>

@@ -5,10 +5,13 @@ import {
   ZoomOut,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft,
+  ChefHat
 } from 'lucide-react';
 import type { Recipe } from '../types';
 import { useImageGallery } from '../hooks/useImageGallery';
+import { useI18n } from '../context/I18nContext';
 
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -31,9 +34,13 @@ const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 interface RecipeImageGalleryProps {
   recipe: Recipe;
+  reelUrl?: string;
+  onBack?: () => void;
 }
 
-export default function RecipeImageGallery({ recipe }: RecipeImageGalleryProps) {
+export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeImageGalleryProps) {
+  const { t } = useI18n();
+
   // Derive images list
   const images = recipe.imageUrls && recipe.imageUrls.length > 0
     ? recipe.imageUrls
@@ -64,13 +71,41 @@ export default function RecipeImageGallery({ recipe }: RecipeImageGalleryProps) 
     handleImageClick,
   } = useImageGallery(images);
 
-  if (images.length === 0) return null;
+  const overlayButtons = (
+    <>
+      {/* Floating Back Button */}
+      {onBack && (
+        <Button
+          isIconOnly
+          onPress={onBack}
+          className="absolute top-4 left-4 z-20 bg-black/65 hover:bg-emerald-600/90 text-white w-9 h-9 min-w-0 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+      )}
+
+      {/* Floating View Reel Button */}
+      {reelUrl && (
+        <a
+          href={reelUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute top-4 right-4 z-20 bg-black/65 hover:bg-emerald-600/90 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
+        >
+          <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
+          <span>{t('catalog.viewReel')}</span>
+        </a>
+      )}
+    </>
+  );
 
   return (
     <>
       {/* Inline Gallery */}
       {recipe.imageUrls && recipe.imageUrls.length > 0 ? (
         <div className="-mt-6 -mx-6 mb-6 relative group">
+          {overlayButtons}
           <div
             ref={scrollContainerRef}
             onPointerDown={handlePointerDown}
@@ -108,6 +143,7 @@ export default function RecipeImageGallery({ recipe }: RecipeImageGalleryProps) 
         </div>
       ) : recipe.imageUrl ? (
         <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5 relative group">
+          {overlayButtons}
           <img
             src={recipe.imageUrl.startsWith('/') ? recipe.imageUrl : `/api/image?url=${encodeURIComponent(recipe.imageUrl)}`}
             alt={recipe.title}
@@ -123,7 +159,12 @@ export default function RecipeImageGallery({ recipe }: RecipeImageGalleryProps) 
             </div>
           )}
         </div>
-      ) : null}
+      ) : (
+        <div className="-mt-6 -mx-6 mb-6 h-36 bg-gradient-to-br from-emerald-600/10 to-teal-600/15 dark:from-emerald-950/20 dark:to-teal-950/20 border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
+          {overlayButtons}
+          <ChefHat className="w-12 h-12 text-emerald-500/20 dark:text-emerald-400/15 animate-pulse" />
+        </div>
+      )}
 
       {/* Fullscreen Overlay */}
       {fullscreenIndex !== null && images.length > 0 && createPortal(

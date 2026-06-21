@@ -36,11 +36,21 @@ interface RecipeDetailsProps {
   recipe: Recipe;
   onAddIngredients?: (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => void;
   onDelete?: () => void;
+  reelUrl?: string;
+  createdAt?: string;
+  onBack?: () => void;
 }
 
-export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: RecipeDetailsProps) {
+export default function RecipeDetails({
+  recipe,
+  onAddIngredients,
+  onDelete,
+  reelUrl,
+  createdAt,
+  onBack
+}: RecipeDetailsProps) {
   const dialog = useDialog();
-  const { t, translateCategory } = useI18n();
+  const { t, translateCategory, language } = useI18n();
 
   // Format prep and cook time helper supporting both legacy string values and new number values
   const formatTimeValue = (time: any) => {
@@ -264,13 +274,18 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
     <article className="flex flex-col gap-6">
       <Card className="glass-panel p-6 rounded-2xl overflow-hidden">
         {/* Responsive Image Gallery */}
-        <RecipeImageGallery recipe={recipe} />
+        <RecipeImageGallery recipe={recipe} reelUrl={reelUrl} onBack={onBack} />
 
         {/* Recipe title header */}
         <div className="flex justify-between items-start gap-4 pb-4 border-b border-black/5 dark:border-white/5">
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">{recipe.title}</h2>
             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed">{recipe.description}</p>
+            {createdAt && (
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2 font-medium">
+                {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
+              </p>
+            )}
           </div>
           <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <Popover.Trigger>

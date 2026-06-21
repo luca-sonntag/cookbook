@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from '@heroui/react';
-import { Globe, ArrowLeft } from 'lucide-react';
 import type { Job, Ingredient } from '../../types';
 import RecipeDetails from '../RecipeDetails';
 import { useMobileNavigationBack } from '../../hooks/useMobileNavigationBack';
@@ -71,37 +70,15 @@ export default function SavedCatalog({
       {selectedJob ? (
         /* DETAIL VIEW FOR SAVED RECIPE */
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="tertiary"
-              className="flex-shrink-0 flex items-center justify-center bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 w-9 h-9 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white active:scale-95 transition-all text-base leading-none"
-              onPress={() => setSelectedJob(null)}
-              aria-label={t('catalog.backToSaved')}
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-
-            <div className="flex-1 flex items-center justify-between bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-2.5 px-4 min-w-0">
-              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">
-                {t('catalog.savedOn', { date: new Date(selectedJob.createdAt).toLocaleDateString(language) })}
-              </span>
-              <a
-                href={selectedJob.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0 text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 text-xs flex items-center gap-1 font-medium ml-3"
-              >
-                <Globe className="w-3.5 h-3.5" /> {t('catalog.viewReel')}
-              </a>
-            </div>
-          </div>
-
           {selectedJob.recipe && (
             <RecipeDetails
               key={selectedJob.id}
               recipe={selectedJob.recipe}
               onAddIngredients={onAddIngredients}
               onDelete={() => handleDeleteJob({ stopPropagation: () => { } } as any, selectedJob.id)}
+              reelUrl={selectedJob.url}
+              createdAt={selectedJob.createdAt}
+              onBack={() => setSelectedJob(null)}
             />
           )}
         </div>
