@@ -261,7 +261,7 @@ Preferred Units Configuration:
 - Temperature Units: ${tempInstruction}
 - Weight & Volume Units: ${unitSystemInstruction}
 
-CRITICAL INSTRUCTION FOR MISSING DATA: If any information for a specific field is missing, not mentioned, or not specified in the reel, you MUST leave that field completely empty (e.g., use an empty string "", null, or an empty array [], depending on the field type). Specifically, for the "calories" field under "nutritionalEstimates", if no calorie information is specified or cannot be reliably estimated, omit the field or set it to null rather than using 0. Do NOT under any circumstances use placeholder text like "Daten nicht spezifiziert", "Nicht angegeben", "N/A", "None", or similar. If it's missing, leave it empty.
+CRITICAL INSTRUCTION FOR MISSING DATA: If any information for a specific field is missing, not mentioned, or not specified in the source, you MUST leave that field completely empty (e.g., use an empty string "", null, or an empty array [], depending on the field type). Specifically, you MUST ONLY populate the recipe-level "nutritionalEstimates" object if the overall recipe nutritional values are EXPLICITLY mentioned in the source description or audio. If they are NOT explicitly mentioned, you MUST set "nutritionalEstimates" to null. Do NOT estimate or calculate overall nutritional values at the recipe level if they are not explicitly in the source text/audio. Do NOT under any circumstances use placeholder text like "Daten nicht spezifiziert", "Nicht angegeben", "N/A", "None", or similar. If it's missing, leave it empty.
 
 Description/Caption:
 """
