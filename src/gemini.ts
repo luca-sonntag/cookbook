@@ -193,6 +193,7 @@ export async function extractRecipeFromAudio(
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: recipeSchema,
+        temperature: config.GEMINI_TEMPERATURE,
       } as any,
     });
 
@@ -366,7 +367,12 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
       displayName: `frames-grid-${Date.now()}.jpg`,
     });
 
-    const model = genAI.getGenerativeModel({ model: config.GEMINI_MODEL });
+    const model = genAI.getGenerativeModel({
+      model: config.GEMINI_MODEL,
+      generationConfig: {
+        temperature: config.GEMINI_TEMPERATURE,
+      },
+    });
 
     const prompt =
       `You are a food photography expert. You are given a grid containing ${framePaths.length} frames ` +
