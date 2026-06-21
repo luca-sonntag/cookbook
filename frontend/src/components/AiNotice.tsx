@@ -17,19 +17,12 @@ export default function AiNotice({ type = 'badge', label, tooltipText, className
 
   if (type === 'badge') {
     return (
-      <div className={`inline-flex items-center gap-1.5 ${className}`}>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-emerald-500/10 to-indigo-500/10 dark:from-emerald-400/10 dark:to-indigo-400/10 border border-emerald-500/20 dark:border-indigo-500/20 select-none">
-          <Sparkles className="w-3 h-3 text-emerald-500 dark:text-indigo-400 animate-pulse" />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-indigo-600 dark:from-emerald-400 dark:to-indigo-400">
-            {defaultLabel}
-          </span>
-        </span>
-        <Popover>
-          <Popover.Trigger>
-            <button className="text-gray-400 hover:text-emerald-500 dark:text-gray-500 dark:hover:text-emerald-400 transition-colors p-0.5 rounded-full outline-none focus:ring-1 focus:ring-emerald-500/30 cursor-pointer flex items-center justify-center">
-              <Info className="w-3.5 h-3.5" />
-            </button>
-          </Popover.Trigger>
+      <Popover>
+        <Popover.Trigger>
+          <button className={`text-gray-400 hover:text-emerald-500 dark:text-gray-500 dark:hover:text-emerald-400 transition-colors p-0.5 rounded-full outline-none focus:ring-1 focus:ring-emerald-500/30 cursor-pointer flex items-center justify-center ${className}`}>
+            <Info className="w-3.5 h-3.5" />
+          </button>
+        </Popover.Trigger>
         <Popover.Content
           placement="top"
           className="max-w-[280px] p-2.5 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg"
@@ -39,7 +32,6 @@ export default function AiNotice({ type = 'badge', label, tooltipText, className
           </Popover.Dialog>
         </Popover.Content>
       </Popover>
-      </div>
     );
   }
 

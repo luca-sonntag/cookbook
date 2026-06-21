@@ -365,12 +365,12 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
 
         {/* Nutrition estimate */}
         {hasNutritionInfo && nutritionalValues && (
-          <div className={`p-3.5 rounded-xl border transition-all duration-300 ${
+          <div className={`p-3.5 rounded-xl border border-black/5 dark:border-white/5 transition-all duration-300 ${
             isAiEstimated
-              ? 'bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] border-emerald-500/25 dark:border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
-              : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5'
+              ? 'bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] shadow-[0_0_15px_rgba(99,102,241,0.05)]'
+              : 'bg-black/5 dark:bg-white/5'
           }`}>
-            <div className="flex justify-between items-center mb-2.5">
+            <div className="flex items-center gap-1.5 mb-2.5">
               <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{t('recipe.nutritionTitle')}</h4>
               {isAiEstimated && <AiNotice type="badge" />}
             </div>
