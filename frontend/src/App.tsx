@@ -386,7 +386,7 @@ export default function App() {
                 <Sparkles className="w-5 h-5 mb-0.5" />
                 <span className="text-[10px] tracking-wide">{t('app.nav.newRecipe')}</span>
                 {activeView === 'extract' && (
-                  <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  <span className="absolute bottom-1.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
               </button>
 
@@ -407,7 +407,7 @@ export default function App() {
                 </div>
                 <span className="text-[10px] tracking-wide">{t('app.nav.savedRecipes')}</span>
                 {activeView === 'history' && (
-                  <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  <span className="absolute bottom-1.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
               </button>
 
@@ -430,7 +430,7 @@ export default function App() {
                 </div>
                 <span className="text-[10px] tracking-wide">{t('app.nav.shoppingList')}</span>
                 {activeView === 'shopping-list' && (
-                  <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  <span className="absolute bottom-1.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
               </button>
             </div>
