@@ -3,22 +3,43 @@ import fs from 'fs/promises';
 import path from 'path';
 
 async function runGridTest() {
-  const tempDir = path.resolve('temp-downloads');
-  console.log(`Searching for extracted frames in: ${tempDir}`);
+  const logsDir = path.resolve('logs');
+  console.log(`Searching for extracted frames in run folders under: ${logsDir}`);
 
   try {
-    const files = await fs.readdir(tempDir);
-    const framesFolders = files.filter(f => f.startsWith('frames-'));
+    const files = await fs.readdir(logsDir);
+    const runFolders = files.filter(f => f.startsWith('run-'));
 
-    if (framesFolders.length === 0) {
-      console.error('\n❌ Error: No frames directory found in temp-downloads.');
-      console.error('Please run a reel recipe extraction first, or make sure some frame images exist in temp-downloads/frames-<jobId>/.');
+    if (runFolders.length === 0) {
+      console.error('\n❌ Error: No run directory found in logs.');
+      console.error('Please run a reel recipe extraction first.');
       process.exit(1);
     }
 
-    // Select the first frames folder
-    const targetFolder = framesFolders[0];
-    const framesDirPath = path.join(tempDir, targetFolder);
+    // Find a run folder that contains a frames subfolder
+    let targetFolder = '';
+    let framesDirPath = '';
+    for (const folder of runFolders) {
+      const p = path.join(logsDir, folder, 'frames');
+      try {
+        const stats = await fs.stat(p);
+        if (stats.isDirectory()) {
+          targetFolder = folder;
+          framesDirPath = p;
+          break;
+        }
+      } catch {
+        // Directory doesn't exist or isn't accessible, try next
+      }
+    }
+
+    if (!framesDirPath) {
+      console.error('\n❌ Error: No frames directory found inside any run folders under logs.');
+      console.error('Please run a reel recipe extraction first, or make sure some frame images exist in logs/run-<jobId>/frames/.');
+      process.exit(1);
+    }
+
+    console.log(`Using run directory: ${targetFolder}`);
     console.log(`Using frames directory: ${framesDirPath}`);
 
     const frameFiles = await fs.readdir(framesDirPath);
@@ -39,7 +60,7 @@ async function runGridTest() {
 
     console.log(`Found ${framePaths.length} frame images to grid.`);
 
-    const outputGridPath = path.join(tempDir, 'grid_test_result.jpg');
+    const outputGridPath = path.join(logsDir, targetFolder, 'grid_test_result.jpg');
     console.log(`Creating grid at: ${outputGridPath}...`);
 
     const resultPath = await createImageGrid(framePaths, outputGridPath);
