@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
 import type { Recipe, Job } from '../types';
+import { useI18n } from '../context/I18nContext';
 
 export function useRecipeExtraction(apiKey: string, onExtractionSuccess: () => void) {
+  const { t } = useI18n();
   const [isPending, setIsPending] = useState(false);
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
   const [jobError, setJobError] = useState<string | null>(null);
@@ -11,17 +13,17 @@ export function useRecipeExtraction(apiKey: string, onExtractionSuccess: () => v
 
   const validateUrl = useCallback((testUrl: string): boolean => {
     if (!testUrl.trim()) {
-      setUrlError('Instagram Reel URL is required.');
+      setUrlError(t('form.validation.required'));
       return false;
     }
     const regex = /^https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels|p)\/[A-Za-z0-9_-]+\/?/i;
     if (!regex.test(testUrl.trim())) {
-      setUrlError('Must be a valid Instagram Reel URL (e.g., https://www.instagram.com/reel/...).');
+      setUrlError(t('form.validation.invalid'));
       return false;
     }
     setUrlError('');
     return true;
-  }, []);
+  }, [t]);
 
   const startPolling = useCallback((id: string) => {
     const interval = setInterval(async () => {
@@ -36,7 +38,7 @@ export function useRecipeExtraction(apiKey: string, onExtractionSuccess: () => v
         if (!response.ok || !data.success) {
           clearInterval(interval);
           setJobStatus('failed');
-          setJobError(data.error || 'Failed to check status from server.');
+          setJobError(data.error || t('form.validation.failedCheck'));
           setIsPending(false);
           return;
         }
@@ -51,17 +53,17 @@ export function useRecipeExtraction(apiKey: string, onExtractionSuccess: () => v
           onExtractionSuccess();
         } else if (job.status === 'failed') {
           clearInterval(interval);
-          setJobError(job.error || 'The recipe extraction failed.');
+          setJobError(job.error || t('form.validation.failedExtraction'));
           setIsPending(false);
         }
       } catch {
         clearInterval(interval);
         setJobStatus('failed');
-        setJobError('Lost connection to backend server.');
+        setJobError(t('form.validation.lostConnection'));
         setIsPending(false);
       }
     }, 2000);
-  }, [apiKey, onExtractionSuccess]);
+  }, [apiKey, onExtractionSuccess, t]);
 
   const triggerExtraction = useCallback(async (targetUrl: string) => {
     const cleanUrl = targetUrl.trim();
@@ -85,22 +87,23 @@ export function useRecipeExtraction(apiKey: string, onExtractionSuccess: () => v
       const data = await response.json();
       
       if (response.status === 401) {
-        throw new Error('Unauthorized. Please verify your API Key in Settings.');
+        throw new Error(t('form.validation.unauthorized'));
       }
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to submit extraction job.');
+        throw new Error(data.error || t('form.validation.submitFailed'));
       }
 
       setJobStatus(data.status);
       startPolling(data.jobId);
     } catch (err: unknown) {
       setJobStatus('failed');
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred during submission.';
+      const errorMessage = err instanceof Error ? err.message : t('form.validation.submissionError');
       setJobError(errorMessage);
       setIsPending(false);
     }
-  }, [apiKey, startPolling, validateUrl]);
+  }, [apiKey, startPolling, validateUrl, t]);
+
 
   return {
     isPending,

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Button } from '@heroui/react';
 import { AlertTriangle, Info, CheckCircle2, X } from 'lucide-react';
+import { useI18n } from './I18nContext';
 
 export type DialogStatus = 'danger' | 'warning' | 'success' | 'info';
 export type DialogType = 'alert' | 'confirm';
@@ -40,6 +41,7 @@ interface DialogState {
 }
 
 export function DialogProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
   const [state, setState] = useState<DialogState>({
     isOpen: false,
     type: 'alert',
@@ -58,13 +60,14 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
         type,
         title: options.title,
         message: options.message,
-        confirmLabel: options.confirmLabel || (type === 'confirm' ? 'Bestätigen' : 'OK'),
-        cancelLabel: options.cancelLabel || 'Abbrechen',
+        confirmLabel: options.confirmLabel || (type === 'confirm' ? t('dialog.confirmDefault') : 'OK'),
+        cancelLabel: options.cancelLabel || t('dialog.cancelDefault'),
         status: options.status || 'info',
         resolve,
       });
     });
-  }, []);
+  }, [t]);
+
 
   const alert = useCallback((options: DialogOptions) => {
     return showDialog('alert', options).then(() => {});
@@ -143,7 +146,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
               <button 
                 onClick={() => handleClose(false)}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-                aria-label="Schließen"
+                aria-label={t('dialog.closeAria')}
               >
                 <X className="w-5 h-5" />
               </button>
