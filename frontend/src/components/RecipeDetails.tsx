@@ -41,6 +41,7 @@ interface RecipeDetailsProps {
   createdAt?: string;
   onBack?: () => void;
   onNavigateToShoppingList?: () => void;
+  shoppingListCount?: number;
 }
 
 export default function RecipeDetails({
@@ -50,7 +51,8 @@ export default function RecipeDetails({
   reelUrl,
   createdAt,
   onBack,
-  onNavigateToShoppingList
+  onNavigateToShoppingList,
+  shoppingListCount
 }: RecipeDetailsProps) {
   const dialog = useDialog();
   const { t, translateCategory, language } = useI18n();
@@ -542,17 +544,6 @@ export default function RecipeDetails({
                 )}
               </Button>
             )}
-
-            {onNavigateToShoppingList && (
-              <Button
-                variant="outline"
-                className="w-full mt-2.5 py-2 rounded-xl font-medium border border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                onPress={onNavigateToShoppingList}
-              >
-                <ShoppingCart className="w-4 h-4 text-emerald-500" />
-                <span>{t('recipe.goToShoppingList')}</span>
-              </Button>
-            )}
           </Card>
 
           {recipe.alternativeIngredients && recipe.alternativeIngredients.length > 0 && (
@@ -680,6 +671,31 @@ export default function RecipeDetails({
           )}
         </Tabs.Panel>
       </Tabs>
+
+      {/* Floating Action Button (FAB) for Shopping List (Bottom-Left) */}
+      {!isCookingMode && onNavigateToShoppingList && (
+        <div className="fixed bottom-6 left-6 z-40 animate-fade-in-up">
+          <Button
+            className="bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-gray-100 hover:text-emerald-500 dark:hover:text-emerald-400 border border-black/10 dark:border-white/10 shadow-lg font-semibold px-4 h-10 rounded-full flex items-center gap-2 active:scale-95 transition-all duration-300 hover:scale-105"
+            onPress={onNavigateToShoppingList}
+            aria-label="Go to shopping list"
+          >
+            <div className="relative flex items-center">
+              <ShoppingCart className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              {shoppingListCount !== undefined && shoppingListCount > 0 && (
+                <span className="absolute -top-2.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-1 ring-white dark:ring-gray-900 animate-pulse-slow">
+                  {shoppingListCount}
+                </span>
+              )}
+            </div>
+            {shoppingListCount !== undefined && shoppingListCount > 0 && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                {shoppingListCount}
+              </span>
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* Floating Action Button (FAB) for Start Cooking */}
       {!isCookingMode && totalStepsCount > 0 && (

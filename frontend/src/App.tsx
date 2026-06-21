@@ -332,6 +332,7 @@ export default function App() {
                   setUrl('');
                 }}
                 onNavigateToShoppingList={() => setActiveView('shopping-list')}
+                shoppingListCount={aggregatedList.unchecked.length}
               />
             )}
           </>
@@ -348,6 +349,7 @@ export default function App() {
               setSelectedJob(null);
               setActiveView('shopping-list');
             }}
+            shoppingListCount={aggregatedList.unchecked.length}
           />
         ) : (
           /* SHOPPING LIST TAB */

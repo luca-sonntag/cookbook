@@ -20,6 +20,7 @@ interface SavedCatalogProps {
   onAddIngredients?: (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => void;
   fetchHistory?: () => void;
   onNavigateToShoppingList?: () => void;
+  shoppingListCount?: number;
 }
 
 export default function SavedCatalog({
@@ -29,7 +30,8 @@ export default function SavedCatalog({
   handleDeleteJob,
   onAddIngredients,
   fetchHistory,
-  onNavigateToShoppingList
+  onNavigateToShoppingList,
+  shoppingListCount
 }: SavedCatalogProps) {
   const { t, language } = useI18n();
 
@@ -82,6 +84,7 @@ export default function SavedCatalog({
               createdAt={selectedJob.createdAt}
               onBack={() => setSelectedJob(null)}
               onNavigateToShoppingList={onNavigateToShoppingList}
+              shoppingListCount={shoppingListCount}
             />
           )}
         </div>
