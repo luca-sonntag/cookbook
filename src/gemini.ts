@@ -12,19 +12,39 @@ const fileManager = new GoogleAIFileManager(config.GEMINI_API_KEY);
 const recipeSchema = {
   type: FunctionDeclarationSchemaType.OBJECT,
   properties: {
-    isRecipe: { type: FunctionDeclarationSchemaType.BOOLEAN },
-    title: { type: FunctionDeclarationSchemaType.STRING },
-    description: { type: FunctionDeclarationSchemaType.STRING },
-    prepTime: { type: FunctionDeclarationSchemaType.INTEGER },
-    cookTime: { type: FunctionDeclarationSchemaType.INTEGER },
-    servings: { type: FunctionDeclarationSchemaType.INTEGER },
+    isRecipe: {
+      type: FunctionDeclarationSchemaType.BOOLEAN,
+      description: 'Whether the source content contains a food recipe. Set to false if it is unrelated content (e.g. vlog, comedy).',
+    },
+    title: {
+      type: FunctionDeclarationSchemaType.STRING,
+      description: 'The title of the recipe.',
+    },
+    description: {
+      type: FunctionDeclarationSchemaType.STRING,
+      description: 'A brief description or summary of the recipe.',
+    },
+    prepTime: {
+      type: FunctionDeclarationSchemaType.INTEGER,
+      description: 'Preparation time in minutes.',
+    },
+    cookTime: {
+      type: FunctionDeclarationSchemaType.INTEGER,
+      description: 'Cooking time in minutes.',
+    },
+    servings: {
+      type: FunctionDeclarationSchemaType.INTEGER,
+      description: 'Number of servings or portions.',
+    },
     ingredients: {
       type: FunctionDeclarationSchemaType.ARRAY,
+      description: 'List of ingredient groups categorized by supermarket department.',
       items: {
         type: FunctionDeclarationSchemaType.OBJECT,
         properties: {
           name: {
             type: FunctionDeclarationSchemaType.STRING,
+            description: 'The uppercase category key for the supermarket department.',
             enum: [
               'PRODUCE',
               'BAKERY',
@@ -43,18 +63,46 @@ const recipeSchema = {
           },
           items: {
             type: FunctionDeclarationSchemaType.ARRAY,
+            description: 'Individual ingredients in this category.',
             items: {
               type: FunctionDeclarationSchemaType.OBJECT,
               properties: {
-                name: { type: FunctionDeclarationSchemaType.STRING },
-                baseName: { type: FunctionDeclarationSchemaType.STRING },
-                amount: { type: FunctionDeclarationSchemaType.NUMBER },
-                unit: { type: FunctionDeclarationSchemaType.STRING },
-                notes: { type: FunctionDeclarationSchemaType.STRING },
-                calories: { type: FunctionDeclarationSchemaType.INTEGER },
-                protein: { type: FunctionDeclarationSchemaType.NUMBER },
-                carbs: { type: FunctionDeclarationSchemaType.NUMBER },
-                fat: { type: FunctionDeclarationSchemaType.NUMBER },
+                name: {
+                  type: FunctionDeclarationSchemaType.STRING,
+                  description: 'Name of the ingredient, cleaned of quantities, numbers, and units (e.g., use "Zwiebel, frisch" instead of "1 rote Zwiebel"). If a composite element (e.g. "selbstgemachtes Pesto", "Knoblauch-Dip") is prepared during the recipe, you MUST list the raw ingredients individually in the ingredients list instead.',
+                },
+                baseName: {
+                  type: FunctionDeclarationSchemaType.STRING,
+                  description: 'The core standard noun in singular form used as a database key to group similar ingredients (e.g. if name is "rote Zwiebeln", baseName is "Zwiebel").',
+                },
+                amount: {
+                  type: FunctionDeclarationSchemaType.NUMBER,
+                  description: 'The numeric quantity of the ingredient.',
+                },
+                unit: {
+                  type: FunctionDeclarationSchemaType.STRING,
+                  description: 'The unit of measurement (e.g., g, ml, EL, TL, Stück).',
+                },
+                notes: {
+                  type: FunctionDeclarationSchemaType.STRING,
+                  description: 'Optional preparation notes specific to this ingredient.',
+                },
+                calories: {
+                  type: FunctionDeclarationSchemaType.INTEGER,
+                  description: 'Estimated calories in kcal for the specified ingredient amount. Use 0 if negligible.',
+                },
+                protein: {
+                  type: FunctionDeclarationSchemaType.NUMBER,
+                  description: 'Estimated protein in grams for the specified ingredient amount. Use 0 if negligible.',
+                },
+                carbs: {
+                  type: FunctionDeclarationSchemaType.NUMBER,
+                  description: 'Estimated carbohydrates in grams for the specified ingredient amount. Use 0 if negligible.',
+                },
+                fat: {
+                  type: FunctionDeclarationSchemaType.NUMBER,
+                  description: 'Estimated fat in grams for the specified ingredient amount. Use 0 if negligible.',
+                },
               },
               required: ['name', 'baseName', 'amount', 'unit', 'calories', 'protein', 'carbs', 'fat'],
             },
@@ -65,40 +113,72 @@ const recipeSchema = {
     },
     instructions: {
       type: FunctionDeclarationSchemaType.ARRAY,
+      description: 'Chronological list of step-by-step instructions.',
       items: {
         type: FunctionDeclarationSchemaType.OBJECT,
         properties: {
-          step: { type: FunctionDeclarationSchemaType.INTEGER },
-          description: { type: FunctionDeclarationSchemaType.STRING },
+          step: {
+            type: FunctionDeclarationSchemaType.INTEGER,
+            description: 'Chronological step number, starting from 1.',
+          },
+          description: {
+            type: FunctionDeclarationSchemaType.STRING,
+            description: 'The detailed description of the instruction step.',
+          },
         },
         required: ['step', 'description'],
       },
     },
     equipment: {
       type: FunctionDeclarationSchemaType.ARRAY,
+      description: 'List of kitchen tools or equipment needed.',
       items: { type: FunctionDeclarationSchemaType.STRING },
     },
     nutritionalValues: {
       type: FunctionDeclarationSchemaType.OBJECT,
+      description: 'Overall recipe-level nutritional values. Only populated if hasExplicitNutritionalValues is true.',
       properties: {
-        calories: { type: FunctionDeclarationSchemaType.INTEGER },
-        protein: { type: FunctionDeclarationSchemaType.NUMBER },
-        carbs: { type: FunctionDeclarationSchemaType.NUMBER },
-        fat: { type: FunctionDeclarationSchemaType.NUMBER },
+        calories: {
+          type: FunctionDeclarationSchemaType.INTEGER,
+          description: 'Overall calories in kcal.',
+        },
+        protein: {
+          type: FunctionDeclarationSchemaType.NUMBER,
+          description: 'Overall protein in grams.',
+        },
+        carbs: {
+          type: FunctionDeclarationSchemaType.NUMBER,
+          description: 'Overall carbs in grams.',
+        },
+        fat: {
+          type: FunctionDeclarationSchemaType.NUMBER,
+          description: 'Overall fat in grams.',
+        },
       },
     },
     tips: {
       type: FunctionDeclarationSchemaType.ARRAY,
+      description: 'Additional cooking tips or suggestions.',
       items: { type: FunctionDeclarationSchemaType.STRING },
     },
     alternativeIngredients: {
       type: FunctionDeclarationSchemaType.ARRAY,
+      description: 'List of potential ingredient substitutions.',
       items: {
         type: FunctionDeclarationSchemaType.OBJECT,
         properties: {
-          original: { type: FunctionDeclarationSchemaType.STRING },
-          substitute: { type: FunctionDeclarationSchemaType.STRING },
-          notes: { type: FunctionDeclarationSchemaType.STRING },
+          original: {
+            type: FunctionDeclarationSchemaType.STRING,
+            description: 'The original ingredient name.',
+          },
+          substitute: {
+            type: FunctionDeclarationSchemaType.STRING,
+            description: 'The substitute ingredient name.',
+          },
+          notes: {
+            type: FunctionDeclarationSchemaType.STRING,
+            description: 'Optional notes on the substitution.',
+          },
         },
         required: ['original', 'substitute'],
       },
@@ -107,9 +187,13 @@ const recipeSchema = {
       type: FunctionDeclarationSchemaType.BOOLEAN,
       description: 'True ONLY if the overall recipe nutritional values are explicitly stated in the source text or audio.',
     },
-    transcript: { type: FunctionDeclarationSchemaType.STRING },
+    transcript: {
+      type: FunctionDeclarationSchemaType.STRING,
+      description: 'Accurate transcription of the spoken audio track. If there are no spoken words in the audio track, you MUST write "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate.',
+    },
     tags: {
       type: FunctionDeclarationSchemaType.ARRAY,
+      description: '1-2 relevant, concise tags (e.g. "Vegan", "High-Protein"). Exclude time-based tags.',
       items: { type: FunctionDeclarationSchemaType.STRING },
     },
   },
@@ -220,53 +304,15 @@ export async function extractRecipeFromAudio(
 
     const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.${gridImagePath ? ' You are also given an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating).' : ''}
 
-First, determine if this reel actually contains a food recipe. If it does NOT contain a recipe (e.g. it's just a vlog, comedy, or unrelated content), set the "isRecipe" field to false, and fill the remaining required fields with empty values (they will be ignored).
-If it IS a recipe, set "isRecipe" to true and extract the recipe as normal.
+Combine the${gridImagePath ? ' three' : ' two'} sources to reconstruct the complete recipe, resolving any contradictions culinary-wise. Ensure to follow the field-level guidelines specified in the descriptions of the output schema.
 
-Combine the${gridImagePath ? ' three' : ' two'} sources to reconstruct the complete recipe. The creator might mention specific measurements or ingredients in the audio that are missing or abbreviated in the text, and vice versa.${gridImagePath ? ' Use the visual frames in the grid to resolve ambiguities, confirm ingredients, verify cooking techniques, or see the final plated dish.' : ''} Resolve any contradictions by prioritizing the instructions that make the most logical sense culinary-wise.
-
-Organize the ingredients into groups that correspond to supermarket departments/aisles to make shopping easier. Group related foods together based on where they are typically found in a grocery store. You MUST use the exact category keys defined in the enum for the group "name" field:
-- PRODUCE: Obst, Gemüse, frische Kräuter, frischer Salat
-- BAKERY: Brot, Backwaren, Brötchen, Kuchen
-- MEAT_POULTRY: Fleisch, Geflügel
-- SEAFOOD: Fisch, Meeresfrüchte
-- DAIRY_EGGS: Milch, Eier, Käse, Joghurt, Sahne, Butter
-- PANTRY: Konserven, Vorrat, Dosenbohnen, Kokosmilch, Tomatenmark, fertige Brühe
-- GRAINS_PASTA: Reis, Nudeln, Haferflocken, Quinoa, Linsen
-- SPICES_HERBS: Salz, Pfeffer, Gewürzmischungen, getrocknete Kräuter
-- BAKING: Mehl, Zucker, Backpulver, Hefe, Kakao, Vanilleextrakt
-- CONDIMENTS_OILS: Essig, Olivenöl, Rapsöl, Sojasauce, Ketchup, Senf, Pesto
-- FROZEN: Tiefkühlgemüse, TK-Beeren, Eiscreme
-- BEVERAGES: Säfte, Wein zum Kochen, Kaffee, Wasser
-- OTHER: Alles andere, was nicht in die obigen Kategorien passt
-
-Always place "Produce/Obst & Gemüse" first, followed by dry goods/pantry items, then refrigerated products/meats, and finally extras at the very end.
-
-For every ingredient, the "name" property MUST contain only the description/name of the ingredient WITHOUT any quantity, amount, number, or unit (e.g. use "Zwiebel, frisch" instead of "1 Zwiebel, frisch" or "1 Stück Zwiebel, frisch"; use "Chester Käse (Halbfettstufe)" instead of "40 g Chester Käse (Halbfettstufe)"; use "Rinderhackfleisch Light" instead of "100 g Rinderhackfleisch Light"). All amounts must go into the "amount" field and units into the "unit" field.
-
-Decompose composite prepared elements: If a composite element (such as "Smash Burger Patties", "selbstgemachtes Pesto", "Knoblauch-Dip", "Karamellsauce") is prepared during the recipe from raw ingredients, you MUST list the raw ingredients (e.g. "Rinderhackfleisch", "Basilikum", "Knoblauch", "Butter", "Sahne", "Zucker") individually in the ingredients list rather than listing the finished prepared item. Only list composite items as a single ingredient if they are bought pre-made (e.g. "Ketchup", "Sojasauce", "Toastbrot").
-
-
-For every ingredient, additionally generate a 'baseName'. This MUST be the absolute core standard noun in singular form (e.g. if name is 'rote Zwiebeln', baseName is 'Zwiebel'. If name is 'Cherrytomaten', baseName is 'Tomate'). This will be used as a database key to group similar ingredients in a shopping list.
-
-For every ingredient, you MUST also estimate the nutritional values for the given ingredient amount (under the specified "amount" and "unit"). Provide:
-- "calories" (an integer, representing energy in kcal)
-- "protein" (a number, representing protein in grams)
-- "carbs" (a number, representing carbohydrates in grams)
-- "fat" (a number, representing fat in grams)
-If the ingredient cannot be reliably estimated (e.g. water, non-food item, or spice with negligible value), set these values to 0. You MUST always output these fields for every ingredient. Do not write units like 'g' in these numeric fields, output only raw numbers (e.g., 4.5 or 12).
-
-Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
-
-Also, analyze the recipe properties and generate 1-2 highly relevant, concise tags in the target language (e.g., "Vegan", "High-Protein", "Vegetarisch", "Herzhaft", "Snack", "Backen", "Low-Carb", etc.) based on the ingredients and nutrition details. Do NOT generate time-based tags (like "Unter 30 Min", "Unter 15 Min", "< 30 Min", etc.), as time-based tags are computed programmatically in the application. Place these in the "tags" array.
-
-Translate and write the entire final recipe output (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, the tags, and the transcript) into the following language: ${config.RECIPE_LANGUAGE}. Do NOT translate the ingredient group name keys (the category keys), keep them as the uppercase English enum values.
-
-Preferred Units Configuration:
-- Temperature Units: ${tempInstruction}
-- Weight & Volume Units: ${unitSystemInstruction}
-
-CRITICAL INSTRUCTION FOR MISSING DATA: If any information for a specific field is missing, not mentioned, or not specified in the source, you MUST leave that field completely empty (e.g., use an empty string "", null, or an empty array [], depending on the field type). Specifically, you MUST set the "hasExplicitNutritionalValues" boolean flag to true ONLY IF the overall recipe nutritional values are EXPLICITLY mentioned in the source description or audio. If they are NOT explicitly mentioned, you MUST set "hasExplicitNutritionalValues" to false and set "nutritionalValues" to null. Do NOT estimate or calculate overall nutritional values at the recipe level if they are not explicitly in the source text/audio. When populating the recipe-level "nutritionalValues" object, all fields (calories, protein, carbs, fat) MUST be returned as raw numbers only, without any units (e.g. use 40 instead of "40g", and 75 instead of "75g"). Do NOT under any circumstances use placeholder text like "Daten nicht spezifiziert", "Nicht angegeben", "N/A", "None", or similar. If it's missing, leave it empty.
+Key Constraints:
+1. Category Ordering: Always place "PRODUCE" first in the ingredients array, followed by dry goods/pantry items, then refrigerated products/meats, and finally other/extras at the very end.
+2. Translation: Translate and write all text values (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredient details, and tags) into: ${config.RECIPE_LANGUAGE}. Keep the category keys as the uppercase English enum values.
+3. Preferred Units:
+   - Temperature Units: ${tempInstruction}
+   - Weight & Volume Units: ${unitSystemInstruction}
+4. Missing Data & Nutrition: If any information for a specific field is missing, leave it empty (empty string "", null, or empty array []). You MUST set "hasExplicitNutritionalValues" to true ONLY IF the overall recipe nutritional values are explicitly stated in the source text or audio. If they are not, set it to false and set "nutritionalValues" to null (do NOT estimate or calculate overall nutritional values at the recipe level).
 
 Description/Caption:
 """
