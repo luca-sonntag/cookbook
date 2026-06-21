@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, Button, Tabs, Popover } from '@heroui/react';
 import {
   Check,
@@ -6,24 +6,16 @@ import {
   Clock,
   Utensils,
   ListChecks,
-  ChevronLeft,
-  ChevronRight,
   ChefHat,
-  X,
-  ZoomIn,
-  ZoomOut,
   Minus,
   Plus,
   Play,
   Sparkles,
-  ArrowLeft,
-  ArrowRight,
   MoreVertical,
   Trash2
 } from 'lucide-react';
 import type { Recipe, Ingredient, InstructionStep } from '../types';
 import { useRecipeScaling } from '../hooks/useRecipeScaling';
-import { useImageGallery } from '../hooks/useImageGallery';
 import { useRecipeProgress } from '../hooks/useRecipeProgress';
 import {
   categoryOrder,
@@ -31,6 +23,11 @@ import {
 } from '../i18n';
 import { useDialog } from '../context/DialogContext';
 import { useI18n } from '../context/I18nContext';
+
+// Import subcomponents
+import RecipeImageGallery from './RecipeImageGallery';
+import RecipeInstructionText from './RecipeInstructionText';
+import CookingMode from './CookingMode';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
@@ -41,6 +38,7 @@ interface RecipeDetailsProps {
 export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: RecipeDetailsProps) {
   const dialog = useDialog();
   const { t, translateCategory } = useI18n();
+
   // Checklists state (persisted in localStorage!)
   const {
     checkedIngredients,
@@ -65,16 +63,6 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
 
   // Cooking Mode states
   const [isCookingMode, setIsCookingMode] = useState(false);
-  const [cookingStepIndex, setCookingStepIndex] = useState(0);
-  const [wakeLock, setWakeLock] = useState<any>(null);
-
-  // Touch state for swipe gestures in Cooking Mode
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-
-  // Flat list of ingredients
-  const allIngredients = useMemo(() => {
-    return recipe.ingredients ? recipe.ingredients.flatMap(g => g.items) : [];
-  }, [recipe.ingredients]);
 
   // Find the first uncompleted step to highlight it
   const activeStepNum = useMemo(() => {
@@ -103,250 +91,6 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
     );
   }, [recipe.nutritionalEstimates]);
 
-  // Highlights ingredients and equipment in instructions text
-  const highlightText = (text: string) => {
-    if (!text) return text;
-    if (!recipe.ingredients && !recipe.equipment) return <span>{text}</span>;
-
-    const terms: { term: string; type: 'ingredient' | 'equipment'; original: string; info: string }[] = [];
-
-    // Add ingredients
-    allIngredients.forEach(ing => {
-      const scaledAmount = formatAmount(ing.amount, ing.unit);
-      const amountStr = scaledAmount ? `${scaledAmount} ` : '';
-      const unitStr = ing.unit ? `${ing.unit} ` : '';
-      const noteStr = ing.notes ? ` (${ing.notes})` : '';
-      let info = `${ing.name}`.trim();
-      if (noteStr) {
-        info += ` ,${noteStr}`;
-      }
-      info += ` (${amountStr}${unitStr})`;
-
-      if (ing.name && ing.name.length >= 2) {
-        terms.push({ term: ing.name.toLowerCase(), type: 'ingredient', original: ing.name, info });
-      }
-      if (ing.baseName && ing.baseName.length >= 2) {
-        terms.push({ term: ing.baseName.toLowerCase(), type: 'ingredient', original: ing.name, info });
-      }
-    });
-
-    // Add equipment
-    if (recipe.equipment) {
-      recipe.equipment.forEach(eq => {
-        if (eq && eq.length > 2) {
-          terms.push({ term: eq.toLowerCase(), type: 'equipment', original: eq, info: t('recipe.equipmentTooltip', { name: eq }) });
-        }
-      });
-    }
-
-    // Sort by term length descending to match longest terms first
-    terms.sort((a, b) => b.term.length - a.term.length);
-
-    // Remove duplicates
-    const uniqueTerms = terms.filter((item, index, self) =>
-      self.findIndex(t => t.term === item.term) === index
-    );
-
-    if (uniqueTerms.length === 0) return <span>{text}</span>;
-
-    const escapedTerms = uniqueTerms.map(t => {
-      let esc = t.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      if (t.term.length <= 3) {
-        esc = `(?<=^|[\\s.,:;!?()\\[\\]{}'"\\-\\/])${esc}(?=$|[\\s.,:;!?()\\[\\]{}'"\\-\\/])`;
-      }
-      return esc;
-    });
-    const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
-
-    const parts = text.split(regex);
-    return (
-      <>
-        {parts.map((part, index) => {
-          const matched = uniqueTerms.find(t => t.term === part.toLowerCase());
-          if (matched) {
-            const isIng = matched.type === 'ingredient';
-            return (
-              <span key={index} onClick={(e) => e.stopPropagation()}>
-                <Popover>
-                  <Popover.Trigger>
-                    <span className={`inline-block font-semibold decoration-dotted underline underline-offset-4 cursor-pointer transition-all outline-none ${isIng
-                      ? 'text-emerald-600 dark:text-emerald-400 decoration-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-300'
-                      : 'text-amber-600 dark:text-amber-400 decoration-amber-500 hover:text-amber-500 dark:hover:text-amber-300'
-                      }`}>
-                      {part}
-                    </span>
-                  </Popover.Trigger>
-                  <Popover.Content
-                    placement="top"
-                    className="bg-black/90 dark:bg-white/95 text-white dark:text-gray-900 shadow-md rounded-lg backdrop-blur-sm border border-white/10 dark:border-black/10 px-2 py-1.5"
-                  >
-                    <Popover.Dialog className="outline-none border-none p-0 m-0">
-                      <span className="text-xs font-semibold">{matched.info}</span>
-                    </Popover.Dialog>
-                  </Popover.Content>
-                </Popover>
-              </span>
-            );
-          }
-          return part;
-        })}
-      </>
-    );
-  };
-
-  // Find ingredients mentioned in a specific step description
-  const getIngredientsForStep = (description: string) => {
-    if (!description) return [];
-    const mentioned: Ingredient[] = [];
-    
-    const isMatch = (term: string | undefined, text: string) => {
-      if (!term) return false;
-      const lowerTerm = term.toLowerCase();
-      const lowerText = text.toLowerCase();
-      
-      if (term.length <= 3) {
-        const escapedTerm = term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const regex = new RegExp(`(?<=^|[\\s.,:;!?()\\[\\]{}'"\\-\\/])${escapedTerm}(?=$|[\\s.,:;!?()\\[\\]{}'"\\-\\/])`, 'i');
-        return regex.test(text);
-      }
-      return lowerText.includes(lowerTerm);
-    };
-
-    allIngredients.forEach(ing => {
-      if (isMatch(ing.baseName, description) || isMatch(ing.name, description)) {
-        if (!mentioned.some(m => m.name === ing.name)) {
-          mentioned.push(ing);
-        }
-      }
-    });
-    return mentioned;
-  };
-
-  // Cooking Mode navigations
-  const handleNextCookingStep = () => {
-    if (recipe.instructions && cookingStepIndex < recipe.instructions.length - 1) {
-      setCookingStepIndex(prev => prev + 1);
-    }
-  };
-
-  const handlePrevCookingStep = () => {
-    if (cookingStepIndex > 0) {
-      setCookingStepIndex(prev => prev - 1);
-    }
-  };
-
-  // Touch Swipe handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.touches[0].clientX);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX === null) return;
-    const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchStartX - touchEndX;
-    if (diff > 60) {
-      handleNextCookingStep();
-    } else if (diff < -60) {
-      handlePrevCookingStep();
-    }
-    setTouchStartX(null);
-  };
-
-  // Keyboard navigation for Cooking Mode
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isCookingMode) return;
-      if (e.key === 'ArrowRight') {
-        handleNextCookingStep();
-      } else if (e.key === 'ArrowLeft') {
-        handlePrevCookingStep();
-      } else if (e.key === 'Escape') {
-        setIsCookingMode(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCookingMode, cookingStepIndex, recipe.instructions]);
-
-  // Screen Wake Lock control
-  useEffect(() => {
-    const requestWakeLock = async () => {
-      const nav = navigator as any;
-      if (isCookingMode && nav.wakeLock) {
-        try {
-          const lock = await nav.wakeLock.request('screen');
-          setWakeLock(lock);
-        } catch (err) {
-          console.warn('Could not acquire Screen Wake Lock:', err);
-        }
-      }
-    };
-
-    const releaseWakeLock = () => {
-      if (wakeLock) {
-        wakeLock.release().then(() => {
-          setWakeLock(null);
-        }).catch((err: any) => {
-          console.warn('Error releasing Wake Lock:', err);
-        });
-      }
-    };
-
-    if (isCookingMode) {
-      requestWakeLock();
-    } else {
-      releaseWakeLock();
-    }
-
-    return () => {
-      if (wakeLock) {
-        wakeLock.release().catch(() => { });
-      }
-    };
-  }, [isCookingMode]);
-
-  // Initialize cooking mode step index when entering
-  const startCooking = () => {
-    // Find the first uncompleted step, default to step 0
-    if (recipe.instructions) {
-      const firstUncompleted = recipe.instructions.findIndex(s => !checkedSteps[s.step]);
-      setCookingStepIndex(firstUncompleted !== -1 ? firstUncompleted : 0);
-    } else {
-      setCookingStepIndex(0);
-    }
-    setIsCookingMode(true);
-  };
-
-  // Derive images list
-  const images = recipe.imageUrls && recipe.imageUrls.length > 0
-    ? recipe.imageUrls
-    : (recipe.imageUrl ? [recipe.imageUrl] : []);
-
-  // Image gallery & fullscreen zoom hook
-  const {
-    fullscreenIndex,
-    setFullscreenIndex,
-    scale,
-    offset,
-    swipeTranslation,
-    isDraggingImage,
-    fullscreenContainerRef,
-    scrollContainerRef,
-    isDragging,
-    handleNextImage,
-    handlePrevImage,
-    handleDoubleTap,
-    handleFullscreenPointerDown,
-    handleFullscreenPointerMove,
-    handleFullscreenPointerUp,
-    handleKeyDown,
-    handleFullscreenContainerClick,
-    handlePointerDown,
-    handlePointerLeave,
-    handlePointerUp,
-    handlePointerMove,
-    handleImageClick,
-  } = useImageGallery(images);
   // Sort ingredient groups based on categoryOrder
   const sortedIngredients = useMemo(() => {
     if (!recipe.ingredients) return [];
@@ -467,50 +211,8 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
   return (
     <article className="flex flex-col gap-6">
       <Card className="glass-panel p-6 rounded-2xl overflow-hidden">
-        {/* Image Gallery */}
-        {(recipe.imageUrls && recipe.imageUrls.length > 0) ? (
-          <div className="-mt-6 -mx-6 mb-6 relative group">
-            <div
-              ref={scrollContainerRef}
-              onPointerDown={handlePointerDown}
-              onPointerLeave={handlePointerLeave}
-              onPointerUp={handlePointerUp}
-              onPointerMove={handlePointerMove}
-              className={`flex overflow-x-auto ${isDragging ? 'cursor-grabbing' : 'md:cursor-pointer cursor-grab snap-x snap-mandatory'}`}
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {recipe.imageUrls.map((img, idx) => {
-                const src = img.startsWith('/') ? img : `/api/image?url=${encodeURIComponent(img)}`;
-                return (
-                  <div key={idx} className="w-full shrink-0 snap-center relative">
-                    <img
-                      src={src}
-                      draggable={false}
-                      alt={`${recipe.title} - view ${idx + 1}`}
-                      className={`w-full h-56 object-cover object-center transition-transform duration-300 ${isDragging ? 'cursor-grabbing' : 'cursor-pointer'
-                        }`}
-                      onClick={() => handleImageClick(idx)}
-                    />
-                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full pointer-events-none opacity-80 backdrop-blur-sm">
-                      {idx + 1} / {recipe.imageUrls?.length}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ) : recipe.imageUrl ? (
-          <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5 relative">
-            <img
-              src={recipe.imageUrl.startsWith('/') ? recipe.imageUrl : `/api/image?url=${encodeURIComponent(recipe.imageUrl)}`}
-              alt={recipe.title}
-              className="w-full h-56 object-cover object-center cursor-pointer"
-              onClick={() => {
-                setFullscreenIndex(0);
-              }}
-            />
-          </div>
-        ) : null}
+        {/* Responsive Image Gallery */}
+        <RecipeImageGallery recipe={recipe} />
 
         {/* Recipe title header */}
         <div className="flex justify-between items-start gap-4 pb-4 border-b border-black/5 dark:border-white/5">
@@ -743,7 +445,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
               <ul className="grid grid-cols-2 gap-2">
                 {recipe.equipment.map((item, idx) => (
                   <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
-                    <ChevronRight className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                    <Minus className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -771,7 +473,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
 
               <Button
                 className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all flex-shrink-0 self-start sm:self-center"
-                onPress={startCooking}
+                onPress={() => setIsCookingMode(true)}
               >
                 <Play className="w-4 h-4 fill-white" />
                 <span>{t('recipe.startCooking')}</span>
@@ -814,7 +516,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                       )}
                       <span className={`text-sm leading-relaxed block select-none transition-all ${isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
                         }`}>
-                        {highlightText(step.description)}
+                        <RecipeInstructionText text={step.description} recipe={recipe} formatAmount={formatAmount} />
                       </span>
                     </div>
                   </div>
@@ -842,246 +544,15 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         </Tabs.Panel>
       </Tabs>
 
-      {/* Fullscreen Image Overlay */}
-      {fullscreenIndex !== null && images.length > 0 && (
-        <div
-          ref={fullscreenContainerRef}
-          className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-0 m-0 select-none overflow-hidden touch-none outline-none"
-          onKeyDown={handleKeyDown}
-          tabIndex={0}
-          onClick={handleFullscreenContainerClick}
-        >
-          {/* Top Controls Overlay */}
-          <div className="absolute top-4 right-4 z-[101] flex items-center gap-2">
-            {/* Zoom Toggle Button */}
-            <Button
-              isIconOnly
-              variant="ghost"
-              onPress={handleDoubleTap}
-              className="text-white/70 hover:text-white bg-black/40 hover:bg-black/60 rounded-full border-none"
-              aria-label={scale > 1 ? "Zoom Out" : "Zoom In"}
-            >
-              {scale > 1 ? <ZoomOut size={22} /> : <ZoomIn size={22} />}
-            </Button>
-            {/* Close Button */}
-            <Button
-              isIconOnly
-              variant="ghost"
-              onPress={() => setFullscreenIndex(null)}
-              className="text-white/70 hover:text-white bg-black/40 hover:bg-black/60 rounded-full border-none"
-              aria-label="Close fullscreen"
-            >
-              <X size={22} />
-            </Button>
-          </div>
-
-          {/* Carousel Slider */}
-          <div
-            className="w-full h-full flex items-center justify-center relative"
-            onPointerDown={handleFullscreenPointerDown}
-            onPointerMove={handleFullscreenPointerMove}
-            onPointerUp={handleFullscreenPointerUp}
-            onPointerCancel={handleFullscreenPointerUp}
-            onDoubleClick={handleDoubleTap}
-          >
-            <div
-              className={`flex w-full h-full ${!isDraggingImage ? 'transition-transform duration-300 ease-out' : ''}`}
-              style={{
-                transform: `translateX(calc(-${fullscreenIndex * 100}% + ${swipeTranslation}px))`
-              }}
-            >
-              {images.map((imgUrl, idx) => {
-                const src = imgUrl.startsWith('/') ? imgUrl : `/api/image?url=${encodeURIComponent(imgUrl)}`;
-                return (
-                  <div
-                    key={idx}
-                    className="w-full h-full shrink-0 flex items-center justify-center overflow-hidden"
-                    onClick={(e) => {
-                      // Prevent background click handler from closing when clicking inside the slide
-                      e.stopPropagation();
-                    }}
-                  >
-                    <img
-                      src={src}
-                      alt={`Fullscreen view ${idx + 1}`}
-                      draggable={false}
-                      className="max-w-[80%] max-h-[80dvh] object-contain select-none pointer-events-auto"
-                      style={{
-                        transform: idx === fullscreenIndex ? `translate(${offset.x}px, ${offset.y}px) scale(${scale})` : 'scale(1)',
-                        cursor: idx === fullscreenIndex && scale > 1 ? (isDraggingImage ? 'grabbing' : 'grab') : 'pointer',
-                        transition: idx === fullscreenIndex && !isDraggingImage ? 'transform 200ms ease-out' : 'none',
-                      }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Navigation Arrows (Desktop) */}
-          {images.length > 1 && scale === 1 && (
-            <>
-              {fullscreenIndex > 0 && (
-                <Button
-                  isIconOnly
-                  variant="ghost"
-                  onPress={handlePrevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-[101] text-white/50 hover:text-white bg-black/30 hover:bg-black/60 rounded-full border-none hidden md:flex"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft size={28} />
-                </Button>
-              )}
-              {fullscreenIndex < images.length - 1 && (
-                <Button
-                  isIconOnly
-                  variant="ghost"
-                  onPress={handleNextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-[101] text-white/50 hover:text-white bg-black/30 hover:bg-black/60 rounded-full border-none hidden md:flex"
-                  aria-label="Next image"
-                >
-                  <ChevronRight size={28} />
-                </Button>
-              )}
-            </>
-          )}
-
-          {/* Page Indicator */}
-          {images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full pointer-events-none z-[101] backdrop-blur-sm">
-              {fullscreenIndex + 1} / {images.length}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Cooking Mode Fullscreen Overlay */}
       {isCookingMode && (
-        <div
-          className="fixed inset-0 z-[90] bg-white dark:bg-gray-950 flex flex-col justify-between p-4 md:p-8 select-none"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          {/* Top Bar */}
-          <div className="flex justify-between items-center pb-4 border-b border-black/5 dark:border-white/5">
-            <div className="flex items-center gap-2">
-              <ChefHat className="w-5 h-5 text-emerald-500 animate-pulse" />
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">{t('recipe.cookingMode')}</span>
-            </div>
-            {/* Progress indicator */}
-            <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-              {t('recipe.cookingModeProgress', { current: cookingStepIndex + 1, total: recipe.instructions.length })}
-            </div>
-            <Button
-              isIconOnly
-              variant="ghost"
-              onPress={() => setIsCookingMode(false)}
-              className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-none"
-              aria-label={t('dialog.closeAria')}
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-
-          {/* Progress bar at the top */}
-          <div className="w-full bg-black/10 dark:bg-white/10 h-1.5 rounded-full overflow-hidden mt-2">
-            <div
-              className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-              style={{ width: `${((cookingStepIndex + 1) / recipe.instructions.length) * 100}%` }}
-            />
-          </div>
-
-          {/* Central Instruction Step Card */}
-          <div className="flex-1 flex flex-col justify-center items-center my-6 max-w-4xl mx-auto w-full px-4 text-center">
-            {/* Step Number Badge */}
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg mb-6 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-              {recipe.instructions[cookingStepIndex]?.step}
-            </div>
-
-            {/* Step Description */}
-            <h1 className="text-2xl md:text-3.5xl font-bold text-gray-900 dark:text-white leading-relaxed mb-8 max-h-[40dvh] overflow-y-auto px-2">
-              {highlightText(recipe.instructions[cookingStepIndex]?.description)}
-            </h1>
-
-            {/* Contextual Ingredients needed for this step */}
-            {getIngredientsForStep(recipe.instructions[cookingStepIndex]?.description).length > 0 && (
-              <div className="w-full max-w-lg bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-4 text-left backdrop-blur-sm">
-                <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>{t('recipe.ingredientsForStep')}</span>
-                </h3>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                  {getIngredientsForStep(recipe.instructions[cookingStepIndex]?.description).map((ing, i) => {
-                    const scaledAmount = formatAmount(ing.amount, ing.unit);
-                    const amountStr = scaledAmount ? `${scaledAmount} ` : '';
-                    const unitStr = ing.unit ? `${ing.unit} ` : '';
-                    return (
-                      <li key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg bg-white/50 dark:bg-black/35 border border-black/5 dark:border-white/5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{amountStr}{unitStr}</span>
-                        <span className="text-gray-700 dark:text-gray-300">{ing.name}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          {/* Navigation Controls */}
-          <div className="flex flex-col gap-4 max-w-md mx-auto w-full border-t border-black/5 dark:border-white/5 pt-4">
-            <div className="flex gap-3 justify-between items-center w-full">
-              <Button
-                variant="outline"
-                onPress={handlePrevCookingStep}
-                isDisabled={cookingStepIndex === 0}
-                className="flex-1 py-3 h-12 rounded-xl font-semibold border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-300 disabled:opacity-40"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                {t('recipe.back')}
-              </Button>
-
-              {/* Mark Completed & Next Button */}
-              {cookingStepIndex === recipe.instructions.length - 1 ? (
-                <Button
-                  className="flex-[2] py-3 h-12 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
-                  onPress={() => {
-                    const currentStepNum = recipe.instructions[cookingStepIndex].step;
-                    if (!checkedSteps[currentStepNum]) {
-                      toggleStep(currentStepNum);
-                    }
-                    setIsCookingMode(false);
-                    dialog.alert({
-                      title: t('recipe.finishedAlertTitle'),
-                      message: t('recipe.finishedAlertMessage'),
-                      status: 'success'
-                    });
-                  }}
-                >
-                  {t('recipe.finish')}
-                  <Check className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                <Button
-                  className="flex-[2] py-3 h-12 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
-                  onPress={() => {
-                    const currentStepNum = recipe.instructions[cookingStepIndex].step;
-                    if (!checkedSteps[currentStepNum]) {
-                      toggleStep(currentStepNum);
-                    }
-                    handleNextCookingStep();
-                  }}
-                >
-                  {t('recipe.doneNext')}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              )}
-            </div>
-            <div className="text-[10px] text-center text-gray-500 dark:text-gray-400">
-              {t('recipe.cookingModeTip')}
-            </div>
-          </div>
-        </div>
+        <CookingMode
+          recipe={recipe}
+          onClose={() => setIsCookingMode(false)}
+          checkedSteps={checkedSteps}
+          toggleStep={toggleStep}
+          formatAmount={formatAmount}
+        />
       )}
     </article>
   );
