@@ -1,4 +1,5 @@
 import { Button } from '@heroui/react';
+import { createPortal } from 'react-dom';
 import {
   ZoomIn,
   ZoomOut,
@@ -94,7 +95,7 @@ export default function RecipeImageGallery({ recipe }: RecipeImageGalleryProps) 
       ) : null}
 
       {/* Fullscreen Overlay */}
-      {fullscreenIndex !== null && images.length > 0 && (
+      {fullscreenIndex !== null && images.length > 0 && createPortal(
         <div
           ref={fullscreenContainerRef}
           className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-0 m-0 select-none overflow-hidden touch-none outline-none"
@@ -202,7 +203,8 @@ export default function RecipeImageGallery({ recipe }: RecipeImageGalleryProps) 
               {fullscreenIndex + 1} / {images.length}
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
