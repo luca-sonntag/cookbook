@@ -51,6 +51,10 @@ const recipeSchema = {
                 amount: { type: FunctionDeclarationSchemaType.NUMBER },
                 unit: { type: FunctionDeclarationSchemaType.STRING },
                 notes: { type: FunctionDeclarationSchemaType.STRING },
+                calories: { type: FunctionDeclarationSchemaType.INTEGER },
+                protein: { type: FunctionDeclarationSchemaType.NUMBER },
+                carbs: { type: FunctionDeclarationSchemaType.NUMBER },
+                fat: { type: FunctionDeclarationSchemaType.NUMBER },
               },
               required: ['name', 'baseName', 'amount', 'unit'],
             },
@@ -239,6 +243,13 @@ Decompose composite prepared elements: If a composite element (such as "Smash Bu
 
 
 For every ingredient, additionally generate a 'baseName'. This MUST be the absolute core standard noun in singular form (e.g. if name is 'rote Zwiebeln', baseName is 'Zwiebel'. If name is 'Cherrytomaten', baseName is 'Tomate'). This will be used as a database key to group similar ingredients in a shopping list.
+
+For every ingredient, you MUST also estimate the nutritional values for the given ingredient amount (under the specified "amount" and "unit"). Provide:
+- "calories" (an integer, representing energy in kcal)
+- "protein" (a number, representing protein in grams)
+- "carbs" (a number, representing carbohydrates in grams)
+- "fat" (a number, representing fat in grams)
+If the ingredient cannot be reliably estimated (e.g. water, non-food item, or spice with negligible value), set these values to null or omit them. Do not write units like 'g' in these numeric fields, output only raw numbers (e.g., 4.5 or 12).
 
 Also, provide an accurate transcription of the spoken audio track in the "transcript" field. If there are no spoken words in the audio track (e.g., it contains only music, sound effects, background noise, or silence), you MUST set the "transcript" field to the exact string "NO_SPOKEN_WORDS". Do NOT translate this string and do NOT under any circumstances hallucinate, invent, or generate a spoken transcript based on the caption or recipe name if no one is speaking.
 
