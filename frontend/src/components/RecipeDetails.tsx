@@ -56,6 +56,15 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
     return strTime;
   };
 
+  // Helper to format nutrition values and append units without duplication
+  const renderNutritionWithUnit = (val: any, unit: string = 'g') => {
+    const formatted = formatNutritionValue(val);
+    if (formatted === '—') return '—';
+    const str = String(formatted);
+    if (str.toLowerCase().endsWith(unit.toLowerCase())) return str;
+    return `${str}${unit}`;
+  };
+
   // Checklists state (persisted in localStorage!)
   const {
     checkedIngredients,
@@ -97,7 +106,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
   const progressPercent = totalStepsCount > 0 ? (completedStepsCount / totalStepsCount) * 100 : 0;
 
   // Get nutritional info (either reel-level or aggregated per-ingredient AI estimates)
-  const { nutritionalEstimates, isAiEstimated, hasNutritionInfo } = useRecipeNutrition(recipe);
+  const { nutritionalValues, isAiEstimated, hasNutritionInfo } = useRecipeNutrition(recipe);
 
   // Sort ingredient groups based on categoryOrder
   const sortedIngredients = useMemo(() => {
@@ -320,7 +329,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         </div>
 
         {/* Nutrition estimate */}
-        {hasNutritionInfo && nutritionalEstimates && (
+        {hasNutritionInfo && nutritionalValues && (
           <div className="bg-black/5 dark:bg-white/5 p-3.5 rounded-xl border border-black/5 dark:border-white/5">
             <div className="flex justify-between items-center mb-2.5">
               <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{t('recipe.nutritionTitle')}</h4>
@@ -328,19 +337,19 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
             </div>
             <div className="grid grid-cols-4 gap-2 text-center text-xs">
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(nutritionalEstimates.calories)}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(nutritionalValues.calories)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionCalories')}</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(nutritionalEstimates.protein)}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{renderNutritionWithUnit(nutritionalValues.protein, 'g')}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionProtein')}</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(nutritionalEstimates.carbs)}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{renderNutritionWithUnit(nutritionalValues.carbs, 'g')}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionCarbs')}</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(nutritionalEstimates.fat)}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{renderNutritionWithUnit(nutritionalValues.fat, 'g')}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionFat')}</div>
               </div>
             </div>
