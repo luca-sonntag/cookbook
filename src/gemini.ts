@@ -82,7 +82,6 @@ const recipeSchema = {
         carbs: { type: FunctionDeclarationSchemaType.STRING },
         fat: { type: FunctionDeclarationSchemaType.STRING },
       },
-      required: ['calories', 'protein', 'carbs', 'fat'],
     },
     tips: {
       type: FunctionDeclarationSchemaType.ARRAY,
@@ -232,7 +231,7 @@ Also, provide an accurate transcription of the spoken audio track in the "transc
 
 Translate and write the entire final recipe output (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredients names/notes, and the transcript) into the following language: ${config.RECIPE_LANGUAGE}. Do NOT translate the ingredient group name keys (the category keys), keep them as the uppercase English enum values.
 
-CRITICAL INSTRUCTION FOR MISSING DATA: If any information for a specific field is missing, not mentioned, or not specified in the reel, you MUST leave that field completely empty (e.g., use an empty string "", null, or an empty array [], depending on the field type). Do NOT under any circumstances use placeholder text like "Daten nicht spezifiziert", "Nicht angegeben", "N/A", "None", or similar. If it's missing, leave it empty.
+CRITICAL INSTRUCTION FOR MISSING DATA: If any information for a specific field is missing, not mentioned, or not specified in the reel, you MUST leave that field completely empty (e.g., use an empty string "", null, or an empty array [], depending on the field type). Specifically, for the "calories" field under "nutritionalEstimates", if no calorie information is specified or cannot be reliably estimated, omit the field or set it to null rather than using 0. Do NOT under any circumstances use placeholder text like "Daten nicht spezifiziert", "Nicht angegeben", "N/A", "None", or similar. If it's missing, leave it empty.
 
 Description/Caption:
 """
