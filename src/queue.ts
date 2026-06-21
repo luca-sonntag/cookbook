@@ -167,6 +167,8 @@ async function processJob(jobId: string, url: string): Promise<void> {
       }
     }
 
+    recipe.instagramHandle = scrapeResult.instagramHandle || null;
+
     // Assign unique recipe ID equal to jobId
     recipe.id = jobId;
 

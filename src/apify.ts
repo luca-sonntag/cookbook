@@ -11,6 +11,7 @@ export interface ScrapingResult {
   audioUrl: string;
   videoUrl: string;
   imageUrl: string;
+  instagramHandle?: string;
 }
 
 /**
@@ -42,6 +43,7 @@ export async function scrapeReel(reelUrl: string): Promise<ScrapingResult> {
   const audioUrl = (item.audioUrl as string) || '';
   const videoUrl = (item.videoUrl || item.video_url || (item.videoVersions as any[])?.[0]?.url || audioUrl) as string;
   const imageUrl = (item.displayUrl || item.thumbnail_url || item.thumbnailUrl || item.videoCover || '') as string;
+  const instagramHandle = (item.ownerUsername || item.username || '') as string;
 
   if (!audioUrl) {
     throw new Error('Audio URL was not found in the scraped reel metadata.');
@@ -52,5 +54,6 @@ export async function scrapeReel(reelUrl: string): Promise<ScrapingResult> {
     audioUrl,
     videoUrl,
     imageUrl,
+    instagramHandle: instagramHandle ? `@${instagramHandle.replace(/^@/, '')}` : undefined,
   };
 }

@@ -48,6 +48,8 @@ export interface Recipe {
   transcript?: string | null;
   imageUrl?: string | null;
   imageUrls?: string[];
+  tags?: string[];
+  instagramHandle?: string | null;
 }
 
 export type JobStatus = 'pending' | 'scraping' | 'processing' | 'completed' | 'failed';
