@@ -173,8 +173,8 @@ export interface GeminiLogEntry {
   tokenUsage?: TokenUsage;
   /** Approximate cost breakdown */
   costEstimate?: CostEstimate;
-  /** The job ID that initiated this request, if any */
-  jobId?: string;
+  /** Custom directory to write this log into, if any */
+  logDir?: string;
 }
 
 /**
@@ -186,9 +186,7 @@ export interface GeminiLogEntry {
  */
 export async function writeGeminiLog(entry: GeminiLogEntry): Promise<void> {
   try {
-    const targetDir = entry.jobId
-      ? path.resolve('logs', `run-${entry.jobId}`)
-      : LOG_DIR;
+    const targetDir = entry.logDir ?? LOG_DIR;
     await fs.mkdir(targetDir, { recursive: true });
 
     // Replace colons and periods with dashes so the filename is Windows-safe
