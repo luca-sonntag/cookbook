@@ -4,6 +4,7 @@ import { Globe, Utensils, Clock, Trash2, ArrowLeft } from 'lucide-react';
 import type { Job, Ingredient } from '../types';
 import RecipeDetails from './RecipeDetails';
 import { useMobileNavigationBack } from '../hooks/useMobileNavigationBack';
+import { useI18n } from '../context/I18nContext';
 
 interface SavedCatalogProps {
   history: Job[];
@@ -20,6 +21,7 @@ export default function SavedCatalog({
   handleDeleteJob,
   onAddIngredients
 }: SavedCatalogProps) {
+  const { t, language } = useI18n();
   const completedJobs = history.filter(h => h.status === 'completed' && h.recipe);
 
   // Custom hook for swipe-to-go-back and mobile back button handling
@@ -36,7 +38,7 @@ export default function SavedCatalog({
               variant="tertiary"
               className="flex-shrink-0 flex items-center justify-center bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 w-9 h-9 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white active:scale-95 transition-all text-base leading-none"
               onPress={() => setSelectedJob(null)}
-              aria-label="Back to Saved Recipes"
+              aria-label={t('catalog.backToSaved')}
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
@@ -44,7 +46,7 @@ export default function SavedCatalog({
             {/* Saved on / View original Reel bar */}
             <div className="flex-1 flex items-center justify-between bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-2.5 px-4 min-w-0">
               <span className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">
-                Saved on {new Date(selectedJob.createdAt).toLocaleDateString()}
+                {t('catalog.savedOn', { date: new Date(selectedJob.createdAt).toLocaleDateString(language) })}
               </span>
               <a
                 href={selectedJob.url}
@@ -52,7 +54,7 @@ export default function SavedCatalog({
                 rel="noopener noreferrer"
                 className="flex-shrink-0 text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 text-xs flex items-center gap-1 font-medium ml-3"
               >
-                <Globe className="w-3.5 h-3.5" /> View Reel
+                <Globe className="w-3.5 h-3.5" /> {t('catalog.viewReel')}
               </a>
             </div>
           </div>
@@ -70,15 +72,15 @@ export default function SavedCatalog({
         /* LIST VIEW OF SAVED RECIPES */
         <div className="flex flex-col gap-4">
           <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1">
-            Saved Recipes Catalog
+            {t('catalog.title')}
           </h3>
 
           {completedJobs.length === 0 ? (
             <Card className="glass-panel p-8 rounded-2xl text-center flex flex-col items-center justify-center border border-black/5 dark:border-white/5">
               <Utensils className="w-8 h-8 text-gray-500 mb-3 animate-pulse-slow" />
-              <h3 className="text-sm font-semibold text-gray-950 dark:text-white">No Saved Recipes</h3>
+              <h3 className="text-sm font-semibold text-gray-950 dark:text-white">{t('catalog.emptyTitle')}</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-xs leading-normal">
-                Extract recipes from Instagram Reels in the "Extract New" tab to save them here!
+                {t('catalog.emptyDesc')}
               </p>
             </Card>
           ) : (
@@ -108,7 +110,7 @@ export default function SavedCatalog({
                         <button
                           onClick={(e) => handleDeleteJob(e, job.id)}
                           className="flex-shrink-0 text-gray-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer -mt-1 -mr-2"
-                          aria-label="Delete recipe"
+                          aria-label={t('catalog.deleteRecipe')}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -128,7 +130,7 @@ export default function SavedCatalog({
                         </span>
                       </div>
                       <span className="font-mono text-gray-500 dark:text-gray-500">
-                        {new Date(job.createdAt).toLocaleDateString()}
+                        {new Date(job.createdAt).toLocaleDateString(language)}
                       </span>
                     </div>
                   </Card>
@@ -141,3 +143,4 @@ export default function SavedCatalog({
     </div>
   );
 }
+

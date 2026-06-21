@@ -18,9 +18,11 @@ import { usePwaInstall } from './hooks/usePwaInstall';
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
 import { useShoppingList } from './hooks/useShoppingList';
 import { useDialog } from './context/DialogContext';
+import { useI18n } from './context/I18nContext';
 
 export default function App() {
   const dialog = useDialog();
+  const { t, language, setLanguage } = useI18n();
   // Config & Secrets
   const [apiKey, setApiKey] = useState<string>(() => {
     return localStorage.getItem('recipe_api_key') || 'recipe_extractor_secret_key_12345';
@@ -85,10 +87,10 @@ export default function App() {
   const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const confirmed = await dialog.confirm({
-      title: 'Rezept löschen?',
-      message: 'Möchtest du dieses Rezept wirklich aus den gespeicherten Rezepten löschen?',
-      confirmLabel: 'Löschen',
-      cancelLabel: 'Abbrechen',
+      title: t('app.dialog.deleteRecipe.title'),
+      message: t('app.dialog.deleteRecipe.message'),
+      confirmLabel: t('app.dialog.deleteRecipe.confirm'),
+      cancelLabel: t('app.dialog.deleteRecipe.cancel'),
       status: 'danger'
     });
     if (!confirmed) {
@@ -110,16 +112,16 @@ export default function App() {
         }
       } else {
         dialog.alert({
-          title: 'Fehler beim Löschen',
-          message: 'Das Rezept konnte nicht gelöscht werden.',
+          title: t('app.dialog.deleteError.title'),
+          message: t('app.dialog.deleteError.message'),
           status: 'danger'
         });
       }
     } catch (err) {
       console.error('Error deleting recipe:', err);
       dialog.alert({
-        title: 'Verbindungsfehler',
-        message: 'Es konnte keine Verbindung zum Server hergestellt werden.',
+        title: t('app.dialog.connectionError.title'),
+        message: t('app.dialog.connectionError.message'),
         status: 'danger'
       });
     }
@@ -163,15 +165,15 @@ export default function App() {
   const getStatusDetails = () => {
     switch (jobStatus) {
       case 'pending':
-        return { text: 'Auftrag wird eingereiht...', sub: 'Wartet auf Verarbeitung.' };
+        return { text: t('job.status.pending.text'), sub: t('job.status.pending.sub') };
       case 'scraping':
-        return { text: 'Lade Video und Audio herunter...', sub: 'Greife auf Instagram-Daten zu.' };
+        return { text: t('job.status.scraping.text'), sub: t('job.status.scraping.sub') };
       case 'processing':
-        return { text: 'KI analysiert das Rezept...', sub: 'Google Gemini erstellt die Rezeptstruktur.' };
+        return { text: t('job.status.processing.text'), sub: t('job.status.processing.sub') };
       case 'completed':
-        return { text: 'Rezept erfolgreich erstellt!', sub: 'Viel Spaß beim Kochen.' };
+        return { text: t('job.status.completed.text'), sub: t('job.status.completed.sub') };
       case 'failed':
-        return { text: 'Fehler beim Erstellen des Rezepts.', sub: jobError || 'Unbekannter Fehler bei der Verarbeitung.' };
+        return { text: t('job.status.failed.text'), sub: jobError || t('job.status.failed.sub') };
       default:
         return null;
     }
@@ -188,11 +190,20 @@ export default function App() {
             <ChefHat className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">KochBuddy</h1>
-            <span className="text-xs text-gray-500 dark:text-gray-400">Instagram Reel Rezept-Assistent ({installStatus})</span>
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">{t('app.title')}</h1>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{t('app.subtitle')} ({installStatus})</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="tertiary"
+            className="font-bold text-xs min-w-0 px-2.5 h-9 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all outline-none border-none"
+            onPress={() => setLanguage(language === 'de' ? 'en' : 'de')}
+            aria-label="Change Language"
+          >
+            {language.toUpperCase()}
+          </Button>
           <ThemeToggle theme={theme} setTheme={setTheme} />
           <Button
             isIconOnly
@@ -222,7 +233,7 @@ export default function App() {
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            Neues Rezept
+            {t('app.nav.newRecipe')}
           </button>
           <button
             onClick={() => {
@@ -235,7 +246,7 @@ export default function App() {
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            Gespeicherte Rezepte ({history.filter(h => h.status === 'completed').length})
+            {t('app.nav.savedRecipes')} ({history.filter(h => h.status === 'completed').length})
           </button>
           <button
             onClick={() => setActiveView('shopping-list')}
@@ -245,7 +256,7 @@ export default function App() {
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            Einkaufsliste {aggregatedList.unchecked.length > 0 && `(${aggregatedList.unchecked.length})`}
+            {t('app.nav.shoppingList')} {aggregatedList.unchecked.length > 0 && `(${aggregatedList.unchecked.length})`}
           </button>
         </div>
 

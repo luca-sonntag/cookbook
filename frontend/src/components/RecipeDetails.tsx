@@ -26,11 +26,11 @@ import { useRecipeScaling } from '../hooks/useRecipeScaling';
 import { useImageGallery } from '../hooks/useImageGallery';
 import { useRecipeProgress } from '../hooks/useRecipeProgress';
 import {
-  translateCategory,
   categoryOrder,
   legacyCategoryMap
 } from '../i18n';
 import { useDialog } from '../context/DialogContext';
+import { useI18n } from '../context/I18nContext';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
@@ -40,6 +40,7 @@ interface RecipeDetailsProps {
 
 export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: RecipeDetailsProps) {
   const dialog = useDialog();
+  const { t, translateCategory } = useI18n();
   // Checklists state (persisted in localStorage!)
   const {
     checkedIngredients,
@@ -133,7 +134,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
     if (recipe.equipment) {
       recipe.equipment.forEach(eq => {
         if (eq && eq.length > 2) {
-          terms.push({ term: eq.toLowerCase(), type: 'equipment', original: eq, info: `Gerät: ${eq}` });
+          terms.push({ term: eq.toLowerCase(), type: 'equipment', original: eq, info: t('recipe.equipmentTooltip', { name: eq }) });
         }
       });
     }
@@ -398,8 +399,8 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
 
     if (itemsToAdd.length === 0) {
       dialog.alert({
-        title: 'Bereits hinzugefügt',
-        message: 'Alle Zutaten dieses Rezepts sind bereits abgehakt!',
+        title: t('recipe.alreadyAddedTitle'),
+        message: t('recipe.alreadyAddedMessage'),
         status: 'warning'
       });
       return;
@@ -415,7 +416,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
     let md = `# ${recipe.title}\n\n${recipe.description}\n\n`;
     md += `**Prep Time:** ${recipe.prepTime} | **Cook Time:** ${recipe.cookTime} | **Servings:** ${servings}\n\n`;
 
-    md += `## Ingredients\n`;
+    md += `## ${t('recipe.tabIngredients')}\n`;
     sortedIngredients.forEach(({ group }) => {
       if (recipe.ingredients.length > 1) {
         md += `### ${translateCategory(group.name)}\n`;
@@ -435,14 +436,14 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
       md += `\n`;
     }
 
-    md += `## Instructions\n`;
+    md += `## ${t('recipe.tabInstructions')}\n`;
     recipe.instructions.forEach((step: InstructionStep) => {
       md += `${step.step}. ${step.description}\n`;
     });
     md += `\n`;
 
     if (recipe.equipment && recipe.equipment.length > 0) {
-      md += `## Equipment\n`;
+      md += `## ${t('recipe.requiredEquipment')}\n`;
       recipe.equipment.forEach((item: string) => {
         md += `- ${item}\n`;
       });
@@ -450,7 +451,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
     }
 
     if (recipe.tips && recipe.tips.length > 0) {
-      md += `## Chef Tips\n`;
+      md += `## ${t('recipe.tipsTitle')}\n`;
       recipe.tips.forEach((tip: string) => {
         md += `- ${tip}\n`;
       });
@@ -540,12 +541,12 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                   {isCopied ? (
                     <>
                       <Check className="w-3.5 h-3.5 text-emerald-500" />
-                      <span className="text-emerald-500 font-semibold">Kopiert!</span>
+                      <span className="text-emerald-500 font-semibold">{t('recipe.copied')}</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-3.5 h-3.5" />
-                      <span>Rezept kopieren</span>
+                      <span>{t('recipe.copyRecipe')}</span>
                     </>
                   )}
                 </button>
@@ -559,7 +560,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                     className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg text-left transition-colors cursor-pointer outline-none"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span>Rezept löschen</span>
+                    <span>{t('recipe.delete')}</span>
                   </button>
                 )}
               </div>
@@ -571,17 +572,17 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         <div className="grid grid-cols-3 gap-2 py-4">
           <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center justify-center text-center">
             <Clock className="w-4 h-4 text-emerald-500 mb-1" />
-            <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Prep</span>
+            <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">{t('recipe.prep')}</span>
             <span className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{recipe.prepTime || 'N/A'}</span>
           </div>
           <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center justify-center text-center">
             <Utensils className="w-4 h-4 text-emerald-500 mb-1" />
-            <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Cook</span>
+            <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">{t('recipe.cook')}</span>
             <span className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{recipe.cookTime || 'N/A'}</span>
           </div>
           <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center justify-center text-center">
             <ListChecks className="w-4 h-4 text-emerald-500 mb-1" />
-            <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Serves</span>
+            <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">{t('recipe.serves')}</span>
             <div className="flex items-center gap-1.5 mt-1">
               <Button
                 isIconOnly
@@ -611,23 +612,23 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         {/* Nutrition estimate */}
         {hasNutritionInfo && recipe.nutritionalEstimates && (
           <div className="bg-black/5 dark:bg-white/5 p-3.5 rounded-xl border border-black/5 dark:border-white/5">
-            <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Nutritional Estimates</h4>
+            <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">{t('recipe.nutritionTitle')}</h4>
             <div className="grid grid-cols-4 gap-2 text-center text-xs">
               <div>
                 <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.calories)}</div>
-                <div className="text-[9px] text-gray-500 dark:text-gray-400">kcal</div>
+                <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionCalories')}</div>
               </div>
               <div>
                 <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.protein)}</div>
-                <div className="text-[9px] text-gray-500 dark:text-gray-400">Protein</div>
+                <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionProtein')}</div>
               </div>
               <div>
                 <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.carbs)}</div>
-                <div className="text-[9px] text-gray-500 dark:text-gray-400">Carbs</div>
+                <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionCarbs')}</div>
               </div>
               <div>
                 <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(recipe.nutritionalEstimates.fat)}</div>
-                <div className="text-[9px] text-gray-500 dark:text-gray-400">Fat</div>
+                <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionFat')}</div>
               </div>
             </div>
           </div>
@@ -639,10 +640,10 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         <Tabs.ListContainer className="w-full">
           <Tabs.List className="flex !bg-transparent !p-0 !rounded-none border-b border-black/10 dark:border-white/10 w-full mb-4 overflow-x-auto scrollbar-none">
             <Tabs.Tab id="ingredients" className="flex-1 flex-shrink-0 px-3 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none whitespace-nowrap">
-              Ingredients
+              {t('recipe.tabIngredients')}
             </Tabs.Tab>
             <Tabs.Tab id="steps" className="flex-1 flex-shrink-0 px-3 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none whitespace-nowrap">
-              Instructions
+              {t('recipe.tabInstructions')}
             </Tabs.Tab>
           </Tabs.List>
         </Tabs.ListContainer>
@@ -651,8 +652,8 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         <Tabs.Panel id="ingredients" className="flex flex-col gap-4">
           <Card className="glass-panel p-5 rounded-2xl">
             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider flex items-center justify-between">
-              <span>Ingredients Checklist</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 normal-case font-normal">Check ingredients you have prepared</span>
+              <span>{t('recipe.ingredientsTitle')}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 normal-case font-normal">{t('recipe.ingredientsSubtitle')}</span>
             </h3>
             <div className="flex flex-col gap-6">
               {sortedIngredients.map(({ group, originalIdx }, sortedIdx) => (
@@ -703,12 +704,12 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                 {isAdded ? (
                   <>
                     <Check className="w-4 h-4" />
-                    <span>In Einkaufsliste hinzugefügt!</span>
+                    <span>{t('recipe.addedToShopping')}</span>
                   </>
                 ) : (
                   <>
                     <Plus className="w-4 h-4" />
-                    <span>Zur Einkaufsliste hinzufügen</span>
+                    <span>{t('recipe.addToShopping')}</span>
                   </>
                 )}
               </Button>
@@ -717,7 +718,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
 
           {recipe.alternativeIngredients && recipe.alternativeIngredients.length > 0 && (
             <Card className="glass-panel p-5 rounded-2xl">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">Alternative Ingredients</h3>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">{t('recipe.alternativeIngredients')}</h3>
               <div className="flex flex-col gap-3">
                 {recipe.alternativeIngredients.map((alt, idx) => (
                   <div key={idx} className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5 text-xs">
@@ -738,7 +739,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
         <Tabs.Panel id="steps" className="flex flex-col gap-4">
           {recipe.equipment && recipe.equipment.length > 0 && (
             <Card className="glass-panel p-5 rounded-2xl">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">Required Equipment</h3>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">{t('recipe.requiredEquipment')}</h3>
               <ul className="grid grid-cols-2 gap-2">
                 {recipe.equipment.map((item, idx) => (
                   <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
@@ -755,9 +756,9 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <div className="flex-1">
                 <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Kochfortschritt</span>
+                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('recipe.cookingProgress')}</span>
                   <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                    {completedStepsCount} von {totalStepsCount} Schritten ({Math.round(progressPercent)}%)
+                    {t('recipe.progressSteps', { completed: completedStepsCount, total: totalStepsCount, percent: Math.round(progressPercent) })}
                   </span>
                 </div>
                 <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
@@ -773,13 +774,13 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                 onPress={startCooking}
               >
                 <Play className="w-4 h-4 fill-white" />
-                <span>Kochen starten</span>
+                <span>{t('recipe.startCooking')}</span>
               </Button>
             </div>
           </Card>
 
           <Card className="glass-panel p-5 rounded-2xl">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">Step-by-Step Instructions</h3>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">{t('recipe.stepByStep')}</h3>
             <div className="flex flex-col gap-4">
               {recipe.instructions.map((step) => {
                 const isChecked = !!checkedSteps[step.step];
@@ -808,7 +809,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                       {isActive && (
                         <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1">
                           <Sparkles className="w-3 h-3 animate-pulse" />
-                          Aktueller Schritt
+                          {t('recipe.currentStep')}
                         </span>
                       )}
                       <span className={`text-sm leading-relaxed block select-none transition-all ${isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
@@ -826,7 +827,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
             <Card className="glass-panel p-5 rounded-2xl border border-emerald-500/10">
               <h3 className="text-sm font-bold text-emerald-500 mb-3 uppercase tracking-wider flex items-center gap-1.5">
                 <ChefHat className="w-4 h-4" />
-                <span>Chef Cooking Tips</span>
+                <span>{t('recipe.tipsTitle')}</span>
               </h3>
               <ul className="flex flex-col gap-3 text-xs text-gray-700 dark:text-gray-300">
                 {recipe.tips.map((tip, idx) => (
@@ -965,18 +966,18 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
           <div className="flex justify-between items-center pb-4 border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-2">
               <ChefHat className="w-5 h-5 text-emerald-500 animate-pulse" />
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">Kochmodus</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">{t('recipe.cookingMode')}</span>
             </div>
             {/* Progress indicator */}
             <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-              Schritt {cookingStepIndex + 1} von {recipe.instructions.length}
+              {t('recipe.cookingModeProgress', { current: cookingStepIndex + 1, total: recipe.instructions.length })}
             </div>
             <Button
               isIconOnly
               variant="ghost"
               onPress={() => setIsCookingMode(false)}
               className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-none"
-              aria-label="Kochmodus beenden"
+              aria-label={t('dialog.closeAria')}
             >
               <X className="w-5 h-5" />
             </Button>
@@ -1007,7 +1008,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
               <div className="w-full max-w-lg bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-4 text-left backdrop-blur-sm">
                 <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Zutaten für diesen Schritt:</span>
+                  <span>{t('recipe.ingredientsForStep')}</span>
                 </h3>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {getIngredientsForStep(recipe.instructions[cookingStepIndex]?.description).map((ing, i) => {
@@ -1037,7 +1038,7 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                 className="flex-1 py-3 h-12 rounded-xl font-semibold border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-300 disabled:opacity-40"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Zurück
+                {t('recipe.back')}
               </Button>
 
               {/* Mark Completed & Next Button */}
@@ -1051,13 +1052,13 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                     }
                     setIsCookingMode(false);
                     dialog.alert({
-                      title: 'Fertig!',
-                      message: 'Guten Appetit! Du hast das Rezept erfolgreich zubereitet.',
+                      title: t('recipe.finishedAlertTitle'),
+                      message: t('recipe.finishedAlertMessage'),
                       status: 'success'
                     });
                   }}
                 >
-                  Fertigstellen
+                  {t('recipe.finish')}
                   <Check className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
@@ -1071,13 +1072,13 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
                     handleNextCookingStep();
                   }}
                 >
-                  Erledigt & Weiter
+                  {t('recipe.doneNext')}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               )}
             </div>
             <div className="text-[10px] text-center text-gray-500 dark:text-gray-400">
-              Tipp: Nutze die Pfeiltasten ← → auf dem Desktop oder wische nach links/rechts auf dem Handy.
+              {t('recipe.cookingModeTip')}
             </div>
           </div>
         </div>
