@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, TextField, Label, Input, Button, FieldError, Spinner } from '@heroui/react';
 import { BookOpen } from 'lucide-react';
+import { useI18n } from '../context/I18nContext';
 
 interface ExtractFormProps {
   url: string;
@@ -19,6 +20,8 @@ export default function ExtractForm({
   isPending,
   handleFormSubmit
 }: ExtractFormProps) {
+  const { t } = useI18n();
+
   return (
     <Card className="glass-panel p-6 rounded-2xl">
       <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
@@ -32,10 +35,10 @@ export default function ExtractForm({
           }}
           isInvalid={!!urlError}
         >
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Instagram Reel Link</Label>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('form.urlLabel')}</Label>
           <div className="relative mt-2">
             <Input 
-              placeholder="https://www.instagram.com/reel/C8C_jApt_2j/" 
+              placeholder={t('form.urlPlaceholder')} 
               className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-3 pr-10 py-3 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none" 
               disabled={isPending}
             />
@@ -68,12 +71,12 @@ export default function ExtractForm({
               {isPending ? (
                 <>
                   <Spinner color="current" size="sm" />
-                  <span>Rezept wird gelesen...</span>
+                  <span>{t('form.btnPending')}</span>
                 </>
               ) : (
                 <>
                   <BookOpen className="w-4 h-4" />
-                  <span>Rezept erstellen</span>
+                  <span>{t('form.btnSubmit')}</span>
                 </>
               )}
             </span>
@@ -83,3 +86,4 @@ export default function ExtractForm({
     </Card>
   );
 }
+

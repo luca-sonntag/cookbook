@@ -1,5 +1,6 @@
 import { Card, Button } from '@heroui/react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { useI18n } from '../context/I18nContext';
 
 interface ErrorBannerProps {
   isPending: boolean;
@@ -16,6 +17,8 @@ export default function ErrorBanner({
   triggerExtraction,
   url
 }: ErrorBannerProps) {
+  const { t } = useI18n();
+
   if (isPending || jobStatus !== 'failed') return null;
 
   return (
@@ -23,18 +26,19 @@ export default function ErrorBanner({
       <div className="flex items-start gap-3 text-red-500">
         <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Extraction Failed</h3>
-          <p className="text-xs text-red-600 dark:text-red-300 mt-1">{jobError || 'An unknown error occurred while analyzing the Reel.'}</p>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('error.title')}</h3>
+          <p className="text-xs text-red-600 dark:text-red-300 mt-1">{jobError || t('error.default')}</p>
           <Button 
             size="sm" 
             variant="tertiary" 
             className="mt-3 text-xs text-gray-800 dark:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" 
             onPress={() => triggerExtraction(url)}
           >
-            <RefreshCw className="w-3 h-3 mr-1" /> Retry
+            <RefreshCw className="w-3 h-3 mr-1" /> {t('error.retry')}
           </Button>
         </div>
       </div>
     </Card>
   );
 }
+
