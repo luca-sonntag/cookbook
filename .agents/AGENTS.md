@@ -43,11 +43,13 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
     * **Schlanker App-Shell (`App.tsx`):** Die Hauptkomponente ist modular gestaltet und delegiert komplexe Zustände an spezialisierte Custom Hooks.
     * **Zentralisierte Kontexte (`frontend/src/context/`):**
       * **`DialogContext.tsx`:** Stellt einen globalen Dialog-Service (`useDialog()`) bereit, um native Browser-Dialoge (`confirm` / `alert`) durch moderne, nicht-blockierende HeroUI-Dialoge mit wählbaren Status (z. B. `danger`, `warning`) zu ersetzen.
+      * **`I18nContext.tsx`:** Verwaltet den globalen Internationalisierungs-Zustand (Deutsch und Englisch), persistiert die Nutzerwahl im `localStorage` und ermittelt die Standardeinstellung anhand der Browsersprache (`navigator.language`). Stellt die Hook `useI18n()` für dot-notation basierte UI-Übersetzungen (`t()`) mit Variablen-Ersetzung bereit.
     * **Lokalisierung & Übersetzung (`frontend/src/i18n.ts`):**
       * Verwaltet das Übersetzungsmapping für Supermarktabteilungen (`IngredientCategory`).
       * Ordnet den Kategorien passende Emojis/Icons zu.
       * Definiert die Supermarkt-Laufrichtung zur Sortierung von Zutaten.
       * Mappt über `legacyCategoryMap` alte Rezeptkategorien transparent auf das neue Schema, um Abwärtskompatibilität zu sichern.
+      * Definiert das globale Übersetzungs-Wörterbuch (`uiTranslations`) und stellt die Funktion `getTranslation` zur rekursiven Schlüssel-Pfad-Auflösung bereit.
     * **Zentralisierte Hooks (`frontend/src/hooks/`):**
       * **`useTheme.ts`:** Steuert das clientseitige Umschalten des Hell- und Dunkelmodus und persistiert die Einstellung im `localStorage`.
       * **`usePwaInstall.ts`:** Kapselt das Abfangen des `beforeinstallprompt`-Events und steuert die Installationslogik.
@@ -69,7 +71,10 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **`ShoppingList.tsx`:** Anzeige und Interaktions-Panel der smarten Einkaufsliste. Beinhaltet ein Zettelformular für manuelle freie Einkäufe, Vorschlagsbuttons für Einheiten und getrennte Listen für noch zu kaufende und im Korb befindliche Artikel. Die noch zu kaufenden Artikel werden nach Supermarkt-Kategorien gruppiert und sortiert angezeigt.
     * **Typensicherheit (`src/types.ts` & `frontend/src/types.ts`):** Zentralisierte TypeScript-Modelle für Rezepte, Zutaten, Nährwerte und API-Jobs. Nutzung von `type`-only Imports zur Einhaltung von Compiler-Richtlinien (wie `verbatimModuleSyntax`).
 * **Visuelles Design:** Theme-gesteuert (Hell- & Dunkelmodus) mit modernem Glassmorphismus und harmonischen Akzentfarben (Smaragdgrün/Emerald-Grün). Optimiert für mobile Displays mit flüssigen Übergängen.
-* **Theme-Steuerung:** Bietet einen Header-Schalter (Sonne/Mond), um das Erscheinungsbild umzuschalten. Die Auswahl wird im `localStorage` persistiert und ein Inline-Interceptor im `<head>` der `index.html` verhindert das Aufblitzen des hellen Designs beim App-Start.
+* **Sprach- und Theme-Steuerung:**
+  * Bietet einen Header-Schalter (Sonne/Mond) für den Hell- und Dunkelmodus. Die Auswahl wird im `localStorage` persistiert.
+  * Bietet einen Header-Sprachwähler (Pill-Button `DE` / `EN`) zur Echtzeit-Umschaltung aller UI-Texte, Fehlermeldungen, Lade-Fakten und Maßeinheit-Vorschläge.
+  * Ein Inline-Interceptor im `<head>` der `index.html` verhindert das Aufblitzen des hellen Designs beim App-Start.
 * **PWA & Share Target Integration:**
   * Die Webanwendung ist über den Browser direkt als PWA (Progressive Web App) installierbar.
   * Registriert die **Web Share Target API**, sodass Instagram Reels direkt aus der Instagram-App an die PWA geteilt werden können. Der URL-Parameter wird beim Start der PWA automatisch ausgewertet, bereinigt und an den Extraktor gesendet.
