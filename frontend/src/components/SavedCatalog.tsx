@@ -647,13 +647,6 @@ export default function SavedCatalog({
                               alt={r.title}
                               className="w-full h-full object-cover object-center"
                             />
-                            {/* Creator Handle Overlay */}
-                            {r.instagramHandle && (
-                              <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[7px] px-1 py-0.5 rounded flex items-center gap-0.5 pointer-events-none select-none z-[5] backdrop-blur-[1px]">
-                                <InstagramIcon className="w-2 h-2 text-pink-400" />
-                                <span className="truncate max-w-[40px]">{r.instagramHandle}</span>
-                              </div>
-                            )}
                           </div>
                         )}
 
