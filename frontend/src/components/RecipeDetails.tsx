@@ -13,7 +13,8 @@ import {
   Play,
   Sparkles,
   MoreVertical,
-  Trash2
+  Trash2,
+  ShoppingCart
 } from 'lucide-react';
 import type { Recipe, Ingredient, InstructionStep } from '../types';
 import { useRecipeScaling } from '../hooks/useRecipeScaling';
@@ -39,6 +40,7 @@ interface RecipeDetailsProps {
   reelUrl?: string;
   createdAt?: string;
   onBack?: () => void;
+  onNavigateToShoppingList?: () => void;
 }
 
 export default function RecipeDetails({
@@ -47,7 +49,8 @@ export default function RecipeDetails({
   onDelete,
   reelUrl,
   createdAt,
-  onBack
+  onBack,
+  onNavigateToShoppingList
 }: RecipeDetailsProps) {
   const dialog = useDialog();
   const { t, translateCategory, language } = useI18n();
@@ -320,6 +323,19 @@ export default function RecipeDetails({
                   )}
                 </button>
 
+                {onNavigateToShoppingList && (
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onNavigateToShoppingList();
+                    }}
+                    className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none"
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>{t('recipe.goToShoppingList')}</span>
+                  </button>
+                )}
+
                 {onDelete && (
                   <button
                     onClick={() => {
@@ -524,6 +540,17 @@ export default function RecipeDetails({
                     <span>{t('recipe.addToShopping')}</span>
                   </>
                 )}
+              </Button>
+            )}
+
+            {onNavigateToShoppingList && (
+              <Button
+                variant="outline"
+                className="w-full mt-2.5 py-2 rounded-xl font-medium border border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                onPress={onNavigateToShoppingList}
+              >
+                <ShoppingCart className="w-4 h-4 text-emerald-500" />
+                <span>{t('recipe.goToShoppingList')}</span>
               </Button>
             )}
           </Card>

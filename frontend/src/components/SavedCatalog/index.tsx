@@ -19,6 +19,7 @@ interface SavedCatalogProps {
   handleDeleteJob: (e: React.MouseEvent, id: string) => void;
   onAddIngredients?: (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => void;
   fetchHistory?: () => void;
+  onNavigateToShoppingList?: () => void;
 }
 
 export default function SavedCatalog({
@@ -27,7 +28,8 @@ export default function SavedCatalog({
   setSelectedJob,
   handleDeleteJob,
   onAddIngredients,
-  fetchHistory
+  fetchHistory,
+  onNavigateToShoppingList
 }: SavedCatalogProps) {
   const { t, language } = useI18n();
 
@@ -79,6 +81,7 @@ export default function SavedCatalog({
               reelUrl={selectedJob.url}
               createdAt={selectedJob.createdAt}
               onBack={() => setSelectedJob(null)}
+              onNavigateToShoppingList={onNavigateToShoppingList}
             />
           )}
         </div>

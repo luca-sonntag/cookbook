@@ -331,6 +331,7 @@ export default function App() {
                   setRecipe(null);
                   setUrl('');
                 }}
+                onNavigateToShoppingList={() => setActiveView('shopping-list')}
               />
             )}
           </>
@@ -343,6 +344,10 @@ export default function App() {
             handleDeleteJob={handleDeleteJob} 
             onAddIngredients={addRecipeIngredients}
             fetchHistory={fetchHistory}
+            onNavigateToShoppingList={() => {
+              setSelectedJob(null);
+              setActiveView('shopping-list');
+            }}
           />
         ) : (
           /* SHOPPING LIST TAB */
