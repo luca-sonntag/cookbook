@@ -62,8 +62,8 @@ async function downloadFile(url: string, destPath: string): Promise<string> {
  * Processes a single job end-to-end.
  */
 async function processJob(jobId: string, url: string): Promise<void> {
-  const tempDir = path.resolve('temp-downloads');
-  const framesDir = path.join(tempDir, `frames-${jobId}`);
+  const runDir = path.resolve('logs', `run-${jobId}`);
+  const framesDir = path.join(runDir, 'frames');
   let audioFilePath = '';
   let videoFilePath = '';
 
@@ -79,13 +79,13 @@ async function processJob(jobId: string, url: string): Promise<void> {
     // 3. Mark job as processing
     await updateJob(jobId, { status: 'processing' });
 
-    // 4. Ensure temp directory exists
-    await fs.mkdir(tempDir, { recursive: true });
+    // 4. Ensure run directory exists
+    await fs.mkdir(runDir, { recursive: true });
 
     const audioExt = scrapeResult.audioUrl.includes('.mp3') ? '.mp3' : '.mp4';
-    audioFilePath = path.join(tempDir, `${jobId}-audio${audioExt}`);
+    audioFilePath = path.join(runDir, `audio${audioExt}`);
     const videoExt = '.mp4';
-    videoFilePath = path.join(tempDir, `${jobId}-video${videoExt}`);
+    videoFilePath = path.join(runDir, `video${videoExt}`);
 
     // 5. Download audio and video in parallel
     console.log(`[Job ${jobId}] Downloading audio and video in parallel...`);
@@ -107,7 +107,7 @@ async function processJob(jobId: string, url: string): Promise<void> {
       try {
         const { extractFrames, createImageGrid } = await import('./frameExtractor.js');
         console.log(`[Job ${jobId}] Extracting frames from video...`);
-        framePaths = await extractFrames(videoFilePath, framesDir, 16);
+        framePaths = await extractFrames(videoFilePath, framesDir, 25);
         
         const localGridPath = path.join(framesDir, 'grid.jpg');
         console.log(`[Job ${jobId}] Creating tiled frame grid at ${localGridPath}...`);
@@ -125,7 +125,7 @@ async function processJob(jobId: string, url: string): Promise<void> {
         try {
           const { selectBestFoodFrame } = await import('./gemini.js');
           console.log(`[Job ${jobId}] Asking Gemini to pick best food shots from grid...`);
-          const bestIndices = await selectBestFoodFrame(framePaths, gridImagePath);
+          const bestIndices = await selectBestFoodFrame(framePaths, gridImagePath, jobId);
           console.log(`[Job ${jobId}] Best frames selected: indices ${bestIndices.join(', ')}`);
 
           // Save best frames permanently as local files
@@ -149,7 +149,7 @@ async function processJob(jobId: string, url: string): Promise<void> {
       : Promise.resolve(null);
 
     const [recipe, selectedImageUrls] = await Promise.all([
-      extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption, gridImagePath),
+      extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption, gridImagePath, jobId),
       frameSelectionPromise,
     ]);
 
@@ -185,7 +185,7 @@ async function processJob(jobId: string, url: string): Promise<void> {
     // 8. Cleanup local audio and video files (frames are kept for inspection)
     const cleanupPaths = [audioFilePath, videoFilePath].filter(Boolean);
     await Promise.allSettled(cleanupPaths.map((p) => fs.unlink(p).catch(() => { })));
-    console.log(`[Job ${jobId}] Temp files cleaned up. Frames kept in: ${framesDir}`);
+    console.log(`[Job ${jobId}] Temp files cleaned up. Run folder: ${runDir}`);
   }
 }
 
