@@ -33,6 +33,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * **Kategorisierung & Standardisierung:** Das Schema erzwingt die Zuordnung von Zutaten in feste englische Enum-Supermarktkategorien (z.B. `PRODUCE`, `DAIRY_EGGS`) und generiert pro Zutat einen `baseName` (z.B. "Zwiebel" statt "rote Zwiebeln") für eine deterministische Gruppierung in der Einkaufsliste.
   * **Bereinigung der Zutatennamen:** Zutatennamen (`name`) werden im Prompt explizit von Mengen, Zahlen und Maßeinheiten gesäubert; diese Daten fließen sauber in die dedizierten Felder `amount` und `unit`.
   * **Dekomposition von Verbundzutaten:** Im Prompt ist geregelt, dass während des Rezept-Videos zubereitete Verbundkomponenten (wie "Smash Burger Patties" oder "selbstgemachtes Pesto") in ihre atomaren Rohbestandteile zersetzt werden müssen (z. B. Rinderhack, Chesterkäse, Basilikum, Olivenöl), anstatt das fertige Zwischenprodukt als Zutat aufzuführen.
+  * **Bevorzugte Einheiten & Unit-System-Steuerung:** Über die Umgebungsvariablen `PREFERRED_TEMPERATURE_UNIT` (z. B. `Celsius`, `Fahrenheit` oder `both`) und `PREFERRED_UNIT_SYSTEM` (z. B. `metric` oder `imperial`) in der `.env`-Datei kann die gewünschte Formatierung für Temperaturen und Zutateneinheiten konfiguriert werden. Der Prompt instruiert Gemini, alle extrahierten Werte entsprechend umzurechnen und zu formatieren.
 * **Auto-Cleanup:** Lokale Audiodateien und Google-API-Dateien werden nach der Verarbeitung sofort gelöscht.
 
 ### 4. Frontend- & PWA-Layer (React & HeroUI)
