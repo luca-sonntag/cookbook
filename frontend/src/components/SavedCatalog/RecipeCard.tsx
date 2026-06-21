@@ -64,12 +64,14 @@ export default function RecipeCard({
     >
       {/* Checkbox overlay in select mode */}
       {isSelectMode && (
-        <div className="absolute top-3 left-3 z-10 w-6 h-6 rounded-lg bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center transition-all">
-          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
-            isSelected ? 'bg-emerald-500 border-emerald-500' : 'border-white/40'
-          }`}>
-            {isSelected && <Check className="w-3 h-3 text-white" />}
-          </div>
+        <div
+          className={`absolute top-4 left-4 z-10 w-7 h-7 rounded-lg flex items-center justify-center transition-all -translate-x-1/2 -translate-y-1/2 border ${
+            isSelected
+              ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
+              : 'bg-black/40 backdrop-blur-sm border-white/30 text-white'
+          }`}
+        >
+          {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
         </div>
       )}
 
