@@ -94,9 +94,9 @@ export default function SavedCatalog({
     const totalTime = prep + cook;
     if (totalTime > 0) {
       if (totalTime < 15) {
-        return language === 'de' ? 'Unter 15 Min.' : '< 15 Min';
+        return t('catalog.under15');
       } else if (totalTime < 30) {
-        return language === 'de' ? 'Unter 30 Min.' : '< 30 Min';
+        return t('catalog.under30');
       }
     }
     return null;
