@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@heroui/react';
-import { Key, ChefHat } from 'lucide-react';
+import { Key, ChefHat, Sparkles, BookOpen, ShoppingCart } from 'lucide-react';
 
 import type { Job } from './types';
 import ThemeToggle from './components/ThemeToggle';
@@ -19,6 +19,7 @@ import { useRecipeExtraction } from './hooks/useRecipeExtraction';
 import { useShoppingList } from './hooks/useShoppingList';
 import { useDialog } from './context/DialogContext';
 import { useI18n } from './context/I18nContext';
+import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 
 export default function App() {
   const dialog = useDialog();
@@ -69,12 +70,19 @@ export default function App() {
     jobStatus,
     jobError,
     recipe,
+    setRecipe,
     url,
     setUrl,
     urlError,
     validateUrl,
     triggerExtraction,
   } = useRecipeExtraction(apiKey, fetchHistory);
+
+  // Mobile back button & swipe gestures for newly extracted recipe details
+  useMobileNavigationBack(activeView === 'extract' && !!recipe, () => {
+    setRecipe(null);
+    setUrl('');
+  });
 
   // Fetch history on load and when API key changes
   useEffect(() => {
@@ -182,38 +190,97 @@ export default function App() {
   const statusDetails = getStatusDetails();
 
   return (
-    <div className="min-h-screen pb-16 flex flex-col items-center transition-colors duration-300">
-      {/* Header Container */}
-      <header className="w-full max-w-2xl px-4 mt-8 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20 text-emerald-400">
-            <ChefHat className="w-6 h-6" />
+    <div className="min-h-screen flex flex-col items-center transition-colors duration-300">
+      {/* Sticky Header Container */}
+      <header className="sticky top-0 z-40 w-full bg-[#f9fafb]/85 dark:bg-[#030712]/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
+        <div className="relative w-full max-w-2xl mx-auto px-4 py-3.5 flex flex-row justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20 text-emerald-400 flex-shrink-0">
+              <ChefHat className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">{t('app.title')}</h1>
+              <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 block">{t('app.subtitle')} ({installStatus})</span>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">{t('app.title')}</h1>
-            <span className="text-xs text-gray-500 dark:text-gray-400">{t('app.subtitle')} ({installStatus})</span>
+
+          {/* Desktop Navigation Tabs (hidden on mobile) */}
+          <div className="hidden md:flex border border-black/10 dark:border-white/10 p-1 rounded-xl bg-black/5 dark:bg-white/5 items-center">
+            <button
+              onClick={() => setActiveView('extract')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeView === 'extract' 
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/10' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{t('app.nav.newRecipe')}</span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveView('history');
+                fetchHistory();
+              }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeView === 'history' 
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/10' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>{t('app.nav.savedRecipes')}</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-colors ${
+                activeView === 'history'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-black/10 dark:bg-white/10 text-gray-600 dark:text-gray-300'
+              }`}>
+                {history.filter(h => h.status === 'completed').length}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveView('shopping-list')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 relative ${
+                activeView === 'shopping-list' 
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/10' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <ShoppingCart className="w-3.5 h-3.5" />
+              <span>{t('app.nav.shoppingList')}</span>
+              {aggregatedList.unchecked.length > 0 && (
+                <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full transition-colors ${
+                  activeView === 'shopping-list'
+                    ? 'bg-white text-emerald-600'
+                    : 'bg-rose-500 text-white'
+                }`}>
+                  {aggregatedList.unchecked.length}
+                </span>
+              )}
+            </button>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="tertiary"
-            className="font-bold text-xs min-w-0 px-2.5 h-9 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all outline-none border-none"
-            onPress={() => setLanguage(language === 'de' ? 'en' : 'de')}
-            aria-label="Change Language"
-          >
-            {language.toUpperCase()}
-          </Button>
-          <ThemeToggle theme={theme} setTheme={setTheme} />
-          <Button
-            isIconOnly
-            variant="tertiary"
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            onPress={() => setShowApiConfig(!showApiConfig)}
-            aria-label="Settings"
-          >
-            <Key className="w-5 h-5" />
-          </Button>
+
+          <div className="flex items-center gap-1.5">
+            <Button
+              size="sm"
+              variant="tertiary"
+              className="font-bold text-xs min-w-0 px-2 h-9 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all outline-none border-none"
+              onPress={() => setLanguage(language === 'de' ? 'en' : 'de')}
+              aria-label="Change Language"
+            >
+              {language.toUpperCase()}
+            </Button>
+            <ThemeToggle theme={theme} setTheme={setTheme} />
+            <Button
+              isIconOnly
+              variant="tertiary"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              onPress={() => setShowApiConfig(!showApiConfig)}
+              aria-label="Settings"
+            >
+              <Key className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -221,44 +288,7 @@ export default function App() {
       <InstallBanner isInstallable={isInstallable} handleInstallClick={handleInstallClick} />
 
       {/* Main content body */}
-      <main className="w-full max-w-2xl px-4 mt-6 flex-1 flex flex-col gap-6">
-        
-        {/* Navigation Tabs */}
-        <div className="flex border border-black/10 dark:border-white/10 p-1 rounded-xl bg-black/5 dark:bg-white/5 w-fit self-center">
-          <button
-            onClick={() => setActiveView('extract')}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-              activeView === 'extract' 
-                ? 'bg-emerald-600 text-white shadow-lg' 
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            {t('app.nav.newRecipe')}
-          </button>
-          <button
-            onClick={() => {
-              setActiveView('history');
-              fetchHistory();
-            }}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-              activeView === 'history' 
-                ? 'bg-emerald-600 text-white shadow-lg' 
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            {t('app.nav.savedRecipes')} ({history.filter(h => h.status === 'completed').length})
-          </button>
-          <button
-            onClick={() => setActiveView('shopping-list')}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-              activeView === 'shopping-list' 
-                ? 'bg-emerald-600 text-white shadow-lg' 
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            {t('app.nav.shoppingList')} {aggregatedList.unchecked.length > 0 && `(${aggregatedList.unchecked.length})`}
-          </button>
-        </div>
+      <main className="w-full max-w-2xl px-4 mt-6 flex-1 flex flex-col gap-6 pb-24 md:pb-8">
 
         {/* API config drawer */}
         {showApiConfig && (
@@ -297,6 +327,10 @@ export default function App() {
                 recipe={recipe} 
                 onAddIngredients={addRecipeIngredients} 
                 reelUrl={url}
+                onBack={() => {
+                  setRecipe(null);
+                  setUrl('');
+                }}
               />
             )}
           </>
@@ -322,6 +356,80 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* Mobile Bottom Navigation Bar */}
+      {(() => {
+        const isRecipeDetailOpen = !!selectedJob || (activeView === 'extract' && !!recipe);
+        const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 md:hidden transition-all duration-300 ease-in-out pb-safe ${
+          isRecipeDetailOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+        }`;
+
+        return (
+          <div className={bottomBarClasses}>
+            <div className="flex justify-around items-center pt-2.5 pb-4 px-2">
+              {/* Extract / New Recipe Tab */}
+              <button
+                onClick={() => setActiveView('extract')}
+                className={`flex-1 flex flex-col items-center justify-center py-1 relative transition-colors ${
+                  activeView === 'extract'
+                    ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Sparkles className="w-5 h-5 mb-0.5" />
+                <span className="text-[10px] tracking-wide">{t('app.nav.newRecipe')}</span>
+                {activeView === 'extract' && (
+                  <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                )}
+              </button>
+
+              {/* Recipes / History Tab */}
+              <button
+                onClick={() => {
+                  setActiveView('history');
+                  fetchHistory();
+                }}
+                className={`flex-1 flex flex-col items-center justify-center py-1 relative transition-colors ${
+                  activeView === 'history'
+                    ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <div className="relative">
+                  <BookOpen className="w-5 h-5 mb-0.5" />
+                </div>
+                <span className="text-[10px] tracking-wide">{t('app.nav.savedRecipes')}</span>
+                {activeView === 'history' && (
+                  <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                )}
+              </button>
+
+              {/* Shopping List Tab */}
+              <button
+                onClick={() => setActiveView('shopping-list')}
+                className={`flex-1 flex flex-col items-center justify-center py-1 relative transition-colors ${
+                  activeView === 'shopping-list'
+                    ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <div className="relative">
+                  <ShoppingCart className="w-5 h-5 mb-0.5" />
+                  {aggregatedList.unchecked.length > 0 && (
+                    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
+                      {aggregatedList.unchecked.length}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] tracking-wide">{t('app.nav.shoppingList')}</span>
+                {activeView === 'shopping-list' && (
+                  <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                )}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
