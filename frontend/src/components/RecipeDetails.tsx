@@ -44,11 +44,11 @@ export default function RecipeDetails({ recipe, onAddIngredients, onDelete }: Re
   const formatTimeValue = (time: any) => {
     if (time === undefined || time === null || time === '') return 'N/A';
     if (typeof time === 'number') {
-      return `${time} ${language === 'de' ? 'Min.' : 'mins'}`;
+      return t('recipe.minutes', { count: time });
     }
     const strTime = String(time).trim();
     if (/^\d+$/.test(strTime)) {
-      return `${strTime} ${language === 'de' ? 'Min.' : 'mins'}`;
+      return t('recipe.minutes', { count: strTime });
     }
     return strTime;
   };
