@@ -1,41 +1,79 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { createClient, SupabaseClient, PostgrestError } from '@supabase/supabase-js';
+import { randomUUID } from 'node:crypto';
 import { config } from './config.js';
-import { Job } from './types.js';
+import type { Job, JobStatus } from './types.js';
 
-// Simple in-memory lock to prevent race conditions during file read/write operations
-let dbLock = Promise.resolve();
+// ── Types ────────────────────────────────────────────────────────────────────
 
-async function runLocked<T>(fn: () => Promise<T>): Promise<T> {
-  const resultPromise = dbLock.then(fn);
-  dbLock = resultPromise.then(
-    () => { },
-    () => { }
-  );
-  return resultPromise;
+/** Row shape as stored in Supabase (snake_case columns). */
+interface JobRow {
+  id: string;
+  url: string;
+  status: string;
+  error: string | null;
+  recipe: unknown;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
-// Utility to generate simple unique IDs
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+// ── Supabase client (lazy singleton) ─────────────────────────────────────────
+
+let _client: SupabaseClient | undefined;
+
+function getClient(): SupabaseClient {
+  // Use service_role key so the queue worker (which has no user JWT) can also operate.
+  // RLS is enforced via explicit .eq('user_id', userId) filters in every query.
+  _client ??= createClient(config.SUPABASE_URL, config.SUPABASE_SECRET_KEY);
+  return _client;
 }
 
-// Ensure database file exists
-export async function initDb(): Promise<void> {
-  return runLocked(async () => {
-    const dbPath = path.resolve(config.DATABASE_PATH);
-    try {
-      await fs.access(dbPath);
-    } catch {
-      // File does not exist, initialize with empty array
-      await fs.writeFile(dbPath, JSON.stringify([], null, 2), 'utf-8');
-    }
-  });
+// ── Error helpers ────────────────────────────────────────────────────────────
+
+/** PostgREST error code for "no rows returned by .single()". */
+const PGRST_NO_ROWS = 'PGRST116';
+
+function isNoRowsError(err: PostgrestError): boolean {
+  return err.code === PGRST_NO_ROWS;
 }
 
-// Helper to normalize older recipe structure
+function wrapError(context: string, err: PostgrestError): Error {
+  return new Error(`${context}: ${err.message}`, { cause: err });
+}
+
+// ── Row ↔ Domain mapping ─────────────────────────────────────────────────────
+
+function rowToJob(row: JobRow): Job {
+  const job: Job = {
+    id: row.id,
+    url: row.url,
+    status: row.status as JobStatus,
+    error: row.error,
+    recipe: row.recipe as Job['recipe'],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+  if (job.recipe) {
+    normalizeRecipe(job.recipe, job.id);
+  }
+  return job;
+}
+
+function jobToRow(updates: Partial<Job>): Partial<JobRow> {
+  const row: Partial<JobRow> = {};
+  if (updates.url !== undefined) row.url = updates.url;
+  if (updates.status !== undefined) row.status = updates.status;
+  if (updates.error !== undefined) row.error = updates.error;
+  if (updates.recipe !== undefined) row.recipe = updates.recipe;
+  if (updates.createdAt !== undefined) row.created_at = updates.createdAt;
+  if (updates.updatedAt !== undefined) row.updated_at = updates.updatedAt;
+  return row;
+}
+
+// ── Recipe normalization ─────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeRecipe(recipe: any, jobId: string): void {
-  if (!recipe) return;
   if (!recipe.id) {
     recipe.id = jobId;
   }
@@ -43,164 +81,145 @@ function normalizeRecipe(recipe: any, jobId: string): void {
     recipe.nutritionalValues = recipe.nutritionalEstimates;
     delete recipe.nutritionalEstimates;
   }
-  if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
-    const needsConversion = recipe.ingredients.length === 0 || 
-      (recipe.ingredients[0] && !Array.isArray(recipe.ingredients[0].items));
+  if (Array.isArray(recipe.ingredients)) {
+    const ingredients = recipe.ingredients as Array<{ items?: unknown[] }>;
+    const needsConversion =
+      ingredients.length === 0 ||
+      (ingredients[0] && !Array.isArray(ingredients[0].items));
     if (needsConversion) {
-      recipe.ingredients = [
-        {
-          name: 'Ingredients',
-          items: recipe.ingredients,
-        },
-      ];
+      recipe.ingredients = [{ name: 'Ingredients', items: ingredients }];
     }
   }
 }
 
-// Read all jobs from file
-async function readJobsRaw(): Promise<Job[]> {
-  const dbPath = path.resolve(config.DATABASE_PATH);
-  try {
-    const data = await fs.readFile(dbPath, 'utf-8');
-    const jobs = JSON.parse(data) as Job[];
-    for (const job of jobs) {
-      if (job.recipe) {
-        normalizeRecipe(job.recipe, job.id);
-      }
-    }
-    return jobs;
-  } catch (err: any) {
-    if (err.code === 'ENOENT') {
-      return [];
-    }
-    throw err;
-  }
-}
-
-// Write all jobs to file atomically
-async function writeJobsRaw(jobs: Job[]): Promise<void> {
-  const dbPath = path.resolve(config.DATABASE_PATH);
-  const tempPath = `${dbPath}.tmp`;
-  await fs.writeFile(tempPath, JSON.stringify(jobs, null, 2), 'utf-8');
-  await fs.rename(tempPath, dbPath);
-}
-
-// Create a new job
-export async function createJob(url: string): Promise<Job> {
-  return runLocked(async () => {
-    const jobs = await readJobsRaw();
-    const now = new Date().toISOString();
-    const newJob: Job = {
-      id: generateId(),
-      url,
-      status: 'pending',
-      error: null,
-      recipe: null,
-      createdAt: now,
-      updatedAt: now,
-    };
-    jobs.push(newJob);
-    await writeJobsRaw(jobs);
-    return newJob;
-  });
-}
-
-// Update an existing job
-export async function updateJob(id: string, updates: Partial<Job>): Promise<void> {
-  return runLocked(async () => {
-    const jobs = await readJobsRaw();
-    const index = jobs.findIndex(j => j.id === id);
-    if (index === -1) {
-      throw new Error(`Job with ID ${id} not found.`);
-    }
-
-    const now = new Date().toISOString();
-    jobs[index] = {
-      ...jobs[index],
-      ...updates,
-      updatedAt: now,
-    };
-    await writeJobsRaw(jobs);
-  });
-}
-
-// Retrieve a job by ID
-export async function getJob(id: string): Promise<Job | null> {
-  return runLocked(async () => {
-    const jobs = await readJobsRaw();
-    const job = jobs.find(j => j.id === id);
-    return job || null;
-  });
-}
-
-// Retrieve the oldest pending job
-export async function getNextPendingJob(): Promise<Job | null> {
-  return runLocked(async () => {
-    const jobs = await readJobsRaw();
-    const pendingJob = jobs.find(j => j.status === 'pending');
-    return pendingJob || null;
-  });
-}
+// ── URL normalization ────────────────────────────────────────────────────────
 
 /**
- * Normalizes a URL for duplicate check comparisons.
- * In dev env (process.env.NODE_ENV !== 'production'), we keep the query string so different queries are not duplicates.
- * In prod env, we strip the query string so the same Reel with different query params is considered a duplicate.
+ * Normalizes a URL for duplicate-check comparisons.
+ * - Dev: keeps query string (different queries ≠ duplicates).
+ * - Prod: strips query string (same Reel with different params = duplicate).
  */
-export function normalizeUrlForComparison(urlStr: string, keepQuery: boolean): string {
-  // Strip protocol and www.
+function normalizeUrlForComparison(urlStr: string, keepQuery: boolean): string {
   let clean = urlStr.replace(/^(https?:\/\/)?(www\.)?/i, '');
-  
-  // Split at query string
-  let [base, ...queryParts] = clean.split('?');
-  
-  // Strip trailing slash from base
-  if (base.endsWith('/')) {
-    base = base.slice(0, -1);
-  }
-  
-  base = base.toLowerCase();
-  
+  const [base, ...queryParts] = clean.split('?');
+  clean = base.endsWith('/') ? base.slice(0, -1) : base;
+  clean = clean.toLowerCase();
   if (keepQuery && queryParts.length > 0) {
-    return `${base}?${queryParts.join('?')}`;
+    return `${clean}?${queryParts.join('?')}`;
   }
-  return base;
+  return clean;
 }
 
-// Retrieve a completed job by URL
-export async function findCompletedJobByUrl(url: string): Promise<Job | null> {
-  return runLocked(async () => {
-    const jobs = await readJobsRaw();
-    const isDev = process.env.NODE_ENV !== 'production';
-    const targetNormalized = normalizeUrlForComparison(url, isDev);
-    const completedJob = jobs.find(j => {
-      if (j.status !== 'completed') return false;
-      return normalizeUrlForComparison(j.url, isDev) === targetNormalized;
-    });
-    return completedJob || null;
-  });
+// ── Public API ───────────────────────────────────────────────────────────────
+
+/** Create a new pending job. */
+export async function createJob(url: string, userId: string): Promise<Job> {
+  const now = new Date().toISOString();
+  const id = randomUUID();
+
+  const { data, error } = await getClient()
+    .from('jobs')
+    .insert({ id, url, status: 'pending', error: null, recipe: null, user_id: userId, created_at: now, updated_at: now })
+    .select()
+    .returns<JobRow>()
+    .single();
+
+  if (error) throw wrapError('Failed to create job', error);
+  return rowToJob(data);
 }
 
-// Retrieve all jobs sorted by creation date (newest first)
-export async function getAllJobs(): Promise<Job[]> {
-  return runLocked(async () => {
-    const jobs = await readJobsRaw();
-    return jobs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  });
+/** Update an existing job by ID. */
+export async function updateJob(id: string, updates: Partial<Job>): Promise<void> {
+  const now = new Date().toISOString();
+  const rowUpdates = { ...jobToRow(updates), updated_at: now };
+
+  const { error } = await getClient()
+    .from('jobs')
+    .update(rowUpdates)
+    .eq('id', id);
+
+  if (error) throw wrapError(`Failed to update job ${id}`, error);
 }
 
-// Delete a job by ID
-export async function deleteJob(id: string): Promise<boolean> {
-  return runLocked(async () => {
-    const jobs = await readJobsRaw();
-    const index = jobs.findIndex(j => j.id === id);
-    if (index === -1) {
-      return false;
-    }
-    jobs.splice(index, 1);
-    await writeJobsRaw(jobs);
-    return true;
-  });
+/** Retrieve a job by ID, or `null` if not found. Scoped to userId when provided. */
+export async function getJob(id: string, userId?: string): Promise<Job | null> {
+  let query = getClient()
+    .from('jobs')
+    .select()
+    .eq('id', id);
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  const { data, error } = await query.returns<JobRow>().single();
+
+  if (error) {
+    if (isNoRowsError(error)) return null;
+    throw wrapError(`Failed to get job ${id}`, error);
+  }
+  return rowToJob(data);
+}
+
+/** Retrieve the oldest pending job (FIFO), or `null` if none. */
+export async function getNextPendingJob(): Promise<Job | null> {
+  const { data, error } = await getClient()
+    .from('jobs')
+    .select()
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .returns<JobRow>()
+    .single();
+
+  if (error) {
+    if (isNoRowsError(error)) return null;
+    throw wrapError('Failed to get next pending job', error);
+  }
+  return rowToJob(data);
+}
+
+/** Find a completed job by URL (with environment-aware normalization), scoped to userId. */
+export async function findCompletedJobByUrl(url: string, userId: string): Promise<Job | null> {
+  const isDev = process.env.NODE_ENV !== 'production';
+  const target = normalizeUrlForComparison(url, isDev);
+
+  const { data, error } = await getClient()
+    .from('jobs')
+    .select()
+    .eq('status', 'completed')
+    .eq('user_id', userId)
+    .returns<JobRow[]>();
+
+  if (error) throw wrapError('Failed to search jobs by URL', error);
+
+  const match = data.find(row => normalizeUrlForComparison(row.url, isDev) === target);
+  return match ? rowToJob(match) : null;
+}
+
+/** Retrieve all jobs for a user, newest first. */
+export async function getAllJobs(userId: string): Promise<Job[]> {
+  const { data, error } = await getClient()
+    .from('jobs')
+    .select()
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .returns<JobRow[]>();
+
+  if (error) throw wrapError('Failed to get all jobs', error);
+  return data.map(rowToJob);
+}
+
+/** Delete a job by ID, scoped to userId. Returns `true` if deleted, `false` if not found. */
+export async function deleteJob(id: string, userId: string): Promise<boolean> {
+  const { error, count } = await getClient()
+    .from('jobs')
+    .delete({ count: 'exact' })
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) throw wrapError(`Failed to delete job ${id}`, error);
+  return (count ?? 0) > 0;
 }
 
 
