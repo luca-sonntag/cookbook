@@ -9,6 +9,9 @@ export interface Config {
   APIFY_TOKEN: string;
   GEMINI_API_KEY: string;
   DATABASE_PATH: string;
+  SUPABASE_URL: string;
+  SUPABASE_PUBLISHABLE_KEY: string;
+  SUPABASE_SECRET_KEY: string;
   GEMINI_MODEL: string;
   GEMINI_TEMPERATURE: number;
   RECIPE_LANGUAGE: string;
@@ -31,6 +34,9 @@ export const config: Config = {
   APIFY_TOKEN: getEnv('APIFY_TOKEN'),
   GEMINI_API_KEY: getEnv('GEMINI_API_KEY'),
   DATABASE_PATH: getEnv('DATABASE_PATH', 'database.json'), // Use database.json as the persistent JSON file store
+  SUPABASE_URL: getEnv('SUPABASE_URL'),
+  SUPABASE_PUBLISHABLE_KEY: getEnv('SUPABASE_PUBLISHABLE_KEY'),
+  SUPABASE_SECRET_KEY: getEnv('SUPABASE_SECRET_KEY'),
   GEMINI_MODEL: getEnv('GEMINI_MODEL', 'gemini-1.5-flash'),
   GEMINI_TEMPERATURE: parseFloat(getEnv('GEMINI_TEMPERATURE', '0')),
   RECIPE_LANGUAGE: getEnv('RECIPE_LANGUAGE', 'German'),
