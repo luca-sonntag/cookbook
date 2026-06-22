@@ -3,7 +3,6 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { config } from './config.js';
-import { initDb } from './db.js';
 import { startQueue, stopQueue } from './queue.js';
 import { apiRouter } from './routes.js';
 
@@ -11,15 +10,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function bootstrap() {
   try {
-    // 1. Initialize the SQLite-like JSON database
-    console.log('Initializing database...');
-    await initDb();
-    console.log('Database initialized successfully.');
-
-    // 2. Start the background queue worker
+    // 1. Start the background queue worker
     startQueue();
 
-    // 3. Create Express app
+    // 2. Create Express app
     const app = express();
 
     app.use(cors());

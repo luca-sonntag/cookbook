@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { createJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob } from './db.js';
-import { requireApiKey } from './auth.js';
+import { requireAuth } from './auth.js';
 
 export const apiRouter = Router();
 
-apiRouter.use(requireApiKey);
+apiRouter.use(requireAuth);
 
 // Regular expression to validate basic Instagram Reel URLs
 // Examples:
@@ -40,8 +40,8 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // Check if job for this URL has already successfully completed
-    const existingJob = await findCompletedJobByUrl(cleanUrl);
+    // Check if job for this URL has already successfully completed (scoped to user)
+    const existingJob = await findCompletedJobByUrl(cleanUrl, req.userId!);
     if (existingJob) {
       res.status(200).json({
         success: true,
@@ -53,7 +53,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     }
 
     // Create a new pending job in the database
-    const job = await createJob(cleanUrl);
+    const job = await createJob(cleanUrl, req.userId!);
 
 
     res.status(202).json({
@@ -87,7 +87,7 @@ apiRouter.get('/jobs/:id', async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const job = await getJob(id);
+    const job = await getJob(id, req.userId!);
 
     if (!job) {
       res.status(404).json({
@@ -124,7 +124,7 @@ apiRouter.get('/jobs/:id', async (req: Request, res: Response): Promise<void> =>
  */
 apiRouter.get('/jobs', async (req: Request, res: Response): Promise<void> => {
   try {
-    const jobs = await getAllJobs();
+    const jobs = await getAllJobs(req.userId!);
     res.status(200).json({
       success: true,
       jobs,
@@ -145,7 +145,7 @@ apiRouter.get('/jobs', async (req: Request, res: Response): Promise<void> => {
 apiRouter.delete('/jobs/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const deleted = await deleteJob(id);
+    const deleted = await deleteJob(id, req.userId!);
     if (!deleted) {
       res.status(404).json({
         success: false,

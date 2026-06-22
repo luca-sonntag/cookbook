@@ -1,25 +1,68 @@
 import { Request, Response, NextFunction } from 'express';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { config } from './config.js';
 
-/**
- * Middleware to require and validate API key.
- * Checks for API Key in:
- * 1. X-API-Key header
- * 2. Authorization Bearer header
- * 3. Query string parameter "apiKey"
- */
-export function requireApiKey(req: Request, res: Response, next: NextFunction): void {
-  const apiKey = req.header('X-API-Key') || 
-                 req.header('Authorization')?.replace(/^Bearer\s+/i, '') || 
-                 req.query.apiKey;
+// Extend Express Request to carry the authenticated user's ID
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string;
+    }
+  }
+}
 
-  if (!apiKey || apiKey !== config.API_KEY) {
+// ── Supabase admin client (service_role) for JWT verification ────────────────
+
+let _adminClient: SupabaseClient | undefined;
+
+function getAdminClient(): SupabaseClient {
+  _adminClient ??= createClient(config.SUPABASE_URL, config.SUPABASE_SECRET_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  return _adminClient;
+}
+
+// ── Middleware ────────────────────────────────────────────────────────────────
+
+/**
+ * Middleware that verifies the Supabase JWT from the Authorization header.
+ * Attaches `req.userId` on success.
+ *
+ * Header format:  Authorization: Bearer <supabase_access_token>
+ */
+export async function requireAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const header = req.header('Authorization');
+  if (!header || !header.startsWith('Bearer ')) {
     res.status(401).json({
       success: false,
-      error: 'Unauthorized: Invalid or missing API Key.',
+      error: 'Unauthorized: Missing or malformed Authorization header. Expected: Bearer <token>',
     });
     return;
   }
 
-  next();
+  const token = header.slice(7); // strip "Bearer "
+
+  try {
+    const { data, error } = await getAdminClient().auth.getUser(token);
+
+    if (error || !data.user) {
+      res.status(401).json({
+        success: false,
+        error: 'Unauthorized: Invalid or expired token.',
+      });
+      return;
+    }
+
+    req.userId = data.user.id;
+    next();
+  } catch {
+    res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Token verification failed.',
+    });
+  }
 }
