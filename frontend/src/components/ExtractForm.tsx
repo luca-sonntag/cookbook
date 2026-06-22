@@ -37,9 +37,9 @@ export default function ExtractForm({
         >
           <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('form.urlLabel')}</Label>
           <div className="relative mt-2">
-            <Input 
-              placeholder={t('form.urlPlaceholder')} 
-              className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-3 pr-10 py-3 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none" 
+            <Input
+              placeholder={t('form.urlPlaceholder')}
+              className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-3 pr-10 py-3 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
               disabled={isPending}
             />
             {url && (

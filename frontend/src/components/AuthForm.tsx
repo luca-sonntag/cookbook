@@ -1,6 +1,6 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Card, Button, Input, TextField, Label } from '@heroui/react';
-import { ChefHat, Mail, Lock, LogIn, UserPlus } from 'lucide-react';
+import { ChefHat } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 
@@ -90,7 +90,7 @@ export default function AuthForm() {
 
           <Button
             type="submit"
-            disabled={submitting}
+            isDisabled={submitting}
             className="w-full bg-emerald-600 text-white font-semibold rounded-xl py-2.5 hover:bg-emerald-700 transition-colors"
           >
             {submitting ? t('auth.submitting') : isSignUp ? t('auth.signUp') : t('auth.signIn')}
