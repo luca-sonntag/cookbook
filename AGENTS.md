@@ -30,6 +30,13 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * Stellt REST-Endpunkte bereit: `GET /api/jobs` (liefert den Extraktionsverlauf des authentifizierten Users) und `DELETE /api/jobs/:id` (löscht ein bestimmtes Rezept des Users).
   * **Eindeutige Identifikation:** Normalisiert Rezepte bei Abfragen und versieht sie mit einer eindeutigen `id` (entspricht der `jobId`), um Kollisionen zwischen Rezepten mit gleichem Titel zu unterbinden.
 * **Frontend-Hosting:** Express dient gleichzeitig als Webserver für die React-Frontend-Assets (`frontend/dist`) und leitet alle Nicht-API-Routen (`*`) zwecks SPA-Routing an die `index.html` weiter.
+* **Sicherheits-Hardening (`src/index.ts`):**
+  * **`helmet`:** Setzt standardmäßige Security-Header (X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security, etc.). `crossOriginResourcePolicy` ist auf `cross-origin` gesetzt, damit `recipe-images` aus anderen Origins geladen werden können. CSP wird nur in Production aktiviert.
+  * **`express-rate-limit`:** Limitiert `/api/*`-Endpunkte auf 100 Requests pro 15-Minuten-Fenster pro IP. Verwendet `standardHeaders: true` für moderne Rate-Limit-Header.
+  * **CORS-Hardening:** In Development permissiv (`http://localhost:5173`), in Production restriktiv über `CORS_ORIGIN` Umgebungsvariable konfigurierbar. Nur `GET`, `POST`, `DELETE` Methoden erlaubt.
+  * **`trust proxy`:** Auf `1` gesetzt für korrekte Rate-Limiting-Erkennung hinter Reverse-Proxies (nginx, Railway, etc.).
+  * **Body-Limit:** `express.json({ limit: '1mb' })` schützt vor Memory-Exhaustion durch große Payloads.
+* **Health-Check (`/health`):** Erweiterter Endpunkt prüft Supabase-Datenbankverbindung via `checkDbHealth()` (HEAD-Request auf `jobs`-Tabelle). Antwortet `200 OK` bei gesunder DB, `503 Service Unavailable` bei Problemen. Liefert `uptime`, `nodeEnv` und `dbConnected`-Status.
 
 ### 3. KI-Layer (Google Gemini)
 
@@ -60,7 +67,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * Mappt über `legacyCategoryMap` alte Rezeptkategorien transparent auf das neue Schema, um Abwärtskompatibilität zu sichern.
       * Definiert das globale Übersetzungs-Wörterbuch (`uiTranslations`) und stellt die Funktion `getTranslation` zur rekursiven Schlüssel-Pfad-Auflösung bereit.
       * **Auth-Übersetzungen:** Enthält Texte für Login, Registrierung, E-Mail-Bestätigung, Abmeldung und Fehlerzustände (DE & EN).
-    * **Supabase Client (`frontend/src/supabase.ts`):** Konfiguriert den Supabase-Client mit der Publishable Key (aus `VITE_SUPABASE_PUBLISHABLE_KEY`). Die Service-Role-Key verlässt niemals das Backend.
+    * **Supabase Client (`frontend/src/supabase.ts`):** Konfiguriert den Supabase-Client mit der Publishable Key (aus `VITE_SUPABASE_PUBLISHABLE_KEY`). Wirft einen Build-Time-Fehler, wenn `VITE_SUPABASE_URL` oder `VITE_SUPABASE_PUBLISHABLE_KEY` fehlen — verhindert silent-failure Deployments. Die Service-Role-Key verlässt niemals das Backend.
     * **Zentralisierte Hooks (`frontend/src/hooks/`):**
       * **`useTheme.ts`:** Steuert das clientseitige Umschalten des Hell- und Dunkelmodus und persistiert die Einstellung im `localStorage`.
       * **`usePwaInstall.ts`:** Kapselt das Abfangen des `beforeinstallprompt`-Events und steuert die Installationslogik.
@@ -136,4 +143,20 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 * **Serverless Ready:** Keine Abhängigkeit von Binär-Tools wie FFmpeg. Geringer Memory-Footprint. Supabase Postgres statt lokaler JSON-Datei.
 * **Einfache Validierung:** Automatisierte Testläufe ermöglichen einfache Systemprüfung.
 * **Windows-Kompatibel:** Kompilierungsfreie Node.js-Architektur ohne native Addons.
+
+---
+
+## 🐳 Deployment & Containerization
+
+* **Multi-Stage Dockerfile:** Zwei-Stufen-Build für minimale Image-Größe. Builder-Stage kompiliert TypeScript (`tsc`) und baut das React-Frontend (`vite build`). Production-Stage kopiert nur `node_modules`, `dist/` und `frontend/dist/` und startet via `node dist/index.js` mit `NODE_ENV=production`.
+* **`.dockerignore`:** Schließt `node_modules`, `dist`, `logs`, `temp-downloads`, `.env`, `.git`, `*.md` und `ngrok-quickstart` vom Build-Kontext aus, um Image-Größe und Build-Zeit zu minimieren.
+* **Build-Skripte (`package.json`):**
+  * `npm run build:frontend` — Baut ausschließlich das React-Frontend.
+  * `npm run build:all` — Baut Frontend und Backend in einem Schritt.
+  * `npm start` — Produktionsstart mit `cross-env NODE_ENV=production`.
+  * `npm run start:dev` — Lokaler Start ohne Production-Flags.
+* **Umgebungsvariablen (`.env.example`):**
+  * `SUPABASE_SECRET_KEY` ersetzt die alte `API_KEY` für den Service-Role-Zugriff im Backend.
+  * `CORS_ORIGIN` (Production) konfiguriert erlaubte Origins für CORS.
+  * `NODE_ENV=production` aktiviert CSP via `helmet` und restriktive CORS-Regeln.
 
