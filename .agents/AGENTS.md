@@ -1,6 +1,8 @@
 # 🚀 Projekt: Instagram Reel Rezept-Extraktor (Google Antigravityx)
 
 > **🔁 Commit-Strategie:** Während JEDER Session musst du kontinuierlich atomic commits machen. Nach jedem abgeschlossenen logischen Änderungsblock (Feature, Fix, Refactor, Datei-Addition) sofort `git add` der betroffenen Dateien und `git commit` mit einer [Conventional Commits](https://www.conventionalcommits.org/) Nachricht (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `test:`). Niemals `git add -A` — nur selektiv die Dateien staggen, die zum aktuellen logischen Change gehören. Siehe Skill `atomic-commits` für vollständige Regeln.
+>
+> **📝 AGENTS.md aktuell halten:** Diese Datei ist das zentrale Wissensdokument des Projekts. Nach JEDER relevanten Code-Änderung (neues Feature, neues Konzept, neue Technologie, Architekturänderung, Refactoring, neue Komponente, neuer Hook, neue Konvention) musst du prüfen, ob die Änderung in `AGENTS.md` dokumentiert werden muss. Ziel ist ein stets aktuelles Gesamtbild aller wichtigen Bereiche: Features, Technologien, Architektur, Konzepte, Konventionen und Komponenten. Halte dich an die bestehende Struktur und den Detaillierungsgrad. Wenn ein Bereich fehlt, lege einen neuen Abschnitt an.
 
 Dieses Projekt ist eine hochoptimierte, automatisierte Webanwendung, die Rezept-Reels von Instagram analysiert, in ein strukturiertes JSON-Format umwandelt und in einem interaktiven, modernen Web-Dashboard anzeigt.
 
