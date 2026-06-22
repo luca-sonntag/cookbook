@@ -222,4 +222,19 @@ export async function deleteJob(id: string, userId: string): Promise<boolean> {
   return (count ?? 0) > 0;
 }
 
+/** Check whether the Supabase database connection is healthy. */
+export async function checkDbHealth(): Promise<boolean> {
+  try {
+    // head: true → HTTP HEAD request, no body transferred
+    // limit 1  → Postgres stops after first row on PK index
+    const { error } = await getClient()
+      .from('jobs')
+      .select('id', { head: true })
+      .limit(1);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 

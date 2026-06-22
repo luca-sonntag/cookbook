@@ -1,12 +1,17 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { config } from './config.js';
 import { startQueue, stopQueue } from './queue.js';
 import { apiRouter } from './routes.js';
+import { checkDbHealth } from './db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 async function bootstrap() {
   try {
@@ -16,8 +21,34 @@ async function bootstrap() {
     // 2. Create Express app
     const app = express();
 
-    app.use(cors());
-    app.use(express.json());
+    // Trust first proxy for rate limiting behind nginx/railway/etc.
+    app.set('trust proxy', 1);
+
+    // Security headers (helmet)
+    app.use(helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // für recipe-images
+      contentSecurityPolicy: isProduction ? undefined : false, // CSP nur in production
+    }));
+
+    // CORS – permissiv in dev, restriktiv in production
+    app.use(cors({
+      origin: isProduction ? (process.env.CORS_ORIGIN || '*') : 'http://localhost:5173',
+      methods: ['GET', 'POST', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+    }));
+
+    // Rate limiting auf /api/ endpoints
+    const apiLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 Minuten
+      max: 100, // max 100 Requests pro IP pro Fenster
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: { success: false, error: 'Too many requests, please try again later.' },
+    });
+    app.use('/api', apiLimiter);
+
+    app.use(express.json({ limit: '1mb' }));
 
     // Serve static files from React build directory
     const frontendDistPath = path.resolve(__dirname, '..', 'frontend', 'dist');
@@ -58,9 +89,15 @@ async function bootstrap() {
     // 4. Register API routes
     app.use('/api', apiRouter);
 
-    // Health check endpoint
-    app.get('/health', (req, res) => {
-      res.json({ status: 'OK', uptime: process.uptime() });
+    // Health check endpoint (with DB connectivity check)
+    app.get('/health', async (_req, res) => {
+      const dbHealthy = await checkDbHealth();
+      res.status(dbHealthy ? 200 : 503).json({
+        status: dbHealthy ? 'OK' : 'degraded',
+        uptime: process.uptime(),
+        nodeEnv: process.env.NODE_ENV || 'development',
+        dbConnected: dbHealthy,
+      });
     });
 
 

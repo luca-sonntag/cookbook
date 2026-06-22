@@ -15,7 +15,6 @@ export interface Config {
   GEMINI_MODEL: string;
   GEMINI_TEMPERATURE: number;
   RECIPE_LANGUAGE: string;
-  API_KEY: string;
   PREFERRED_TEMPERATURE_UNIT: string;
   PREFERRED_UNIT_SYSTEM: string;
 }
@@ -40,7 +39,6 @@ export const config: Config = {
   GEMINI_MODEL: getEnv('GEMINI_MODEL', 'gemini-1.5-flash'),
   GEMINI_TEMPERATURE: parseFloat(getEnv('GEMINI_TEMPERATURE', '0')),
   RECIPE_LANGUAGE: getEnv('RECIPE_LANGUAGE', 'German'),
-  API_KEY: getEnv('API_KEY'),
   PREFERRED_TEMPERATURE_UNIT: getEnv('PREFERRED_TEMPERATURE_UNIT', 'Celsius'),
   PREFERRED_UNIT_SYSTEM: getEnv('PREFERRED_UNIT_SYSTEM', 'metric'),
 };
