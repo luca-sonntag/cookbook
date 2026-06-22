@@ -60,3 +60,15 @@ Good atomic commit boundaries include:
 - [ ] Does the project still build / work after this commit?
 - [ ] Are all related files included (types, tests, docs)?
 - [ ] Are unrelated files excluded from staging?
+
+## Keep AGENTS.md in Sync
+
+After every relevant code change (new feature, new concept, new technology, architecture change, refactoring, new component, new hook, new convention), check whether `AGENTS.md` needs to be updated to reflect the change. This file is the project's central knowledge document and must always present a complete, up-to-date picture of:
+
+- All important features and their implementation details
+- Technologies and libraries in use
+- Architecture decisions and patterns
+- Key concepts and conventions
+- Component and module inventory
+
+When updating `AGENTS.md`, follow the existing structure and level of detail. If a topic area is missing, create a new section. Commit documentation updates as a separate atomic commit (`docs:`) — never mix doc changes with code changes in the same commit.
