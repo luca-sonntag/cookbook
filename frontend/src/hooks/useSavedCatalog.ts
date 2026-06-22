@@ -8,13 +8,15 @@ interface UseSavedCatalogProps {
   setSelectedJob: (job: Job | null) => void;
   onAddIngredients?: (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => void;
   fetchHistory?: () => void;
+  getAccessToken?: () => Promise<string | null>;
 }
 
 export function useSavedCatalog({
   history,
   setSelectedJob,
   onAddIngredients,
-  fetchHistory
+  fetchHistory,
+  getAccessToken
 }: UseSavedCatalogProps) {
   const dialog = useDialog();
   const { t, language } = useI18n();
@@ -309,10 +311,12 @@ export function useSavedCatalog({
 
     const deletePromises = Array.from(selectedIds).map(async (id) => {
       try {
+        const token = getAccessToken ? await getAccessToken() : null;
+        if (!token) return;
         await fetch(`/api/jobs/${id}`, {
           method: 'DELETE',
           headers: {
-            'X-API-Key': localStorage.getItem('recipe_api_key') || 'recipe_extractor_secret_key_12345'
+            'Authorization': `Bearer ${token}`
           }
         });
       } catch (err) {

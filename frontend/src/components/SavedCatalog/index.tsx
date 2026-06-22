@@ -18,6 +18,7 @@ interface SavedCatalogProps {
   handleDeleteJob: (e: React.MouseEvent, id: string) => void;
   onAddIngredients?: (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => void;
   fetchHistory?: () => void;
+  getAccessToken?: () => Promise<string | null>;
   onNavigateToShoppingList?: () => void;
   shoppingListCount?: number;
 }
@@ -29,6 +30,7 @@ export default function SavedCatalog({
   handleDeleteJob,
   onAddIngredients,
   fetchHistory,
+  getAccessToken,
   onNavigateToShoppingList,
   shoppingListCount
 }: SavedCatalogProps) {
@@ -65,7 +67,8 @@ export default function SavedCatalog({
     history,
     setSelectedJob,
     onAddIngredients,
-    fetchHistory
+    fetchHistory,
+    getAccessToken
   });
 
   return (

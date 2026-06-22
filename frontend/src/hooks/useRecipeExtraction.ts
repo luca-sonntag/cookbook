@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import type { Recipe, Job } from '../types';
 import { useI18n } from '../context/I18nContext';
 
-export function useRecipeExtraction(apiKey: string, onExtractionSuccess: () => void) {
+export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: () => void) {
   const { t } = useI18n();
   const [isPending, setIsPending] = useState(false);
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
@@ -28,9 +28,17 @@ export function useRecipeExtraction(apiKey: string, onExtractionSuccess: () => v
   const startPolling = useCallback((id: string) => {
     const interval = setInterval(async () => {
       try {
+        const token = await getAccessToken();
+        if (!token) {
+          clearInterval(interval);
+          setJobStatus('failed');
+          setJobError(t('form.validation.unauthorized'));
+          setIsPending(false);
+          return;
+        }
         const response = await fetch(`/api/jobs/${id}`, {
           headers: {
-            'X-API-Key': apiKey
+            'Authorization': `Bearer ${token}`
           }
         });
         const data = await response.json();
@@ -63,7 +71,7 @@ export function useRecipeExtraction(apiKey: string, onExtractionSuccess: () => v
         setIsPending(false);
       }
     }, 2000);
-  }, [apiKey, onExtractionSuccess, t]);
+  }, [getAccessToken, onExtractionSuccess, t]);
 
   const triggerExtraction = useCallback(async (targetUrl: string) => {
     const cleanUrl = targetUrl.trim();
@@ -75,11 +83,15 @@ export function useRecipeExtraction(apiKey: string, onExtractionSuccess: () => v
     setRecipe(null);
 
     try {
+      const token = await getAccessToken();
+      if (!token) {
+        throw new Error(t('form.validation.unauthorized'));
+      }
       const response = await fetch('/api/extract-recipe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': apiKey
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ url: cleanUrl })
       });
@@ -102,7 +114,7 @@ export function useRecipeExtraction(apiKey: string, onExtractionSuccess: () => v
       setJobError(errorMessage);
       setIsPending(false);
     }
-  }, [apiKey, startPolling, validateUrl, t]);
+  }, [getAccessToken, startPolling, validateUrl, t]);
 
 
   return {

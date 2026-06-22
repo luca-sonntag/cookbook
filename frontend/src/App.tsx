@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@heroui/react';
-import { Key, ChefHat, Sparkles, BookOpen, ShoppingCart } from 'lucide-react';
+import { ChefHat, Sparkles, BookOpen, ShoppingCart, LogOut } from 'lucide-react';
 
 import type { Job } from './types';
 import ThemeToggle from './components/ThemeToggle';
-import ApiConfig from './components/ApiConfig';
 import InstallBanner from './components/InstallBanner';
 import ExtractForm from './components/ExtractForm';
 import ProgressTracker from './components/ProgressTracker';
@@ -12,6 +11,7 @@ import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog/index';
 import ShoppingList from './components/ShoppingList';
+import AuthForm from './components/AuthForm';
 
 import { useTheme } from './hooks/useTheme';
 import { usePwaInstall } from './hooks/usePwaInstall';
@@ -19,16 +19,13 @@ import { useRecipeExtraction } from './hooks/useRecipeExtraction';
 import { useShoppingList } from './hooks/useShoppingList';
 import { useDialog } from './context/DialogContext';
 import { useI18n } from './context/I18nContext';
+import { useAuth } from './context/AuthContext';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 
 export default function App() {
   const dialog = useDialog();
   const { t, language, setLanguage } = useI18n();
-  // Config & Secrets
-  const [apiKey, setApiKey] = useState<string>(() => {
-    return localStorage.getItem('recipe_api_key') || 'recipe_extractor_secret_key_12345';
-  });
-  const [showApiConfig, setShowApiConfig] = useState(false);
+  const { user, loading: authLoading, signOut, getAccessToken } = useAuth();
 
   // History & Multi-view states
   const [history, setHistory] = useState<Job[]>([]);
@@ -48,12 +45,14 @@ export default function App() {
     clearChecked
   } = useShoppingList();
 
-  // Fetch recipe extraction history
+  // Fetch recipe extraction history (using JWT)
   const fetchHistory = useCallback(async () => {
     try {
+      const token = await getAccessToken();
+      if (!token) return;
       const response = await fetch('/api/jobs', {
         headers: {
-          'X-API-Key': apiKey
+          'Authorization': `Bearer ${token}`
         }
       });
       const data = await response.json();
@@ -63,7 +62,7 @@ export default function App() {
     } catch (err) {
       console.error('Failed to fetch history:', err);
     }
-  }, [apiKey]);
+  }, [getAccessToken]);
 
   const {
     isPending,
@@ -76,7 +75,7 @@ export default function App() {
     urlError,
     validateUrl,
     triggerExtraction,
-  } = useRecipeExtraction(apiKey, fetchHistory);
+  } = useRecipeExtraction(getAccessToken, fetchHistory);
 
   // Mobile back button & swipe gestures for newly extracted recipe details
   useMobileNavigationBack(activeView === 'extract' && !!recipe, () => {
@@ -106,10 +105,12 @@ export default function App() {
     }
 
     try {
+      const token = await getAccessToken();
+      if (!token) return;
       const response = await fetch(`/api/jobs/${id}`, {
         method: 'DELETE',
         headers: {
-          'X-API-Key': apiKey
+          'Authorization': `Bearer ${token}`
         }
       });
 
@@ -133,11 +134,6 @@ export default function App() {
         status: 'danger'
       });
     }
-  };
-
-  const saveApiKey = (newKey: string) => {
-    setApiKey(newKey);
-    localStorage.setItem('recipe_api_key', newKey);
   };
 
   // Web Share Target Interceptor
@@ -188,6 +184,19 @@ export default function App() {
   };
 
   const statusDetails = getStatusDetails();
+
+  // ── Auth gate ────────────────────────────────────────────────────────────
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f9fafb] dark:bg-[#030712]">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthForm />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center transition-colors duration-300">
@@ -275,10 +284,10 @@ export default function App() {
               isIconOnly
               variant="tertiary"
               className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              onPress={() => setShowApiConfig(!showApiConfig)}
-              aria-label="Settings"
+              onPress={() => signOut()}
+              aria-label="Sign Out"
             >
-              <Key className="w-5 h-5" />
+              <LogOut className="w-5 h-5" />
             </Button>
           </div>
         </div>
@@ -289,11 +298,6 @@ export default function App() {
 
       {/* Main content body */}
       <main className="w-full max-w-2xl px-4 mt-6 flex-1 flex flex-col gap-6 pb-24 md:pb-8">
-
-        {/* API config drawer */}
-        {showApiConfig && (
-          <ApiConfig apiKey={apiKey} saveApiKey={saveApiKey} setShowApiConfig={setShowApiConfig} />
-        )}
 
         {/* CONDITIONAL RENDERING OF VIEWS */}
         {activeView === 'extract' ? (
@@ -345,6 +349,7 @@ export default function App() {
             handleDeleteJob={handleDeleteJob} 
             onAddIngredients={addRecipeIngredients}
             fetchHistory={fetchHistory}
+            getAccessToken={getAccessToken}
             onNavigateToShoppingList={() => {
               setSelectedJob(null);
               setActiveView('shopping-list');
