@@ -1,0 +1,12 @@
+node_modules
+frontend/node_modules
+dist
+frontend/dist
+logs
+temp-downloads
+.env
+.env.local
+.git
+.gitignore
+*.md
+ngrok-quickstart
