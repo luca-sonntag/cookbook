@@ -22,7 +22,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 
 * **Technologie:** Express.js, TypeScript (ausgeführt über `tsx` / Direct-Node execution), native Node.js 18+ `fetch` API.
 * **Datenbank:** Supabase Postgres (`src/db.ts`) mit Row-Level Security (RLS) über `@supabase/supabase-js`. Alle benutzerbezogenen Queries filtern mit `.eq('user_id', userId)`, um mandantenfähige Isolation zu gewährleisten. Interne Queue-Operationen (`getNextPendingJob`, `updateJob`) arbeiten ohne User-Scoping.
-* **Authentifizierung:** Supabase Auth JWT-Verifikation (`src/auth.ts`). Die Middleware `requireAuth` validiert den `Authorization: Bearer <token>` Header, extrahiert die User-ID via `auth.getUser(token)` und reicht sie als `req.userId` an alle Route-Handler weiter. Der statische `x-api-key` Header wurde vollständig entfernt.
+* **Authentifizierung:** Supabase Auth JWT-Verifikation (`src/auth.ts`). Die Middleware `requireAuth` validiert den `Authorization: Bearer <token>` Header, extrahiert die User-ID via `auth.getUser(token)` und reicht sie als `req.userId` an alle Route-Handler weiter. Der statische `x-api-key` Header wurde vollständig entfernt. Unterstützt sowohl E-Mail/Passwort- als auch Google OAuth-Authentifizierung nahtlos, da beide über standardmäßige Supabase JWTs verifiziert werden.
 * **RLS-Policies:** Die `jobs`-Tabelle ist mit vier RLS-Policies abgesichert: `SELECT`/`INSERT`/`UPDATE`/`DELETE` – alle an `auth.uid() = user_id` gebunden. Der `user_id`-Fremdschlüssel referenziert `auth.users.id`.
 * **Funktion:** Das Backend dient als asynchroner Job-Orchestrator, verwaltet Jobs und lädt Audiodateien temporär herunter.
 * **History, ID-Vergabe & Verwaltung:**
@@ -57,7 +57,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * **Architektur & Modul-Struktur (React Best Practices):**
     * **Schlanker App-Shell (`App.tsx`):** Die Hauptkomponente ist modular gestaltet und delegiert komplexe Zustände an spezialisierte Custom Hooks. Zeigt eine Auth-Gate (`AuthForm`) bei fehlender Session und einen Spinner während des Auth-Ladens. Ohne gültige Supabase-Session ist die gesamte App gesperrt.
     * **Zentralisierte Kontexte (`frontend/src/context/`):**
-      * **`AuthContext.tsx`:** Verwaltet die Supabase Auth Session (`useAuth()`). Stellt `signIn`, `signUp`, `signOut` und `getAccessToken()` bereit. Lauscht auf `onAuthStateChange`-Events und persistiert die Session automatisch im Supabase-Client. Wrappt die gesamte App.
+    * **`AuthContext.tsx`:** Verwaltet die Supabase Auth Session (`useAuth()`). Stellt `signIn`, `signUp`, `signInWithGoogle`, `signOut` und `getAccessToken()` bereit. Lauscht auf `onAuthStateChange`-Events und persistiert die Session automatisch im Supabase-Client. Wrappt die gesamte App.
       * **`DialogContext.tsx`:** Stellt einen globalen Dialog-Service (`useDialog()`) bereit, um native Browser-Dialoge (`confirm` / `alert`) durch moderne, nicht-blockierende HeroUI-Dialoge mit wählbaren Status (z. B. `danger`, `warning`) zu ersetzen.
       * **`I18nContext.tsx`:** Verwaltet den globalen Internationalisierungs-Zustand (Deutsch und Englisch), persistiert die Nutzerwahl im `localStorage` und ermittelt die Standardeinstellung anhand der Browsersprache (`navigator.language`). Stellt die Hook `useI18n()` für dot-notation basierte UI-Übersetzungen (`t()`) mit Variablen-Ersetzung bereit.
     * **Lokalisierung & Übersetzung (`frontend/src/i18n.ts`):**
@@ -80,7 +80,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **`useImageGallery.ts`:** Übernimmt die komplexe Pointer-Mathematik für das horizontale Scrollen, Swipen, Double-Tap-to-Zoom und das freie Panning der Galeriebilder im Vollbildmodus.
       * **`useSavedCatalog.ts`:** Verwaltet die Rezept-Historie inklusive Massenauswahl, Bulk-Delete (mit JWT-Autorisierung), Suchfilter, Tags und Sortierung.
     * **Komponententrennung (`frontend/src/components/`):**
-      * **`AuthForm.tsx`:** Vollbild-Login-/Registrierungsformular mit E-Mail- und Passwortfeldern. Nutzt HeroUI v3 `TextField`-Wrapper mit `onChange` (nicht v2-`onValueChange`). Schaltet zwischen Sign-In und Sign-Up um. Zeigt Success-/Error-Meldungen inline an.
+      * **`AuthForm.tsx`:** Vollbild-Login-/Registrierungsformular mit E-Mail- und Passwortfeldern sowie Google OAuth Integration. Nutzt HeroUI v3 `TextField`-Wrapper mit `onChange` (nicht v2-`onValueChange`). Schaltet zwischen Sign-In und Sign-Up um. Zeigt Success-/Error-Meldungen inline an.
       * **`ThemeToggle.tsx`:** Kontrolliert den clientseitigen Hell- und Dunkelmodus.
       * **`InstallBanner.tsx`:** Kapselt den PWA-Installationshinweis.
       * **`ExtractForm.tsx`:** Formular zur Eingabe und Validierung der Reels-URLs.
