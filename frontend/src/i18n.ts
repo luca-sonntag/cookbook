@@ -235,6 +235,7 @@ export const uiTranslations = {
       checkEmail: 'Bestätigungs-E-Mail gesendet! Bitte überprüfe deinen Posteingang.',
       unexpectedError: 'Ein unerwarteter Fehler ist aufgetreten.',
       signOut: 'Abmelden',
+      signInWithGoogle: 'Mit Google anmelden',
     },
     error: {
       title: 'Extraktion fehlgeschlagen',
@@ -438,6 +439,7 @@ export const uiTranslations = {
       checkEmail: 'Confirmation email sent! Please check your inbox.',
       unexpectedError: 'An unexpected error occurred.',
       signOut: 'Sign Out',
+      signInWithGoogle: 'Sign in with Google',
     },
     error: {
       title: 'Extraction Failed',

@@ -8,6 +8,7 @@ interface AuthState {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
+  signInWithGoogle: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
 }
@@ -53,6 +54,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { needsConfirmation: true };
   }, []);
 
+  const signInWithGoogle = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) return { error: error.message };
+    return {};
+  }, []);
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
   }, []);
@@ -63,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, getAccessToken }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut, getAccessToken }}>
       {children}
     </AuthContext.Provider>
   );
