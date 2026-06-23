@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import type { Job, Ingredient } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
+import { deleteCachedImage } from '../utils/imageStore';
 
 interface UseSavedCatalogProps {
   history: Job[];
@@ -311,6 +312,18 @@ export function useSavedCatalog({
 
     const deletePromises = Array.from(selectedIds).map(async (id) => {
       try {
+        const job = completedJobs.find(j => j.id === id);
+        if (job?.recipe) {
+          const r = job.recipe;
+          const imagesToDelete = r.imageUrls && r.imageUrls.length > 0
+            ? r.imageUrls
+            : (r.imageUrl ? [r.imageUrl] : []);
+          
+          for (const imgUrl of imagesToDelete) {
+            await deleteCachedImage(imgUrl);
+          }
+        }
+
         const token = getAccessToken ? await getAccessToken() : null;
         if (!token) return;
         await fetch(`/api/jobs/${id}`, {

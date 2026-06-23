@@ -21,6 +21,7 @@ import { useDialog } from './context/DialogContext';
 import { useI18n } from './context/I18nContext';
 import { useAuth } from './context/AuthContext';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
+import { deleteCachedImage } from './utils/imageStore';
 
 export default function App() {
   const dialog = useDialog();
@@ -105,6 +106,18 @@ export default function App() {
     }
 
     try {
+      const job = history.find(j => j.id === id);
+      if (job?.recipe) {
+        const r = job.recipe;
+        const imagesToDelete = r.imageUrls && r.imageUrls.length > 0
+          ? r.imageUrls
+          : (r.imageUrl ? [r.imageUrl] : []);
+        
+        for (const imgUrl of imagesToDelete) {
+          await deleteCachedImage(imgUrl);
+        }
+      }
+
       const token = await getAccessToken();
       if (!token) return;
       const response = await fetch(`/api/jobs/${id}`, {
