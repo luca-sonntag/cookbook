@@ -72,6 +72,9 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
       let esc = t.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       if (t.term.length <= 3) {
         esc = `(?<=^|[\\s.,:;!?()\\[\\]{}'"\\-\\/])${esc}(?=$|[\\s.,:;!?()\\[\\]{}'"\\-\\/])`;
+      } else {
+        // Also match parenthetical suffixes like (n), (er) as part of the word
+        esc = `${esc}(?:\\([^)]*\\))?`;
       }
       return esc;
     });
@@ -81,7 +84,13 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
     return (
       <>
         {parts.map((part, index) => {
-          const matched = uniqueTerms.find(t => t.term === part.toLowerCase());
+          const matched = uniqueTerms.find(t => {
+            const lower = part.toLowerCase();
+            if (lower === t.term) return true;
+            // Match term with parenthetical suffix like "Zwiebel(n)", "Tomate(er)"
+            if (lower.startsWith(t.term) && /^\([^)]*\)$/.test(lower.slice(t.term.length))) return true;
+            return false;
+          });
           if (matched) {
             const isIng = matched.type === 'ingredient';
             return (
