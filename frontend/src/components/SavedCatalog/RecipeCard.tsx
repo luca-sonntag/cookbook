@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '@heroui/react';
 import { Clock, Utensils, ShoppingCart, Check, Trash2 } from 'lucide-react';
 import type { Job } from '../../types';
+import CachedImage from '../CachedImage';
 
 // Custom SVG component for Instagram icon
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -79,8 +80,8 @@ export default function RecipeCard({
         {/* Thumbnail Image Container */}
         {r.imageUrl && (
           <div className="h-32 w-full bg-black/5 dark:bg-white/5 relative overflow-hidden">
-            <img
-              src={r.imageUrl.startsWith('/') ? r.imageUrl : `/api/image?url=${encodeURIComponent(r.imageUrl)}`}
+            <CachedImage
+              src={r.imageUrl}
               alt={r.title}
               className="w-full h-full object-cover object-center rounded-t-2xl"
             />

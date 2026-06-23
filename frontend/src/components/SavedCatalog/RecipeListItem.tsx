@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '@heroui/react';
 import { Clock, Utensils, ShoppingCart, Check, Trash2 } from 'lucide-react';
 import type { Job } from '../../types';
+import CachedImage from '../CachedImage';
 
 interface RecipeListItemProps {
   job: Job;
@@ -54,8 +55,8 @@ export default function RecipeListItem({
       {/* Thumbnail Image */}
       {r.imageUrl && (
         <div className="w-16 h-16 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 shrink-0 relative">
-          <img
-            src={r.imageUrl.startsWith('/') ? r.imageUrl : `/api/image?url=${encodeURIComponent(r.imageUrl)}`}
+          <CachedImage
+            src={r.imageUrl}
             alt={r.title}
             className="w-full h-full object-cover object-center"
           />

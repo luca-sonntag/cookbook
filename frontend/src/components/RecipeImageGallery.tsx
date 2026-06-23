@@ -12,6 +12,7 @@ import {
 import type { Recipe } from '../types';
 import { useImageGallery } from '../hooks/useImageGallery';
 import { useI18n } from '../context/I18nContext';
+import CachedImage from './CachedImage';
 
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -116,11 +117,10 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {recipe.imageUrls.map((img, idx) => {
-              const src = img.startsWith('/') ? img : `/api/image?url=${encodeURIComponent(img)}`;
               return (
                 <div key={idx} className="w-full shrink-0 snap-center relative">
-                  <img
-                    src={src}
+                  <CachedImage
+                    src={img}
                     draggable={false}
                     alt={`${recipe.title} - view ${idx + 1}`}
                     className={`w-full h-56 object-cover object-center transition-transform duration-300 ${isDragging ? 'cursor-grabbing' : 'cursor-pointer'
@@ -144,8 +144,8 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
       ) : recipe.imageUrl ? (
         <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5 relative group">
           {overlayButtons}
-          <img
-            src={recipe.imageUrl.startsWith('/') ? recipe.imageUrl : `/api/image?url=${encodeURIComponent(recipe.imageUrl)}`}
+          <CachedImage
+            src={recipe.imageUrl}
             alt={recipe.title}
             className="w-full h-56 object-cover object-center cursor-pointer"
             onClick={() => {
@@ -215,7 +215,6 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
               }}
             >
               {images.map((imgUrl, idx) => {
-                const src = imgUrl.startsWith('/') ? imgUrl : `/api/image?url=${encodeURIComponent(imgUrl)}`;
                 return (
                   <div
                     key={idx}
@@ -224,8 +223,8 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
                       e.stopPropagation();
                     }}
                   >
-                    <img
-                      src={src}
+                    <CachedImage
+                      src={imgUrl}
                       alt={`Fullscreen view ${idx + 1}`}
                       draggable={false}
                       className="max-w-[80%] max-h-[80dvh] object-contain select-none pointer-events-auto"
