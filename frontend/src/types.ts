@@ -5,6 +5,7 @@ export interface Ingredient {
   amount: number;
   unit: string;
   notes?: string;
+  modifier?: string;
   category?: string;
   calories?: number | null;
   protein?: number | null;
@@ -86,6 +87,7 @@ export interface ShoppingListItem {
   recipeTitle?: string;
   checked: boolean;
   notes?: string;
+  modifier?: string;
   createdAt: string;
   category?: string;
 }
@@ -97,6 +99,7 @@ export interface AggregatedShoppingItem {
   amount: number;
   checked: boolean;
   category?: string;
+  modifier?: string;
   sources: { recipeId?: string; recipeTitle?: string; amount: number; unit: string }[];
 }
 

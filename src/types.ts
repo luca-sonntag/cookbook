@@ -5,6 +5,7 @@ export interface Ingredient {
   amount: number;
   unit: string;
   notes?: string;
+  modifier?: string;
   category?: string;
   calories?: number | null;
   protein?: number | null;
