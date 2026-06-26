@@ -68,8 +68,9 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
       self.findIndex(t => t.term === item.term) === index
     );
 
-    const tempPattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*(?:-|bis|to)\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:°[CF]?|Grad|Fahrenheit|Celsius)(?![a-zA-Z0-9])`;
-    const timePattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*(?:-|bis|to)\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:Minuten|Min\\.|Min|Stunden|Std\\.|Std|Sekunden|Sek\\.|Sek|Stunde|Minute|Sekunde|minutes|mins|min\\.|min|hours|hrs|hr\\.|hr|hour|seconds|secs|sec\\.|sec|second)(?![a-zA-Z0-9])`;
+    const rangeSeparator = `(?:-|bis|to|a|al|et|and|or|ve)`;
+    const tempPattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*${rangeSeparator}\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:Fahrenheit|Celsius|stopniach|degrees|stopnie|stopnia|degree|grados|degrés|graden|derece|stopni|grado|degré|graus|gradi|grau|Grad|°[CF]?)(?![a-zA-Z0-9])`;
+    const timePattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*${rangeSeparator}\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:Sekunden|segundos|secondes|Minuten|minutes|minutos|Stunden|godzina|godziny|seconds|secondi|sekunda|seconde|secondo|segundo|sekundy|minuti|dakika|minuts|minuta|minuto|minute|minuty|heures|godzin|stunde|saniye|sekund|second|minut|hours|horas|godz\\.|heure|min\\.|mins|hour|hora|std\\.|godz|uren|saat|sek\\.|secs|sec\\.|sec\\.|seg\\.|min|dk\\.|std|hrs|hr\\.|ore|ora|uur|sek|sec|seg|sn\\.|dk|hr|u\\.|h\\.|sn|u|h)(?![a-zA-Z0-9])`;
 
     const escapedTerms = uniqueTerms.map(t => {
       let esc = t.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
