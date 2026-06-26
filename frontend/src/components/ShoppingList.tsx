@@ -12,8 +12,8 @@ interface ShoppingListProps {
     checked: AggregatedShoppingItem[];
   };
   addCustomItem: (name: string, amount: number, unit: string) => void;
-  toggleItemGroup: (name: string, unit: string, targetChecked: boolean) => void;
-  deleteItemGroup: (name: string, unit: string) => void;
+  toggleItemGroup: (name: string, modifier: string | undefined, unit: string, targetChecked: boolean) => void;
+  deleteItemGroup: (name: string, modifier: string | undefined, unit: string) => void;
   clearAll: () => void;
   clearChecked: () => void;
 }
@@ -42,7 +42,7 @@ export default function ShoppingList({
   const PENDING_CHECK_DELAY_MS = 600;
 
   const getItemKey = (item: AggregatedShoppingItem) =>
-    `${item.baseName || item.name}|${item.unit}`.toLowerCase();
+    `${item.baseName || item.name}|${(item.modifier || '').toLowerCase().trim()}|${item.unit}`.toLowerCase();
 
   const cancelPendingCheck = (key: string) => {
     const timer = pendingTimers.current.get(key);
@@ -79,7 +79,7 @@ export default function ShoppingList({
         next.delete(key);
         return next;
       });
-      toggleItemGroup(item.baseName || item.name, item.unit, true);
+      toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, true);
     }, PENDING_CHECK_DELAY_MS);
 
     pendingTimers.current.set(key, timer);
@@ -99,7 +99,7 @@ export default function ShoppingList({
     const key = getItemKey(item);
     // Cancel any pending check for this item (in case it was scheduled)
     cancelPendingCheck(key);
-    toggleItemGroup(item.baseName || item.name, item.unit, false);
+    toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, false);
   };
 
   // Cleanup all timers on unmount
@@ -320,6 +320,11 @@ export default function ShoppingList({
                                       </span>
                                     )}
                                     <span>{item.name}</span>
+                                    {item.modifier && (
+                                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
+                                        ({item.modifier})
+                                      </span>
+                                    )}
                                   </span>
                                   <div className="flex flex-wrap mt-0.5">
                                     {item.sources.map((src, sIdx) => (
@@ -340,7 +345,7 @@ export default function ShoppingList({
                               </div>
 
                               <button
-                                onClick={() => deleteItemGroup(item.baseName || item.name, item.unit)}
+                                onClick={() => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
                                 className="text-gray-400 hover:text-red-500 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer flex-shrink-0 self-center"
                                 aria-label={t('shopping.deleteItem')}
                               >
@@ -397,11 +402,16 @@ export default function ShoppingList({
                               </span>
                             )}
                             <span>{item.name}</span>
+                            {item.modifier && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
+                                ({item.modifier})
+                              </span>
+                            )}
                           </span>
                         </div>
 
                         <button
-                          onClick={() => deleteItemGroup(item.baseName || item.name, item.unit)}
+                          onClick={() => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
                           className="text-gray-400 hover:text-red-500 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer flex-shrink-0 self-center"
                           aria-label={t('shopping.deleteItem')}
                         >

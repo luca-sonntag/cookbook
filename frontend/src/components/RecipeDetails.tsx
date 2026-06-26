@@ -206,6 +206,7 @@ export default function RecipeDetails({
             amount: scaledAmount,
             unit: ing.unit || '',
             notes: ing.notes,
+            modifier: ing.modifier,
             category: group.name
           });
         }
@@ -240,8 +241,9 @@ export default function RecipeDetails({
         const scaledAmount = formatAmount(ing.amount, ing.unit);
         const amountStr = scaledAmount ? `${scaledAmount} ` : '';
         const unitStr = ing.unit ? `${ing.unit} ` : '';
+        const modifierStr = ing.modifier ? ` (${ing.modifier})` : '';
         const noteStr = ing.notes ? ` (${ing.notes})` : '';
-        md += `- ${amountStr}${unitStr}${ing.name}${noteStr}\n`;
+        md += `- ${amountStr}${unitStr}${ing.name}${modifierStr}${noteStr}\n`;
       });
       if (recipe.ingredients.length > 1) {
         md += `\n`;
@@ -509,6 +511,11 @@ export default function RecipeDetails({
                               <span className="text-xs text-red-500/70 line-through mx-1.5">{ing.replacedOriginal}</span>
                             )}
                             <span>{name}</span>
+                            {ing.modifier && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
+                                ({ing.modifier})
+                              </span>
+                            )}
                             {showIngredientNutrition && (() => {
                               const parts = [];
                               if (ing.calories) parts.push(`${Math.round(ing.calories * scaleFactor)} kcal`);

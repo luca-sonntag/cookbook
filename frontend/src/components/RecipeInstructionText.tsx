@@ -29,8 +29,9 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
       const scaledAmount = formatAmount(ing.amount, ing.unit);
       const amountStr = scaledAmount ? `${scaledAmount} ` : '';
       const unitStr = ing.unit ? `${ing.unit} ` : '';
+      const modifierStr = ing.modifier ? ` (${ing.modifier})` : '';
       const noteStr = ing.notes ? ` (${ing.notes})` : '';
-      let info = `${ing.name}`.trim();
+      let info = `${ing.name}${modifierStr}`.trim();
       if (noteStr) {
         info += ` ,${noteStr}`;
       }

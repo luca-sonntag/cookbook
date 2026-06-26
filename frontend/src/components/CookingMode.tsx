@@ -157,7 +157,14 @@ export default function CookingMode({
                   <li key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg bg-white/50 dark:bg-black/35 border border-black/5 dark:border-white/5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
                     <span className="font-semibold text-emerald-600 dark:text-emerald-400">{amountStr}{unitStr}</span>
-                    <span className="text-gray-700 dark:text-gray-300">{ing.name}</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {ing.name}
+                      {ing.modifier && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1 font-normal">
+                          ({ing.modifier})
+                        </span>
+                      )}
+                    </span>
                   </li>
                 );
               })}
