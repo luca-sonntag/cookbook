@@ -94,7 +94,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
             return (
               <span
                 key={index}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded text-xs font-semibold bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 border border-orange-200/60 dark:border-orange-900/30 align-middle transition-colors hover:bg-orange-100/50 dark:hover:bg-orange-900/40"
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 mx-0.5 rounded-full text-xs font-semibold bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 border border-orange-200/60 dark:border-orange-900/30 align-middle transition-colors hover:bg-orange-100/50 dark:hover:bg-orange-900/40"
               >
                 <Thermometer className="w-3 h-3 text-orange-500 dark:text-orange-400" />
                 {part}
@@ -108,7 +108,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
             return (
               <span
                 key={index}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded text-xs font-semibold bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/30 align-middle transition-colors hover:bg-blue-100/50 dark:hover:bg-blue-900/40"
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 mx-0.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/30 align-middle transition-colors hover:bg-blue-100/50 dark:hover:bg-blue-900/40"
               >
                 <Clock className="w-3 h-3 text-blue-500 dark:text-blue-400" />
                 {part}
