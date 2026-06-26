@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Popover } from '@heroui/react';
+import { Thermometer, Clock } from 'lucide-react';
 import type { Recipe } from '../types';
 import { useI18n } from '../context/I18nContext';
 
@@ -67,7 +68,8 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
       self.findIndex(t => t.term === item.term) === index
     );
 
-    if (uniqueTerms.length === 0) return <span>{text}</span>;
+    const tempPattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*(?:-|bis|to)\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:°[CF]?|Grad|Fahrenheit|Celsius)(?![a-zA-Z0-9])`;
+    const timePattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*(?:-|bis|to)\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:Minuten|Min\\.|Min|Stunden|Std\\.|Std|Sekunden|Sek\\.|Sek|Stunde|Minute|Sekunde|minutes|mins|min\\.|min|hours|hrs|hr\\.|hr|hour|seconds|secs|sec\\.|sec|second)(?![a-zA-Z0-9])`;
 
     const escapedTerms = uniqueTerms.map(t => {
       let esc = t.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -79,12 +81,41 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
       }
       return esc;
     });
-    const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
+
+    const regex = new RegExp(`(${[tempPattern, timePattern, ...escapedTerms].join('|')})`, 'gi');
 
     const parts = text.split(regex);
     return (
       <>
         {parts.map((part, index) => {
+          // Check for Temperature match
+          const isTemp = new RegExp(`^${tempPattern}$`, 'i').test(part);
+          if (isTemp) {
+            return (
+              <span
+                key={index}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded text-xs font-semibold bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 border border-orange-200/60 dark:border-orange-900/30 align-middle transition-colors hover:bg-orange-100/50 dark:hover:bg-orange-900/40"
+              >
+                <Thermometer className="w-3 h-3 text-orange-500 dark:text-orange-400" />
+                {part}
+              </span>
+            );
+          }
+
+          // Check for Timespan match
+          const isTime = new RegExp(`^${timePattern}$`, 'i').test(part);
+          if (isTime) {
+            return (
+              <span
+                key={index}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded text-xs font-semibold bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/30 align-middle transition-colors hover:bg-blue-100/50 dark:hover:bg-blue-900/40"
+              >
+                <Clock className="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                {part}
+              </span>
+            );
+          }
+
           const matched = uniqueTerms.find(t => {
             const lower = part.toLowerCase();
             if (lower === t.term) return true;
