@@ -69,7 +69,7 @@ const recipeSchema = {
               properties: {
                 name: {
                   type: FunctionDeclarationSchemaType.STRING,
-                  description: 'Name of the ingredient, cleaned of quantities, numbers, and units (e.g., use "Zwiebel, frisch" instead of "1 rote Zwiebel"). If a composite element (e.g. "selbstgemachtes Pesto", "Knoblauch-Dip") is prepared during the recipe, you MUST list the raw ingredients individually in the ingredients list instead.',
+                  description: 'The clean name of the ingredient, completely stripped of quantities, numbers, units, and modifiers/specifications/processing states (e.g. use "Frischkäse" instead of "Leichter Frischkäse", "Butter" instead of "Leichte Butter", "Parmesan" instead of "Parmesan, gerieben", "Hähnchenschenkel" instead of "Hähnchenschenkel, gewürfelt"). Adjectives/specifications/states like "leicht", "mager", "gerieben", "gewürfelt", "ohne Knochen" MUST be moved to the "modifier" field. If a composite element is prepared during the recipe, list its raw ingredients individually.',
                 },
                 baseName: {
                   type: FunctionDeclarationSchemaType.STRING,
@@ -90,6 +90,10 @@ const recipeSchema = {
                 notes: {
                   type: FunctionDeclarationSchemaType.STRING,
                   description: 'Optional preparation notes specific to this ingredient.',
+                },
+                modifier: {
+                  type: FunctionDeclarationSchemaType.STRING,
+                  description: 'Optional specification, adjective, attribute, or processing state of the ingredient (e.g. "leicht", "mager", "gerieben", "gewürfelt", "ohne Knochen und Haut"). Keep it clean and short, in the recipe language.',
                 },
                 calories: {
                   type: FunctionDeclarationSchemaType.INTEGER,
