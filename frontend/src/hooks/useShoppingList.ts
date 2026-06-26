@@ -34,6 +34,7 @@ export function useShoppingList() {
         id: `${recipeId}-${encodeURIComponent(ing.name)}-${idx}-${Date.now()}`,
         name: ing.name,
         baseName: ing.baseName,
+        modifier: ing.modifier,
         amount: ing.amount || 0,
         unit: ing.unit || '',
         recipeId,
@@ -66,14 +67,16 @@ export function useShoppingList() {
   };
 
   // Toggle check state of an aggregated group
-  const toggleItemGroup = (groupKeyName: string, unit: string, targetChecked: boolean) => {
+  const toggleItemGroup = (groupKeyName: string, modifier: string | undefined, unit: string, targetChecked: boolean) => {
     const keyName = groupKeyName.toLowerCase().trim();
+    const keyModifier = (modifier || '').toLowerCase().trim();
     const keyUnit = unit.toLowerCase().trim();
 
     saveList(prevList =>
       prevList.map(item => {
         const matchName = (item.baseName || item.name).toLowerCase().trim() === keyName;
-        if (matchName && item.unit.toLowerCase().trim() === keyUnit) {
+        const matchModifier = (item.modifier || '').toLowerCase().trim() === keyModifier;
+        if (matchName && matchModifier && item.unit.toLowerCase().trim() === keyUnit) {
           return { ...item, checked: targetChecked };
         }
         return item;
@@ -82,15 +85,17 @@ export function useShoppingList() {
   };
 
   // Delete all items of an aggregated group
-  const deleteItemGroup = (groupKeyName: string, unit: string) => {
+  const deleteItemGroup = (groupKeyName: string, modifier: string | undefined, unit: string) => {
     const keyName = groupKeyName.toLowerCase().trim();
+    const keyModifier = (modifier || '').toLowerCase().trim();
     const keyUnit = unit.toLowerCase().trim();
 
     saveList(prevList =>
       prevList.filter(item => {
         const matchName = (item.baseName || item.name).toLowerCase().trim() === keyName;
+        const matchModifier = (item.modifier || '').toLowerCase().trim() === keyModifier;
         const matchUnit = item.unit.toLowerCase().trim() === keyUnit;
-        return !(matchName && matchUnit);
+        return !(matchName && matchModifier && matchUnit);
       })
     );
   };
@@ -112,7 +117,7 @@ export function useShoppingList() {
 
     shoppingList.forEach(item => {
       const groupKeyName = item.baseName || item.name;
-      const key = `${groupKeyName.toLowerCase().trim()}|${item.unit.toLowerCase().trim()}`;
+      const key = `${groupKeyName.toLowerCase().trim()}|${(item.modifier || '').toLowerCase().trim()}|${item.unit.toLowerCase().trim()}`;
       const targetMap = item.checked ? checkedMap : uncheckedMap;
 
       const existing = targetMap.get(key);
@@ -141,6 +146,7 @@ export function useShoppingList() {
         targetMap.set(key, {
           name: item.name, // Keep the display name of the first item
           baseName: item.baseName,
+          modifier: item.modifier,
           unit: item.unit,
           amount: item.amount,
           checked: item.checked,
