@@ -3,9 +3,10 @@ import { createWriteStream } from 'fs';
 import path from 'path';
 import https from 'https';
 import http from 'http';
-import { getNextPendingJob, updateJob } from './db.js';
+import { getNextPendingJob, updateJob, getJob } from './db.js';
 import { scrapeReel } from './apify.js';
-import { extractRecipeFromAudio } from './gemini.js';
+import { extractRecipeFromAudio, remixRecipe } from './gemini.js';
+import type { Job } from './types.js';
 
 let isRunning = false;
 let workerInterval: NodeJS.Timeout | null = null;
@@ -61,7 +62,9 @@ async function downloadFile(url: string, destPath: string): Promise<string> {
 /**
  * Processes a single job end-to-end.
  */
-async function processJob(jobId: string, url: string): Promise<void> {
+async function processJob(job: Job): Promise<void> {
+  const jobId = job.id;
+  const url = job.url;
   const safeTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const runDir = path.resolve('logs', `run-${safeTimestamp}_${jobId}`);
   const framesDir = path.join(runDir, 'frames');
@@ -69,6 +72,28 @@ async function processJob(jobId: string, url: string): Promise<void> {
   let videoFilePath = '';
 
   try {
+    if (job.parentJobId) {
+      console.log(`[Job ${jobId}] Starting remix processing...`);
+      await updateJob(jobId, { status: 'processing' });
+      await fs.mkdir(runDir, { recursive: true });
+
+      const parentJob = await getJob(job.parentJobId);
+      if (!parentJob || !parentJob.recipe) {
+        throw new Error('Parent job or recipe not found for remix.');
+      }
+
+      console.log(`[Job ${jobId}] Requesting remix from Gemini...`);
+      const recipe = await remixRecipe(parentJob.recipe, job.prompt || '', runDir);
+      
+      recipe.id = jobId;
+      recipe.imageUrl = parentJob.recipe.imageUrl;
+      recipe.imageUrls = parentJob.recipe.imageUrls;
+      recipe.instagramHandle = parentJob.recipe.instagramHandle;
+
+      await updateJob(jobId, { status: 'completed', recipe, error: null });
+      return;
+    }
+
     // 1. Mark job as scraping
     console.log(`[Job ${jobId}] Starting scraping for ${url}...`);
     await updateJob(jobId, { status: 'scraping' });
@@ -202,7 +227,7 @@ async function workerTick(): Promise<void> {
   try {
     const job = await getNextPendingJob();
     if (job) {
-      await processJob(job.id, job.url);
+      await processJob(job);
     }
   } catch (error: any) {
     console.error('Error in worker queue tick:', error.message);

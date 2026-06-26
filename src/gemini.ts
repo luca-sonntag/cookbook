@@ -75,6 +75,10 @@ const recipeSchema = {
                   type: FunctionDeclarationSchemaType.STRING,
                   description: 'The core standard noun in singular form used as a database key to group similar ingredients (e.g. if name is "rote Zwiebeln", baseName is "Zwiebel").',
                 },
+                replacedOriginal: {
+                  type: FunctionDeclarationSchemaType.STRING,
+                  description: 'If you replaced an ingredient from the original recipe during a remix, provide the original ingredient name here so it can be crossed out.',
+                },
                 amount: {
                   type: FunctionDeclarationSchemaType.NUMBER,
                   description: 'The numeric quantity of the ingredient.',
@@ -549,5 +553,103 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
         console.error(`Failed to clean up file ${uploadResult.file.name} from Gemini File API:`, err.message);
       }
     }
+  }
+}
+
+/**
+ * Takes an existing recipe and a user prompt, and asks Gemini to remix the recipe.
+ */
+export async function remixRecipe(
+  parentRecipe: Recipe,
+  remixPrompt: string,
+  logDir?: string
+): Promise<Recipe> {
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+  let rawOutput: string | undefined;
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: config.GEMINI_MODEL,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: recipeSchema,
+        temperature: config.GEMINI_TEMPERATURE,
+      } as any,
+    });
+
+    const prompt = `You are a creative professional chef. You are provided with an existing recipe in JSON format and a user's request for how to modify (remix) it (e.g. "make it vegan", "low calorie", or custom instructions).
+Your task is to modify the recipe logically and culinarily correctly based on the request.
+
+Important Constraints:
+1. Ingredient Replacement: If you swap ingredients (e.g. beef -> tofu), you MUST set the "replacedOriginal" field on the new ingredient to the exact name of the original ingredient that was removed (e.g. "replacedOriginal": "Rinderhackfleisch").
+2. Instruction Update: If you change ingredients, you MUST update the cooking instructions to match the new ingredients (e.g., cooking time for tofu is different from beef).
+3. Title Update: Modify the title of the recipe to reflect the changes (e.g. add "(Vegan Remix)").
+4. Language & Format: Keep the output language the same as the original recipe (${config.RECIPE_LANGUAGE}). Follow the schema strictly.
+
+User's Remix Request:
+"${remixPrompt}"
+
+Original Recipe JSON:
+${JSON.stringify(parentRecipe, null, 2)}`;
+
+    const result = await model.generateContent([prompt]);
+    rawOutput = result.response.text();
+    if (!rawOutput) {
+      throw new Error('Gemini returned an empty response.');
+    }
+
+    const rawRecipe = JSON.parse(rawOutput);
+    const recipe: Recipe = rawRecipe;
+
+    if (rawRecipe.hasExplicitNutritionalValues === false) {
+      delete recipe.nutritionalValues;
+    }
+    delete (recipe as any).hasExplicitNutritionalValues;
+
+    const usageMeta = result.response.usageMetadata;
+    const tokenUsage: TokenUsage | undefined = usageMeta
+      ? {
+        promptTokens: usageMeta.promptTokenCount ?? 0,
+        candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+        totalTokens: usageMeta.totalTokenCount ?? 0,
+      }
+      : undefined;
+    const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
+
+    await writeGeminiLog({
+      timestamp,
+      requestType: 'remix_recipe',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: true,
+      input: {
+        remixPrompt,
+        parentRecipeId: parentRecipe.id,
+      },
+      rawOutput,
+      parsedOutput: recipe,
+      tokenUsage,
+      costEstimate,
+      logDir,
+    });
+
+    return recipe;
+  } catch (err: any) {
+    await writeGeminiLog({
+      timestamp,
+      requestType: 'remix_recipe',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: false,
+      error: err?.message ?? String(err),
+      input: {
+        remixPrompt,
+        parentRecipeId: parentRecipe.id,
+      },
+      rawOutput,
+      logDir,
+    });
+    throw err;
   }
 }

@@ -350,6 +350,7 @@ export default function App() {
                 }}
                 onNavigateToShoppingList={() => setActiveView('shopping-list')}
                 shoppingListCount={aggregatedList.unchecked.length}
+                onRemixSuccess={(newRecipe) => setRecipe(newRecipe)}
               />
             )}
           </>
@@ -368,6 +369,14 @@ export default function App() {
               setActiveView('shopping-list');
             }}
             shoppingListCount={aggregatedList.unchecked.length}
+            onRemixSuccess={(newRecipe) => {
+              fetchHistory();
+              // To immediately show the new recipe, we can switch to extraction view
+              setRecipe(newRecipe);
+              setUrl('');
+              setActiveView('extract');
+              setSelectedJob(null);
+            }}
           />
         ) : (
           /* SHOPPING LIST TAB */

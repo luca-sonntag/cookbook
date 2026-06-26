@@ -32,6 +32,7 @@ import RecipeImageGallery from './RecipeImageGallery';
 import RecipeInstructionText from './RecipeInstructionText';
 import CookingMode from './CookingMode';
 import AiNotice from './AiNotice';
+import RemixModal from './RemixModal';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
@@ -42,6 +43,7 @@ interface RecipeDetailsProps {
   onBack?: () => void;
   onNavigateToShoppingList?: () => void;
   shoppingListCount?: number;
+  onRemixSuccess?: (newRecipe: Recipe) => void;
 }
 
 export default function RecipeDetails({
@@ -52,7 +54,8 @@ export default function RecipeDetails({
   createdAt,
   onBack,
   onNavigateToShoppingList,
-  shoppingListCount
+  shoppingListCount,
+  onRemixSuccess
 }: RecipeDetailsProps) {
   const dialog = useDialog();
   const { t, translateCategory, language } = useI18n();
@@ -101,6 +104,7 @@ export default function RecipeDetails({
   const [isCopied, setIsCopied] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRemixModalOpen, setIsRemixModalOpen] = useState(false);
 
   // Cooking Mode states
   const [isCookingMode, setIsCookingMode] = useState(false);
@@ -501,6 +505,9 @@ export default function RecipeDetails({
                           <span className={`text-sm select-none transition-all ${isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
                             }`}>
                             <span className="font-semibold text-emerald-600 dark:text-emerald-400">{amountStr}{unitStr}</span>
+                            {ing.replacedOriginal && (
+                              <span className="text-xs text-red-500/70 line-through mx-1.5">{ing.replacedOriginal}</span>
+                            )}
                             <span>{name}</span>
                             {showIngredientNutrition && (() => {
                               const parts = [];
@@ -707,6 +714,20 @@ export default function RecipeDetails({
                 <span>{t('recipe.startCooking')}</span>
               </Button>
             )}
+
+            {/* Remix Button */}
+            {recipe.id && onRemixSuccess && (
+              <>
+                <div className="w-[1px] h-5 bg-black/10 dark:bg-white/10" />
+                <button
+                  onClick={() => setIsRemixModalOpen(true)}
+                  className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none border-none group"
+                  title="Recipe Remix"
+                >
+                  <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -720,6 +741,16 @@ export default function RecipeDetails({
           checkedSteps={checkedSteps}
           toggleStep={toggleStep}
           formatAmount={formatAmount}
+        />
+      )}
+
+      {/* Remix Modal */}
+      {recipe.id && onRemixSuccess && (
+        <RemixModal 
+          isOpen={isRemixModalOpen} 
+          onOpenChange={setIsRemixModalOpen} 
+          recipeId={recipe.id}
+          onRemixSuccess={onRemixSuccess}
         />
       )}
     </article>
