@@ -108,12 +108,12 @@ export default function RecipeCard({
             {/* KI Tag Badges Overlays */}
             <div className="absolute top-2 right-2 flex flex-col gap-1 z-[5]">
               {durationBadge && (
-                <span className="bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm select-none border border-white/5 shadow-sm">
+                <span className="bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm select-none border border-white/5 shadow-sm whitespace-nowrap">
                   {durationBadge}
                 </span>
               )}
               {recipeTags.map((tag: string, idx: number) => (
-                <span key={idx} className="bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm select-none border border-white/5 shadow-sm">
+                <span key={idx} className="bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm select-none border border-white/5 shadow-sm whitespace-nowrap">
                   {tag}
                 </span>
               ))}

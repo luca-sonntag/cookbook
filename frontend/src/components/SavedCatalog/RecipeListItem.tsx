@@ -71,12 +71,12 @@ export default function RecipeListItem({
           </h4>
           {/* Tag pills (1 in compact view to save space) */}
           {durationBadge && (
-            <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none">
+            <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none whitespace-nowrap">
               {durationBadge}
             </span>
           )}
           {recipeTags.slice(0, 1).map((tag: string, idx: number) => (
-            <span key={idx} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none">
+            <span key={idx} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none whitespace-nowrap">
               {tag}
             </span>
           ))}
