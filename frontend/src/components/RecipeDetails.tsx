@@ -677,7 +677,9 @@ export default function RecipeDetails({
                 {recipe.tips.map((tip, idx) => (
                   <li key={idx} className="flex items-start gap-2.5 leading-normal">
                     <span className="bg-emerald-500/10 text-emerald-500 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold border border-emerald-500/20">{idx + 1}</span>
-                    <span>{tip}</span>
+                    <span>
+                      <RecipeInstructionText text={tip} recipe={recipe} formatAmount={formatAmount} />
+                    </span>
                   </li>
                 ))}
               </ul>
