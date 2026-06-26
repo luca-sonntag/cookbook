@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Card, Button } from '@heroui/react';
 import { ShoppingCart, Plus, Trash2, Check, X } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../types';
@@ -32,6 +32,84 @@ export default function ShoppingList({
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [unit, setUnit] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const addFormRef = useRef<HTMLDivElement>(null);
+
+  // Pending-check state: items that have been clicked but not yet moved to "in cart"
+  const [pendingChecks, setPendingChecks] = useState<Set<string>>(new Set());
+  const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  const PENDING_CHECK_DELAY_MS = 600;
+
+  const getItemKey = (item: AggregatedShoppingItem) =>
+    `${item.baseName || item.name}|${item.unit}`.toLowerCase();
+
+  const cancelPendingCheck = (key: string) => {
+    const timer = pendingTimers.current.get(key);
+    if (timer) {
+      clearTimeout(timer);
+      pendingTimers.current.delete(key);
+    }
+    setPendingChecks((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  };
+
+  const schedulePendingCheck = (key: string, item: AggregatedShoppingItem) => {
+    // Cancel any existing timer for this key
+    const existing = pendingTimers.current.get(key);
+    if (existing) clearTimeout(existing);
+
+    // Mark as pending (visual checked state)
+    setPendingChecks((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+
+    // After delay, actually move to "in cart"
+    const timer = setTimeout(() => {
+      pendingTimers.current.delete(key);
+      setPendingChecks((prev) => {
+        if (!prev.has(key)) return prev;
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+      toggleItemGroup(item.baseName || item.name, item.unit, true);
+    }, PENDING_CHECK_DELAY_MS);
+
+    pendingTimers.current.set(key, timer);
+  };
+
+  const handleUncheckedClick = (item: AggregatedShoppingItem) => {
+    const key = getItemKey(item);
+    if (pendingChecks.has(key)) {
+      // Already pending — clicking again cancels the check
+      cancelPendingCheck(key);
+      return;
+    }
+    schedulePendingCheck(key, item);
+  };
+
+  const handleCheckedClick = (item: AggregatedShoppingItem) => {
+    const key = getItemKey(item);
+    // Cancel any pending check for this item (in case it was scheduled)
+    cancelPendingCheck(key);
+    toggleItemGroup(item.baseName || item.name, item.unit, false);
+  };
+
+  // Cleanup all timers on unmount
+  useEffect(() => {
+    const timers = pendingTimers.current;
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
+    };
+  }, []);
 
   // Quick unit suggestions
   const suggestions = uiTranslations[language].shopping.suggestionsList;
@@ -99,70 +177,74 @@ export default function ShoppingList({
   }, [aggregatedList.unchecked]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 relative">
       {/* Add Custom Item Form */}
-      <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5">
-        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
-          <Plus className="w-4 h-4 text-emerald-500" />
-          <span>{t('shopping.addTitle')}</span>
-        </h3>
+      {showAddForm && (
+        <div ref={addFormRef}>
+        <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5">
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
+            <Plus className="w-4 h-4 text-emerald-500" />
+            <span>{t('shopping.addTitle')}</span>
+          </h3>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div className="grid grid-cols-12 gap-2">
-            <div className="col-span-6 md:col-span-6">
-              <input
-                type="text"
-                placeholder={t('shopping.placeholderName')}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                required
-              />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <div className="grid grid-cols-12 gap-2">
+              <div className="col-span-6 md:col-span-6">
+                <input
+                  type="text"
+                  placeholder={t('shopping.placeholderName')}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                  required
+                />
+              </div>
+              <div className="col-span-3 md:col-span-3">
+                <input
+                  type="text"
+                  placeholder={t('shopping.placeholderAmount')}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+              <div className="col-span-3 md:col-span-3">
+                <input
+                  type="text"
+                  placeholder={t('shopping.placeholderUnit')}
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
             </div>
-            <div className="col-span-3 md:col-span-3">
-              <input
-                type="text"
-                placeholder={t('shopping.placeholderAmount')}
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-              />
-            </div>
-            <div className="col-span-3 md:col-span-3">
-              <input
-                type="text"
-                placeholder={t('shopping.placeholderUnit')}
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-              />
-            </div>
-          </div>
 
-          {/* Quick suggestions */}
-          <div className="flex flex-wrap gap-1.5 items-center mt-1">
-            <span className="text-[10px] text-gray-500 dark:text-gray-400 mr-1">{t('shopping.suggestions')}</span>
-            {suggestions.map((sug) => (
-              <button
-                key={sug}
-                type="button"
-                onClick={() => setUnit(sug)}
-                className="text-[10px] px-2 py-0.5 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-colors cursor-pointer"
-              >
-                {sug}
-              </button>
-            ))}
-          </div>
+            {/* Quick suggestions */}
+            <div className="flex flex-wrap gap-1.5 items-center mt-1">
+              <span className="text-[10px] text-gray-500 dark:text-gray-400 mr-1">{t('shopping.suggestions')}</span>
+              {suggestions.map((sug) => (
+                <button
+                  key={sug}
+                  type="button"
+                  onClick={() => setUnit(sug)}
+                  className="text-[10px] px-2 py-0.5 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-colors cursor-pointer"
+                >
+                  {sug}
+                </button>
+              ))}
+            </div>
 
-          <Button
-            type="submit"
-            className="w-full py-2.5 mt-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{t('shopping.btnAdd')}</span>
-          </Button>
-        </form>
-      </Card>
+            <Button
+              type="submit"
+              className="w-full py-2.5 mt-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{t('shopping.btnAdd')}</span>
+            </Button>
+          </form>
+        </Card>
+        </div>
+      )}
 
       {/* Main Shopping List Content */}
       <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5">
@@ -173,28 +255,15 @@ export default function ShoppingList({
           </h3>
 
           {totalCount > 0 && (
-            <div className="flex gap-2">
-              {aggregatedList.checked.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="tertiary"
-                  className="px-2.5 py-1 text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer"
-                  onPress={clearChecked}
-                >
-                  <X className="w-3.5 h-3.5" />
-                  <span>{t('shopping.clearChecked')}</span>
-                </Button>
-              )}
-              <Button
-                size="sm"
-                variant="tertiary"
-                className="px-2.5 py-1 text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer"
-                onPress={handleClearAll}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>{t('shopping.clearAll')}</span>
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              variant="tertiary"
+              className="!h-7 !px-2 !py-0 !text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer"
+              onPress={handleClearAll}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{t('shopping.clearAll')}</span>
+            </Button>
           )}
         </div>
 
@@ -229,23 +298,24 @@ export default function ShoppingList({
                         {group.items.map((item) => {
                           const key = `${item.name.toLowerCase().trim()}|${item.unit.toLowerCase().trim()}`;
                           const amountStr = formatItemAmount(item.amount, item.unit);
+                          const isPending = pendingChecks.has(getItemKey(item));
 
                           return (
                             <li
                               key={`unchecked-${key}`}
-                              className="flex items-start justify-between gap-3 py-1.5 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
+                              className={`flex items-start justify-between gap-3 py-1.5 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${isPending ? 'bg-emerald-500/5' : ''}`}
                             >
                               <div
-                                onClick={() => toggleItemGroup(item.baseName || item.name, item.unit, true)}
+                                onClick={() => handleUncheckedClick(item)}
                                 className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
                               >
-                                <div className="w-5 h-5 rounded-md border border-black/20 dark:border-white/20 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all">
-                                  {/* Empty checkbox */}
+                                <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isPending ? 'bg-emerald-500 border border-emerald-500' : 'border border-black/20 dark:border-white/20'}`}>
+                                  {isPending && <Check className="w-3.5 h-3.5 text-white" />}
                                 </div>
                                 <div className="flex flex-col min-w-0">
-                                  <span className="text-sm text-gray-800 dark:text-gray-200 font-medium">
+                                  <span className={`text-sm font-medium transition-all ${isPending ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'}`}>
                                     {amountStr && (
-                                      <span className="font-semibold text-emerald-600 dark:text-emerald-400 mr-1.5">
+                                      <span className={`font-semibold mr-1.5 transition-all ${isPending ? 'text-emerald-600/50 dark:text-emerald-400/40' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                         {amountStr}
                                       </span>
                                     )}
@@ -289,9 +359,20 @@ export default function ShoppingList({
             {/* Checked Items */}
             {aggregatedList.checked.length > 0 && (
               <div className="flex flex-col gap-2.5 pt-2 border-t border-black/5 dark:border-white/5">
-                <h4 className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('shopping.inCart', { count: aggregatedList.checked.length })}
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    {t('shopping.inCart', { count: aggregatedList.checked.length })}
+                  </h4>
+                  <Button
+                    size="sm"
+                    variant="tertiary"
+                    className="!h-7 !px-2 !py-0 !text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                    onPress={clearChecked}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>{t('shopping.clearChecked')}</span>
+                  </Button>
+                </div>
                 <ul className="flex flex-col gap-1.5">
                   {aggregatedList.checked.map((item) => {
                     const key = `${item.name.toLowerCase().trim()}|${item.unit.toLowerCase().trim()}`;
@@ -303,7 +384,7 @@ export default function ShoppingList({
                         className="flex items-start justify-between gap-3 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
                       >
                         <div
-                          onClick={() => toggleItemGroup(item.baseName || item.name, item.unit, false)}
+                          onClick={() => handleCheckedClick(item)}
                           className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
                         >
                           <div className="w-5 h-5 rounded-md bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all">
@@ -335,6 +416,24 @@ export default function ShoppingList({
           </div>
         )}
       </Card>
+
+      {/* Floating Add Button */}
+      <button
+        onClick={() => {
+          const willOpen = !showAddForm;
+          setShowAddForm(willOpen);
+          // Scroll to top of page when opening the form
+          if (willOpen) {
+            setTimeout(() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 50);
+          }
+        }}
+        aria-label={t('shopping.addTitle')}
+        className="fixed bottom-28 right-4 md:bottom-6 md:right-6 z-40 w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+      >
+        <Plus className={`w-6 h-6 transition-transform duration-200 ${showAddForm ? 'rotate-45' : ''}`} />
+      </button>
     </div>
   );
 }
