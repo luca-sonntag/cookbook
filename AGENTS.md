@@ -122,7 +122,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * **Detailansicht:** Das Laden eines archivierten Rezepts integriert sich nahtlos in die interaktive Checklisten-Oberfläche (Zutaten- und Schritt-Abhaken).
   * **Navigationshilfen:** Bietet responsive Zurück-Buttons und Edge-Swipe-Navigation für komfortable Bedienung auf Smartphones.
   * Bietet interaktive Checklisten zum Abhaken von Zutaten und Zubereitungsschritten während des Kochens.
-  * **Interaktive Text-Hervorhebungen:** Hebt Temperaturen (z. B. "200°C", "180 Grad") und Zeitspannen (z. B. "20-22 Minuten", "5 Min.") in den Zubereitungsschritten automatisch hervor und rendert sie als stilvolle, farblich codierte Badges mit passenden Icons (Thermometer & Uhr).
+  * **Interaktive Text-Hervorhebungen:** Hebt Temperaturen (z. B. "200°C", "180 Grad") und Zeitspannen (z. B. "20-22 Minuten", "5 Min.") in den Zubereitungsschritten und Kochtipps automatisch hervor und rendert sie als stilvolle, farblich codierte Badges mit passenden Icons (Thermometer & Uhr). Zutaten und Kochutensilien werden in diesen Texten ebenfalls interaktiv verlinkt.
   * Unterstützt das Kopieren des Rezepts als formatiertes Markdown.
 
 ---
