@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Job, Ingredient } from '../../types';
+import type { Job, Ingredient, Recipe } from '../../types';
 import RecipeDetails from '../RecipeDetails';
 import { useMobileNavigationBack } from '../../hooks/useMobileNavigationBack';
 import { useI18n } from '../../context/I18nContext';

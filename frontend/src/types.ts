@@ -1,6 +1,7 @@
 export interface Ingredient {
   name: string;
   baseName?: string;
+  replacedOriginal?: string;
   amount: number;
   unit: string;
   notes?: string;
@@ -60,6 +61,8 @@ export interface Job {
   status: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed';
   recipe?: Recipe;
   error?: string;
+  parentJobId?: string | null;
+  prompt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

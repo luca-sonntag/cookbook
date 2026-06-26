@@ -13,6 +13,8 @@ interface JobRow {
   error: string | null;
   recipe: unknown;
   user_id: string;
+  parent_job_id: string | null;
+  prompt: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -50,6 +52,8 @@ function rowToJob(row: JobRow): Job {
     status: row.status as JobStatus,
     error: row.error,
     recipe: row.recipe as Job['recipe'],
+    parentJobId: row.parent_job_id,
+    prompt: row.prompt,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -65,6 +69,8 @@ function jobToRow(updates: Partial<Job>): Partial<JobRow> {
   if (updates.status !== undefined) row.status = updates.status;
   if (updates.error !== undefined) row.error = updates.error;
   if (updates.recipe !== undefined) row.recipe = updates.recipe;
+  if (updates.parentJobId !== undefined) row.parent_job_id = updates.parentJobId;
+  if (updates.prompt !== undefined) row.prompt = updates.prompt;
   if (updates.createdAt !== undefined) row.created_at = updates.createdAt;
   if (updates.updatedAt !== undefined) row.updated_at = updates.updatedAt;
   return row;
@@ -125,6 +131,22 @@ export async function createJob(url: string, userId: string): Promise<Job> {
     .single();
 
   if (error) throw wrapError('Failed to create job', error);
+  return rowToJob(data);
+}
+
+/** Create a new pending remix job. */
+export async function createRemixJob(parentJobId: string, url: string, prompt: string, userId: string): Promise<Job> {
+  const now = new Date().toISOString();
+  const id = randomUUID();
+
+  const { data, error } = await getClient()
+    .from('jobs')
+    .insert({ id, url, status: 'pending', error: null, recipe: null, user_id: userId, parent_job_id: parentJobId, prompt, created_at: now, updated_at: now })
+    .select()
+    .returns<JobRow>()
+    .single();
+
+  if (error) throw wrapError('Failed to create remix job', error);
   return rowToJob(data);
 }
 

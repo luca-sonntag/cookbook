@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob } from './db.js';
+import { createJob, createRemixJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob } from './db.js';
 import { requireAuth } from './auth.js';
 
 export const apiRouter = Router();
@@ -67,6 +67,60 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     res.status(500).json({
       success: false,
       error: 'Internal server error while creating job.',
+    });
+  }
+});
+
+/**
+ * Endpoint to submit a recipe remix request.
+ * POST /api/jobs/:id/remix
+ * Body: { prompt: string }
+ */
+apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { prompt } = req.body;
+
+    if (!prompt || typeof prompt !== 'string') {
+      res.status(400).json({
+        success: false,
+        error: 'Missing required field: "prompt" must be a string.',
+      });
+      return;
+    }
+
+    // Get the parent job
+    const parentJob = await getJob(id, req.userId!);
+    if (!parentJob) {
+      res.status(404).json({
+        success: false,
+        error: 'Parent job not found.',
+      });
+      return;
+    }
+
+    if (parentJob.status !== 'completed' || !parentJob.recipe) {
+      res.status(400).json({
+        success: false,
+        error: 'Parent job must be completed and contain a recipe.',
+      });
+      return;
+    }
+
+    // Create a new remix job
+    const job = await createRemixJob(parentJob.id, parentJob.url, prompt, req.userId!);
+
+    res.status(202).json({
+      success: true,
+      jobId: job.id,
+      status: job.status,
+      message: 'Recipe remix job successfully queued.',
+    });
+  } catch (error: any) {
+    console.error('Error creating remix job:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error while creating remix job.',
     });
   }
 });
