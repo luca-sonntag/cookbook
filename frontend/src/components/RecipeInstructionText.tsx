@@ -151,9 +151,9 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
             return (
               <span
                 key={index}
-                className="inline-flex items-center gap-0.5 mx-0.5 font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 align-middle transition-colors cursor-default"
+                className="inline-flex items-center gap-0.5 mx-0.5 px-1.5 py-0.5 rounded-md font-semibold text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-500/20 border border-orange-200/60 dark:border-orange-500/30 align-middle transition-colors cursor-default"
               >
-                <Thermometer className="w-3.5 h-3.5 text-orange-500 dark:text-orange-400 shrink-0" />
+                <Thermometer className="w-3 h-3 text-orange-500 dark:text-orange-400 shrink-0" />
                 {part}
               </span>
             );
@@ -172,14 +172,14 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                   e.stopPropagation();
                   setTimerSheet({ isOpen: true, seconds, label: text.slice(0, 80) });
                 } : undefined}
-                className={`inline-flex items-center gap-0.5 mx-0.5 font-semibold text-blue-600 dark:text-blue-400 align-middle transition-colors ${
+                className={`inline-flex items-center gap-0.5 mx-0.5 px-1.5 py-0.5 rounded-md font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-500/20 border border-blue-200/60 dark:border-blue-500/30 align-middle transition-colors ${
                   canTimer
-                    ? 'cursor-pointer hover:text-blue-500 dark:hover:text-blue-300 underline decoration-dotted underline-offset-2'
-                    : 'cursor-default hover:text-blue-500 dark:hover:text-blue-300'
+                    ? 'cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-500/30 underline decoration-dotted underline-offset-2'
+                    : 'cursor-default'
                 }`}
                 title={canTimer ? 'Timer starten / Start timer' : undefined}
               >
-                <Clock className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 shrink-0" />
+                <Clock className="w-3 h-3 text-blue-500 dark:text-blue-400 shrink-0" />
                 {part}
               </span>
             );
