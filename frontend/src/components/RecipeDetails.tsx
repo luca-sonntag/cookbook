@@ -506,7 +506,7 @@ export default function RecipeDetails({
                           </div>
                           <span className={`text-sm select-none transition-all ${isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
                             }`}>
-                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">{amountStr}{unitStr}</span>
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap flex-shrink-0">{amountStr}{unitStr}</span>
                             {ing.replacedOriginal && (
                               <span className="text-xs text-red-500/70 line-through mx-1.5">{ing.replacedOriginal}</span>
                             )}
