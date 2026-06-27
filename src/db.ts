@@ -23,7 +23,7 @@ interface JobRow {
 
 let _client: SupabaseClient | undefined;
 
-function getClient(): SupabaseClient {
+export function getClient(): SupabaseClient {
   // Use service_role key so the queue worker (which has no user JWT) can also operate.
   // RLS is enforced via explicit .eq('user_id', userId) filters in every query.
   _client ??= createClient(config.SUPABASE_URL, config.SUPABASE_SECRET_KEY);
@@ -54,6 +54,7 @@ function rowToJob(row: JobRow): Job {
     recipe: row.recipe as Job['recipe'],
     parentJobId: row.parent_job_id,
     prompt: row.prompt,
+    userId: row.user_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

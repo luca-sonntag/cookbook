@@ -3,7 +3,7 @@ import { createWriteStream } from 'fs';
 import path from 'path';
 import https from 'https';
 import http from 'http';
-import { getNextPendingJob, updateJob, getJob } from './db.js';
+import { getNextPendingJob, updateJob, getJob, getClient } from './db.js';
 import { scrapeReel } from './apify.js';
 import { extractRecipeFromAudio, remixRecipe } from './gemini.js';
 import type { Job } from './types.js';
@@ -72,6 +72,48 @@ async function processJob(job: Job): Promise<void> {
   let videoFilePath = '';
 
   try {
+    // Fetch user preferences from Supabase Auth admin API if userId is present
+    let userPrefs: {
+      recipeLanguage?: string;
+      preferredTemperatureUnit?: string;
+      preferredUnitSystem?: string;
+    } | undefined;
+
+    if (job.userId) {
+      try {
+        console.log(`[Job ${jobId}] Fetching user metadata for user ${job.userId}...`);
+        const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(job.userId);
+        if (authError) {
+          console.warn(`[Job ${jobId}] Failed to fetch user metadata: ${authError.message}`);
+        } else if (user?.user_metadata) {
+          const meta = user.user_metadata;
+          const languageMap: Record<string, string> = {
+            'de': 'German',
+            'en': 'English',
+            'german': 'German',
+            'english': 'English'
+          };
+          
+          let recipeLanguage: string | undefined;
+          if (meta.language) {
+            recipeLanguage = languageMap[meta.language.toLowerCase()];
+          }
+          if (!recipeLanguage && meta.recipe_language) {
+            recipeLanguage = languageMap[meta.recipe_language.toLowerCase()] || meta.recipe_language;
+          }
+
+          userPrefs = {
+            recipeLanguage,
+            preferredTemperatureUnit: meta.preferred_temperature_unit,
+            preferredUnitSystem: meta.preferred_unit_system,
+          };
+          console.log(`[Job ${jobId}] Loaded user preferences:`, userPrefs);
+        }
+      } catch (err: any) {
+        console.warn(`[Job ${jobId}] Error retrieving user metadata: ${err.message}`);
+      }
+    }
+
     if (job.parentJobId) {
       console.log(`[Job ${jobId}] Starting remix processing...`);
       await updateJob(jobId, { status: 'processing' });
@@ -83,7 +125,7 @@ async function processJob(job: Job): Promise<void> {
       }
 
       console.log(`[Job ${jobId}] Requesting remix from Gemini...`);
-      const recipe = await remixRecipe(parentJob.recipe, job.prompt || '', runDir);
+      const recipe = await remixRecipe(parentJob.recipe, job.prompt || '', runDir, userPrefs);
       
       recipe.id = jobId;
       recipe.imageUrl = parentJob.recipe.imageUrl;
@@ -175,7 +217,7 @@ async function processJob(job: Job): Promise<void> {
       : Promise.resolve(null);
 
     const [recipe, selectedImageUrls] = await Promise.all([
-      extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption, gridImagePath, runDir),
+      extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption, gridImagePath, runDir, userPrefs),
       frameSelectionPromise,
     ]);
 

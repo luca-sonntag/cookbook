@@ -68,6 +68,7 @@ export interface Job {
   recipe?: Recipe | null;
   parentJobId?: string | null;
   prompt?: string | null;
+  userId?: string;
   createdAt: string;
   updatedAt: string;
 }

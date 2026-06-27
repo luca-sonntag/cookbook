@@ -232,7 +232,12 @@ export async function extractRecipeFromAudio(
   mimeType: string,
   caption: string,
   gridImagePath?: string,
-  logDir?: string
+  logDir?: string,
+  userPrefs?: {
+    recipeLanguage?: string;
+    preferredTemperatureUnit?: string;
+    preferredUnitSystem?: string;
+  }
 ): Promise<Recipe> {
   if (!config.GEMINI_API_KEY || config.GEMINI_API_KEY === 'your_gemini_api_key_here') {
     throw new Error('Gemini API key is not configured in environment variables.');
@@ -304,11 +309,15 @@ export async function extractRecipeFromAudio(
       } as any,
     });
 
-    const tempInstruction = config.PREFERRED_TEMPERATURE_UNIT.toLowerCase() === 'both'
-      ? 'Format all temperature values mentioned in the instructions, description, tips, or title using both Celsius and Fahrenheit (e.g., "200°C (400°F)").'
-      : `Format all temperature values mentioned in the instructions, description, tips, or title using the preferred unit: ${config.PREFERRED_TEMPERATURE_UNIT} (e.g., convert and format as "200°C" or "400°F" depending on preference).`;
+    const targetTempUnit = userPrefs?.preferredTemperatureUnit || config.PREFERRED_TEMPERATURE_UNIT;
+    const targetUnitSystem = userPrefs?.preferredUnitSystem || config.PREFERRED_UNIT_SYSTEM;
+    const targetLanguage = userPrefs?.recipeLanguage || config.RECIPE_LANGUAGE;
 
-    const unitSystemInstruction = `Format all ingredient weights, volumes, and measurements using the preferred unit system: ${config.PREFERRED_UNIT_SYSTEM} (e.g., metric units like grams, milliliters, kilograms, or imperial units like ounces, cups, pounds, fluid ounces) and perform conversions where appropriate.`;
+    const tempInstruction = targetTempUnit.toLowerCase() === 'both'
+      ? 'Format all temperature values mentioned in the instructions, description, tips, or title using both Celsius and Fahrenheit (e.g., "200°C (400°F)").'
+      : `Format all temperature values mentioned in the instructions, description, tips, or title using the preferred unit: ${targetTempUnit} (e.g., convert and format as "200°C" or "400°F" depending on preference).`;
+
+    const unitSystemInstruction = `Format all ingredient weights, volumes, and measurements using the preferred unit system: ${targetUnitSystem} (e.g., metric units like grams, milliliters, kilograms, or imperial units like ounces, cups, pounds, fluid ounces) and perform conversions where appropriate.`;
 
     const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.${gridImagePath ? ' You are also given an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating).' : ''}
 
@@ -316,7 +325,7 @@ Combine the${gridImagePath ? ' three' : ' two'} sources to reconstruct the compl
 
 Key Constraints:
 1. Category Ordering: Always place "PRODUCE" first in the ingredients array, followed by dry goods/pantry items, then refrigerated products/meats, and finally other/extras at the very end.
-2. Translation: Translate and write all text values (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredient details, and tags) into: ${config.RECIPE_LANGUAGE}. Keep the category keys as the uppercase English enum values.
+2. Translation: Translate and write all text values (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredient details, and tags) into: ${targetLanguage}. Keep the category keys as the uppercase English enum values.
 3. Preferred Units:
    - Temperature Units: ${tempInstruction}
    - Weight & Volume Units: ${unitSystemInstruction}
@@ -566,7 +575,10 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
 export async function remixRecipe(
   parentRecipe: Recipe,
   remixPrompt: string,
-  logDir?: string
+  logDir?: string,
+  userPrefs?: {
+    recipeLanguage?: string;
+  }
 ): Promise<Recipe> {
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
@@ -582,6 +594,8 @@ export async function remixRecipe(
       } as any,
     });
 
+    const targetLanguage = userPrefs?.recipeLanguage || config.RECIPE_LANGUAGE;
+
     const prompt = `You are a creative professional chef. You are provided with an existing recipe in JSON format and a user's request for how to modify (remix) it (e.g. "make it vegan", "low calorie", or custom instructions).
 Your task is to modify the recipe logically and culinarily correctly based on the request.
 
@@ -589,7 +603,7 @@ Important Constraints:
 1. Ingredient Replacement: If you swap ingredients (e.g. beef -> tofu), you MUST set the "replacedOriginal" field on the new ingredient to the exact name of the original ingredient that was removed (e.g. "replacedOriginal": "Rinderhackfleisch").
 2. Instruction Update: If you change ingredients, you MUST update the cooking instructions to match the new ingredients (e.g., cooking time for tofu is different from beef).
 3. Title Update: Modify the title of the recipe to reflect the changes (e.g. add "(Vegan Remix)").
-4. Language & Format: Keep the output language the same as the original recipe (${config.RECIPE_LANGUAGE}). Follow the schema strictly.
+4. Language & Format: Keep the output language the same as the original recipe (${targetLanguage}). Follow the schema strictly.
 
 User's Remix Request:
 "${remixPrompt}"
