@@ -43,8 +43,8 @@ export default function SettingsView() {
 
       {saveMessage && (
         <div className={`mx-2 px-4 py-2.5 text-xs text-center rounded-xl font-semibold border ${saveMessage === t('app.settings.saved')
-            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-            : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
           }`}>
           {saveMessage}
         </div>
@@ -70,7 +70,7 @@ export default function SettingsView() {
             className="w-20"
             aria-label="Language"
           >
-            <Select.Trigger className="h-8 min-h-0 py-0 px-2 text-xs font-semibold">
+            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center text-[11px] font-medium leading-none">
               <Select.Value />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
@@ -106,10 +106,10 @@ export default function SettingsView() {
             selectedKey={preferredTempUnit}
             onSelectionChange={(key) => handleUpdateSetting('preferred_temperature_unit', key as string)}
             isDisabled={isSaving}
-            className="w-36"
+            className="w-32"
             aria-label="Temperature Unit"
           >
-            <Select.Trigger className="h-8 min-h-0 py-0 px-2 text-xs font-semibold">
+            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center text-[11px] font-medium leading-none">
               <Select.Value />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
@@ -149,10 +149,10 @@ export default function SettingsView() {
             selectedKey={preferredUnitSystem}
             onSelectionChange={(key) => handleUpdateSetting('preferred_unit_system', key as string)}
             isDisabled={isSaving}
-            className="w-40"
+            className="w-36"
             aria-label="Unit System"
           >
-            <Select.Trigger className="h-8 min-h-0 py-0 px-2 text-xs font-semibold">
+            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center text-[11px] font-medium leading-none">
               <Select.Value />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
@@ -187,8 +187,8 @@ export default function SettingsView() {
             <button
               onClick={() => setTheme('light')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${theme === 'light'
-                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                 }`}
             >
               <Sun className="w-3.5 h-3.5" />
@@ -197,8 +197,8 @@ export default function SettingsView() {
             <button
               onClick={() => setTheme('dark')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${theme === 'dark'
-                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                 }`}
             >
               <Moon className="w-3.5 h-3.5" />
