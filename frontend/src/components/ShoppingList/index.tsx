@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { Card, Button } from '@heroui/react';
-import { ShoppingCart, Plus, Trash2, X } from 'lucide-react';
+import { ShoppingCart, Plus, Trash2, X, ListChecks, Sparkles } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
@@ -215,13 +215,57 @@ export default function ShoppingList({
           )}
         </div>
 
+        {/* Progress Stats Bar */}
+        {totalCount > 0 && (
+          <div className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                  <ListChecks className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">
+                    {t('shopping.progressLabel', { defaultValue: 'Fortschritt' })}
+                  </div>
+                  <div className="text-sm font-bold text-gray-900 dark:text-white">
+                    {aggregatedList.checked.length} / {totalCount}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+                  {Math.round((aggregatedList.checked.length / totalCount) * 100)}%
+                </div>
+                <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">
+                  {t('shopping.done', { defaultValue: 'Erledigt' })}
+                </div>
+              </div>
+            </div>
+            <div className="h-2 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500 ease-out shadow-sm"
+                style={{ width: `${(aggregatedList.checked.length / totalCount) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {totalCount === 0 ? (
-          <div className="text-center py-8 flex flex-col items-center justify-center">
-            <ShoppingCart className="w-8 h-8 text-gray-400 mb-3 animate-pulse-slow" />
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{t('shopping.emptyTitle')}</h4>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-xs leading-normal">
+          <div className="text-center py-10 flex flex-col items-center justify-center">
+            <div className="relative mb-4">
+              <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full animate-pulse-slow" />
+              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/30 flex items-center justify-center">
+                <ShoppingCart className="w-8 h-8 text-emerald-500" />
+              </div>
+            </div>
+            <h4 className="text-base font-bold text-gray-900 dark:text-white">{t('shopping.emptyTitle')}</h4>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-xs leading-relaxed">
               {t('shopping.emptyDesc')}
             </p>
+            <div className="mt-4 flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 font-semibold">
+              <Sparkles className="w-3 h-3" />
+              <span>{t('shopping.emptyHint', { defaultValue: 'Tipp: Öffne ein Rezept und tippe auf den Einkaufswagen' })}</span>
+            </div>
           </div>
         ) : (
           <ShoppingListGroup

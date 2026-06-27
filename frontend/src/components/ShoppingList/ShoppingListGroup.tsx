@@ -1,6 +1,6 @@
 import { Check, Minus } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
-import { translateCategory } from '../../i18n';
+import { translateCategory, getCategoryIcon } from '../../i18n';
 import { useI18n } from '../../context/I18nContext';
 import ShoppingListItem from './ShoppingListItem';
 
@@ -29,43 +29,64 @@ export default function ShoppingListGroup({
     <div className="flex flex-col gap-6">
       {groupedCategories.length > 0 && (
         <div className="flex flex-col gap-4">
-          <h4 className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          <h4 className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-1">
             {t('shopping.toBuy', { count: groupedCategories.reduce((acc, g) => acc + g.items.filter(i => !i.checked).length, 0) })}
           </h4>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             {groupedCategories.map((group) => {
               const checkedCount = group.items.filter((item) => item.checked).length;
               const isAllChecked = checkedCount === group.items.length;
               const isSomeChecked = checkedCount > 0 && checkedCount < group.items.length;
               const isGroupCollapsing = collapsingKeys.has(`group-${group.category}`);
+              const icon = getCategoryIcon(group.category);
+              const uncheckedCount = group.items.length - checkedCount;
 
               return (
                 <div
                   key={`${group.category}-${isAllChecked ? 'completed' : 'active'}`}
-                  className={`flex flex-col gap-2 bg-black/[0.02] dark:bg-white/[0.02] p-3 rounded-2xl border border-black/5 dark:border-white/5 ${
+                  className={`flex flex-col gap-2 p-3 rounded-2xl border transition-all ${
+                    isAllChecked
+                      ? 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06] border-emerald-500/20'
+                      : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5 hover:border-emerald-500/20'
+                  } ${
                     isGroupCollapsing ? 'animate-group-collapse' : 'animate-group-expand'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 px-1 py-0.5 border-b border-black/5 dark:border-white/5 pb-2 mb-1">
+                  <div className="flex items-center gap-2.5 px-1 py-1 pb-2.5 mb-1 border-b border-black/5 dark:border-white/5">
                     <div
                       onClick={() => onGroupHeaderClick(group.items)}
-                      className="flex items-center gap-2 cursor-pointer select-none py-0.5"
+                      className="flex items-center gap-2.5 cursor-pointer select-none py-0.5 flex-1 min-w-0"
                     >
-                      <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all ${
-                        isAllChecked || isSomeChecked
-                          ? 'bg-emerald-500 border border-emerald-500 text-white'
-                          : 'border border-black/20 dark:border-white/20'
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all text-lg ${
+                        isAllChecked
+                          ? 'bg-emerald-500/20 border border-emerald-500/30'
+                          : 'bg-gradient-to-br from-emerald-500/15 to-emerald-500/5 border border-emerald-500/20'
                       }`}>
-                        {isAllChecked && <Check className="w-3 h-3 text-white" />}
-                        {isSomeChecked && <Minus className="w-3 h-3 text-white stroke-[3px]" />}
+                        <span className={isAllChecked ? 'opacity-60' : ''}>{icon}</span>
                       </div>
-                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                        {translateCategory(group.category)}
-                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className={`text-xs font-bold uppercase tracking-wider truncate ${
+                          isAllChecked
+                            ? 'text-emerald-600/60 dark:text-emerald-400/60 line-through'
+                            : 'text-emerald-600 dark:text-emerald-400'
+                        }`}>
+                          {translateCategory(group.category)}
+                        </span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+                          {isAllChecked
+                            ? `${checkedCount} ${t(group.items.length === 1 ? 'shopping.entry' : 'shopping.entries')}`
+                            : `${uncheckedCount} ${t('shopping.toBuyCount', { defaultValue: 'offen' })}`}
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal ml-auto">
-                      {group.items.length} {t(group.items.length === 1 ? 'shopping.entry' : 'shopping.entries')}
-                    </span>
+                    <div className={`flex-shrink-0 w-5 h-5 rounded-md flex items-center justify-center transition-all ${
+                      isAllChecked || isSomeChecked
+                        ? 'bg-emerald-500 border border-emerald-500 text-white'
+                        : 'border border-black/20 dark:border-white/20'
+                    }`}>
+                      {isAllChecked && <Check className="w-3 h-3 text-white stroke-[3px]" />}
+                      {isSomeChecked && <Minus className="w-3 h-3 text-white stroke-[3px]" />}
+                    </div>
                   </div>
                   <ul className="flex flex-col gap-1">
                     {group.items.map((item) => {
