@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Card, Button } from '@heroui/react';
-import { ShoppingCart, Plus, Trash2 } from 'lucide-react';
+import { ShoppingCart, Plus, Trash2, X } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
@@ -37,100 +37,21 @@ export default function ShoppingList({
   const [showAddForm, setShowAddForm] = useState(false);
   const addFormRef = useRef<HTMLDivElement>(null);
 
-  // Pending-check state: items that have been clicked but not yet moved to "in cart"
-  const [pendingChecks, setPendingChecks] = useState<Set<string>>(new Set());
-  const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-
-  const PENDING_CHECK_DELAY_MS = 600;
-
   const getItemKey = (item: AggregatedShoppingItem) =>
     `${item.baseName || item.name}|${(item.modifier || '').toLowerCase().trim()}|${item.unit}`.toLowerCase();
 
-  const cancelPendingCheck = (key: string) => {
-    const timer = pendingTimers.current.get(key);
-    if (timer) {
-      clearTimeout(timer);
-      pendingTimers.current.delete(key);
-    }
-    setPendingChecks((prev) => {
-      if (!prev.has(key)) return prev;
-      const next = new Set(prev);
-      next.delete(key);
-      return next;
-    });
-  };
-
-  const schedulePendingCheck = (key: string, item: AggregatedShoppingItem) => {
-    // Cancel any existing timer for this key
-    const existing = pendingTimers.current.get(key);
-    if (existing) clearTimeout(existing);
-
-    // Mark as pending (visual checked state)
-    setPendingChecks((prev) => {
-      const next = new Set(prev);
-      next.add(key);
-      return next;
-    });
-
-    // After delay, actually move to "in cart"
-    const timer = setTimeout(() => {
-      pendingTimers.current.delete(key);
-      setPendingChecks((prev) => {
-        if (!prev.has(key)) return prev;
-        const next = new Set(prev);
-        next.delete(key);
-        return next;
-      });
-      toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, true);
-    }, PENDING_CHECK_DELAY_MS);
-
-    pendingTimers.current.set(key, timer);
-  };
-
-  const handleUncheckedClick = (item: AggregatedShoppingItem) => {
-    const key = getItemKey(item);
-    if (pendingChecks.has(key)) {
-      // Already pending — clicking again cancels the check
-      cancelPendingCheck(key);
-      return;
-    }
-    schedulePendingCheck(key, item);
-  };
-
-  const handleCheckedClick = (item: AggregatedShoppingItem) => {
-    const key = getItemKey(item);
-    // Cancel any pending check for this item (in case it was scheduled)
-    cancelPendingCheck(key);
-    toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, false);
+  const handleItemToggle = (item: AggregatedShoppingItem) => {
+    toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, !item.checked);
   };
 
   const handleGroupHeaderClick = (items: AggregatedShoppingItem[]) => {
-    const keys = items.map(getItemKey);
-    const pendingCount = keys.filter((k) => pendingChecks.has(k)).length;
-    const allPending = pendingCount === items.length;
-
-    if (allPending) {
-      // All items in the category are pending, cancel all of them
-      keys.forEach(cancelPendingCheck);
-    } else {
-      // Some or none are pending, schedule checking for any that are not already pending
-      items.forEach((item, idx) => {
-        const key = keys[idx];
-        if (!pendingChecks.has(key)) {
-          schedulePendingCheck(key, item);
-        }
-      });
-    }
+    const allChecked = items.every((item) => item.checked);
+    items.forEach((item) => {
+      if (item.checked === allChecked) {
+        toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, !allChecked);
+      }
+    });
   };
-
-  // Cleanup all timers on unmount
-  useEffect(() => {
-    const timers = pendingTimers.current;
-    return () => {
-      timers.forEach((timer) => clearTimeout(timer));
-      timers.clear();
-    };
-  }, []);
 
   const formatItemAmount = (amount: number, unit: string) => {
     if (!amount) return '';
@@ -154,11 +75,16 @@ export default function ShoppingList({
 
   const totalCount = aggregatedList.unchecked.length + aggregatedList.checked.length;
 
-  // Group unchecked items by category
-  const groupedUnchecked = useMemo(() => {
+  // Combine checked and unchecked aggregated items
+  const allAggregatedItems = useMemo(() => {
+    return [...aggregatedList.unchecked, ...aggregatedList.checked];
+  }, [aggregatedList.unchecked, aggregatedList.checked]);
+
+  // Group all items by category
+  const groupedCategories = useMemo(() => {
     const groups: Record<string, AggregatedShoppingItem[]> = {};
 
-    aggregatedList.unchecked.forEach((item) => {
+    allAggregatedItems.forEach((item) => {
       const cat = item.category || 'OTHER';
       if (!groups[cat]) {
         groups[cat] = [];
@@ -179,7 +105,7 @@ export default function ShoppingList({
         category: cat,
         items: groups[cat],
       }));
-  }, [aggregatedList.unchecked]);
+  }, [allAggregatedItems]);
 
   return (
     <div className="flex flex-col gap-6 relative">
@@ -200,15 +126,28 @@ export default function ShoppingList({
           </h3>
 
           {totalCount > 0 && (
-            <Button
-              size="sm"
-              variant="tertiary"
-              className="!h-7 !px-2 !py-0 !text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer"
-              onPress={handleClearAll}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>{t('shopping.clearAll')}</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              {aggregatedList.checked.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="tertiary"
+                  className="!h-7 !px-2 !py-0 !text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                  onPress={clearChecked}
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>{t('shopping.clearChecked')}</span>
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="tertiary"
+                className="!h-7 !px-2 !py-0 !text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer"
+                onPress={handleClearAll}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{t('shopping.clearAll')}</span>
+              </Button>
+            </div>
           )}
         </div>
 
@@ -222,15 +161,11 @@ export default function ShoppingList({
           </div>
         ) : (
           <ShoppingListGroup
-            groupedUnchecked={groupedUnchecked}
-            checkedItems={aggregatedList.checked}
-            pendingChecks={pendingChecks}
+            groupedCategories={groupedCategories}
             getItemKey={getItemKey}
-            onUncheckedClick={handleUncheckedClick}
-            onCheckedClick={handleCheckedClick}
+            onItemToggle={handleItemToggle}
             onGroupHeaderClick={handleGroupHeaderClick}
             onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
-            onClearChecked={clearChecked}
             formatItemAmount={formatItemAmount}
           />
         )}
