@@ -387,6 +387,8 @@ export const uiTranslations = {
       generating: 'Remix wird generiert...',
       btnCancel: 'Abbrechen',
       btnStart: 'Remix starten',
+      parentLinkPrefix: 'Abgewandelt von',
+      parentLinkDeleted: 'gelöscht',
       chips: {
         vegan: { label: '🌱 Vegan', prompt: 'Mache es vegan' },
         highProtein: { label: '💪 High Protein', prompt: 'Mache es eiweißreich' },
@@ -623,6 +625,8 @@ export const uiTranslations = {
       generating: 'Generating remix...',
       btnCancel: 'Cancel',
       btnStart: 'Start Remix',
+      parentLinkPrefix: 'Remixed from',
+      parentLinkDeleted: 'deleted',
       chips: {
         vegan: { label: '🌱 Vegan', prompt: 'Make it vegan' },
         highProtein: { label: '💪 High Protein', prompt: 'Make it high protein' },
