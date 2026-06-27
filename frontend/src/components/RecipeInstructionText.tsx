@@ -161,7 +161,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
                   >
                     <Popover.Dialog className="outline-none border-none p-0 m-0">
                       {matched.type === 'ingredient' && matched.ingredient ? (
-                        <div className="flex flex-col gap-1 min-w-[140px] max-w-[240px]">
+                        <div className="flex flex-col min-w-[120px] max-w-[240px]">
                           <div className="flex items-center justify-between gap-3">
                             <span className="text-xs font-bold text-gray-900 dark:text-white leading-tight">
                               {matched.ingredient.name}
@@ -174,18 +174,9 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
                             )}
                           </div>
                           {(matched.ingredient.modifier || matched.ingredient.notes) && (
-                            <div className="flex flex-wrap gap-1.5 mt-1.5 border-t border-black/5 dark:border-white/10 pt-1.5">
-                              {matched.ingredient.modifier && (
-                                <span className="text-[10px] text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded font-medium">
-                                  {matched.ingredient.modifier}
-                                </span>
-                              )}
-                              {matched.ingredient.notes && (
-                                <span className="text-[10px] text-gray-600 dark:text-gray-400 italic font-normal">
-                                  {matched.ingredient.notes}
-                                </span>
-                              )}
-                            </div>
+                            <span className="text-[10px] text-gray-600 dark:text-gray-400 italic mt-0.5 leading-tight">
+                              {[matched.ingredient.modifier, matched.ingredient.notes].filter(Boolean).join(' • ')}
+                            </span>
                           )}
                         </div>
                       ) : (
