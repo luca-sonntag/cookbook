@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Button } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone, ChevronDown, Thermometer, Scale } from 'lucide-react';
+import { Button, Select, ListBox } from '@heroui/react';
+import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
@@ -64,17 +64,30 @@ export default function SettingsView() {
               </p>
             </div>
           </div>
-          <div className="relative">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as 'en' | 'de')}
-              className="appearance-none bg-black/5 dark:bg-white/5 text-gray-900 dark:text-white text-xs font-semibold py-1.5 pl-3 pr-7 rounded-lg outline-none cursor-pointer text-center"
-            >
-              <option value="en">EN</option>
-              <option value="de">DE</option>
-            </select>
-            <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-          </div>
+          <Select
+            variant="secondary"
+            selectedKey={language}
+            onSelectionChange={(key) => setLanguage(key as 'en' | 'de')}
+            className="w-28"
+            aria-label="Language"
+          >
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="en" textValue="EN">
+                  EN
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="de" textValue="DE">
+                  DE
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
         </div>
 
         {/* Temperature Unit Option */}
@@ -89,19 +102,35 @@ export default function SettingsView() {
               </p>
             </div>
           </div>
-          <div className="relative">
-            <select
-              value={preferredTempUnit}
-              onChange={(e) => handleUpdateSetting('preferred_temperature_unit', e.target.value)}
-              className="appearance-none bg-black/5 dark:bg-white/5 text-gray-900 dark:text-white text-xs font-semibold py-1.5 pl-3 pr-7 rounded-lg outline-none cursor-pointer text-center"
-              disabled={isSaving}
-            >
-              <option value="Celsius">{t('app.settings.tempUnitCelsius') || 'Celsius (°C)'}</option>
-              <option value="Fahrenheit">{t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'}</option>
-              <option value="both">{t('app.settings.tempUnitBoth') || 'Both (°C & °F)'}</option>
-            </select>
-            <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-          </div>
+          <Select
+            variant="secondary"
+            selectedKey={preferredTempUnit}
+            onSelectionChange={(key) => handleUpdateSetting('preferred_temperature_unit', key as string)}
+            isDisabled={isSaving}
+            className="w-40"
+            aria-label="Temperature Unit"
+          >
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="Celsius" textValue={t('app.settings.tempUnitCelsius') || 'Celsius (°C)'}>
+                  {t('app.settings.tempUnitCelsius') || 'Celsius (°C)'}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="Fahrenheit" textValue={t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'}>
+                  {t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="both" textValue={t('app.settings.tempUnitBoth') || 'Both (°C & °F)'}>
+                  {t('app.settings.tempUnitBoth') || 'Both (°C & °F)'}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
         </div>
 
         {/* Unit System Option */}
@@ -116,18 +145,31 @@ export default function SettingsView() {
               </p>
             </div>
           </div>
-          <div className="relative">
-            <select
-              value={preferredUnitSystem}
-              onChange={(e) => handleUpdateSetting('preferred_unit_system', e.target.value)}
-              className="appearance-none bg-black/5 dark:bg-white/5 text-gray-900 dark:text-white text-xs font-semibold py-1.5 pl-3 pr-7 rounded-lg outline-none cursor-pointer text-center"
-              disabled={isSaving}
-            >
-              <option value="metric">{t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'}</option>
-              <option value="imperial">{t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'}</option>
-            </select>
-            <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-          </div>
+          <Select
+            variant="secondary"
+            selectedKey={preferredUnitSystem}
+            onSelectionChange={(key) => handleUpdateSetting('preferred_unit_system', key as string)}
+            isDisabled={isSaving}
+            className="w-44"
+            aria-label="Unit System"
+          >
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="metric" textValue={t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'}>
+                  {t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="imperial" textValue={t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'}>
+                  {t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
         </div>
 
         {/* Theme Option */}
