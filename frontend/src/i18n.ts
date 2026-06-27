@@ -162,7 +162,7 @@ export function getCategoryIcon(category: string): string {
 export const uiTranslations = {
   de: {
     app: {
-      title: 'KochBuddy',
+      title: 'CookBuddy',
       subtitle: 'Instagram Reel Rezept-Assistent',
       nav: {
         newRecipe: 'Neues Rezept',
