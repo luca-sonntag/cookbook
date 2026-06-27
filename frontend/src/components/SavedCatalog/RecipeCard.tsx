@@ -58,7 +58,7 @@ const styles = {
   
   instagramBadge: "absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 font-semibold backdrop-blur-sm pointer-events-none select-none z-[5] border border-white/10 shadow-md",
   
-  tagBadge: "bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-md select-none border border-emerald-500/20 shadow-sm whitespace-nowrap",
+  inlineTagBadge: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap",
   
   titleContainer: "flex justify-between items-start gap-2 px-5 pt-3",
   title: "text-sm font-bold text-gray-900 dark:text-white line-clamp-1",
@@ -124,20 +124,6 @@ export default function RecipeCard({
                 <span>{r.instagramHandle}</span>
               </div>
             )}
-
-            {/* KI Tag Badges Overlays */}
-            <div className="absolute top-2 right-2 flex flex-col gap-1 z-[5]">
-              {durationBadge && (
-                <span className={styles.tagBadge}>
-                  {durationBadge}
-                </span>
-              )}
-              {recipeTags.map((tag: string, idx: number) => (
-                <span key={idx} className={styles.tagBadge}>
-                  {tag}
-                </span>
-              ))}
-            </div>
           </div>
         )}
 
@@ -152,6 +138,22 @@ export default function RecipeCard({
         <p className={styles.description}>
           {r.description}
         </p>
+
+        {/* Tag pills under the description */}
+        {(durationBadge || recipeTags.length > 0) && (
+          <div className="flex flex-wrap gap-1.5 px-5 mt-3">
+            {durationBadge && (
+              <span className={styles.inlineTagBadge}>
+                {durationBadge}
+              </span>
+            )}
+            {recipeTags.map((tag: string, idx: number) => (
+              <span key={idx} className={styles.inlineTagBadge}>
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Footer with stats & direct shopping list button + delete button */}
