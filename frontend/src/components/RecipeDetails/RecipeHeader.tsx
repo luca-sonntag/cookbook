@@ -16,6 +16,7 @@ interface RecipeHeaderProps {
   isCopied: boolean;
   isParentAvailable?: boolean;
   onNavigateToRecipe?: (recipeId: string) => void;
+  parentRecipeTitle?: string | null;
 }
 
 export default function RecipeHeader({
@@ -28,10 +29,13 @@ export default function RecipeHeader({
   onCopyMarkdown,
   isCopied,
   isParentAvailable,
-  onNavigateToRecipe
+  onNavigateToRecipe,
+  parentRecipeTitle
 }: RecipeHeaderProps) {
   const { t, language } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const resolvedParentTitle = parentRecipeTitle || recipe.parentRecipeTitle;
 
   return (
     <>
@@ -42,7 +46,7 @@ export default function RecipeHeader({
       <div className="flex justify-between items-start gap-4 pb-4 border-b border-black/5 dark:border-white/5">
         <div className="min-w-0 flex-1">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight break-words">{recipe.title}</h2>
-          {recipe.parentJobId && recipe.parentRecipeTitle && (
+          {recipe.parentJobId && resolvedParentTitle && (
             <div className="mt-1.5 text-xs flex flex-wrap items-center gap-1 text-gray-500 dark:text-gray-400 leading-normal break-words">
               <span>{t('remix.parentLinkPrefix') || 'Abgewandelt von'}</span>
               {isParentAvailable ? (
@@ -51,11 +55,11 @@ export default function RecipeHeader({
                   onClick={() => onNavigateToRecipe?.(recipe.parentJobId!)}
                   className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer outline-none border-none p-0 bg-transparent text-left leading-normal"
                 >
-                  {recipe.parentRecipeTitle}
+                  {resolvedParentTitle}
                 </button>
               ) : (
                 <span className="font-semibold text-gray-400 dark:text-gray-500 italic">
-                  {recipe.parentRecipeTitle} ({t('remix.parentLinkDeleted') || 'gelöscht'})
+                  {resolvedParentTitle} ({t('remix.parentLinkDeleted') || 'gelöscht'})
                 </span>
               )}
               {recipe.remixPrompt && (
