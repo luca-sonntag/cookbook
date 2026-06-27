@@ -154,7 +154,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                 className="inline mx-0.5 font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 transition-colors cursor-default"
               >
                 <Thermometer className="inline w-3.5 h-3.5 mr-0.5 text-orange-500 dark:text-orange-400" style={{ verticalAlign: 'middle' }} />
-                <span style={{ verticalAlign: 'middle' }}>{part}</span>
+                {part}
               </span>
             );
           }
@@ -180,7 +180,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                 title={canTimer ? 'Timer starten / Start timer' : undefined}
               >
                 <Clock className="inline w-3.5 h-3.5 mr-0.5 text-blue-500 dark:text-blue-400" style={{ verticalAlign: 'middle' }} />
-                <span style={{ verticalAlign: 'middle' }}>{part}</span>
+                {part}
               </span>
             );
           }
