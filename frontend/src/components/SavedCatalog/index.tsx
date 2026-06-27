@@ -112,6 +112,13 @@ export default function SavedCatalog({
                 activeFilter={activeFilter}
                 setActiveFilter={setActiveFilter}
                 allTags={allTags}
+                isSelectMode={isSelectMode}
+                setIsSelectMode={(active) => {
+                  setIsSelectMode(active);
+                  if (!active) {
+                    setSelectedIds(new Set());
+                  }
+                }}
               />
 
               {/* RECIPES DISPLAY GRID/LIST */}

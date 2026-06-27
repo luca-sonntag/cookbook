@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { Search, List, LayoutGrid } from 'lucide-react';
+import { Search, List, LayoutGrid, CheckSquare, Square } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 
 interface CatalogFiltersProps {
@@ -10,6 +10,8 @@ interface CatalogFiltersProps {
   activeFilter: string;
   setActiveFilter: (filter: string) => void;
   allTags: string[];
+  isSelectMode: boolean;
+  setIsSelectMode: (active: boolean) => void;
 }
 
 export default function CatalogFilters({
@@ -19,7 +21,9 @@ export default function CatalogFilters({
   setViewMode,
   activeFilter,
   setActiveFilter,
-  allTags
+  allTags,
+  isSelectMode,
+  setIsSelectMode
 }: CatalogFiltersProps) {
   const { t } = useI18n();
 
@@ -54,6 +58,19 @@ export default function CatalogFilters({
           aria-label={t('catalog.viewToggle')}
         >
           {viewMode === 'card' ? <List className="w-5 h-5" /> : <LayoutGrid className="w-5 h-5" />}
+        </Button>
+        <Button
+          isIconOnly
+          variant="tertiary"
+          className={`w-10 h-10 rounded-xl border active:scale-95 transition-all shrink-0 ${
+            isSelectMode
+              ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-500 shadow-md shadow-emerald-600/10'
+              : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-500 hover:text-emerald-500 hover:bg-black/10 dark:hover:bg-white/10'
+          }`}
+          onPress={() => setIsSelectMode(!isSelectMode)}
+          aria-label={t('catalog.selectModeToggle')}
+        >
+          {isSelectMode ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
         </Button>
       </div>
 
