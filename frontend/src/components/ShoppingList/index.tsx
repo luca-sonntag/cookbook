@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Card, Button } from '@heroui/react';
 import { ShoppingCart, Plus, Trash2 } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';

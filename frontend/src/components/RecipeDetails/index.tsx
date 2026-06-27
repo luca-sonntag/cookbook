@@ -42,7 +42,7 @@ export default function RecipeDetails({
   onRemixSuccess
 }: RecipeDetailsProps) {
   const dialog = useDialog();
-  const { t, translateCategory, language } = useI18n();
+  const { t, translateCategory } = useI18n();
 
   // Checklists state (persisted in localStorage)
   const {
