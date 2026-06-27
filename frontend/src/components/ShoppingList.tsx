@@ -315,7 +315,7 @@ export default function ShoppingList({
                                 <div className="flex flex-col min-w-0">
                                   <span className={`text-sm font-medium transition-all ${isPending ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'}`}>
                                     {amountStr && (
-                                      <span className={`font-semibold mr-1.5 transition-all ${isPending ? 'text-emerald-600/50 dark:text-emerald-400/40' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                      <span className={`font-semibold mr-1.5 transition-all whitespace-nowrap flex-shrink-0 ${isPending ? 'text-emerald-600/50 dark:text-emerald-400/40' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                         {amountStr}
                                       </span>
                                     )}
@@ -397,7 +397,7 @@ export default function ShoppingList({
                           </div>
                           <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate font-medium">
                             {amountStr && (
-                              <span className="mr-1.5 font-semibold text-emerald-600/50 dark:text-emerald-400/40">
+                              <span className="mr-1.5 font-semibold text-emerald-600/50 dark:text-emerald-400/40 whitespace-nowrap flex-shrink-0">
                                 {amountStr}
                               </span>
                             )}
