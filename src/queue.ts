@@ -131,6 +131,9 @@ async function processJob(job: Job): Promise<void> {
       recipe.imageUrl = parentJob.recipe.imageUrl;
       recipe.imageUrls = parentJob.recipe.imageUrls;
       recipe.instagramHandle = parentJob.recipe.instagramHandle;
+      recipe.parentJobId = parentJob.id;
+      recipe.parentRecipeTitle = parentJob.recipe.title;
+      recipe.remixPrompt = job.prompt || null;
 
       await updateJob(jobId, { status: 'completed', recipe, error: null });
       return;
