@@ -48,12 +48,13 @@ export function useRecipeNutrition(recipe: Recipe) {
     }
 
     if (hasIngredientEstimates) {
-      // Create NutritionalValues raw numeric values
+      const baseServings = recipe.servings || 1;
+      // Create NutritionalValues raw numeric values per serving
       const calculated: NutritionalValues = {
-        calories: totalCalories > 0 ? Math.round(totalCalories) : null,
-        protein: totalProtein > 0 ? Math.round(totalProtein * 10) / 10 : null,
-        carbs: totalCarbs > 0 ? Math.round(totalCarbs * 10) / 10 : null,
-        fat: totalFat > 0 ? Math.round(totalFat * 10) / 10 : null,
+        calories: totalCalories > 0 ? Math.round(totalCalories / baseServings) : null,
+        protein: totalProtein > 0 ? Math.round((totalProtein / baseServings) * 10) / 10 : null,
+        carbs: totalCarbs > 0 ? Math.round((totalCarbs / baseServings) * 10) / 10 : null,
+        fat: totalFat > 0 ? Math.round((totalFat / baseServings) * 10) / 10 : null,
       };
 
       const hasNutritionInfo =
