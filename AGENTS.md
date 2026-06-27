@@ -89,9 +89,20 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **`ProgressTracker.tsx`:** Visualisiert den aktuellen Job-Status in Echtzeit, untermalt durch dynamische Cooking-Fun-Facts, Fortschrittsbalken und humorvolle Ladebotschaften.
       * **`ErrorBanner.tsx`:** Zeigt detaillierte Fehler und ermöglicht erneutes Ausführen.
       * **`AiNotice.tsx`:** Eine wiederverwendbare Badge- oder Inline-Komponente, die geschätzte Nährwertangaben visualisiert und über ein Smartphone-freundliches HeroUI-Popover (klickbar) nähere Details anzeigt.
-      * **`RecipeDetails.tsx`:** Herzstück für Kochinteraktionen (Zutaten- und Zubereitungs-Checklisten, Portionsrechner, Meta-Statistiken, Nährwerttabellen, Markdown-Kopierfunktion sowie der *"Zur Einkaufsliste hinzufügen"*-Button). Die Zutatengruppen werden hierbei sortiert nach Supermarktlaufrichtung samt Übersetzung und passenden Icons gerendert. Haken-Zustände bleiben dank stabiler `originalIdx`-IDs von Sortierungen unberührt. Integriert das Nährwert-Rendering (unterstützt das Umschalten zwischen "Pro Portion" und "Gesamt" über eine intuitive Toggle-Steuerung, wobei die Gesamtwerte dynamisch mit der ausgewählten Portionsanzahl multipliziert werden) und zeigt bei KI-Schätzungen die `AiNotice`-Komponente an.
+      * **`RecipeDetails/`:** Ein modularisiertes Verzeichnis für die Rezept-Interaktionsansichten:
+        * `index.tsx`: Haupt-Orchestrator, der Hooks, Berechnungen und Zustände verwaltet.
+        * `RecipeHeader.tsx`: Rendert die Kopfzeile, die Bildgalerie und das Popover-Optionsmenü.
+        * `RecipeStats.tsx`: Rendert Vorbereitungszeit, Kochzeit und Portions-Skalierer.
+        * `RecipeNutrition.tsx`: Rendert die Nährwerttabelle mit Umschaltung zwischen portionierter und totaler Ansicht.
+        * `RecipeIngredients.tsx`: Rendert die Zutatenliste (nach Supermarktabteilungen sortiert) und alternative Zutaten.
+        * `RecipeInstructions.tsx`: Rendert Koch-Equipment, die Schritt-für-Schritt-Anleitung, Fortschrittsbalken und Profi-Tipps.
+        * `RecipeActionDock.tsx`: Rendert die schwebende Navigations- und Startleiste am unteren Bildschirmrand.
       * **`SavedCatalog/`:** Grid- und Listen-Layout der Rezept-Historie inklusive Suchfilterung, Bulk-Select-Modus, Massenlöschung und Weiterleitung von Einkaufslisten-Befehlen.
-      * **`ShoppingList.tsx`:** Anzeige und Interaktions-Panel der smarten Einkaufsliste. Beinhaltet ein Zettelformular für manuelle freie Einkäufe, Vorschlagsbuttons für Einheiten und getrennte Listen für noch zu kaufende und im Korb befindliche Artikel. Die noch zu kaufenden Artikel werden nach Supermarkt-Kategorien gruppiert, sortiert und mit ihren Modifizierern (z. B. "leicht") angezeigt.
+      * **`ShoppingList/`:** Ein modularisiertes Verzeichnis für die Verwaltung der Einkaufsliste:
+        * `index.tsx`: Haupt-Orchestrator der Einkaufsliste.
+        * `CustomItemForm.tsx`: Card-Formular zur manuellen Artikeleingabe mit Einheitenvorschlägen.
+        * `ShoppingListGroup.tsx`: Gruppiert unvollständige Einkäufe nach Abteilung und listet Artikel im Einkaufswagen gesondert auf.
+        * `ShoppingListItem.tsx`: Einzelne Zeile eines Einkaufsartikels inklusive Checkboxen, Rezeptquellennachweis und Lösch-Buttons.
       * **`CachedImage.tsx`:** Drop-in-Ersatz für native `<img>`-Tags mit automatischem clientseitigen Image-Caching. Nutzt `useCachedImage`, zeigt während des Ladens einen animierten Spinner und rendert das komprimierte Base64-Bild. Akzeptiert alle nativen `<img>`-Attribute sowie ein optionales `fallbackComponent`-Prop.
     * **Clientseitige Utilities (`frontend/src/utils/`):**
       * **`imageStore.ts`:** Leichtgewichtiger IndexedDB-Wrapper für den Rezeptbild-Cache. Datenbank `recipe-image-cache` v1 mit Object Store `images`, indiziert nach Original-URL. Bietet `getCachedImage(url)`, `setCachedImage(url, base64Data)`, `deleteCachedImage(url)` und `clearImageCache()`.
