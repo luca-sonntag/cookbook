@@ -65,22 +65,24 @@ export default function RecipeListItem({
 
       {/* Metadata */}
       <div className="flex-1 min-w-0 flex flex-col justify-center">
-        <div className="flex items-center gap-1.5">
-          <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
-            {r.title}
-          </h4>
-          {/* Tag pills (1 in compact view to save space) */}
-          {durationBadge && (
-            <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none whitespace-nowrap">
-              {durationBadge}
-            </span>
-          )}
-          {recipeTags.slice(0, 1).map((tag: string, idx: number) => (
-            <span key={idx} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none whitespace-nowrap">
-              {tag}
-            </span>
-          ))}
-        </div>
+        <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+          {r.title}
+        </h4>
+        {/* Tag pills under the name */}
+        {(durationBadge || recipeTags.length > 0) && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {durationBadge && (
+              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none whitespace-nowrap">
+                {durationBadge}
+              </span>
+            )}
+            {recipeTags.slice(0, 2).map((tag: string, idx: number) => (
+              <span key={idx} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none whitespace-nowrap">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2">
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-emerald-500" /> {formattedPrepTime}
