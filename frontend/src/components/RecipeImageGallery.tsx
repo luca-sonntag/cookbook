@@ -98,6 +98,19 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
           <span>{t('catalog.viewReel')}</span>
         </a>
       )}
+
+      {/* Floating Creator Badge */}
+      {recipe.instagramHandle && (
+        <a
+          href={`https://instagram.com/${recipe.instagramHandle.replace('@', '')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute bottom-4 left-4 z-20 bg-black/65 hover:bg-emerald-600/90 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
+        >
+          <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
+          <span>{recipe.instagramHandle}</span>
+        </a>
+      )}
     </>
   );
 
@@ -127,12 +140,6 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
                       }`}
                     onClick={() => handleImageClick(idx)}
                   />
-                  {recipe.instagramHandle && (
-                    <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 font-semibold backdrop-blur-sm pointer-events-none select-none z-[5] border border-white/10 shadow-md">
-                      <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
-                      <span>{recipe.instagramHandle}</span>
-                    </div>
-                  )}
                   <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full pointer-events-none opacity-80 backdrop-blur-sm">
                     {idx + 1} / {recipe.imageUrls?.length}
                   </div>
@@ -152,12 +159,6 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
               setFullscreenIndex(0);
             }}
           />
-          {recipe.instagramHandle && (
-            <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 font-semibold backdrop-blur-sm pointer-events-none select-none z-[5] border border-white/10 shadow-md">
-              <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
-              <span>{recipe.instagramHandle}</span>
-            </div>
-          )}
         </div>
       ) : (
         <div className="-mt-6 -mx-6 mb-6 h-36 bg-gradient-to-br from-emerald-600/10 to-teal-600/15 dark:from-emerald-950/20 dark:to-teal-950/20 border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
