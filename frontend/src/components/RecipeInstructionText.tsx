@@ -174,14 +174,14 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
                             )}
                           </div>
                           {(matched.ingredient.modifier || matched.ingredient.notes) && (
-                            <div className="flex flex-wrap gap-1 mt-0.5 border-t border-black/5 dark:border-white/10 pt-1">
+                            <div className="flex flex-wrap gap-1.5 mt-1.5 border-t border-black/5 dark:border-white/10 pt-1.5">
                               {matched.ingredient.modifier && (
-                                <span className="text-[10px] text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/5 px-1 py-0.5 rounded font-medium">
+                                <span className="text-[10px] text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded font-medium">
                                   {matched.ingredient.modifier}
                                 </span>
                               )}
                               {matched.ingredient.notes && (
-                                <span className="text-[10px] text-gray-500 dark:text-gray-400 italic font-normal">
+                                <span className="text-[10px] text-gray-600 dark:text-gray-400 italic font-normal">
                                   {matched.ingredient.notes}
                                 </span>
                               )}
