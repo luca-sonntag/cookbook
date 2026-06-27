@@ -30,6 +30,7 @@ interface RecipeDetailsProps {
   onRemixSuccess?: (newRecipe: Recipe) => void;
   isParentAvailable?: boolean;
   onNavigateToRecipe?: (recipeId: string) => void;
+  parentRecipeTitle?: string | null;
 }
 
 export default function RecipeDetails({
@@ -43,7 +44,8 @@ export default function RecipeDetails({
   shoppingListCount,
   onRemixSuccess,
   isParentAvailable,
-  onNavigateToRecipe
+  onNavigateToRecipe,
+  parentRecipeTitle
 }: RecipeDetailsProps) {
   const dialog = useDialog();
   const { t, translateCategory } = useI18n();
@@ -325,6 +327,7 @@ export default function RecipeDetails({
           isCopied={isCopied}
           isParentAvailable={isParentAvailable}
           onNavigateToRecipe={onNavigateToRecipe}
+          parentRecipeTitle={parentRecipeTitle}
         />
 
         {/* Recipe Stats (Prep/Cook Time, Servings) */}
