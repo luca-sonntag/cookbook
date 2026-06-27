@@ -28,11 +28,7 @@ export default function ShoppingListGroup({
   return (
     <div className="flex flex-col gap-6">
       {groupedCategories.length > 0 && (
-        <div className="flex flex-col gap-4">
-          <h4 className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-1">
-            {t('shopping.toBuy', { count: groupedCategories.reduce((acc, g) => acc + g.items.filter(i => !i.checked).length, 0) })}
-          </h4>
-          <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3">
             {groupedCategories.map((group) => {
               const checkedCount = group.items.filter((item) => item.checked).length;
               const isAllChecked = checkedCount === group.items.length;
@@ -117,7 +113,6 @@ export default function ShoppingListGroup({
                 </div>
               );
             })}
-          </div>
         </div>
       )}
     </div>
