@@ -93,6 +93,13 @@ export default function SavedCatalog({
               onNavigateToShoppingList={onNavigateToShoppingList}
               shoppingListCount={shoppingListCount}
               onRemixSuccess={onRemixSuccess}
+              isParentAvailable={selectedJob.recipe.parentJobId ? history.some(j => j.id === selectedJob.recipe.parentJobId) : false}
+              onNavigateToRecipe={(recipeId) => {
+                const parentJob = history.find(j => j.id === recipeId);
+                if (parentJob) {
+                  setSelectedJob(parentJob);
+                }
+              }}
             />
           )}
         </div>
