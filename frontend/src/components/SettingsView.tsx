@@ -68,9 +68,10 @@ export default function SettingsView() {
             selectedKey={language}
             onSelectionChange={(key) => setLanguage(key as 'en' | 'de')}
             className="w-20"
+            classNames={{ value: "text-[11px] font-medium" }}
             aria-label="Language"
           >
-            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center text-[11px] font-medium leading-none">
+            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center leading-none">
               <Select.Value />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
@@ -107,9 +108,10 @@ export default function SettingsView() {
             onSelectionChange={(key) => handleUpdateSetting('preferred_temperature_unit', key as string)}
             isDisabled={isSaving}
             className="w-32"
+            classNames={{ value: "text-[11px] font-medium" }}
             aria-label="Temperature Unit"
           >
-            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center text-[11px] font-medium leading-none">
+            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center leading-none">
               <Select.Value />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
@@ -150,9 +152,10 @@ export default function SettingsView() {
             onSelectionChange={(key) => handleUpdateSetting('preferred_unit_system', key as string)}
             isDisabled={isSaving}
             className="w-36"
+            classNames={{ value: "text-[11px] font-medium" }}
             aria-label="Unit System"
           >
-            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center text-[11px] font-medium leading-none">
+            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center leading-none">
               <Select.Value />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
