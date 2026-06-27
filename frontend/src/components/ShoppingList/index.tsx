@@ -183,37 +183,30 @@ export default function ShoppingList({
 
       {/* Main Shopping List Content */}
       <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 pb-3 border-b border-black/5 dark:border-white/5">
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <ShoppingCart className="w-4 h-4 text-emerald-500" />
-            <span>{t('shopping.title')}</span>
-          </h3>
-
-          {totalCount > 0 && (
-            <div className="flex items-center gap-2 justify-start w-full sm:justify-end sm:w-auto">
-              {aggregatedList.checked.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="tertiary"
-                  className="!h-7 !px-2 !py-0 !text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer whitespace-nowrap"
-                  onPress={clearChecked}
-                >
-                  <X className="w-3.5 h-3.5" />
-                  <span>{t('shopping.clearChecked')}</span>
-                </Button>
-              )}
+        {totalCount > 0 && (
+          <div className="flex items-center gap-2 justify-end mb-4">
+            {aggregatedList.checked.length > 0 && (
               <Button
                 size="sm"
                 variant="tertiary"
                 className="!h-7 !px-2 !py-0 !text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer whitespace-nowrap"
-                onPress={handleClearAll}
+                onPress={clearChecked}
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>{t('shopping.clearAll')}</span>
+                <X className="w-3.5 h-3.5" />
+                <span>{t('shopping.clearChecked')}</span>
               </Button>
-            </div>
-          )}
-        </div>
+            )}
+            <Button
+              size="sm"
+              variant="tertiary"
+              className="!h-7 !px-2 !py-0 !text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer whitespace-nowrap"
+              onPress={handleClearAll}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{t('shopping.clearAll')}</span>
+            </Button>
+          </div>
+        )}
 
         {/* Progress Stats Bar */}
         {totalCount > 0 && (
