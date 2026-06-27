@@ -155,13 +155,13 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 10. **Smarte Einkaufsliste:**
    * Über den Button *"Zur Einkaufsliste hinzufügen"* im Rezept werden alle aktuell nicht abgehakten Zutaten skaliert in den `localStorage` geladen.
    * Der Tab *"Einkaufsliste"* fasst Artikel mit identischen Einheiten und KI-standardisierten Namen (`baseName`) summiert zusammen, weist deren Herkunftsrezepte sowie Mengen-Teile aus und erlaubt eigene freie Zettel-Einträge. Offene Einkäufe werden als Badge-Zahl in der Hauptnavigation visualisiert.
-   * **Kategorie-Abhaken:** Unterstützt das Abhaken aller Artikel einer Supermarktkategorie auf einmal über ein Gruppen-Checkbox-Element direkt links neben dem Kategorienamen. Der Gruppen-Checkbox-Zustand spiegelt die Artikelauswahl wider (Leer = keine Artikel pending, Minus = einige Artikel pending [Indeterminate], Check = alle Artikel pending). Das Abhaken erfolgt zeitverzögert (600ms), sodass versehentliches Auswählen direkt rückgängig gemacht werden kann.
+    * **Kategorie-Abhaken:** Unterstützt das Abhaken aller Artikel einer Supermarktkategorie auf einmal über ein Gruppen-Checkbox-Element direkt links neben dem Kategorienamen. Der Gruppen-Checkbox-Zustand spiegelt die Artikelauswahl wider (Leer = keine Artikel abgehakt, Minus = einige Artikel abgehakt [Indeterminate], Check = alle Artikel abgehakt). Das Abhaken erfolgt sofort und die Artikel bleiben in ihrer jeweiligen Kategorie (kein Springen der Liste).
 11. **Recipe Remix (KI-Anpassung):**
    * Über den Remix-Button auf der Rezept-Detailseite (oder aus der Historie) öffnet sich ein Modal mit Quick-Prompts (z.B. "Vegan", "High Protein", "Kalorienarm") und einem Freitextfeld.
    * Ein neuer `POST /api/jobs/:id/remix` Aufruf legt einen Job mit der `parent_job_id` an.
    * Die Queue überspringt das Apify-Scraping und den Audio-Download, lädt direkt das Parent-Rezept aus der DB und sendet es mit dem Prompt an Gemini.
    * Gemini passt Zutaten und Instruktionen an, fügt bei ersetzten Zutaten das `replacedOriginal` Feld hinzu (wird im UI durchgestrichen dargestellt) und ändert den Rezepttitel (z.B. "(Vegan Remix)").
-   * Das Remix-Ergebnis wird als eigenständiger Eintrag in die Recipe History des Nutzers aufgenommen.
+   * Das Remix-Ergebnis wird als eigenständiger Eintrag in die Recipe History des Users aufgenommen.
 
 ---
 
