@@ -28,6 +28,8 @@ interface RecipeDetailsProps {
   onNavigateToShoppingList?: () => void;
   shoppingListCount?: number;
   onRemixSuccess?: (newRecipe: Recipe) => void;
+  isParentAvailable?: boolean;
+  onNavigateToRecipe?: (recipeId: string) => void;
 }
 
 export default function RecipeDetails({
@@ -39,7 +41,9 @@ export default function RecipeDetails({
   onBack,
   onNavigateToShoppingList,
   shoppingListCount,
-  onRemixSuccess
+  onRemixSuccess,
+  isParentAvailable,
+  onNavigateToRecipe
 }: RecipeDetailsProps) {
   const dialog = useDialog();
   const { t, translateCategory } = useI18n();
@@ -319,6 +323,8 @@ export default function RecipeDetails({
           onDelete={onDelete}
           onCopyMarkdown={copyRecipeMarkdown}
           isCopied={isCopied}
+          isParentAvailable={isParentAvailable}
+          onNavigateToRecipe={onNavigateToRecipe}
         />
 
         {/* Recipe Stats (Prep/Cook Time, Servings) */}
