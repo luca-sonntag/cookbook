@@ -37,7 +37,7 @@ export default function RecipeListItem({
 
   return (
     <Card
-      className={`glass-panel rounded-2xl hover:border-emerald-500/30 cursor-pointer active:scale-[0.99] transition-all p-3 flex flex-row items-center gap-3 overflow-hidden border ${
+      className={`glass-panel rounded-2xl hover:border-emerald-500/30 cursor-pointer active:scale-[0.99] transition-all p-3 flex flex-row items-center gap-3 overflow-hidden relative border ${
         isSelected ? '!border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-black/5 dark:border-white/5'
       }`}
       onClick={onClick}
@@ -65,12 +65,12 @@ export default function RecipeListItem({
 
       {/* Metadata */}
       <div className="flex-1 min-w-0 flex flex-col justify-center">
-        <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+        <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate pr-4">
           {r.title}
         </h4>
         {/* Tag pills under the name */}
         {(durationBadge || recipeTags.length > 0) && (
-          <div className="flex flex-wrap gap-1 mt-1">
+          <div className="flex flex-wrap gap-1 mt-1 pr-20">
             {durationBadge && (
               <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none whitespace-nowrap">
                 {durationBadge}
@@ -83,7 +83,7 @@ export default function RecipeListItem({
             ))}
           </div>
         )}
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2 pr-20">
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-emerald-500" /> {formattedPrepTime}
           </span>
@@ -96,7 +96,7 @@ export default function RecipeListItem({
 
       {/* Actions */}
       {!isSelectMode && (
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="absolute right-3 bottom-2.5 flex items-center gap-1">
           <button
             className={`active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
               isAdded
