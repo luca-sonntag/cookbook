@@ -71,7 +71,7 @@ export default function SettingsView() {
             aria-label="Language"
           >
             <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center leading-none">
-              <Select.Value className="text-[11px] font-medium" />
+              <Select.Value className="text-[12px] font-medium" />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
             <Select.Popover>
@@ -110,7 +110,7 @@ export default function SettingsView() {
             aria-label="Temperature Unit"
           >
             <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center leading-none">
-              <Select.Value className="text-[11px] font-medium" />
+              <Select.Value className="text-[12px] font-medium" />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
             <Select.Popover>
@@ -153,7 +153,7 @@ export default function SettingsView() {
             aria-label="Unit System"
           >
             <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center leading-none">
-              <Select.Value className="text-[11px] font-medium" />
+              <Select.Value className="text-[12px] font-medium" />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
             <Select.Popover>
