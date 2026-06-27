@@ -94,9 +94,9 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
               href={`https://instagram.com/${recipe.instagramHandle.replace('@', '')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-black/65 hover:bg-emerald-600/90 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
+              className="bg-black/65 hover:bg-emerald-600/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-md transition-all duration-300 hover:scale-105"
             >
-              <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
+              <InstagramIcon className="w-3 h-3 text-pink-400" />
               <span>{recipe.instagramHandle}</span>
             </a>
           )}
@@ -105,9 +105,9 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
               href={reelUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-black/65 hover:bg-emerald-600/90 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
+              className="bg-black/65 hover:bg-emerald-600/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
             >
-              <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
+              <InstagramIcon className="w-3 h-3 text-pink-400" />
               <span>{t('catalog.viewReel')}</span>
             </a>
           )}
