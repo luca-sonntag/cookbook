@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Check, Trash2 } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { useI18n } from '../../context/I18nContext';
@@ -21,12 +22,23 @@ export default function ShoppingListItem({
 }: ShoppingListItemProps) {
   const { t } = useI18n();
   const amountStr = formatItemAmount(item.amount, item.unit);
+  const [isCollapsing, setIsCollapsing] = useState(false);
+
+  const handleToggleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsCollapsing(true);
+    setTimeout(() => {
+      onClick();
+    }, 200);
+  };
 
   if (isChecked) {
     return (
-      <li className="flex items-start justify-between gap-3 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group">
+      <li className={`flex items-start justify-between gap-3 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${
+        isCollapsing ? 'animate-item-collapse' : 'animate-item-expand'
+      }`}>
         <div
-          onClick={onClick}
+          onClick={handleToggleClick}
           className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
         >
           <div className="w-5 h-5 rounded-md bg-emerald-500 border border-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all">
@@ -59,9 +71,11 @@ export default function ShoppingListItem({
   }
 
   return (
-    <li className={`flex items-start justify-between gap-3 py-1.5 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${isPending ? 'bg-emerald-500/5' : ''}`}>
+    <li className={`flex items-start justify-between gap-3 py-1.5 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${
+      isCollapsing ? 'animate-item-collapse' : 'animate-item-expand'
+    }`}>
       <div
-        onClick={onClick}
+        onClick={handleToggleClick}
         className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
       >
         <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isPending ? 'bg-emerald-500 border border-emerald-500' : 'border border-black/20 dark:border-white/20'}`}>
