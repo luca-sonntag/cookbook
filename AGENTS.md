@@ -115,10 +115,12 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **Fallback:** Bei Canvas-Fehlern (CORS, corrupt images) wird direkt die Proxy-URL als `src` verwendet — der Nutzer sieht das Bild in Originalqualität, nur ohne Caching.
     * **Typensicherheit (`src/types.ts` & `frontend/src/types.ts`):** Zentralisierte TypeScript-Modelle für Rezepte, Zutaten, Nährwerte und API-Jobs. Nutzung von `type`-only Imports zur Einhaltung von Compiler-Richtlinien (wie `verbatimModuleSyntax`).
 * **Visuelles Design:** Theme-gesteuert (Hell- & Dunkelmodus) mit modernem Glassmorphismus und harmonischen Akzenten (Smaragdgrün). Optimiert für mobile Displays mit flüssigen Übergängen.
-* **Adaptive Navigation & Header-Architektur (Desktop & Mobile):**
-  * **Desktop (md+):** Ein einzeiliges, platzsparendes Header-Layout. Es vereint Logo/Titel (links), Navigations-Pills (Mitte) und Theme-/Sprach-Toggles/API-Konfiguration (rechts) in einer Zeile.
-  * **Mobile (<md):** Ein kompakter Top-Header für Titel und Toggles, gekoppelt mit einer **festen Bottom Navigation Bar** für die Daumen-optimierte Einhandbedienung. 
-  * **Smarte Badges:** Die Einkaufsliste verfügt über eine mit `animate-pulse-slow` atmende, kreisförmige Benachrichtigungsplakette über dem Shopping-List-Icon (sowohl mobil als auch im Desktop-Header).
+* **Strikte Mobile-First & Header-Architektur:**
+  * Die Webanwendung fokussiert sich zu 100% auf ein Smartphone-Erlebnis, unabhängig vom Endgerät. Das Design erzwingt global ein `max-w-md` Container-Layout, sodass die App auch auf Desktop-Bildschirmen wie eine native Smartphone-Applikation wirkt.
+  * **Header:** Der Header ist maximal minimalistisch und clean. Er zeigt lediglich das zentrierte Logo und den App-Titel. Die früher im Header platzierten "Settings"-Optionen wurden komplett entfernt.
+  * **Bottom Navigation Bar:** Die fixierte untere Navigationsleiste ist das primäre und einzige Navigationswerkzeug (sichtbar auf Mobile und Desktop). Sie enthält nun einen vierten Tab ("Profil" / "Settings").
+  * **SettingsView:** Alle Konfigurationsoptionen (Sprachwechsel, Hell-/Dunkelmodus, Logout und PWA-Installationshinweise) sind in den neuen "Profil"-Tab ausgelagert, um den Header sauber zu halten.
+  * **Smarte Badges:** Die Einkaufsliste verfügt über eine mit `animate-pulse-slow` atmende, kreisförmige Benachrichtigungsplakette über dem Shopping-List-Icon.
   * **Distraction-Free Mode:** Um den Fokus beim Kochen zu maximieren, schiebt sich die mobile Bottom Navigation bei aktiver Rezept-Detailansicht (sowohl aus der Historie als auch direkt nach der Extraktion) flüssig nach unten aus dem Viewport (`translate-y-full`).
   * **Erweiterter Back-Workflow:** Durch Einbindung des `useMobileNavigationBack`-Hooks in den Extraktions-Tab wird der Zurück-Gesten- und Back-Button-Workflow auch für neu extrahierte Rezepte bereitgestellt.
 * **Sprach- und Theme-Steuerung:**
