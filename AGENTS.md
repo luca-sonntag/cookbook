@@ -146,6 +146,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
     * **Timer-Banner (`TimerBanner.tsx`):** Sticky unterhalb des App-Headers. Zeigt alle aktiven Timer als blaue Karten mit Countdown (mm:ss) und Fortschrittsbalken. Bei Ablauf: pulsiert rot mit Glocken-Icon. Dismiss-Button (×) entfernt den Timer.
     * **Zeitparser (`parseTimeToSeconds`):** Konvertiert gematchte Zeit-Strings (Sekunden, Minuten, Stunden) aller unterstützten Sprachen in Sekunden.
     * **Hook (`useTimerManager.ts`):** Thin re-export von `useTimerContext` für ergonomische Imports in Komponenten.
+    * **Navigation per Klick:** Ein Klick auf eine laufende oder abgelaufene Timer-Karte im Banner oder im Kochmodus navigiert den Benutzer vollautomatisch zum Herkunftsrezept (wechselt ggf. den Tab) und öffnet direkt den Vollbild-Kochmodus (`CookingMode.tsx`) am entsprechenden Zubereitungsschritt, an dem der Timer gestartet wurde. Gesteuert wird dies über ein entkoppeltes Custom-Event-System (`app:navigate-to-timer-step`).
   * Unterstützt das Kopieren des Rezepts als formatiertes Markdown.
 
 
