@@ -23,7 +23,13 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
     if (!text) return text;
     if (!recipe.ingredients && !recipe.equipment) return <span>{text}</span>;
 
-    const terms: { term: string; type: 'ingredient' | 'equipment'; original: string; info: string }[] = [];
+    const terms: {
+      term: string;
+      type: 'ingredient' | 'equipment';
+      original: string;
+      ingredient?: typeof allIngredients[number];
+      info: string;
+    }[] = [];
 
     // Add ingredients
     allIngredients.forEach(ing => {
@@ -39,10 +45,22 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
       info += ` (${amountStr}${unitStr})`;
 
       if (ing.name && ing.name.length >= 2) {
-        terms.push({ term: ing.name.toLowerCase(), type: 'ingredient', original: ing.name, info });
+        terms.push({
+          term: ing.name.toLowerCase(),
+          type: 'ingredient',
+          original: ing.name,
+          ingredient: ing,
+          info
+        });
       }
       if (ing.baseName && ing.baseName.length >= 2) {
-        terms.push({ term: ing.baseName.toLowerCase(), type: 'ingredient', original: ing.name, info });
+        terms.push({
+          term: ing.baseName.toLowerCase(),
+          type: 'ingredient',
+          original: ing.name,
+          ingredient: ing,
+          info
+        });
       }
     });
 
@@ -139,10 +157,40 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
                   </Popover.Trigger>
                   <Popover.Content
                     placement="top"
-                    className="bg-black/90 dark:bg-white/95 text-white dark:text-gray-900 shadow-md rounded-lg backdrop-blur-sm border border-white/10 dark:border-black/10 px-2 py-1.5"
+                    className="bg-white dark:bg-gray-950 text-gray-700 dark:text-gray-300 border border-black/10 dark:border-white/10 rounded-xl shadow-lg px-3 py-2"
                   >
                     <Popover.Dialog className="outline-none border-none p-0 m-0">
-                      <span className="text-xs font-semibold">{matched.info}</span>
+                      {matched.type === 'ingredient' && matched.ingredient ? (
+                        <div className="flex flex-col gap-1 min-w-[140px] max-w-[240px]">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs font-bold text-gray-900 dark:text-white leading-tight">
+                              {matched.ingredient.name}
+                            </span>
+                            {(matched.ingredient.amount > 0 || matched.ingredient.unit) && (
+                              <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">
+                                {formatAmount(matched.ingredient.amount, matched.ingredient.unit)}
+                                {matched.ingredient.unit ? ` ${matched.ingredient.unit}` : ''}
+                              </span>
+                            )}
+                          </div>
+                          {(matched.ingredient.modifier || matched.ingredient.notes) && (
+                            <div className="flex flex-wrap gap-1 mt-0.5 border-t border-black/5 dark:border-white/10 pt-1">
+                              {matched.ingredient.modifier && (
+                                <span className="text-[10px] text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/5 px-1 py-0.5 rounded font-medium">
+                                  {matched.ingredient.modifier}
+                                </span>
+                              )}
+                              {matched.ingredient.notes && (
+                                <span className="text-[10px] text-gray-500 dark:text-gray-400 italic font-normal">
+                                  {matched.ingredient.notes}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs font-semibold text-gray-900 dark:text-white">{matched.info}</span>
+                      )}
                     </Popover.Dialog>
                   </Popover.Content>
                 </Popover>
