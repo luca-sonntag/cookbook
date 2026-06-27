@@ -151,11 +151,10 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
             return (
               <span
                 key={index}
-                className="inline-flex items-center gap-0.5 mx-0.5 font-semibold leading-none text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 transition-colors cursor-default"
-                style={{ verticalAlign: '-0.125em' }}
+                className="inline mx-0.5 font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 transition-colors cursor-default"
               >
-                <Thermometer className="w-3.5 h-3.5 text-orange-500 dark:text-orange-400 shrink-0" />
-                {part}
+                <Thermometer className="inline w-3.5 h-3.5 mr-0.5 text-orange-500 dark:text-orange-400" style={{ verticalAlign: 'middle' }} />
+                <span style={{ verticalAlign: 'middle' }}>{part}</span>
               </span>
             );
           }
@@ -173,16 +172,15 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                   e.stopPropagation();
                   setTimerSheet({ isOpen: true, seconds, label: text.slice(0, 80) });
                 } : undefined}
-                style={{ verticalAlign: '-0.125em' }}
-                className={`inline-flex items-center gap-0.5 mx-0.5 font-semibold leading-none text-blue-600 dark:text-blue-400 transition-colors ${
+                className={`inline mx-0.5 font-semibold text-blue-600 dark:text-blue-400 transition-colors ${
                   canTimer
                     ? 'cursor-pointer hover:text-blue-500 dark:hover:text-blue-300 underline decoration-dotted underline-offset-2'
                     : 'cursor-default hover:text-blue-500 dark:hover:text-blue-300'
                 }`}
                 title={canTimer ? 'Timer starten / Start timer' : undefined}
               >
-                <Clock className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 shrink-0" />
-                {part}
+                <Clock className="inline w-3.5 h-3.5 mr-0.5 text-blue-500 dark:text-blue-400" style={{ verticalAlign: 'middle' }} />
+                <span style={{ verticalAlign: 'middle' }}>{part}</span>
               </span>
             );
           }
