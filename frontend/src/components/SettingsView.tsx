@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, MonitorSmartphone, ChevronDown } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
@@ -35,27 +35,16 @@ export default function SettingsView() {
               </p>
             </div>
           </div>
-          <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
-            <button
-              onClick={() => setLanguage('en')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                language === 'en' 
-                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-              }`}
+          <div className="relative">
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as 'en' | 'de')}
+              className="appearance-none bg-black/5 dark:bg-white/5 text-gray-900 dark:text-white text-xs font-semibold py-1.5 pl-3 pr-7 rounded-lg outline-none cursor-pointer text-center"
             >
-              EN
-            </button>
-            <button
-              onClick={() => setLanguage('de')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                language === 'de' 
-                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-              }`}
-            >
-              DE
-            </button>
+              <option value="en">EN</option>
+              <option value="de">DE</option>
+            </select>
+            <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           </div>
         </div>
 
