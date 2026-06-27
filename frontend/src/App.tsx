@@ -233,46 +233,46 @@ export default function App() {
 
         {/* CONDITIONAL RENDERING OF VIEWS */}
         {activeView === 'extract' ? (
-          <>
-            {/* Extraction Form */}
-            <ExtractForm
-              url={url}
-              setUrl={setUrl}
-              urlError={urlError}
-              validateUrl={validateUrl}
-              isPending={isPending}
-              handleFormSubmit={handleFormSubmit}
+          recipe ? (
+            /* Recipe Detail View — hides extract inputs once extraction is done */
+            <RecipeDetails
+              key={recipe.id || recipe.title}
+              recipe={recipe}
+              onAddIngredients={addRecipeIngredients}
+              reelUrl={url}
+              onBack={() => {
+                setRecipe(null);
+                setUrl('');
+              }}
+              onNavigateToShoppingList={() => setActiveView('shopping-list')}
+              shoppingListCount={aggregatedList.unchecked.length}
+              onRemixSuccess={(newRecipe) => setRecipe(newRecipe)}
             />
-
-            {/* Processing State Tracker */}
-            <ProgressTracker isPending={isPending} jobStatus={jobStatus} statusDetails={statusDetails} />
-
-            {/* Error State Banner */}
-            <ErrorBanner
-              isPending={isPending}
-              jobStatus={jobStatus}
-              jobError={jobError}
-              triggerExtraction={triggerExtraction}
-              url={url}
-            />
-
-            {/* Recipe Display Card */}
-            {recipe && (
-              <RecipeDetails
-                key={recipe.id || recipe.title}
-                recipe={recipe}
-                onAddIngredients={addRecipeIngredients}
-                reelUrl={url}
-                onBack={() => {
-                  setRecipe(null);
-                  setUrl('');
-                }}
-                onNavigateToShoppingList={() => setActiveView('shopping-list')}
-                shoppingListCount={aggregatedList.unchecked.length}
-                onRemixSuccess={(newRecipe) => setRecipe(newRecipe)}
+          ) : (
+            <>
+              {/* Extraction Form */}
+              <ExtractForm
+                url={url}
+                setUrl={setUrl}
+                urlError={urlError}
+                validateUrl={validateUrl}
+                isPending={isPending}
+                handleFormSubmit={handleFormSubmit}
               />
-            )}
-          </>
+
+              {/* Processing State Tracker */}
+              <ProgressTracker isPending={isPending} jobStatus={jobStatus} statusDetails={statusDetails} />
+
+              {/* Error State Banner */}
+              <ErrorBanner
+                isPending={isPending}
+                jobStatus={jobStatus}
+                jobError={jobError}
+                triggerExtraction={triggerExtraction}
+                url={url}
+              />
+            </>
+          )
         ) : activeView === 'history' ? (
           /* SAVED RECIPES TAB */
           <SavedCatalog
