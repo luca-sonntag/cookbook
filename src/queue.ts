@@ -127,6 +127,10 @@ async function processJob(job: Job): Promise<void> {
       console.log(`[Job ${jobId}] Requesting remix from Gemini...`);
       const recipe = await remixRecipe(parentJob.recipe, job.prompt || '', runDir, userPrefs);
       
+      if (recipe.isRecipe === false) {
+        throw new Error('Unrelated request: The prompt was not recognized as a valid recipe modification.');
+      }
+
       recipe.id = jobId;
       recipe.imageUrl = parentJob.recipe.imageUrl;
       recipe.imageUrls = parentJob.recipe.imageUrls;
