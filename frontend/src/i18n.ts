@@ -324,7 +324,7 @@ export const uiTranslations = {
       back: 'Zurück',
       finish: 'Fertigstellen',
       doneNext: 'Erledigt & Weiter',
-      cookingModeTip: 'Tipp: Nutze die Pfeiltasten ← → auf dem Desktop oder wische nach links/rechts auf dem Handy.',
+      cookingModeTip: 'Tipp: Wische nach links/rechts auf dem Handy.',
       finishedAlertTitle: 'Fertig!',
       finishedAlertMessage: 'Guten Appetit! Du hast das Rezept erfolgreich zubereitet.',
     },
@@ -396,6 +396,20 @@ export const uiTranslations = {
         budget: { label: '💰 Günstig', prompt: 'Mache es günstig' },
         glutenFree: { label: '🌾 Glutenfrei', prompt: 'Mache es glutenfrei' }
       }
+    },
+    timer: {
+      confirmTitle: 'Timer starten?',
+      confirmStart: 'Timer starten',
+      confirmCancel: 'Abbrechen',
+      adjustDuration: 'Dauer anpassen',
+      finished: 'Timer abgelaufen!',
+      dismiss: 'Schließen',
+      activeTimers: '{count} Timer aktiv',
+      minutes: '{count} Min.',
+      seconds: '{count} Sek.',
+      minutesShort: 'm',
+      secondsShort: 's',
+      notificationBody: 'Dein Koch-Timer ist abgelaufen.',
     }
   },
   en: {
@@ -562,7 +576,7 @@ export const uiTranslations = {
       back: 'Back',
       finish: 'Finish',
       doneNext: 'Done & Next',
-      cookingModeTip: 'Tip: Use the arrow keys ← → on desktop or swipe left/right on mobile.',
+      cookingModeTip: 'Tip: Swipe left/right on mobile.',
       finishedAlertTitle: 'Finished!',
       finishedAlertMessage: 'Bon appétit! You have successfully prepared the recipe.',
     },
@@ -634,6 +648,20 @@ export const uiTranslations = {
         budget: { label: '💰 Budget Friendly', prompt: 'Make it budget friendly' },
         glutenFree: { label: '🌾 Gluten Free', prompt: 'Make it gluten free' }
       }
+    },
+    timer: {
+      confirmTitle: 'Start timer?',
+      confirmStart: 'Start Timer',
+      confirmCancel: 'Cancel',
+      adjustDuration: 'Adjust duration',
+      finished: 'Timer finished!',
+      dismiss: 'Dismiss',
+      activeTimers: '{count} timer(s) active',
+      minutes: '{count} min.',
+      seconds: '{count} sec.',
+      minutesShort: 'm',
+      secondsShort: 's',
+      notificationBody: 'Your cooking timer has finished.',
     }
   }
 } as const;
