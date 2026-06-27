@@ -92,19 +92,28 @@ export default function ShoppingList({
       groups[cat].push(item);
     });
 
-    // Sort categories based on categoryOrder
-    return Object.keys(groups)
-      .sort((a, b) => {
-        const idxA = categoryOrder.indexOf(a.toUpperCase() as any);
-        const idxB = categoryOrder.indexOf(b.toUpperCase() as any);
-        const valA = idxA === -1 ? 999 : idxA;
-        const valB = idxB === -1 ? 999 : idxB;
-        return valA - valB;
-      })
-      .map((cat) => ({
+    // Map to category groups and pre-calculate checked state
+    const mappedGroups = Object.keys(groups).map((cat) => {
+      const items = groups[cat];
+      const allChecked = items.every((item) => item.checked);
+      return {
         category: cat,
-        items: groups[cat],
-      }));
+        items,
+        allChecked,
+      };
+    });
+
+    // Sort: uncompleted first, completed last. Within each, sort by categoryOrder.
+    return mappedGroups.sort((a, b) => {
+      if (a.allChecked !== b.allChecked) {
+        return a.allChecked ? 1 : -1;
+      }
+      const idxA = categoryOrder.indexOf(a.category.toUpperCase() as any);
+      const idxB = categoryOrder.indexOf(b.category.toUpperCase() as any);
+      const valA = idxA === -1 ? 999 : idxA;
+      const valB = idxB === -1 ? 999 : idxB;
+      return valA - valB;
+    });
   }, [allAggregatedItems]);
 
   return (
