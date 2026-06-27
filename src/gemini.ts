@@ -144,23 +144,23 @@ const recipeSchema = {
     },
     nutritionalValues: {
       type: FunctionDeclarationSchemaType.OBJECT,
-      description: 'Overall recipe-level nutritional values. Only populated if hasExplicitNutritionalValues is true.',
+      description: 'Nutritional values per single serving/portion. Only populated if hasExplicitNutritionalValues is true. If the source specifies overall/total nutritional values for the entire recipe, you MUST divide them by the number of servings/portions to get the values per single serving.',
       properties: {
         calories: {
           type: FunctionDeclarationSchemaType.INTEGER,
-          description: 'Overall calories in kcal.',
+          description: 'Calories in kcal per single serving.',
         },
         protein: {
           type: FunctionDeclarationSchemaType.NUMBER,
-          description: 'Overall protein in grams.',
+          description: 'Protein in grams per single serving.',
         },
         carbs: {
           type: FunctionDeclarationSchemaType.NUMBER,
-          description: 'Overall carbs in grams.',
+          description: 'Carbohydrates in grams per single serving.',
         },
         fat: {
           type: FunctionDeclarationSchemaType.NUMBER,
-          description: 'Overall fat in grams.',
+          description: 'Fat in grams per single serving.',
         },
       },
     },
@@ -320,7 +320,7 @@ Key Constraints:
 3. Preferred Units:
    - Temperature Units: ${tempInstruction}
    - Weight & Volume Units: ${unitSystemInstruction}
-4. Missing Data & Nutrition: If any information for a specific field is missing, leave it empty (empty string "", null, or empty array []). You MUST set "hasExplicitNutritionalValues" to true ONLY IF the overall recipe nutritional values are explicitly stated in the source text or audio. If they are not, set it to false and set "nutritionalValues" to null (do NOT estimate or calculate overall nutritional values at the recipe level).
+4. Missing Data & Nutrition: If any information for a specific field is missing, leave it empty (empty string "", null, or empty array []). You MUST set "hasExplicitNutritionalValues" to true ONLY IF the recipe nutritional values are explicitly stated in the source text or audio. If they are not, set it to false and set "nutritionalValues" to null (do NOT estimate or calculate overall nutritional values at the recipe level). Note that "nutritionalValues" MUST represent values per single serving/portion. If the source lists total values for the entire recipe, divide them by the number of servings/portions first.
 
 Description/Caption:
 """
