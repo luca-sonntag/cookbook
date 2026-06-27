@@ -74,13 +74,39 @@ export default function RecipeDetails({
     return strTime;
   };
 
-  // Helper to format nutrition values and append units without duplication
-  const renderNutritionWithUnit = (val: any, unit: string = 'g') => {
-    const formatted = formatNutritionValue(val);
-    if (formatted === '—') return '—';
-    const str = String(formatted);
-    if (str.toLowerCase().endsWith(unit.toLowerCase())) return str;
-    return `${str}${unit}`;
+  // Helper to format nutrition values, optionally scaling them and appending units
+  const getNutritionDisplayValue = (val: any, unit: string = 'g', isTotal: boolean = false, includeUnit: boolean = true) => {
+    if (val === undefined || val === null || val === '') return '—';
+    
+    let numericVal: number;
+    let originalUnit = '';
+    
+    if (typeof val === 'number') {
+      numericVal = val;
+    } else {
+      const match = String(val).trim().match(/^([\d.,]+)\s*([a-zA-Z%]*)$/);
+      if (!match) return String(val);
+      numericVal = parseFloat(match[1].replace(',', '.'));
+      originalUnit = match[2] || '';
+      if (isNaN(numericVal)) return String(val);
+    }
+    
+    if (numericVal === 0) return '—';
+    
+    // Scale value if total is requested: multiply the per-serving value by the selected servings
+    const finalVal = isTotal ? numericVal * servings : numericVal;
+    
+    const displayUnit = originalUnit || unit;
+    const isKcal = displayUnit.toLowerCase() === 'kcal';
+    
+    const rounded = isKcal 
+      ? Math.round(finalVal) 
+      : Math.round(finalVal * 10) / 10;
+      
+    if (includeUnit) {
+      return `${rounded}${displayUnit}`;
+    }
+    return String(rounded);
   };
 
   // Checklists state (persisted in localStorage!)
@@ -118,6 +144,25 @@ export default function RecipeDetails({
       return false;
     }
   });
+
+  // Show total or per portion nutrition (persisted in localStorage!)
+  const [showTotalNutrition, setShowTotalNutrition] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('recipe_show_total_nutrition');
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleTotalNutrition = (isTotal: boolean) => {
+    setShowTotalNutrition(isTotal);
+    try {
+      localStorage.setItem('recipe_show_total_nutrition', JSON.stringify(isTotal));
+    } catch (e) {
+      console.error('Error saving showTotalNutrition to localStorage', e);
+    }
+  };
 
   const handleToggleIngredientNutrition = () => {
     setShowIngredientNutrition(prev => {
@@ -409,25 +454,53 @@ export default function RecipeDetails({
               ? 'bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] shadow-[0_0_15px_rgba(99,102,241,0.05)]'
               : 'bg-black/5 dark:bg-white/5'
           }`}>
-            <div className="flex items-center gap-1.5 mb-2.5">
-              <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{t('recipe.nutritionTitle')}</h4>
-              {isAiEstimated && <AiNotice type="badge" />}
+            <div className="flex justify-between items-center mb-2.5 gap-2">
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{t('recipe.nutritionTitle')}</h4>
+                {isAiEstimated && <AiNotice type="badge" />}
+              </div>
+              
+              {/* Portion / Gesamt Switcher */}
+              <div className="flex bg-black/5 dark:bg-white/5 p-0.5 rounded-lg border border-black/5 dark:border-white/5 select-none">
+                <button
+                  type="button"
+                  onClick={() => handleToggleTotalNutrition(false)}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all cursor-pointer outline-none border-none ${
+                    !showTotalNutrition
+                      ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  {t('recipe.nutritionPerServing')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggleTotalNutrition(true)}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all cursor-pointer outline-none border-none ${
+                    showTotalNutrition
+                      ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  {t('recipe.nutritionTotal')}
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-4 gap-2 text-center text-xs">
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{formatNutritionValue(nutritionalValues.calories)}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{getNutritionDisplayValue(nutritionalValues.calories, 'kcal', showTotalNutrition, false)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionCalories')}</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{renderNutritionWithUnit(nutritionalValues.protein, 'g')}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{getNutritionDisplayValue(nutritionalValues.protein, 'g', showTotalNutrition, true)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionProtein')}</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{renderNutritionWithUnit(nutritionalValues.carbs, 'g')}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{getNutritionDisplayValue(nutritionalValues.carbs, 'g', showTotalNutrition, true)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionCarbs')}</div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">{renderNutritionWithUnit(nutritionalValues.fat, 'g')}</div>
+                <div className="text-gray-900 dark:text-white font-bold">{getNutritionDisplayValue(nutritionalValues.fat, 'g', showTotalNutrition, true)}</div>
                 <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionFat')}</div>
               </div>
             </div>
