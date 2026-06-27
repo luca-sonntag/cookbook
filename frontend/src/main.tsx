@@ -5,13 +5,16 @@ import App from './App.tsx'
 import { DialogProvider } from './context/DialogContext.tsx'
 import { I18nProvider } from './context/I18nContext.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
+import { TimerProvider } from './context/TimerContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
       <I18nProvider>
         <DialogProvider>
-          <App />
+          <TimerProvider>
+            <App />
+          </TimerProvider>
         </DialogProvider>
       </I18nProvider>
     </AuthProvider>

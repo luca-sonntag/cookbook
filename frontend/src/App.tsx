@@ -11,6 +11,7 @@ import SavedCatalog from './components/SavedCatalog/index';
 import ShoppingList from './components/ShoppingList';
 import AuthForm from './components/AuthForm';
 import SettingsView from './components/SettingsView';
+import TimerBanner from './components/TimerBanner';
 
 import { usePwaInstall } from './hooks/usePwaInstall';
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
@@ -227,6 +228,9 @@ export default function App() {
 
       {/* App Install Banner */}
       <InstallBanner isInstallable={isInstallable} handleInstallClick={handleInstallClick} />
+
+      {/* Active Cooking Timers Banner */}
+      <TimerBanner />
 
       {/* Main content body */}
       <main className="w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 pb-24">
