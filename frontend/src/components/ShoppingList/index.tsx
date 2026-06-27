@@ -36,20 +36,50 @@ export default function ShoppingList({
   // Local UI states
   const [showAddForm, setShowAddForm] = useState(false);
   const addFormRef = useRef<HTMLDivElement>(null);
+  const [collapsingKeys, setCollapsingKeys] = useState<Set<string>>(new Set());
 
   const getItemKey = (item: AggregatedShoppingItem) =>
     `${item.baseName || item.name}|${(item.modifier || '').toLowerCase().trim()}|${item.unit}`.toLowerCase();
 
+  const triggerCollapseAndAction = (keys: string[], action: () => void) => {
+    setCollapsingKeys((prev) => {
+      const next = new Set(prev);
+      keys.forEach((k) => next.add(k));
+      return next;
+    });
+    setTimeout(() => {
+      action();
+      setCollapsingKeys((prev) => {
+        const next = new Set(prev);
+        keys.forEach((k) => next.delete(k));
+        return next;
+      });
+    }, 200);
+  };
+
   const handleItemToggle = (item: AggregatedShoppingItem) => {
-    toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, !item.checked);
+    const key = getItemKey(item);
+    const displayKey = `${item.checked ? 'checked' : 'unchecked'}-${key}`;
+    triggerCollapseAndAction([displayKey], () => {
+      toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, !item.checked);
+    });
   };
 
   const handleGroupHeaderClick = (items: AggregatedShoppingItem[]) => {
     const allChecked = items.every((item) => item.checked);
-    items.forEach((item) => {
-      if (item.checked === allChecked) {
-        toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, !allChecked);
-      }
+    const keysToCollapse = items
+      .filter((item) => item.checked === allChecked)
+      .map((item) => {
+        const key = getItemKey(item);
+        return `${item.checked ? 'checked' : 'unchecked'}-${key}`;
+      });
+
+    triggerCollapseAndAction(keysToCollapse, () => {
+      items.forEach((item) => {
+        if (item.checked === allChecked) {
+          toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, !allChecked);
+        }
+      });
     });
   };
 
@@ -176,6 +206,7 @@ export default function ShoppingList({
             onGroupHeaderClick={handleGroupHeaderClick}
             onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
             formatItemAmount={formatItemAmount}
+            collapsingKeys={collapsingKeys}
           />
         )}
       </Card>

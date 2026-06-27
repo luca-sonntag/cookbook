@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Check, Trash2 } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { useI18n } from '../../context/I18nContext';
@@ -6,6 +5,7 @@ import { useI18n } from '../../context/I18nContext';
 interface ShoppingListItemProps {
   item: AggregatedShoppingItem;
   isChecked: boolean;
+  isCollapsing?: boolean;
   isPending?: boolean;
   onClick: () => void;
   onDelete: () => void;
@@ -15,6 +15,7 @@ interface ShoppingListItemProps {
 export default function ShoppingListItem({
   item,
   isChecked,
+  isCollapsing = false,
   isPending = false,
   onClick,
   onDelete,
@@ -22,15 +23,6 @@ export default function ShoppingListItem({
 }: ShoppingListItemProps) {
   const { t } = useI18n();
   const amountStr = formatItemAmount(item.amount, item.unit);
-  const [isCollapsing, setIsCollapsing] = useState(false);
-
-  const handleToggleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsCollapsing(true);
-    setTimeout(() => {
-      onClick();
-    }, 200);
-  };
 
   if (isChecked) {
     return (
@@ -38,7 +30,7 @@ export default function ShoppingListItem({
         isCollapsing ? 'animate-item-collapse' : 'animate-item-expand'
       }`}>
         <div
-          onClick={handleToggleClick}
+          onClick={onClick}
           className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
         >
           <div className="w-5 h-5 rounded-md bg-emerald-500 border border-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all">
@@ -75,7 +67,7 @@ export default function ShoppingListItem({
       isCollapsing ? 'animate-item-collapse' : 'animate-item-expand'
     }`}>
       <div
-        onClick={handleToggleClick}
+        onClick={onClick}
         className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
       >
         <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isPending ? 'bg-emerald-500 border border-emerald-500' : 'border border-black/20 dark:border-white/20'}`}>

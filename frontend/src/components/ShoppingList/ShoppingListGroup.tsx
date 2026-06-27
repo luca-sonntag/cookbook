@@ -11,6 +11,7 @@ interface ShoppingListGroupProps {
   onGroupHeaderClick: (items: AggregatedShoppingItem[]) => void;
   onDelete: (item: AggregatedShoppingItem) => void;
   formatItemAmount: (amount: number, unit: string) => string;
+  collapsingKeys: Set<string>;
 }
 
 export default function ShoppingListGroup({
@@ -19,7 +20,8 @@ export default function ShoppingListGroup({
   onItemToggle,
   onGroupHeaderClick,
   onDelete,
-  formatItemAmount
+  formatItemAmount,
+  collapsingKeys
 }: ShoppingListGroupProps) {
   const { t } = useI18n();
 
@@ -62,11 +64,13 @@ export default function ShoppingListGroup({
                   <ul className="flex flex-col gap-1">
                     {group.items.map((item) => {
                       const key = getItemKey(item);
+                      const displayKey = `${item.checked ? 'checked' : 'unchecked'}-${key}`;
                       return (
                         <ShoppingListItem
-                          key={`${item.checked ? 'checked' : 'unchecked'}-${key}`}
+                          key={displayKey}
                           item={item}
                           isChecked={item.checked}
+                          isCollapsing={collapsingKeys.has(displayKey)}
                           onClick={() => onItemToggle(item)}
                           onDelete={() => onDelete(item)}
                           formatItemAmount={formatItemAmount}
