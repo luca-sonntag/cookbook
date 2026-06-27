@@ -29,12 +29,12 @@ export default function ShoppingListItem({
           onClick={onClick}
           className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
         >
-          <div className="w-5 h-5 rounded-md bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all">
-            <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <div className="w-5 h-5 rounded-md bg-emerald-500 border border-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all">
+            <Check className="w-3.5 h-3.5 text-white" />
           </div>
           <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate font-medium">
             {amountStr && (
-              <span className="mr-1.5 font-semibold text-emerald-600/50 dark:text-emerald-400/40 whitespace-nowrap flex-shrink-0">
+              <span className="mr-1.5 font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap flex-shrink-0">
                 {amountStr}
               </span>
             )}
