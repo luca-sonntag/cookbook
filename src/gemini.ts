@@ -611,7 +611,7 @@ export async function remixRecipe(
 Your task is to modify the recipe logically and culinarily correctly based on the request.
 
 Important Constraints:
-1. Ingredient Replacement: If you swap ingredients (e.g. beef -> tofu), you MUST set the "replacedOriginal" field on the new ingredient to the exact name of the original ingredient that was removed (e.g. "replacedOriginal": "Rinderhackfleisch").
+1. Ingredient Replacement & Stability: If you swap or modify the name of any ingredient (e.g., beef -> tofu, or butter -> light butter), you MUST set the "replacedOriginal" field on the new ingredient to the exact name of the original ingredient that was removed or renamed (e.g., "replacedOriginal": "Rinderhackfleisch" or "Butter"). All other ingredients that are NOT swapped or renamed MUST keep their exact original names from the original recipe JSON; do NOT alter the names of unchanged ingredients without setting "replacedOriginal".
 2. Instruction Update: If you change ingredients, you MUST update the cooking instructions to match the new ingredients (e.g., cooking time for tofu is different from beef).
 3. Title Update: Modify the title of the recipe to reflect the changes (e.g. add "(Vegan Remix)").
 4. Language & Format: Keep the output language the same as the original recipe (${targetLanguage}). Follow the schema strictly.
