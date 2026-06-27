@@ -26,7 +26,7 @@ export default function SettingsView() {
         {/* Language Option */}
         <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
+            <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
               <Globe className="w-5 h-5" />
             </div>
             <div>
@@ -62,7 +62,7 @@ export default function SettingsView() {
         {/* Theme Option */}
         <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
+            <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
               {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </div>
             <div>
@@ -101,7 +101,7 @@ export default function SettingsView() {
         {isInstallable && (
           <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
+              <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
                 <MonitorSmartphone className="w-5 h-5" />
               </div>
               <div>
@@ -123,11 +123,11 @@ export default function SettingsView() {
         {/* Logout Option */}
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl">
+            <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
               <LogOut className="w-5 h-5" />
             </div>
             <div>
-              <p className="font-semibold text-rose-600 dark:text-rose-400 text-sm">
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">
                 {t('auth.signOut') || 'Sign Out'}
               </p>
             </div>
