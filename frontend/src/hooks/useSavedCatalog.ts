@@ -10,6 +10,7 @@ interface UseSavedCatalogProps {
   onAddIngredients?: (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => void;
   fetchHistory?: () => void;
   getAccessToken?: () => Promise<string | null>;
+  onSelectModeChange?: (active: boolean) => void;
 }
 
 export function useSavedCatalog({
@@ -17,7 +18,8 @@ export function useSavedCatalog({
   setSelectedJob,
   onAddIngredients,
   fetchHistory,
-  getAccessToken
+  getAccessToken,
+  onSelectModeChange
 }: UseSavedCatalogProps) {
   const dialog = useDialog();
   const { t, language } = useI18n();
@@ -40,6 +42,14 @@ export function useSavedCatalog({
   // Multi-select state
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Notify parent of select mode changes
+  useEffect(() => {
+    onSelectModeChange?.(isSelectMode);
+    return () => {
+      onSelectModeChange?.(false);
+    };
+  }, [isSelectMode, onSelectModeChange]);
 
   // Direct shopping list addition success states (mapping job.id -> isAdded)
   const [addedRecipeIds, setAddedRecipeIds] = useState<Record<string, boolean>>({});

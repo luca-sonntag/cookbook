@@ -22,6 +22,7 @@ interface SavedCatalogProps {
   onNavigateToShoppingList?: () => void;
   shoppingListCount?: number;
   onRemixSuccess?: (newRecipe: Recipe) => void;
+  onSelectModeChange?: (active: boolean) => void;
 }
 
 export default function SavedCatalog({
@@ -34,7 +35,8 @@ export default function SavedCatalog({
   getAccessToken,
   onNavigateToShoppingList,
   shoppingListCount,
-  onRemixSuccess
+  onRemixSuccess,
+  onSelectModeChange
 }: SavedCatalogProps) {
   const { language } = useI18n();
 
@@ -70,7 +72,8 @@ export default function SavedCatalog({
     setSelectedJob,
     onAddIngredients,
     fetchHistory,
-    getAccessToken
+    getAccessToken,
+    onSelectModeChange
   });
 
   return (
