@@ -28,7 +28,7 @@ export default function CatalogFilters({
   const { t } = useI18n();
 
   return (
-    <div className="sticky top-[64px] z-20 bg-[#f9fafb]/90 dark:bg-[#030712]/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-3 pt-3">
+    <div className="sticky top-[52px] z-20 bg-[#f9fafb]/90 dark:bg-[#030712]/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-3 pt-3">
       {/* Search & View Toggle Bar */}
       <div className="flex gap-2 items-center">
         <div className="flex-1 relative">
