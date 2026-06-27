@@ -151,7 +151,8 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
             return (
               <span
                 key={index}
-                className="inline-flex items-center gap-0.5 mx-0.5 font-semibold leading-none align-middle text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 transition-colors cursor-default"
+                className="inline-flex items-center gap-0.5 mx-0.5 font-semibold leading-none text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 transition-colors cursor-default"
+                style={{ verticalAlign: '-0.125em' }}
               >
                 <Thermometer className="w-3.5 h-3.5 text-orange-500 dark:text-orange-400 shrink-0" />
                 {part}
@@ -172,7 +173,8 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                   e.stopPropagation();
                   setTimerSheet({ isOpen: true, seconds, label: text.slice(0, 80) });
                 } : undefined}
-                className={`inline-flex items-center gap-0.5 mx-0.5 font-semibold leading-none align-middle text-blue-600 dark:text-blue-400 transition-colors ${
+                style={{ verticalAlign: '-0.125em' }}
+                className={`inline-flex items-center gap-0.5 mx-0.5 font-semibold leading-none text-blue-600 dark:text-blue-400 transition-colors ${
                   canTimer
                     ? 'cursor-pointer hover:text-blue-500 dark:hover:text-blue-300 underline decoration-dotted underline-offset-2'
                     : 'cursor-default hover:text-blue-500 dark:hover:text-blue-300'
