@@ -221,6 +221,32 @@ const recipeSchema = {
   ],
 };
 
+interface UserPreferences {
+  recipeLanguage?: string;
+  preferredTemperatureUnit?: string;
+  preferredUnitSystem?: string;
+}
+
+const CLEAN_INGREDIENT_NAMES_INSTRUCTION = 'Ensure the "name" field contains only the clean ingredient name (e.g., "Frischkäse", "evaporated milk", "cream cheese", "butter"). Move all adjectives, processing states, or descriptions (such as "light", "mager", "low fat", "leichte", "gerieben", "grated") into the "modifier" field. Do NOT leave these descriptors inside the "name" field.';
+
+function getPromptUnitInstructions(userPrefs?: UserPreferences) {
+  const targetTempUnit = userPrefs?.preferredTemperatureUnit || config.PREFERRED_TEMPERATURE_UNIT;
+  const targetUnitSystem = userPrefs?.preferredUnitSystem || config.PREFERRED_UNIT_SYSTEM;
+  const targetLanguage = userPrefs?.recipeLanguage || config.RECIPE_LANGUAGE;
+
+  const tempInstruction = targetTempUnit.toLowerCase() === 'both'
+    ? 'Format all temperature values mentioned in the instructions, description, tips, or title using both Celsius and Fahrenheit (e.g., "200°C (400°F)").'
+    : `Format all temperature values mentioned in the instructions, description, tips, or title using the preferred unit: ${targetTempUnit} (e.g., convert and format as "200°C" or "400°F" depending on preference).`;
+
+  const unitSystemInstruction = `Format all ingredient weights, volumes, and measurements using the preferred unit system: ${targetUnitSystem} (e.g., metric units like grams, milliliters, kilograms, or imperial units like ounces, cups, pounds, fluid ounces) and perform conversions where appropriate.`;
+
+  return {
+    targetLanguage,
+    tempInstruction,
+    unitSystemInstruction,
+  };
+}
+
 /**
  * Uploads an audio file and optionally a grid image to the Google AI File API,
  * waits for them to become ACTIVE, prompts Gemini with the audio, caption, and grid image context,
@@ -233,11 +259,7 @@ export async function extractRecipeFromAudio(
   caption: string,
   gridImagePath?: string,
   logDir?: string,
-  userPrefs?: {
-    recipeLanguage?: string;
-    preferredTemperatureUnit?: string;
-    preferredUnitSystem?: string;
-  }
+  userPrefs?: UserPreferences
 ): Promise<Recipe> {
   if (!config.GEMINI_API_KEY || config.GEMINI_API_KEY === 'your_gemini_api_key_here') {
     throw new Error('Gemini API key is not configured in environment variables.');
@@ -309,15 +331,7 @@ export async function extractRecipeFromAudio(
       } as any,
     });
 
-    const targetTempUnit = userPrefs?.preferredTemperatureUnit || config.PREFERRED_TEMPERATURE_UNIT;
-    const targetUnitSystem = userPrefs?.preferredUnitSystem || config.PREFERRED_UNIT_SYSTEM;
-    const targetLanguage = userPrefs?.recipeLanguage || config.RECIPE_LANGUAGE;
-
-    const tempInstruction = targetTempUnit.toLowerCase() === 'both'
-      ? 'Format all temperature values mentioned in the instructions, description, tips, or title using both Celsius and Fahrenheit (e.g., "200°C (400°F)").'
-      : `Format all temperature values mentioned in the instructions, description, tips, or title using the preferred unit: ${targetTempUnit} (e.g., convert and format as "200°C" or "400°F" depending on preference).`;
-
-    const unitSystemInstruction = `Format all ingredient weights, volumes, and measurements using the preferred unit system: ${targetUnitSystem} (e.g., metric units like grams, milliliters, kilograms, or imperial units like ounces, cups, pounds, fluid ounces) and perform conversions where appropriate.`;
+    const { targetLanguage, tempInstruction, unitSystemInstruction } = getPromptUnitInstructions(userPrefs);
 
     const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.${gridImagePath ? ' You are also given an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating).' : ''}
 
@@ -330,7 +344,7 @@ Key Constraints:
    - Temperature Units: ${tempInstruction}
    - Weight & Volume Units: ${unitSystemInstruction}
 4. Missing Data & Nutrition: If any information for a specific field is missing, leave it empty (empty string "", null, or empty array []). You MUST set "hasExplicitNutritionalValues" to true ONLY IF the recipe nutritional values are explicitly stated in the source text or audio. If they are not, set it to false and set "nutritionalValues" to null (do NOT estimate or calculate overall nutritional values at the recipe level). Note that "nutritionalValues" MUST represent values per single serving/portion. If the source lists total values for the entire recipe, divide them by the number of servings/portions first.
-5. Clean Ingredient Names: Ensure the "name" field contains only the clean ingredient name (e.g., "Frischkäse", "evaporated milk", "cream cheese", "butter"). Move all adjectives, processing states, or descriptions (such as "light", "mager", "low fat", "leichte", "gerieben", "grated") into the "modifier" field. Do NOT leave these descriptors inside the "name" field.
+5. Clean Ingredient Names: ${CLEAN_INGREDIENT_NAMES_INSTRUCTION}
 
 Description/Caption:
 """
@@ -577,11 +591,7 @@ export async function remixRecipe(
   parentRecipe: Recipe,
   remixPrompt: string,
   logDir?: string,
-  userPrefs?: {
-    recipeLanguage?: string;
-    preferredTemperatureUnit?: string;
-    preferredUnitSystem?: string;
-  }
+  userPrefs?: UserPreferences
 ): Promise<Recipe> {
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
@@ -597,15 +607,7 @@ export async function remixRecipe(
       } as any,
     });
 
-    const targetTempUnit = userPrefs?.preferredTemperatureUnit || config.PREFERRED_TEMPERATURE_UNIT;
-    const targetUnitSystem = userPrefs?.preferredUnitSystem || config.PREFERRED_UNIT_SYSTEM;
-    const targetLanguage = userPrefs?.recipeLanguage || config.RECIPE_LANGUAGE;
-
-    const tempInstruction = targetTempUnit.toLowerCase() === 'both'
-      ? 'Format all temperature values mentioned in the instructions, description, tips, or title using both Celsius and Fahrenheit (e.g., "200°C (400°F)").'
-      : `Format all temperature values mentioned in the instructions, description, tips, or title using the preferred unit: ${targetTempUnit} (e.g., convert and format as "200°C" or "400°F" depending on preference).`;
-
-    const unitSystemInstruction = `Format all ingredient weights, volumes, and measurements using the preferred unit system: ${targetUnitSystem} (e.g., metric units like grams, milliliters, kilograms, or imperial units like ounces, cups, pounds, fluid ounces) and perform conversions where appropriate.`;
+    const { targetLanguage, tempInstruction, unitSystemInstruction } = getPromptUnitInstructions(userPrefs);
 
     const prompt = `You are a creative professional chef. You are provided with an existing recipe in JSON format and a user's request for how to modify (remix) it (e.g. "make it vegan", "low calorie", or custom instructions).
 Your task is to modify the recipe logically and culinarily correctly based on the request.
@@ -618,7 +620,7 @@ Important Constraints:
 5. Preferred Units:
    - Temperature Units: ${tempInstruction}
    - Weight & Volume Units: ${unitSystemInstruction}
-6. Clean Ingredient Names: Ensure the "name" field contains only the clean ingredient name (e.g., "evaporated milk", "cream cheese", "butter"). Move all adjectives, processing states, or descriptions (such as "light", "mager", "low fat", "leichte", "gerieben", "grated") into the "modifier" field. Do NOT leave these descriptors inside the "name" field.
+6. Clean Ingredient Names: ${CLEAN_INGREDIENT_NAMES_INSTRUCTION}
 
 User's Remix Request:
 "${remixPrompt}"
