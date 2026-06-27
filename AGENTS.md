@@ -97,7 +97,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
         * `RecipeIngredients.tsx`: Rendert die Zutatenliste (nach Supermarktabteilungen sortiert) und alternative Zutaten.
         * `RecipeInstructions.tsx`: Rendert Koch-Equipment, die Schritt-für-Schritt-Anleitung, Fortschrittsbalken und Profi-Tipps.
         * `RecipeActionDock.tsx`: Rendert die schwebende Navigations- und Startleiste am unteren Bildschirmrand.
-      * **`SavedCatalog/`:** Grid- und Listen-Layout der Rezept-Historie inklusive Suchfilterung, Bulk-Select-Modus, Massenlöschung und Weiterleitung von Einkaufslisten-Befehlen.
+      * **`SavedCatalog/`:** Grid- und Listen-Layout der Rezept-Historie inklusive Suchfilterung, Bulk-Select-Modus (aktivierbar über einen sichtbaren Checkbox-Toggle-Button in den Filtern oder via Long-Press), Massenlöschung und Weiterleitung von Einkaufslisten-Befehlen.
       * **`ShoppingList/`:** Ein modularisiertes Verzeichnis für die Verwaltung der Einkaufsliste:
         * `index.tsx`: Haupt-Orchestrator der Einkaufsliste.
         * `CustomItemForm.tsx`: Card-Formular zur manuellen Artikeleingabe mit Einheitenvorschlägen.
