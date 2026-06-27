@@ -229,6 +229,10 @@ interface UserPreferences {
 
 const CLEAN_INGREDIENT_NAMES_INSTRUCTION = 'Ensure the "name" field contains only the clean ingredient name (e.g., "Frischkäse", "evaporated milk", "cream cheese", "butter"). Move all adjectives, processing states, or descriptions (such as "light", "mager", "low fat", "leichte", "gerieben", "grated") into the "modifier" field. Do NOT leave these descriptors inside the "name" field.';
 
+const CATEGORY_ORDERING_INSTRUCTION = 'Always place "PRODUCE" first in the ingredients array, followed by dry goods/pantry items, then refrigerated products/meats, and finally other/extras at the very end.';
+
+const INGREDIENT_DECOMPOSITION_INSTRUCTION = 'If a composite element or homemade component (like a custom sauce or pesto) is prepared during the recipe, you MUST list its raw ingredients individually instead of the finished compound product.';
+
 function getPromptUnitInstructions(userPrefs?: UserPreferences) {
   const targetTempUnit = userPrefs?.preferredTemperatureUnit || config.PREFERRED_TEMPERATURE_UNIT;
   const targetUnitSystem = userPrefs?.preferredUnitSystem || config.PREFERRED_UNIT_SYSTEM;
@@ -240,10 +244,13 @@ function getPromptUnitInstructions(userPrefs?: UserPreferences) {
 
   const unitSystemInstruction = `Format all ingredient weights, volumes, and measurements using the preferred unit system: ${targetUnitSystem} (e.g., metric units like grams, milliliters, kilograms, or imperial units like ounces, cups, pounds, fluid ounces) and perform conversions where appropriate.`;
 
+  const languageInstruction = `Write and translate all text values (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredient details, and tags) into: ${targetLanguage}. Keep the category keys as the uppercase English enum values. Follow the schema strictly.`;
+
   return {
     targetLanguage,
     tempInstruction,
     unitSystemInstruction,
+    languageInstruction,
   };
 }
 
@@ -331,20 +338,21 @@ export async function extractRecipeFromAudio(
       } as any,
     });
 
-    const { targetLanguage, tempInstruction, unitSystemInstruction } = getPromptUnitInstructions(userPrefs);
+    const { targetLanguage, tempInstruction, unitSystemInstruction, languageInstruction } = getPromptUnitInstructions(userPrefs);
 
     const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.${gridImagePath ? ' You are also given an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating).' : ''}
 
 Combine the${gridImagePath ? ' three' : ' two'} sources to reconstruct the complete recipe, resolving any contradictions culinary-wise. Ensure to follow the field-level guidelines specified in the descriptions of the output schema.
 
 Key Constraints:
-1. Category Ordering: Always place "PRODUCE" first in the ingredients array, followed by dry goods/pantry items, then refrigerated products/meats, and finally other/extras at the very end.
-2. Translation: Translate and write all text values (including title, description, ingredient names/notes, instruction steps, equipment list, tips, alternative ingredient details, and tags) into: ${targetLanguage}. Keep the category keys as the uppercase English enum values.
+1. Category Ordering: ${CATEGORY_ORDERING_INSTRUCTION}
+2. Translation: ${languageInstruction}
 3. Preferred Units:
    - Temperature Units: ${tempInstruction}
    - Weight & Volume Units: ${unitSystemInstruction}
 4. Missing Data & Nutrition: If any information for a specific field is missing, leave it empty (empty string "", null, or empty array []). You MUST set "hasExplicitNutritionalValues" to true ONLY IF the recipe nutritional values are explicitly stated in the source text or audio. If they are not, set it to false and set "nutritionalValues" to null (do NOT estimate or calculate overall nutritional values at the recipe level). Note that "nutritionalValues" MUST represent values per single serving/portion. If the source lists total values for the entire recipe, divide them by the number of servings/portions first.
 5. Clean Ingredient Names: ${CLEAN_INGREDIENT_NAMES_INSTRUCTION}
+6. Ingredient Decomposition: ${INGREDIENT_DECOMPOSITION_INSTRUCTION}
 
 Description/Caption:
 """
@@ -607,7 +615,7 @@ export async function remixRecipe(
       } as any,
     });
 
-    const { targetLanguage, tempInstruction, unitSystemInstruction } = getPromptUnitInstructions(userPrefs);
+    const { targetLanguage, tempInstruction, unitSystemInstruction, languageInstruction } = getPromptUnitInstructions(userPrefs);
 
     const prompt = `You are a creative professional chef. You are provided with an existing recipe in JSON format and a user's request for how to modify (remix) it (e.g. "make it vegan", "low calorie", or custom instructions).
 Your task is to modify the recipe logically and culinarily correctly based on the request.
@@ -616,11 +624,14 @@ Important Constraints:
 1. Ingredient Replacement & Stability: If you swap or modify the name of any ingredient (e.g., beef -> tofu, or butter -> light butter), you MUST set the "replacedOriginal" field on the new ingredient to the exact name of the original ingredient that was removed or renamed (e.g., "replacedOriginal": "Rinderhackfleisch" or "Butter"). All other ingredients that are NOT swapped or renamed MUST keep their exact original names from the original recipe JSON; do NOT alter the names of unchanged ingredients without setting "replacedOriginal".
 2. Instruction Update: If you change ingredients, you MUST update the cooking instructions to match the new ingredients (e.g., cooking time for tofu is different from beef).
 3. Title Update: Modify the title of the recipe to reflect the changes (e.g. add "(Vegan Remix)").
-4. Language & Format: Keep the output language the same as the original recipe (${targetLanguage}). Follow the schema strictly.
+4. Language & Format: ${languageInstruction}
 5. Preferred Units:
    - Temperature Units: ${tempInstruction}
    - Weight & Volume Units: ${unitSystemInstruction}
 6. Clean Ingredient Names: ${CLEAN_INGREDIENT_NAMES_INSTRUCTION}
+7. Category Ordering: ${CATEGORY_ORDERING_INSTRUCTION}
+8. Ingredient Decomposition: ${INGREDIENT_DECOMPOSITION_INSTRUCTION}
+9. Nutritional Values Recalculation: For any added, modified, or swapped ingredients, you MUST update their individual nutritional values (calories, protein, carbs, fat) based on the new ingredient and its amount (use standard estimates). If the original recipe had explicit recipe-level nutritional values (hasExplicitNutritionalValues is true), you MUST recalculate and update the overall recipe-level nutritionalValues per single serving to reflect the remixed ingredients.
 
 User's Remix Request:
 "${remixPrompt}"
