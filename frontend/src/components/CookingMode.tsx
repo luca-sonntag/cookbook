@@ -13,6 +13,7 @@ import { useCookingMode } from '../hooks/useCookingMode';
 import RecipeInstructionText from './RecipeInstructionText';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
+import { useTimerManager } from '../hooks/useTimerManager';
 
 interface CookingModeProps {
   recipe: Recipe;
@@ -31,6 +32,7 @@ export default function CookingMode({
 }: CookingModeProps) {
   const dialog = useDialog();
   const { t } = useI18n();
+  const { timers, removeTimer, dismissFinished } = useTimerManager();
 
   // Find the first uncompleted step as initial step index
   const initialStepIndex = useMemo(() => {
@@ -122,6 +124,63 @@ export default function CookingMode({
             className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
             style={{ width: `${((cookingStepIndex + 1) / recipe.instructions.length) * 100}%` }}
           />
+        </div>
+      )}
+
+      {/* Active Timers Sektion in Cooking Mode */}
+      {timers.length > 0 && (
+        <div className="flex flex-col gap-2 mt-3 w-full max-w-lg mx-auto">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none snap-x">
+            {timers.map(timer => {
+              const remaining = Math.max(0, Math.ceil((timer.endAt - Date.now()) / 1000));
+              const isFinished = timer.isFinished;
+
+              const m = Math.floor(remaining / 60);
+              const s = remaining % 60;
+              const countdownStr = isFinished
+                ? t('timer.finished')
+                : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+              return (
+                <div
+                  key={timer.id}
+                  className={`snap-center shrink-0 relative flex items-center gap-2.5 px-3 py-1.5 rounded-xl shadow-sm overflow-hidden transition-all duration-300 border ${
+                    isFinished
+                      ? 'bg-rose-500/10 dark:bg-rose-500/20 border-rose-500/30 animate-pulse text-rose-600 dark:text-rose-400'
+                      : 'bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'
+                  }`}
+                  style={{ minWidth: '140px' }}
+                >
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[9px] opacity-75 font-semibold truncate max-w-[100px]">
+                      {timer.label}
+                    </span>
+                    <span className="text-xs font-black tabular-nums leading-tight">
+                      {countdownStr}
+                    </span>
+                  </div>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isFinished) {
+                        dismissFinished(timer.id);
+                      } else {
+                        removeTimer(timer.id);
+                      }
+                    }}
+                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
+                      isFinished
+                        ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-600 dark:text-rose-400'
+                        : 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-600 dark:text-blue-400'
+                    }`}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
