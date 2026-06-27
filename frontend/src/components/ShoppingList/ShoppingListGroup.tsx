@@ -79,14 +79,23 @@ export default function ShoppingListGroup({
                         </span>
                       </div>
                     </div>
-                    <div className={`flex-shrink-0 w-5 h-5 rounded-md flex items-center justify-center transition-all ${
-                      isAllChecked || isSomeChecked
-                        ? 'bg-emerald-500 border border-emerald-500 text-white'
-                        : 'border border-black/20 dark:border-white/20'
-                    }`}>
+                    <button
+                      type="button"
+                      onClick={() => onGroupHeaderClick(group.items)}
+                      aria-label={
+                        isAllChecked
+                          ? t('shopping.uncheckGroup', { defaultValue: 'Gruppe abwählen' })
+                          : t('shopping.checkGroup', { defaultValue: 'Gruppe abhaken' })
+                      }
+                      className={`flex-shrink-0 w-5 h-5 rounded-md flex items-center justify-center transition-all cursor-pointer hover:scale-110 active:scale-95 ${
+                        isAllChecked || isSomeChecked
+                          ? 'bg-emerald-500 border border-emerald-500 text-white hover:bg-emerald-400 hover:border-emerald-400'
+                          : 'border border-black/20 dark:border-white/20 hover:border-emerald-500/60'
+                      }`}
+                    >
                       {isAllChecked && <Check className="w-3 h-3 text-white stroke-[3px]" />}
                       {isSomeChecked && <Minus className="w-3 h-3 text-white stroke-[3px]" />}
-                    </div>
+                    </button>
                   </div>
                   <ul className="flex flex-col gap-1">
                     {group.items.map((item) => {
