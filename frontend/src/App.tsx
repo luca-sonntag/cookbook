@@ -247,6 +247,16 @@ export default function App() {
               onNavigateToShoppingList={() => setActiveView('shopping-list')}
               shoppingListCount={aggregatedList.unchecked.length}
               onRemixSuccess={(newRecipe) => setRecipe(newRecipe)}
+              isParentAvailable={recipe?.parentJobId ? history.some(j => j.id === recipe?.parentJobId) : false}
+              onNavigateToRecipe={(recipeId) => {
+                const parentJob = history.find(j => j.id === recipeId);
+                if (parentJob) {
+                  setSelectedJob(parentJob);
+                  setActiveView('history');
+                  setRecipe(null);
+                  setUrl('');
+                }
+              }}
             />
           ) : (
             <>
