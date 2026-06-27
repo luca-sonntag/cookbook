@@ -65,7 +65,6 @@ export default function SettingsView() {
           </div>
           <Select
             variant="secondary"
-            size="sm"
             selectedKey={language}
             onSelectionChange={(key) => setLanguage(key as 'en' | 'de')}
             className="w-20"
@@ -104,7 +103,6 @@ export default function SettingsView() {
           </div>
           <Select
             variant="secondary"
-            size="sm"
             selectedKey={preferredTempUnit}
             onSelectionChange={(key) => handleUpdateSetting('preferred_temperature_unit', key as string)}
             isDisabled={isSaving}
@@ -148,7 +146,6 @@ export default function SettingsView() {
           </div>
           <Select
             variant="secondary"
-            size="sm"
             selectedKey={preferredUnitSystem}
             onSelectionChange={(key) => handleUpdateSetting('preferred_unit_system', key as string)}
             isDisabled={isSaving}
