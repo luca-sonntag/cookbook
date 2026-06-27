@@ -21,6 +21,7 @@ import { useI18n } from './context/I18nContext';
 import { useAuth } from './context/AuthContext';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
+import { useTimerManager } from './hooks/useTimerManager';
 
 export default function App() {
   const dialog = useDialog();
@@ -32,6 +33,7 @@ export default function App() {
   const [activeView, setActiveView] = useState<'extract' | 'history' | 'shopping-list' | 'settings'>('history');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isCatalogSelectMode, setIsCatalogSelectMode] = useState(false);
+  const { pendingNavigation } = useTimerManager();
 
   // Custom Hooks for Theme, PWA Installation, Recipe Extraction, and Shopping List
   const { isInstallable, handleInstallClick } = usePwaInstall();
@@ -90,6 +92,27 @@ export default function App() {
     }, 0);
     return () => clearTimeout(timer);
   }, [fetchHistory]);
+
+  // Listen to state-based pending navigation (handles timing/mount delays)
+  useEffect(() => {
+    if (pendingNavigation) {
+      const targetId = pendingNavigation.recipeId;
+      
+      // 1. Check if the target is the currently active/extracted recipe
+      if (recipe && (recipe.id === targetId || recipe.title === targetId)) {
+        setActiveView('extract');
+        setSelectedJob(null);
+        return;
+      }
+
+      // 2. Check if the recipe exists in history
+      const matchedJob = history.find(j => j.id === targetId || (j.recipe && j.recipe.title === targetId));
+      if (matchedJob) {
+        setSelectedJob(matchedJob);
+        setActiveView('history');
+      }
+    }
+  }, [pendingNavigation, recipe, history]);
 
   // Listen to timer click navigation events to route to the correct tab and set selected recipe
   useEffect(() => {

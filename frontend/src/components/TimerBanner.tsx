@@ -20,7 +20,7 @@ function shortenLabel(label: string, maxLen = 28): string {
 }
 
 export default function TimerBanner() {
-  const { timers, removeTimer, dismissFinished } = useTimerManager();
+  const { timers, removeTimer, dismissFinished, setPendingNavigation } = useTimerManager();
   const { t } = useI18n();
 
   if (timers.length === 0) return null;
@@ -38,10 +38,21 @@ export default function TimerBanner() {
           // Progress 0→1 as time runs down
           const progress = isFinished ? 0 : remaining / timer.durationSeconds;
 
+          const { recipeId, stepNum } = timer;
+          const isAssociated = !!(recipeId && stepNum);
+
           return (
             <div
               key={timer.id}
+              onClick={isAssociated ? () => {
+                setPendingNavigation({ recipeId: recipeId!, stepNum: stepNum! });
+                window.dispatchEvent(new CustomEvent('app:navigate-to-timer-step', {
+                  detail: { recipeId, stepNum }
+                }));
+              } : undefined}
               className={`relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl shadow-lg overflow-hidden transition-all duration-300 ${
+                isAssociated ? 'cursor-pointer active:scale-[0.99]' : ''
+              } ${
                 isFinished
                   ? 'bg-rose-600 dark:bg-rose-700 animate-pulse'
                   : 'bg-blue-600 dark:bg-blue-700'

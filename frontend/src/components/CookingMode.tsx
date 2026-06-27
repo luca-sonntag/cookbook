@@ -34,7 +34,7 @@ export default function CookingMode({
 }: CookingModeProps) {
   const dialog = useDialog();
   const { t } = useI18n();
-  const { timers, removeTimer, dismissFinished } = useTimerManager();
+  const { timers, removeTimer, dismissFinished, setPendingNavigation } = useTimerManager();
 
   // Find the first uncompleted step as initial step index
   const initialStepIndex = useMemo(() => {
@@ -164,16 +164,20 @@ export default function CookingMode({
                 ? t('timer.finished')
                 : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
+              const { recipeId, stepNum } = timer;
+              const isAssociated = !!(recipeId && stepNum);
+
               return (
                 <div
                   key={timer.id}
-                  onClick={timer.recipeId && timer.stepNum ? () => {
+                  onClick={isAssociated ? () => {
+                    setPendingNavigation({ recipeId: recipeId!, stepNum: stepNum! });
                     window.dispatchEvent(new CustomEvent('app:navigate-to-timer-step', {
-                      detail: { recipeId: timer.recipeId, stepNum: timer.stepNum }
+                      detail: { recipeId, stepNum }
                     }));
                   } : undefined}
                   className={`snap-center shrink-0 relative flex items-center gap-2.5 px-3 py-1.5 rounded-xl shadow-sm overflow-hidden transition-all duration-300 border ${
-                    timer.recipeId && timer.stepNum ? 'cursor-pointer active:scale-[0.98]' : ''
+                    isAssociated ? 'cursor-pointer active:scale-[0.98]' : ''
                   } ${
                     isFinished
                       ? 'bg-rose-500/10 dark:bg-rose-500/20 border-rose-500/30 animate-pulse text-rose-600 dark:text-rose-400'

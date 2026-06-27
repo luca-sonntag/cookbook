@@ -7,6 +7,7 @@ import { useRecipeNutrition } from '../../hooks/useRecipeNutrition';
 import { categoryOrder, legacyCategoryMap } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
+import { useTimerManager } from '../../hooks/useTimerManager';
 
 // Import subcomponents
 import RecipeHeader from './RecipeHeader';
@@ -72,6 +73,21 @@ export default function RecipeDetails({
   const [isRemixModalOpen, setIsRemixModalOpen] = useState(false);
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
+  const { pendingNavigation, setPendingNavigation } = useTimerManager();
+
+  // Listen to state-based pending navigation (handles timing/mount delays)
+  useEffect(() => {
+    if (
+      pendingNavigation &&
+      pendingNavigation.stepNum !== undefined &&
+      (pendingNavigation.recipeId === recipe.id || pendingNavigation.recipeId === recipe.title)
+    ) {
+      setInitialStepOverride(pendingNavigation.stepNum - 1);
+      setIsCookingMode(true);
+      // Consume the navigation state
+      setPendingNavigation(null);
+    }
+  }, [pendingNavigation, recipe.id, recipe.title, setPendingNavigation]);
 
   // Listen to timer click navigation events to open cooking mode at the correct step
   useEffect(() => {

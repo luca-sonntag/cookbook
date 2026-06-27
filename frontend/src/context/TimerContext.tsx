@@ -12,11 +12,18 @@ export interface TimerEntry {
   stepNum?: number;
 }
 
+export interface PendingTimerNavigation {
+  recipeId: string;
+  stepNum: number;
+}
+
 interface TimerContextValue {
   timers: TimerEntry[];
   addTimer: (durationSeconds: number, label: string, recipeId?: string, stepNum?: number) => string;
   removeTimer: (id: string) => void;
   dismissFinished: (id: string) => void;
+  pendingNavigation: PendingTimerNavigation | null;
+  setPendingNavigation: (nav: PendingTimerNavigation | null) => void;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -133,6 +140,7 @@ function generateId(): string {
 
 export function TimerProvider({ children }: { children: React.ReactNode }) {
   const [timers, setTimers] = useState<TimerEntry[]>([]);
+  const [pendingNavigation, setPendingNavigation] = useState<PendingTimerNavigation | null>(null);
 
   // Ref mirror of timers — always current, readable inside intervals without stale closure
   const timersRef = useRef<TimerEntry[]>([]);
@@ -241,7 +249,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <TimerContext.Provider value={{ timers, addTimer, removeTimer, dismissFinished }}>
+    <TimerContext.Provider value={{ timers, addTimer, removeTimer, dismissFinished, pendingNavigation, setPendingNavigation }}>
       {children}
     </TimerContext.Provider>
   );
