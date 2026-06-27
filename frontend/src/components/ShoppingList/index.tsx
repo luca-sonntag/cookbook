@@ -185,14 +185,6 @@ export default function ShoppingList({
 
   return (
     <div className="flex flex-col gap-6 relative">
-      {/* Add Custom Item Form */}
-      {showAddForm && (
-        <CustomItemForm
-          addCustomItem={addCustomItem}
-          addFormRef={addFormRef}
-        />
-      )}
-
       {/* Main Shopping List Content */}
       <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5">
         {/* Progress Stats Bar */}
@@ -227,6 +219,16 @@ export default function ShoppingList({
                 style={{ width: `${(aggregatedList.checked.length / totalCount) * 100}%` }}
               />
             </div>
+          </div>
+        )}
+
+        {/* Add Custom Item Form — sits between progress bar and "TO BUY" label */}
+        {showAddForm && (
+          <div className="mb-4">
+            <CustomItemForm
+              addCustomItem={addCustomItem}
+              addFormRef={addFormRef}
+            />
           </div>
         )}
 
