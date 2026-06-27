@@ -31,11 +31,11 @@ export default function RecipeNutrition({
         </div>
         
         {/* Portion / Gesamt Switcher */}
-        <div className="flex bg-black/5 dark:bg-white/5 p-0.5 rounded-lg border border-black/5 dark:border-white/5 select-none">
+        <div className="flex bg-black/5 dark:bg-white/5 p-0.5 rounded-lg border border-black/5 dark:border-white/5 select-none shrink-0">
           <button
             type="button"
             onClick={() => onToggleTotalNutrition(false)}
-            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all cursor-pointer outline-none border-none ${
+            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap transition-all cursor-pointer outline-none border-none ${
               !showTotalNutrition
                 ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -46,7 +46,7 @@ export default function RecipeNutrition({
           <button
             type="button"
             onClick={() => onToggleTotalNutrition(true)}
-            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all cursor-pointer outline-none border-none ${
+            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap transition-all cursor-pointer outline-none border-none ${
               showTotalNutrition
                 ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
