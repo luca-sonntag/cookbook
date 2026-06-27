@@ -85,11 +85,12 @@ export default function ShoppingListItem({
             {item.sources.map((src, sIdx) => (
               <span
                 key={sIdx}
-                className="inline-flex items-center text-[9px] text-gray-500 dark:text-gray-400 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 px-1.5 py-0.2 rounded-md mr-1 mt-1 font-medium"
+                className="inline-flex items-center text-[9px] text-gray-500 dark:text-gray-400 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 px-1.5 py-0.2 rounded-md mr-1 mt-1 font-medium whitespace-nowrap truncate max-w-[220px] sm:max-w-[350px]"
+                title={src.recipeTitle || t('shopping.manual')}
               >
-                {src.recipeTitle || t('shopping.manual')}
+                <span className="truncate">{src.recipeTitle || t('shopping.manual')}</span>
                 {src.amount > 0 && (
-                  <span className="opacity-75 ml-1">
+                  <span className="opacity-75 ml-1 flex-shrink-0">
                     ({formatItemAmount(src.amount, src.unit)})
                   </span>
                 )}
