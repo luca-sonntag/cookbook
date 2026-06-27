@@ -46,7 +46,7 @@ export default function RecipeIngredients({
             </span>
           </div>
           {hasIngredientNutrition && (
-            <div className="flex justify-end items-center gap-1.5">
+            <div className="flex justify-start items-center gap-1.5">
               <button
                 onClick={onToggleIngredientNutrition}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold select-none cursor-pointer transition-all border ${
