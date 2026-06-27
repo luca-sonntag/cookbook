@@ -122,8 +122,7 @@ export default function RecipeDetails({
     servings,
     setServings,
     scaleFactor,
-    formatAmount,
-    formatNutritionValue
+    formatAmount
   } = useRecipeScaling(recipe);
 
   // Added/copied states (encapsulated locally!)
