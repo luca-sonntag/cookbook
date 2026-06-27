@@ -170,7 +170,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                 key={index}
                 onClick={canTimer ? (e) => {
                   e.stopPropagation();
-                  setTimerSheet({ isOpen: true, seconds, label: text.slice(0, 80) });
+                  setTimerSheet({ isOpen: true, seconds, label: text });
                 } : undefined}
                 className={`inline mx-0.5 font-semibold text-blue-600 dark:text-blue-400 transition-colors ${
                   canTimer

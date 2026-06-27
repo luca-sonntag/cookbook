@@ -206,7 +206,7 @@ export default function CookingMode({
 
                   {/* Label + countdown */}
                   <div className="relative flex-1 min-w-0 text-left">
-                    <p className="text-[9px] text-white/70 font-semibold leading-none truncate max-w-[90px]">
+                    <p className="text-[9px] text-white/70 font-semibold leading-none">
                       {timer.label}
                     </p>
                     <p className="text-xs font-black tabular-nums mt-0.5 leading-none">

@@ -14,11 +14,6 @@ function formatCountdown(totalSeconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-/** Shorten a label to max N chars */
-function shortenLabel(label: string, maxLen = 28): string {
-  return label.length > maxLen ? label.slice(0, maxLen).trimEnd() + '…' : label;
-}
-
 export default function TimerBanner() {
   const { timers, removeTimer, dismissFinished, setPendingNavigation } = useTimerManager();
   const { t } = useI18n();
@@ -77,8 +72,8 @@ export default function TimerBanner() {
 
               {/* Label + countdown */}
               <div className="relative flex-1 min-w-0">
-                <p className="text-[10px] text-white/70 font-medium leading-none truncate">
-                  {shortenLabel(timer.label)}
+                <p className="text-[10px] text-white/70 font-medium leading-none">
+                  {timer.label}
                 </p>
                 <p className={`text-sm font-black text-white tabular-nums mt-0.5 leading-none ${isFinished ? '' : ''}`}>
                   {isFinished

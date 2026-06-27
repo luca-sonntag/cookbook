@@ -25,10 +25,8 @@ function formatDuration(seconds: number): string {
 /** Preset durations in seconds */
 const PRESETS = [
   { label: '1m', seconds: 60 },
-  { label: '3m', seconds: 180 },
   { label: '5m', seconds: 300 },
   { label: '10m', seconds: 600 },
-  { label: '15m', seconds: 900 },
   { label: '30m', seconds: 1800 },
   { label: '1h', seconds: 3600 },
 ];
@@ -86,7 +84,7 @@ export default function TimerConfirmSheet({
 
             <Drawer.Body>
               {/* Label */}
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-5 leading-relaxed italic line-clamp-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-5 leading-relaxed italic">
                 „{label}"
               </p>
 
