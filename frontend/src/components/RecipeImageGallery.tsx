@@ -86,30 +86,32 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
         </Button>
       )}
 
-      {/* Floating View Reel Button */}
-      {reelUrl && (
-        <a
-          href={reelUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute top-4 right-4 z-20 bg-black/65 hover:bg-emerald-600/90 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
-        >
-          <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
-          <span>{t('catalog.viewReel')}</span>
-        </a>
-      )}
-
-      {/* Floating Creator Badge */}
-      {recipe.instagramHandle && (
-        <a
-          href={`https://instagram.com/${recipe.instagramHandle.replace('@', '')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute bottom-4 left-4 z-20 bg-black/65 hover:bg-emerald-600/90 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
-        >
-          <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
-          <span>{recipe.instagramHandle}</span>
-        </a>
+      {/* Floating Top Right Actions */}
+      {(reelUrl || recipe.instagramHandle) && (
+        <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+          {recipe.instagramHandle && (
+            <a
+              href={`https://instagram.com/${recipe.instagramHandle.replace('@', '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-black/65 hover:bg-emerald-600/90 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
+            >
+              <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
+              <span>{recipe.instagramHandle}</span>
+            </a>
+          )}
+          {reelUrl && (
+            <a
+              href={reelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-black/65 hover:bg-emerald-600/90 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
+            >
+              <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
+              <span>{t('catalog.viewReel')}</span>
+            </a>
+          )}
+        </div>
       )}
     </>
   );
