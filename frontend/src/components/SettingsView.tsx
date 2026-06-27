@@ -42,11 +42,10 @@ export default function SettingsView() {
       </div>
 
       {saveMessage && (
-        <div className={`mx-2 px-4 py-2.5 text-xs text-center rounded-xl font-semibold border ${
-          saveMessage === t('app.settings.saved')
+        <div className={`mx-2 px-4 py-2.5 text-xs text-center rounded-xl font-semibold border ${saveMessage === t('app.settings.saved')
             ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
             : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-        }`}>
+          }`}>
           {saveMessage}
         </div>
       )}
@@ -72,7 +71,7 @@ export default function SettingsView() {
             className="w-20"
             aria-label="Language"
           >
-            <Select.Trigger className="py-1 px-2 text-xs font-semibold">
+            <Select.Trigger className="h-8 min-h-0 py-0 px-2 text-xs font-semibold">
               <Select.Value />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
@@ -112,7 +111,7 @@ export default function SettingsView() {
             className="w-36"
             aria-label="Temperature Unit"
           >
-            <Select.Trigger className="py-1 px-2 text-xs font-semibold">
+            <Select.Trigger className="h-8 min-h-0 py-0 px-2 text-xs font-semibold">
               <Select.Value />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
@@ -156,7 +155,7 @@ export default function SettingsView() {
             className="w-40"
             aria-label="Unit System"
           >
-            <Select.Trigger className="py-1 px-2 text-xs font-semibold">
+            <Select.Trigger className="h-8 min-h-0 py-0 px-2 text-xs font-semibold">
               <Select.Value />
               <Select.Indicator className="size-3" />
             </Select.Trigger>
@@ -190,22 +189,20 @@ export default function SettingsView() {
           <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
             <button
               onClick={() => setTheme('light')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
-                theme === 'light' 
-                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm' 
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${theme === 'light'
+                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-              }`}
+                }`}
             >
               <Sun className="w-3.5 h-3.5" />
               Light
             </button>
             <button
               onClick={() => setTheme('dark')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
-                theme === 'dark' 
-                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm' 
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${theme === 'dark'
+                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-              }`}
+                }`}
             >
               <Moon className="w-3.5 h-3.5" />
               Dark
@@ -258,7 +255,7 @@ export default function SettingsView() {
           </Button>
         </div>
       </div>
-      
+
       <div className="flex justify-center mt-4 mb-8">
         <p className="text-xs text-gray-400 dark:text-gray-600 font-medium">
           CookBuddy v1.0.0
