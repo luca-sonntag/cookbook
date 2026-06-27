@@ -137,7 +137,17 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * **Navigationshilfen:** Bietet responsive Zurück-Buttons und Edge-Swipe-Navigation für komfortable Bedienung auf Smartphones.
   * Bietet interaktive Checklisten zum Abhaken von Zutaten und Zubereitungsschritten während des Kochens.
   * **Interaktive Text-Hervorhebungen:** Hebt Temperaturen (z. B. "200°C", "180 Grad") und Zeitspannen (z. B. "20-22 Minuten", "5 Min.") in den Zubereitungsschritten und Kochtipps automatisch hervor und rendert sie als stilvolle, farblich codierte Badges mit passenden Icons (Thermometer & Uhr). Unterstützt vollautomatisch mehrere Sprachen (DE, EN, ES, FR, IT, PT, NL, TR, PL) samt deren gängigen Abkürzungen und Deklinationen. Zutaten und Kochutensilien werden in diesen Texten ebenfalls interaktiv verlinkt.
+  * **In-App Koch-Timer (`TimerContext`, `TimerBanner`, `TimerConfirmSheet`):**
+    * Blaue Zeit-Badges (z.B. „15 Minuten") in `RecipeInstructionText` sind klickbar (unterstrichen, `cursor-pointer`).
+    * **Confirm-Sheet:** Tippt der Nutzer auf einen Zeit-Badge, öffnet sich ein Bottom-Sheet (`TimerConfirmSheet.tsx`) mit dem erkannten Label, einem Schieberegler zur Feineinstellung (±50% der Originalzeit, Schritt 15s/1min/5min je nach Dauer) und einem „Timer starten"-Button.
+    * **Globaler Zustand (`TimerContext.tsx`, `frontend/src/context/`):** Verwaltet alle aktiven Timer als `TimerEntry[]`. Ein globales `setInterval` (500ms) aktualisiert den Countdown. Mehrere parallele Timer sind unterstützt. State überlebt Tab-Navigation.
+    * **Alarm:** Bei Ablauf: 3× synthetischer Beep-Ton via Web Audio API (880 Hz, 150ms) + `navigator.vibrate()` + `Notification`-Push (falls Permission erteilt).
+    * **Notification Permission:** Wird lazily beim ersten Timer-Start via `Notification.requestPermission()` angefragt – kein vorzeitiger Popup beim App-Start.
+    * **Timer-Banner (`TimerBanner.tsx`):** Sticky unterhalb des App-Headers. Zeigt alle aktiven Timer als blaue Karten mit Countdown (mm:ss) und Fortschrittsbalken. Bei Ablauf: pulsiert rot mit Glocken-Icon. Dismiss-Button (×) entfernt den Timer.
+    * **Zeitparser (`parseTimeToSeconds`):** Konvertiert gematchte Zeit-Strings (Sekunden, Minuten, Stunden) aller unterstützten Sprachen in Sekunden.
+    * **Hook (`useTimerManager.ts`):** Thin re-export von `useTimerContext` für ergonomische Imports in Komponenten.
   * Unterstützt das Kopieren des Rezepts als formatiertes Markdown.
+
 
 ---
 
