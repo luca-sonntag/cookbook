@@ -29,11 +29,35 @@ export function useTimerContext(): TimerContextValue {
 
 // ─── Audio Alarm ──────────────────────────────────────────────────────────────
 
+// Global reference to the unlocked AudioContext
+let globalAudioContext: AudioContext | null = null;
+
+function getSharedAudioContext(): AudioContext | null {
+  if (globalAudioContext) {
+    if (globalAudioContext.state === 'suspended') {
+      globalAudioContext.resume().catch(() => {});
+    }
+    return globalAudioContext;
+  }
+
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return null;
+    globalAudioContext = new AudioContextClass();
+    return globalAudioContext;
+  } catch {
+    return null;
+  }
+}
+
 function playAlarm(): void {
   try {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
 
     const beepCount = 3;
     const beepDuration = 0.15;
@@ -57,11 +81,8 @@ function playAlarm(): void {
       oscillator.start(startTime);
       oscillator.stop(startTime + beepDuration + 0.05);
     }
-
-    // Auto-close context after alarm is done
-    setTimeout(() => ctx.close(), (beepDuration + beepGap) * beepCount * 1000 + 500);
-  } catch {
-    // Silently ignore if audio not available
+  } catch (err) {
+    console.error('Failed to play alarm:', err);
   }
 }
 
@@ -91,7 +112,8 @@ async function sendNotification(title: string, body: string): Promise<void> {
         icon: '/icon-512.png',
         badge: '/icon-512.png',
         tag: 'cooking-timer',
-      });
+        vibrate: [200, 100, 200, 100, 400],
+      } as any);
       // Auto-close after 8 seconds
       setTimeout(() => notification.close(), 8000);
     }
@@ -152,20 +174,29 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         alarmIntervalsRef.current.set(timer.id, repeatInterval);
       });
 
-      // ── State update: mark expired timers as finished ──
+      // ── State update: mark expired timers as finished AND/OR force re-render for countdown ──
+      const hasRunning = current.some(t => !t.isFinished);
       if (newlyExpired.length > 0) {
         const expiredIds = new Set(newlyExpired.map(t => t.id));
         setTimers(prev =>
           prev.map(t => expiredIds.has(t.id) ? { ...t, isFinished: true } : t)
         );
+      } else if (hasRunning) {
+        // Force re-render of context to update countdown times
+        setTimers(prev => [...prev]);
       }
-      // No setTimers call for countdown ticks — TimerBanner handles its own re-render
     }, 500);
 
     return () => clearInterval(interval);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addTimer = useCallback((durationSeconds: number, label: string): string => {
+    // Unlock/instantiate AudioContext on user gesture
+    const audioCtx = getSharedAudioContext();
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
+
     const id = generateId();
     const endAt = Date.now() + durationSeconds * 1000;
     const entry: TimerEntry = {

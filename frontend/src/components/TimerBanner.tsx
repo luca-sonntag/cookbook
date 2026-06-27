@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Bell, X, Timer } from 'lucide-react';
 import { useTimerManager } from '../hooks/useTimerManager';
 import { useI18n } from '../context/I18nContext';
@@ -23,15 +22,6 @@ function shortenLabel(label: string, maxLen = 28): string {
 export default function TimerBanner() {
   const { timers, removeTimer, dismissFinished } = useTimerManager();
   const { t } = useI18n();
-
-  // Local tick — drives countdown display independently of context re-renders
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const hasRunning = timers.some(t => !t.isFinished);
-    if (!hasRunning) return; // No interval needed when all timers are finished/empty
-    const id = setInterval(() => setTick(n => n + 1), 500);
-    return () => clearInterval(id);
-  }, [timers]);
 
   if (timers.length === 0) return null;
 
