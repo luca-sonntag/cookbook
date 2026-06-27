@@ -86,9 +86,9 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
         </Button>
       )}
 
-      {/* Floating Top Right Actions */}
+      {/* Floating Bottom Actions */}
       {(reelUrl || recipe.instagramHandle) && (
-        <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
           {recipe.instagramHandle && (
             <a
               href={`https://instagram.com/${recipe.instagramHandle.replace('@', '')}`}
