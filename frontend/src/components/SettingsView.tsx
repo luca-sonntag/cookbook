@@ -66,14 +66,15 @@ export default function SettingsView() {
           </div>
           <Select
             variant="secondary"
+            size="sm"
             selectedKey={language}
             onSelectionChange={(key) => setLanguage(key as 'en' | 'de')}
-            className="w-28"
+            className="w-20"
             aria-label="Language"
           >
-            <Select.Trigger>
+            <Select.Trigger className="py-1 px-2 text-xs font-semibold">
               <Select.Value />
-              <Select.Indicator />
+              <Select.Indicator className="size-3" />
             </Select.Trigger>
             <Select.Popover>
               <ListBox>
@@ -104,15 +105,16 @@ export default function SettingsView() {
           </div>
           <Select
             variant="secondary"
+            size="sm"
             selectedKey={preferredTempUnit}
             onSelectionChange={(key) => handleUpdateSetting('preferred_temperature_unit', key as string)}
             isDisabled={isSaving}
-            className="w-40"
+            className="w-36"
             aria-label="Temperature Unit"
           >
-            <Select.Trigger>
+            <Select.Trigger className="py-1 px-2 text-xs font-semibold">
               <Select.Value />
-              <Select.Indicator />
+              <Select.Indicator className="size-3" />
             </Select.Trigger>
             <Select.Popover>
               <ListBox>
@@ -147,15 +149,16 @@ export default function SettingsView() {
           </div>
           <Select
             variant="secondary"
+            size="sm"
             selectedKey={preferredUnitSystem}
             onSelectionChange={(key) => handleUpdateSetting('preferred_unit_system', key as string)}
             isDisabled={isSaving}
-            className="w-44"
+            className="w-40"
             aria-label="Unit System"
           >
-            <Select.Trigger>
+            <Select.Trigger className="py-1 px-2 text-xs font-semibold">
               <Select.Value />
-              <Select.Indicator />
+              <Select.Indicator className="size-3" />
             </Select.Trigger>
             <Select.Popover>
               <ListBox>
