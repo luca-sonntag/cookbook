@@ -237,28 +237,45 @@ export default function ShoppingList({
             </div>
           </div>
         ) : (
-          <>
-            <ShoppingListGroup
-              groupedCategories={groupedCategories}
-              getItemKey={getItemKey}
-              onItemToggle={handleItemToggle}
-              onGroupHeaderClick={handleGroupHeaderClick}
-              onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
-              formatItemAmount={formatItemAmount}
-              collapsingKeys={collapsingKeys}
-            />
-
-            {/* Spacer reserves room for the floating clear bar so the last
-                category card isn't permanently hidden behind it */}
-            <div className="h-20" aria-hidden="true" />
-          </>
+          <ShoppingListGroup
+            groupedCategories={groupedCategories}
+            getItemKey={getItemKey}
+            onItemToggle={handleItemToggle}
+            onGroupHeaderClick={handleGroupHeaderClick}
+            onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
+            formatItemAmount={formatItemAmount}
+            collapsingKeys={collapsingKeys}
+          />
         )}
       </Card>
 
-      {/* Floating Clear Bar */}
-      {totalCount > 0 && (
-        <FloatingActionBar className="bottom-24 md:bottom-6">
-          {aggregatedList.checked.length > 0 && (
+      {/* Floating Action Bar (Add + optional clear actions) */}
+      <FloatingActionBar className="bottom-24 md:bottom-6">
+        {/* Add Item — primary action, always visible */}
+        <button
+          type="button"
+          onClick={() => {
+            const willOpen = !showAddForm;
+            setShowAddForm(willOpen);
+            // Scroll to top of page when opening the form
+            if (willOpen) {
+              setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }, 50);
+            }
+          }}
+          aria-label={t('shopping.addTitle')}
+          className="inline-flex items-center gap-1.5 pl-3 pr-3.5 h-9 rounded-full text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/10 shadow-sm active:scale-95 transition-all cursor-pointer"
+        >
+          <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${showAddForm ? 'rotate-45' : ''}`} />
+          <span>{t('shopping.btnAdd')}</span>
+        </button>
+
+        {totalCount > 0 && <FloatingDivider />}
+
+        {/* Clear checked items — only shown when there's something to clear */}
+        {aggregatedList.checked.length > 0 && (
+          <>
             <button
               type="button"
               onClick={clearChecked}
@@ -267,8 +284,12 @@ export default function ShoppingList({
               <X className="w-3.5 h-3.5" />
               <span>{t('shopping.clearChecked')}</span>
             </button>
-          )}
-          {aggregatedList.checked.length > 0 && <FloatingDivider />}
+            <FloatingDivider />
+          </>
+        )}
+
+        {/* Clear all items — only shown when list is non-empty */}
+        {totalCount > 0 && (
           <button
             type="button"
             onClick={handleClearAll}
@@ -277,26 +298,8 @@ export default function ShoppingList({
             <Trash2 className="w-3.5 h-3.5" />
             <span>{t('shopping.clearAll')}</span>
           </button>
-        </FloatingActionBar>
-      )}
-
-      {/* Floating Add Button */}
-      <button
-        onClick={() => {
-          const willOpen = !showAddForm;
-          setShowAddForm(willOpen);
-          // Scroll to top of page when opening the form
-          if (willOpen) {
-            setTimeout(() => {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 50);
-          }
-        }}
-        aria-label={t('shopping.addTitle')}
-        className="fixed bottom-28 right-4 md:bottom-6 md:right-6 z-40 w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center cursor-pointer"
-      >
-        <Plus className={`w-6 h-6 transition-transform duration-200 ${showAddForm ? 'rotate-45' : ''}`} />
-      </button>
+        )}
+      </FloatingActionBar>
     </div>
   );
 }
