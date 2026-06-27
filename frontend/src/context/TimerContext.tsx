@@ -109,46 +109,63 @@ function generateId(): string {
 
 export function TimerProvider({ children }: { children: React.ReactNode }) {
   const [timers, setTimers] = useState<TimerEntry[]>([]);
+
+  // Ref mirror of timers — always current, readable inside intervals without stale closure
+  const timersRef = useRef<TimerEntry[]>([]);
+  timersRef.current = timers;
+
+  // Tracks which timer IDs have already had their alarm started
   const alreadyFiredRef = useRef<Set<string>>(new Set());
-  // Stores the repeating alarm interval ID for each finished timer
+  // Repeating alarm interval per timer ID — cleared on dismiss/remove
   const alarmIntervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
-  // Request notification permission upfront when provider mounts (lazy: only if there's a timer)
-  // We'll request permission on first addTimer call instead.
-
-  // Global 1-second ticker
+  // Global ticker: runs every 500 ms for smooth countdown display
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      setTimers(prev => {
-        let changed = false;
-        const next = prev.map(timer => {
-          if (!timer.isFinished && now >= timer.endAt) {
-            // Fire alarm only once to start, then set up repeating interval
-            if (!alreadyFiredRef.current.has(timer.id)) {
-              alreadyFiredRef.current.add(timer.id);
-              // First ring immediately
-              playAlarm();
-              vibrate();
-              sendNotification(timer.label, '🍳 Dein Koch-Timer ist abgelaufen. / Your cooking timer finished.');
-              // Then repeat every 2.5 seconds until dismissed
-              const repeatInterval = setInterval(() => {
-                playAlarm();
-                vibrate();
-              }, 2500);
-              alarmIntervalsRef.current.set(timer.id, repeatInterval);
-            }
-            changed = true;
-            return { ...timer, isFinished: true };
+      const current = timersRef.current;
+
+      // ── Identify newly expired timers (outside setTimers — safe for side-effects) ──
+      const newlyExpired = current.filter(
+        t => !t.isFinished && now >= t.endAt && !alreadyFiredRef.current.has(t.id)
+      );
+
+      // ── Fire side-effects OUTSIDE state updater ──
+      newlyExpired.forEach(timer => {
+        alreadyFiredRef.current.add(timer.id);
+
+        // First ring immediately
+        playAlarm();
+        vibrate();
+        sendNotification(timer.label, '🍳 Dein Koch-Timer ist abgelaufen. / Your cooking timer finished.');
+
+        // Repeat every 2.5 s until user dismisses
+        const repeatInterval = setInterval(() => {
+          // Only ring if timer is still in the list (not yet dismissed)
+          if (timersRef.current.some(t => t.id === timer.id)) {
+            playAlarm();
+            vibrate();
+          } else {
+            clearInterval(repeatInterval);
           }
-          return timer;
-        });
-        return changed ? next : prev;
+        }, 2500);
+        alarmIntervalsRef.current.set(timer.id, repeatInterval);
       });
-    }, 500); // 500ms for snappier countdown display
+
+      // ── State update: mark expired timers as finished & trigger re-render for countdown ──
+      if (newlyExpired.length > 0) {
+        const expiredIds = new Set(newlyExpired.map(t => t.id));
+        setTimers(prev =>
+          prev.map(t => expiredIds.has(t.id) ? { ...t, isFinished: true } : t)
+        );
+      } else if (current.some(t => !t.isFinished)) {
+        // Force re-render every tick so countdown display stays live
+        setTimers(prev => [...prev]);
+      }
+    }, 500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addTimer = useCallback((durationSeconds: number, label: string): string => {
     const id = generateId();
@@ -172,7 +189,6 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
   const removeTimer = useCallback((id: string) => {
     alreadyFiredRef.current.delete(id);
-    // Stop repeating alarm if active
     const existing = alarmIntervalsRef.current.get(id);
     if (existing !== undefined) {
       clearInterval(existing);
@@ -183,7 +199,6 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
   const dismissFinished = useCallback((id: string) => {
     alreadyFiredRef.current.delete(id);
-    // Stop repeating alarm
     const existing = alarmIntervalsRef.current.get(id);
     if (existing !== undefined) {
       clearInterval(existing);
@@ -198,3 +213,4 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     </TimerContext.Provider>
   );
 }
+
