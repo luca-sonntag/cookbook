@@ -1,6 +1,7 @@
 import { Button } from '@heroui/react';
 import { ShoppingCart, Play, Sparkles } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
+import FloatingActionBar, { FloatingDivider } from '../FloatingActionBar';
 
 interface RecipeActionDockProps {
   totalStepsCount: number;
@@ -21,41 +22,46 @@ export default function RecipeActionDock({
 }: RecipeActionDockProps) {
   const { t } = useI18n();
 
+  const showStart = totalStepsCount > 0;
+  const showRemix = !!recipeId && !!onRemixClick;
+  const showShopping = !!onNavigateToShoppingList;
+
+  // Compute whether each optional divider should render based on what
+  // actions are present on either side.
+  const showRemixDivider = showRemix && (showStart || showShopping);
+  const showShoppingDivider = showShopping && (showStart || showRemix);
+
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up">
-      <div className="flex items-center gap-3.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-4 py-2.5 rounded-full border border-black/10 dark:border-white/10 shadow-2xl">
-        {/* Start Cooking Button */}
-        {totalStepsCount > 0 && (
-          <Button
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold pl-3.5 pr-4 h-9 rounded-full flex items-center gap-1.5 active:scale-95 transition-all text-xs border border-emerald-500/10 shadow-sm"
-            onPress={onStartCooking}
+    <FloatingActionBar>
+      {/* Start Cooking Button */}
+      {showStart && (
+        <Button
+          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold pl-3.5 pr-4 h-9 rounded-full flex items-center gap-1.5 active:scale-95 transition-all text-xs border border-emerald-500/10 shadow-sm"
+          onPress={onStartCooking}
+        >
+          <Play className="w-3.5 h-3.5 fill-white" />
+          <span>{t('recipe.startCooking')}</span>
+        </Button>
+      )}
+
+      {/* Remix Button */}
+      {showRemix && (
+        <>
+          <FloatingDivider show={showRemixDivider} />
+          <button
+            onClick={onRemixClick}
+            className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none border-none group"
+            title="Recipe Remix"
           >
-            <Play className="w-3.5 h-3.5 fill-white" />
-            <span>{t('recipe.startCooking')}</span>
-          </Button>
-        )}
+            <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
+          </button>
+        </>
+      )}
 
-        {/* Remix Button */}
-        {recipeId && onRemixClick && (
-          <>
-            <div className="w-[1px] h-5 bg-black/10 dark:bg-white/10" />
-            <button
-              onClick={onRemixClick}
-              className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none border-none group"
-              title="Recipe Remix"
-            >
-              <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
-            </button>
-          </>
-        )}
-
-        {/* Vertical Divider */}
-        {onNavigateToShoppingList && (totalStepsCount > 0 || (recipeId && onRemixClick)) && (
-          <div className="w-[1px] h-5 bg-black/10 dark:bg-white/10" />
-        )}
-
-        {/* Shopping List Button */}
-        {onNavigateToShoppingList && (
+      {/* Shopping List Button */}
+      {showShopping && (
+        <>
+          <FloatingDivider show={showShoppingDivider} />
           <button
             onClick={onNavigateToShoppingList}
             className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none border-none"
@@ -68,8 +74,8 @@ export default function RecipeActionDock({
               </span>
             )}
           </button>
-        )}
-      </div>
-    </div>
+        </>
+      )}
+    </FloatingActionBar>
   );
 }
