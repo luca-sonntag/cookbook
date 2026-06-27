@@ -140,7 +140,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
           />
 
           {/* Modal Container */}
-          <div className="glass-panel relative w-full max-w-sm rounded-2xl border border-black/10 dark:border-white/10 p-6 shadow-2xl bg-white/95 dark:bg-gray-900/95 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-sm rounded-2xl border border-black/10 dark:border-white/10 p-6 shadow-2xl bg-white dark:bg-gray-900 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
             {/* Close Button for Alert, or optional */}
             {state.type === 'alert' && (
               <button 

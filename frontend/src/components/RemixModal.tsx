@@ -83,7 +83,7 @@ export default function RemixModal({ isOpen, onOpenChange, recipeId, onRemixSucc
       />
 
       {/* Modal Container */}
-      <Card className="glass-panel relative w-full max-w-md rounded-2xl border border-black/10 dark:border-white/10 p-6 shadow-2xl bg-white/95 dark:bg-gray-900/95 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 z-10">
+      <Card className="relative w-full max-w-md rounded-2xl border border-black/10 dark:border-white/10 p-6 shadow-2xl bg-white dark:bg-gray-900 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 z-10">
         
         {!isPending && (
           <button 

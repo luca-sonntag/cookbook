@@ -67,7 +67,7 @@ export default function TimerConfirmSheet({
     <Drawer>
       <Drawer.Backdrop isOpen={isOpen} onOpenChange={(open) => { if (!open) onClose(); }} className="!z-[100]">
         <Drawer.Content placement="bottom" className="!z-[100]">
-          <Drawer.Dialog>
+          <Drawer.Dialog className="!bg-white dark:!bg-gray-900">
             <Drawer.Handle />
 
             {/* Header */}
