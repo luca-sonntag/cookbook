@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Drawer } from '@heroui/react';
-import { Clock, Play } from 'lucide-react';
+import { Clock, Minus, Play, Plus } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useTimerManager } from '../hooks/useTimerManager';
 
@@ -60,6 +60,11 @@ export default function TimerConfirmSheet({
 
   const isPresetActive = (s: number) => adjusted === s;
 
+  // Step size: 15s under 10min, 1min under 1h, 5min for 1h+
+  const step = adjusted < 600 ? 15 : adjusted < 3600 ? 60 : 300;
+  const minVal = 15;
+  const maxVal = 3 * 3600; // 3h max
+
   return (
     <Drawer>
       <Drawer.Backdrop isOpen={isOpen} onOpenChange={(open) => { if (!open) onClose(); }} className="!z-[100]">
@@ -85,11 +90,25 @@ export default function TimerConfirmSheet({
                 „{label}"
               </p>
 
-              {/* Duration display */}
-              <div className="flex items-center justify-center mb-5">
+              {/* Duration display with ± stepper */}
+              <div className="flex items-center justify-center gap-4 mb-5">
+                <button
+                  onClick={() => setAdjusted(v => Math.max(minVal, v - step))}
+                  className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/20 active:scale-90 transition-all flex-shrink-0"
+                  aria-label="Decrease"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
                 <span className="text-5xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums tracking-tight">
                   {formatDuration(adjusted)}
                 </span>
+                <button
+                  onClick={() => setAdjusted(v => Math.min(maxVal, v + step))}
+                  className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/20 active:scale-90 transition-all flex-shrink-0"
+                  aria-label="Increase"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
               </div>
 
               {/* Adjust label */}
