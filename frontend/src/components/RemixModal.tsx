@@ -126,17 +126,23 @@ export default function RemixModal({ isOpen, onOpenChange, recipeId, onRemixSucc
             })}
           </div>
 
-          <textarea
-            ref={textareaRef}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={t('remix.placeholder')}
-            rows={3}
-            disabled={isPending}
-            aria-label={t('remix.placeholder')}
-            className="w-full text-sm bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-900 dark:text-white"
-          />
+          <div className="relative">
+            <textarea
+              ref={textareaRef}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value.slice(0, 250))}
+              onKeyDown={handleKeyDown}
+              placeholder={t('remix.placeholder')}
+              rows={3}
+              maxLength={250}
+              disabled={isPending}
+              aria-label={t('remix.placeholder')}
+              className="w-full text-sm bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-3 pb-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-900 dark:text-white resize-none"
+            />
+            <div className="absolute bottom-2.5 right-3 text-[10px] text-gray-400 dark:text-gray-500 font-semibold pointer-events-none select-none">
+              {prompt.length}/250
+            </div>
+          </div>
           
           {isPending && (
             <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center animate-pulse flex flex-col gap-1">
