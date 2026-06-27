@@ -129,6 +129,17 @@ export default function ShoppingList({
     }
   };
 
+  const toggleAddForm = () => {
+    const willOpen = !showAddForm;
+    setShowAddForm(willOpen);
+    // Scroll to top of page when opening the form
+    if (willOpen) {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 50);
+    }
+  };
+
   const totalCount = aggregatedList.unchecked.length + aggregatedList.checked.length;
 
   // Combine checked and unchecked aggregated items
@@ -219,6 +230,26 @@ export default function ShoppingList({
           </div>
         )}
 
+        {/* Inline Add Item action — sits between progress bar and "TO BUY" label,
+            visible in both empty and populated states. Mirrors the floating bar's
+            add action so the user can add items without reaching for the dock. */}
+        {totalCount > 0 && (
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h4 className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-1">
+              {t('shopping.toBuy', { count: aggregatedList.unchecked.length })}
+            </h4>
+            <button
+              type="button"
+              onClick={toggleAddForm}
+              aria-label={showAddForm ? t('shopping.btnCancelInline') : t('shopping.addTitle')}
+              className="inline-flex items-center gap-1.5 pl-2.5 pr-3 h-7 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all cursor-pointer active:scale-95"
+            >
+              <Plus className={`w-3 h-3 transition-transform duration-200 ${showAddForm ? 'rotate-45' : ''}`} />
+              <span>{showAddForm ? t('shopping.btnCancelInline') : t('shopping.btnAdd')}</span>
+            </button>
+          </div>
+        )}
+
         {totalCount === 0 ? (
           <div className="text-center py-10 flex flex-col items-center justify-center">
             <div className="relative mb-4">
@@ -254,16 +285,7 @@ export default function ShoppingList({
         {/* Add Item — primary action, always visible */}
         <button
           type="button"
-          onClick={() => {
-            const willOpen = !showAddForm;
-            setShowAddForm(willOpen);
-            // Scroll to top of page when opening the form
-            if (willOpen) {
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }, 50);
-            }
-          }}
+          onClick={toggleAddForm}
           aria-label={t('shopping.addTitle')}
           className="inline-flex items-center gap-1.5 pl-3 pr-3.5 h-9 rounded-full text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/10 shadow-sm active:scale-95 transition-all cursor-pointer"
         >
