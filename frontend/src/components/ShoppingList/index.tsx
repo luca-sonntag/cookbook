@@ -104,6 +104,25 @@ export default function ShoppingList({
     toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, false);
   };
 
+  const handleGroupHeaderClick = (items: AggregatedShoppingItem[]) => {
+    const keys = items.map(getItemKey);
+    const pendingCount = keys.filter((k) => pendingChecks.has(k)).length;
+    const allPending = pendingCount === items.length;
+
+    if (allPending) {
+      // All items in the category are pending, cancel all of them
+      keys.forEach(cancelPendingCheck);
+    } else {
+      // Some or none are pending, schedule checking for any that are not already pending
+      items.forEach((item, idx) => {
+        const key = keys[idx];
+        if (!pendingChecks.has(key)) {
+          schedulePendingCheck(key, item);
+        }
+      });
+    }
+  };
+
   // Cleanup all timers on unmount
   useEffect(() => {
     const timers = pendingTimers.current;
@@ -209,6 +228,7 @@ export default function ShoppingList({
             getItemKey={getItemKey}
             onUncheckedClick={handleUncheckedClick}
             onCheckedClick={handleCheckedClick}
+            onGroupHeaderClick={handleGroupHeaderClick}
             onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
             onClearChecked={clearChecked}
             formatItemAmount={formatItemAmount}

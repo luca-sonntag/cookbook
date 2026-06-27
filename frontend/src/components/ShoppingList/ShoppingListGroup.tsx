@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { X } from 'lucide-react';
+import { X, Check, Minus } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { translateCategory } from '../../i18n';
 import { useI18n } from '../../context/I18nContext';
@@ -12,6 +12,7 @@ interface ShoppingListGroupProps {
   getItemKey: (item: AggregatedShoppingItem) => string;
   onUncheckedClick: (item: AggregatedShoppingItem) => void;
   onCheckedClick: (item: AggregatedShoppingItem) => void;
+  onGroupHeaderClick: (items: AggregatedShoppingItem[]) => void;
   onDelete: (item: AggregatedShoppingItem) => void;
   onClearChecked: () => void;
   formatItemAmount: (amount: number, unit: string) => string;
@@ -24,6 +25,7 @@ export default function ShoppingListGroup({
   getItemKey,
   onUncheckedClick,
   onCheckedClick,
+  onGroupHeaderClick,
   onDelete,
   onClearChecked,
   formatItemAmount
@@ -39,16 +41,35 @@ export default function ShoppingListGroup({
             {t('shopping.toBuy', { count: groupedUnchecked.reduce((acc, g) => acc + g.items.length, 0) })}
           </h4>
           <div className="flex flex-col gap-4">
-            {groupedUnchecked.map((group) => (
-              <div key={group.category} className="flex flex-col gap-2 bg-black/[0.02] dark:bg-white/[0.02] p-3 rounded-2xl border border-black/5 dark:border-white/5">
-                <div className="flex items-center gap-1.5 px-1 py-0.5 border-b border-black/5 dark:border-white/5 pb-2 mb-1">
-                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                    {translateCategory(group.category)}
-                  </span>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal ml-auto">
-                    {group.items.length} {t(group.items.length === 1 ? 'shopping.entry' : 'shopping.entries')}
-                  </span>
-                </div>
+            {groupedUnchecked.map((group) => {
+              const keys = group.items.map(getItemKey);
+              const pendingCount = keys.filter((k) => pendingChecks.has(k)).length;
+              const isAllPending = pendingCount === group.items.length;
+              const isSomePending = pendingCount > 0 && pendingCount < group.items.length;
+
+              return (
+                <div key={group.category} className="flex flex-col gap-2 bg-black/[0.02] dark:bg-white/[0.02] p-3 rounded-2xl border border-black/5 dark:border-white/5">
+                  <div className="flex items-center gap-1.5 px-1 py-0.5 border-b border-black/5 dark:border-white/5 pb-2 mb-1">
+                    <div
+                      onClick={() => onGroupHeaderClick(group.items)}
+                      className="flex items-center gap-2 cursor-pointer select-none py-0.5"
+                    >
+                      <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all ${
+                        isAllPending || isSomePending
+                          ? 'bg-emerald-500 border border-emerald-500 text-white'
+                          : 'border border-black/20 dark:border-white/20'
+                      }`}>
+                        {isAllPending && <Check className="w-3 h-3 text-white" />}
+                        {isSomePending && <Minus className="w-3 h-3 text-white stroke-[3px]" />}
+                      </div>
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                        {translateCategory(group.category)}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal ml-auto">
+                      {group.items.length} {t(group.items.length === 1 ? 'shopping.entry' : 'shopping.entries')}
+                    </span>
+                  </div>
                 <ul className="flex flex-col gap-1">
                   {group.items.map((item) => {
                     const key = getItemKey(item);
@@ -66,7 +87,8 @@ export default function ShoppingListGroup({
                   })}
                 </ul>
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
       )}
