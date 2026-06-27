@@ -10,8 +10,6 @@ interface RecipeInstructionTextProps {
   recipe: Recipe;
   formatAmount: (amount: number, unit?: string) => string;
   stepNum?: number;
-  /** When true, equipment terms render as plain text — no popover, no underline */
-  disableEquipment?: boolean;
 }
 
 // ─── Time parsing helper ──────────────────────────────────────────────────────
@@ -43,7 +41,7 @@ function parseTimeToSeconds(timeStr: string): number {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function RecipeInstructionText({ text, recipe, formatAmount, stepNum, disableEquipment }: RecipeInstructionTextProps) {
+export default function RecipeInstructionText({ text, recipe, formatAmount, stepNum }: RecipeInstructionTextProps) {
   const { t } = useI18n();
 
   // Timer confirm sheet state
@@ -197,8 +195,8 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
           if (matched) {
             const isIng = matched.type === 'ingredient';
 
-            // Equipment in cooking mode: plain text, no interaction
-            if (!isIng && disableEquipment) {
+            // Equipment: always plain text, no popover, no underline
+            if (!isIng) {
               return <span key={index} className="font-semibold text-amber-600 dark:text-amber-400">{part}</span>;
             }
 
