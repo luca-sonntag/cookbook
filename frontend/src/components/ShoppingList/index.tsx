@@ -5,6 +5,7 @@ import type { AggregatedShoppingItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
+import FloatingActionBar, { FloatingDivider } from '../FloatingActionBar';
 
 // Import subcomponents
 import CustomItemForm from './CustomItemForm';
@@ -247,30 +248,37 @@ export default function ShoppingList({
               collapsingKeys={collapsingKeys}
             />
 
-            {/* Card Footer Action Bar */}
-            <div className="mt-5 pt-4 border-t border-black/5 dark:border-white/5 flex items-center justify-end gap-2">
-              {aggregatedList.checked.length > 0 && (
-                <button
-                  type="button"
-                  onClick={clearChecked}
-                  className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 bg-black/5 dark:bg-white/5 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all cursor-pointer active:scale-95"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  <span>{t('shopping.clearChecked')}</span>
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleClearAll}
-                className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 bg-black/5 dark:bg-white/5 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-all cursor-pointer active:scale-95"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>{t('shopping.clearAll')}</span>
-              </button>
-            </div>
+            {/* Spacer reserves room for the floating clear bar so the last
+                category card isn't permanently hidden behind it */}
+            <div className="h-20" aria-hidden="true" />
           </>
         )}
       </Card>
+
+      {/* Floating Clear Bar */}
+      {totalCount > 0 && (
+        <FloatingActionBar className="bottom-24 md:bottom-6">
+          {aggregatedList.checked.length > 0 && (
+            <button
+              type="button"
+              onClick={clearChecked}
+              className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all cursor-pointer active:scale-95"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>{t('shopping.clearChecked')}</span>
+            </button>
+          )}
+          {aggregatedList.checked.length > 0 && <FloatingDivider />}
+          <button
+            type="button"
+            onClick={handleClearAll}
+            className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-all cursor-pointer active:scale-95"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{t('shopping.clearAll')}</span>
+          </button>
+        </FloatingActionBar>
+      )}
 
       {/* Floating Add Button */}
       <button
