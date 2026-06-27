@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { Card, Button } from '@heroui/react';
+import { Card } from '@heroui/react';
 import { ShoppingCart, Plus, Trash2, X, ListChecks, Sparkles } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { categoryOrder } from '../../i18n';
@@ -183,31 +183,6 @@ export default function ShoppingList({
 
       {/* Main Shopping List Content */}
       <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5">
-        {totalCount > 0 && (
-          <div className="flex items-center gap-2 justify-end mb-4">
-            {aggregatedList.checked.length > 0 && (
-              <Button
-                size="sm"
-                variant="tertiary"
-                className="!h-7 !px-2 !py-0 !text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer whitespace-nowrap"
-                onPress={clearChecked}
-              >
-                <X className="w-3.5 h-3.5" />
-                <span>{t('shopping.clearChecked')}</span>
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="tertiary"
-              className="!h-7 !px-2 !py-0 !text-xs text-gray-500 hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer whitespace-nowrap"
-              onPress={handleClearAll}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>{t('shopping.clearAll')}</span>
-            </Button>
-          </div>
-        )}
-
         {/* Progress Stats Bar */}
         {totalCount > 0 && (
           <div className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20">
@@ -261,15 +236,39 @@ export default function ShoppingList({
             </div>
           </div>
         ) : (
-          <ShoppingListGroup
-            groupedCategories={groupedCategories}
-            getItemKey={getItemKey}
-            onItemToggle={handleItemToggle}
-            onGroupHeaderClick={handleGroupHeaderClick}
-            onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
-            formatItemAmount={formatItemAmount}
-            collapsingKeys={collapsingKeys}
-          />
+          <>
+            <ShoppingListGroup
+              groupedCategories={groupedCategories}
+              getItemKey={getItemKey}
+              onItemToggle={handleItemToggle}
+              onGroupHeaderClick={handleGroupHeaderClick}
+              onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
+              formatItemAmount={formatItemAmount}
+              collapsingKeys={collapsingKeys}
+            />
+
+            {/* Card Footer Action Bar */}
+            <div className="mt-5 pt-4 border-t border-black/5 dark:border-white/5 flex items-center justify-end gap-2">
+              {aggregatedList.checked.length > 0 && (
+                <button
+                  type="button"
+                  onClick={clearChecked}
+                  className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 bg-black/5 dark:bg-white/5 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all cursor-pointer active:scale-95"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>{t('shopping.clearChecked')}</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 bg-black/5 dark:bg-white/5 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-all cursor-pointer active:scale-95"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{t('shopping.clearAll')}</span>
+              </button>
+            </div>
+          </>
         )}
       </Card>
 
