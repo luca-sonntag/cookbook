@@ -38,6 +38,7 @@ export default function BulkActionBar({
         <Button
           size="sm"
           onPress={onBulkAdd}
+          isDisabled={selectedCount === 0}
           className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md shadow-emerald-600/10 active:scale-95 transition-all"
         >
           <ShoppingCart className="w-3.5 h-3.5" />
@@ -47,6 +48,7 @@ export default function BulkActionBar({
         <Button
           size="sm"
           onPress={onBulkDelete}
+          isDisabled={selectedCount === 0}
           className="bg-red-500 hover:bg-red-400 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md shadow-red-500/10 active:scale-95 transition-all"
         >
           <Trash2 className="w-3.5 h-3.5" />

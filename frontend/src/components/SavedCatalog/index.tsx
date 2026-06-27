@@ -175,7 +175,7 @@ export default function SavedCatalog({
       )}
 
       {/* Floating bottom action bar in select mode */}
-      {isSelectMode && selectedIds.size > 0 && (
+      {isSelectMode && (
         <BulkActionBar
           selectedCount={selectedIds.size}
           onCancel={() => {
