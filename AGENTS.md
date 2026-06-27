@@ -155,6 +155,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 10. **Smarte Einkaufsliste:**
    * Über den Button *"Zur Einkaufsliste hinzufügen"* im Rezept werden alle aktuell nicht abgehakten Zutaten skaliert in den `localStorage` geladen.
    * Der Tab *"Einkaufsliste"* fasst Artikel mit identischen Einheiten und KI-standardisierten Namen (`baseName`) summiert zusammen, weist deren Herkunftsrezepte sowie Mengen-Teile aus und erlaubt eigene freie Zettel-Einträge. Offene Einkäufe werden als Badge-Zahl in der Hauptnavigation visualisiert.
+   * **Kategorie-Abhaken:** Unterstützt das Abhaken aller Artikel einer Supermarktkategorie auf einmal über ein Gruppen-Checkbox-Element direkt links neben dem Kategorienamen. Der Gruppen-Checkbox-Zustand spiegelt die Artikelauswahl wider (Leer = keine Artikel pending, Minus = einige Artikel pending [Indeterminate], Check = alle Artikel pending). Das Abhaken erfolgt zeitverzögert (600ms), sodass versehentliches Auswählen direkt rückgängig gemacht werden kann.
 11. **Recipe Remix (KI-Anpassung):**
    * Über den Remix-Button auf der Rezept-Detailseite (oder aus der Historie) öffnet sich ein Modal mit Quick-Prompts (z.B. "Vegan", "High Protein", "Kalorienarm") und einem Freitextfeld.
    * Ein neuer `POST /api/jobs/:id/remix` Aufruf legt einen Job mit der `parent_job_id` an.
