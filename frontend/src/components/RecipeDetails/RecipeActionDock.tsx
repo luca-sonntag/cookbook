@@ -24,27 +24,6 @@ export default function RecipeActionDock({
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up">
       <div className="flex items-center gap-3.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-4 py-2.5 rounded-full border border-black/10 dark:border-white/10 shadow-2xl">
-        {/* Shopping List Button */}
-        {onNavigateToShoppingList && (
-          <button
-            onClick={onNavigateToShoppingList}
-            className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none border-none"
-            aria-label="Go to shopping list"
-          >
-            <ShoppingCart className="w-5 h-5" />
-            {shoppingListCount !== undefined && shoppingListCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
-                {shoppingListCount}
-              </span>
-            )}
-          </button>
-        )}
-
-        {/* Vertical Divider */}
-        {onNavigateToShoppingList && totalStepsCount > 0 && (
-          <div className="w-[1px] h-5 bg-black/10 dark:bg-white/10" />
-        )}
-
         {/* Start Cooking Button */}
         {totalStepsCount > 0 && (
           <Button
@@ -68,6 +47,27 @@ export default function RecipeActionDock({
               <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
             </button>
           </>
+        )}
+
+        {/* Vertical Divider */}
+        {onNavigateToShoppingList && (totalStepsCount > 0 || (recipeId && onRemixClick)) && (
+          <div className="w-[1px] h-5 bg-black/10 dark:bg-white/10" />
+        )}
+
+        {/* Shopping List Button */}
+        {onNavigateToShoppingList && (
+          <button
+            onClick={onNavigateToShoppingList}
+            className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none border-none"
+            aria-label="Go to shopping list"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {shoppingListCount !== undefined && shoppingListCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
+                {shoppingListCount}
+              </span>
+            )}
+          </button>
         )}
       </div>
     </div>
