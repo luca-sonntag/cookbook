@@ -11,6 +11,7 @@ interface AuthState {
   signInWithGoogle: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
+  updateUserMetadata: (metadata: Record<string, any>) => Promise<{ error?: string }>;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -74,8 +75,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return data.session?.access_token ?? null;
   }, []);
 
+  const updateUserMetadata = useCallback(async (metadata: Record<string, any>) => {
+    const { data, error } = await supabase.auth.updateUser({ data: metadata });
+    if (error) return { error: error.message };
+    if (data.user) {
+      setUser(data.user);
+    }
+    return {};
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut, getAccessToken }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata }}>
       {children}
     </AuthContext.Provider>
   );

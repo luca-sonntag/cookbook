@@ -110,7 +110,7 @@ export default function App() {
         const imagesToDelete = r.imageUrls && r.imageUrls.length > 0
           ? r.imageUrls
           : (r.imageUrl ? [r.imageUrl] : []);
-        
+
         for (const imgUrl of imagesToDelete) {
           await deleteCachedImage(imgUrl);
         }
@@ -229,39 +229,39 @@ export default function App() {
       <InstallBanner isInstallable={isInstallable} handleInstallClick={handleInstallClick} />
 
       {/* Main content body */}
-      <main className="w-full max-w-md mx-auto px-4 mt-3 flex-1 flex flex-col gap-6 pb-24">
+      <main className="w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 pb-24">
 
         {/* CONDITIONAL RENDERING OF VIEWS */}
         {activeView === 'extract' ? (
           <>
             {/* Extraction Form */}
-            <ExtractForm 
-              url={url} 
-              setUrl={setUrl} 
-              urlError={urlError} 
-              validateUrl={validateUrl} 
-              isPending={isPending} 
-              handleFormSubmit={handleFormSubmit} 
+            <ExtractForm
+              url={url}
+              setUrl={setUrl}
+              urlError={urlError}
+              validateUrl={validateUrl}
+              isPending={isPending}
+              handleFormSubmit={handleFormSubmit}
             />
 
             {/* Processing State Tracker */}
             <ProgressTracker isPending={isPending} jobStatus={jobStatus} statusDetails={statusDetails} />
 
             {/* Error State Banner */}
-            <ErrorBanner 
-              isPending={isPending} 
-              jobStatus={jobStatus} 
-              jobError={jobError} 
-              triggerExtraction={triggerExtraction} 
-              url={url} 
+            <ErrorBanner
+              isPending={isPending}
+              jobStatus={jobStatus}
+              jobError={jobError}
+              triggerExtraction={triggerExtraction}
+              url={url}
             />
 
             {/* Recipe Display Card */}
             {recipe && (
-              <RecipeDetails 
-                key={recipe.id || recipe.title} 
-                recipe={recipe} 
-                onAddIngredients={addRecipeIngredients} 
+              <RecipeDetails
+                key={recipe.id || recipe.title}
+                recipe={recipe}
+                onAddIngredients={addRecipeIngredients}
                 reelUrl={url}
                 onBack={() => {
                   setRecipe(null);
@@ -275,11 +275,11 @@ export default function App() {
           </>
         ) : activeView === 'history' ? (
           /* SAVED RECIPES TAB */
-          <SavedCatalog 
-            history={history} 
-            selectedJob={selectedJob} 
-            setSelectedJob={setSelectedJob} 
-            handleDeleteJob={handleDeleteJob} 
+          <SavedCatalog
+            history={history}
+            selectedJob={selectedJob}
+            setSelectedJob={setSelectedJob}
+            handleDeleteJob={handleDeleteJob}
             onAddIngredients={addRecipeIngredients}
             fetchHistory={fetchHistory}
             getAccessToken={getAccessToken}
@@ -317,9 +317,8 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar */}
       {(() => {
         const isBottomBarHidden = !!selectedJob || (activeView === 'extract' && !!recipe) || (activeView === 'history' && isCatalogSelectMode);
-        const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out pb-safe ${
-          isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
-        }`;
+        const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out pb-safe ${isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+          }`;
 
         return (
           <div className={bottomBarClasses}>
@@ -327,11 +326,10 @@ export default function App() {
               {/* Extract / New Recipe Tab */}
               <button
                 onClick={() => setActiveView('extract')}
-                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${
-                  activeView === 'extract'
-                    ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
+                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${activeView === 'extract'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
               >
                 <Sparkles className="w-5 h-5 mb-0.5" />
                 <span className="text-[10px] tracking-wide">{t('app.nav.newRecipe')}</span>
@@ -346,11 +344,10 @@ export default function App() {
                   setActiveView('history');
                   fetchHistory();
                 }}
-                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${
-                  activeView === 'history'
-                    ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
+                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${activeView === 'history'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
               >
                 <div className="relative">
                   <BookOpen className="w-5 h-5 mb-0.5" />
@@ -364,11 +361,10 @@ export default function App() {
               {/* Shopping List Tab */}
               <button
                 onClick={() => setActiveView('shopping-list')}
-                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${
-                  activeView === 'shopping-list'
-                    ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
+                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${activeView === 'shopping-list'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
               >
                 <div className="relative">
                   <ShoppingCart className="w-5 h-5 mb-0.5" />
@@ -387,11 +383,10 @@ export default function App() {
               {/* Settings Tab */}
               <button
                 onClick={() => setActiveView('settings')}
-                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${
-                  activeView === 'settings'
-                    ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
+                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${activeView === 'settings'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
               >
                 <div className="relative">
                   <User className="w-5 h-5 mb-0.5" />

@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { getTranslation, translateCategory as translateCategoryUtil } from '../i18n';
 import type { SupportedLanguage } from '../i18n';
+import { useAuth } from './AuthContext';
 
 interface I18nContextProps {
   language: SupportedLanguage;
@@ -20,6 +21,7 @@ export function useI18n() {
 }
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
+  const { user, updateUserMetadata } = useAuth();
   const [language, setLanguageState] = useState<SupportedLanguage>(() => {
     const saved = localStorage.getItem('recipe_language');
     if (saved === 'de' || saved === 'en') {
@@ -33,10 +35,24 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     return 'en';
   });
 
+  // Sync state if user metadata has a language
+  useEffect(() => {
+    if (user?.user_metadata?.language) {
+      const metaLang = user.user_metadata.language;
+      if ((metaLang === 'de' || metaLang === 'en') && metaLang !== language) {
+        setLanguageState(metaLang as SupportedLanguage);
+        localStorage.setItem('recipe_language', metaLang);
+      }
+    }
+  }, [user, language]);
+
   const setLanguage = useCallback((lang: SupportedLanguage) => {
     setLanguageState(lang);
     localStorage.setItem('recipe_language', lang);
-  }, []);
+    if (user) {
+      updateUserMetadata({ language: lang });
+    }
+  }, [user, updateUserMetadata]);
 
   const t = useCallback((key: string, variables?: Record<string, string | number>) => {
     return getTranslation(key, language, variables);

@@ -8,13 +8,13 @@ import { AuthProvider } from './context/AuthContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <I18nProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <I18nProvider>
         <DialogProvider>
           <App />
         </DialogProvider>
-      </AuthProvider>
-    </I18nProvider>
+      </I18nProvider>
+    </AuthProvider>
   </StrictMode>,
 )
 

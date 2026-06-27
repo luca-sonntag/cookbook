@@ -173,6 +173,15 @@ export const uiTranslations = {
       settings: {
         language: 'Sprache',
         theme: 'Erscheinungsbild',
+        tempUnit: 'Temperatureinheit',
+        unitSystem: 'Maßsystem',
+        tempUnitCelsius: 'Celsius (°C)',
+        tempUnitFahrenheit: 'Fahrenheit (°F)',
+        tempUnitBoth: 'Beide (°C & °F)',
+        unitSystemMetric: 'Metrisch (g, ml, kg)',
+        unitSystemImperial: 'Imperial (oz, cups, lbs)',
+        saving: 'Speichern...',
+        saved: 'Einstellungen gespeichert!',
       },
       dialog: {
         deleteRecipe: {
@@ -385,6 +394,15 @@ export const uiTranslations = {
       settings: {
         language: 'Language',
         theme: 'Appearance',
+        tempUnit: 'Temperature Unit',
+        unitSystem: 'Unit System',
+        tempUnitCelsius: 'Celsius (°C)',
+        tempUnitFahrenheit: 'Fahrenheit (°F)',
+        tempUnitBoth: 'Both (°C & °F)',
+        unitSystemMetric: 'Metric (g, ml, kg)',
+        unitSystemImperial: 'Imperial (oz, cups, lbs)',
+        saving: 'Saving...',
+        saved: 'Settings saved!',
       },
       dialog: {
         deleteRecipe: {

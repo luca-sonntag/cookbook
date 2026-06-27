@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Button } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone, ChevronDown } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, MonitorSmartphone, ChevronDown, Thermometer, Scale } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
@@ -7,9 +8,27 @@ import { usePwaInstall } from '../hooks/usePwaInstall';
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
-  const { signOut, user } = useAuth();
+  const { signOut, user, updateUserMetadata } = useAuth();
   const [theme, setTheme] = useTheme();
   const { isInstallable, handleInstallClick } = usePwaInstall();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  const preferredTempUnit = user?.user_metadata?.preferred_temperature_unit || 'Celsius';
+  const preferredUnitSystem = user?.user_metadata?.preferred_unit_system || 'metric';
+
+  const handleUpdateSetting = async (key: string, value: string) => {
+    setIsSaving(true);
+    setSaveMessage(null);
+    const { error } = await updateUserMetadata({ [key]: value });
+    setIsSaving(false);
+    if (error) {
+      setSaveMessage(error);
+    } else {
+      setSaveMessage(t('app.settings.saved') || 'Settings saved!');
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
@@ -21,6 +40,16 @@ export default function SettingsView() {
           {user?.email}
         </p>
       </div>
+
+      {saveMessage && (
+        <div className={`mx-2 px-4 py-2.5 text-xs text-center rounded-xl font-semibold border ${
+          saveMessage === t('app.settings.saved')
+            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+            : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+        }`}>
+          {saveMessage}
+        </div>
+      )}
 
       <div className="bg-white dark:bg-[#0f172a] rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden">
         {/* Language Option */}
@@ -43,6 +72,59 @@ export default function SettingsView() {
             >
               <option value="en">EN</option>
               <option value="de">DE</option>
+            </select>
+            <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Temperature Unit Option */}
+        <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
+              <Thermometer className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                {t('app.settings.tempUnit') || 'Temperature Unit'}
+              </p>
+            </div>
+          </div>
+          <div className="relative">
+            <select
+              value={preferredTempUnit}
+              onChange={(e) => handleUpdateSetting('preferred_temperature_unit', e.target.value)}
+              className="appearance-none bg-black/5 dark:bg-white/5 text-gray-900 dark:text-white text-xs font-semibold py-1.5 pl-3 pr-7 rounded-lg outline-none cursor-pointer text-center"
+              disabled={isSaving}
+            >
+              <option value="Celsius">{t('app.settings.tempUnitCelsius') || 'Celsius (°C)'}</option>
+              <option value="Fahrenheit">{t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'}</option>
+              <option value="both">{t('app.settings.tempUnitBoth') || 'Both (°C & °F)'}</option>
+            </select>
+            <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Unit System Option */}
+        <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
+              <Scale className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                {t('app.settings.unitSystem') || 'Unit System'}
+              </p>
+            </div>
+          </div>
+          <div className="relative">
+            <select
+              value={preferredUnitSystem}
+              onChange={(e) => handleUpdateSetting('preferred_unit_system', e.target.value)}
+              className="appearance-none bg-black/5 dark:bg-white/5 text-gray-900 dark:text-white text-xs font-semibold py-1.5 pl-3 pr-7 rounded-lg outline-none cursor-pointer text-center"
+              disabled={isSaving}
+            >
+              <option value="metric">{t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'}</option>
+              <option value="imperial">{t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'}</option>
             </select>
             <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           </div>
