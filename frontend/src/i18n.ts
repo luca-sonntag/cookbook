@@ -168,6 +168,11 @@ export const uiTranslations = {
         newRecipe: 'Neues Rezept',
         savedRecipes: 'Rezepte',
         shoppingList: 'Einkaufsliste',
+        settings: 'Profil',
+      },
+      settings: {
+        language: 'Sprache',
+        theme: 'Erscheinungsbild',
       },
       dialog: {
         deleteRecipe: {
@@ -375,6 +380,11 @@ export const uiTranslations = {
         newRecipe: 'Extract New',
         savedRecipes: 'Recipes',
         shoppingList: 'Shopping List',
+        settings: 'Profile',
+      },
+      settings: {
+        language: 'Language',
+        theme: 'Appearance',
       },
       dialog: {
         deleteRecipe: {

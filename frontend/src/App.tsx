@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@heroui/react';
-import { ChefHat, Sparkles, BookOpen, ShoppingCart, LogOut } from 'lucide-react';
+import { ChefHat, Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
 
 import type { Job } from './types';
-import ThemeToggle from './components/ThemeToggle';
 import InstallBanner from './components/InstallBanner';
 import ExtractForm from './components/ExtractForm';
 import ProgressTracker from './components/ProgressTracker';
@@ -12,8 +10,8 @@ import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog/index';
 import ShoppingList from './components/ShoppingList';
 import AuthForm from './components/AuthForm';
+import SettingsView from './components/SettingsView';
 
-import { useTheme } from './hooks/useTheme';
 import { usePwaInstall } from './hooks/usePwaInstall';
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
 import { useShoppingList } from './hooks/useShoppingList';
@@ -25,18 +23,17 @@ import { deleteCachedImage } from './utils/imageStore';
 
 export default function App() {
   const dialog = useDialog();
-  const { t, language, setLanguage } = useI18n();
-  const { user, loading: authLoading, signOut, getAccessToken } = useAuth();
+  const { t } = useI18n();
+  const { user, loading: authLoading, getAccessToken } = useAuth();
 
   // History & Multi-view states
   const [history, setHistory] = useState<Job[]>([]);
-  const [activeView, setActiveView] = useState<'extract' | 'history' | 'shopping-list'>('history');
+  const [activeView, setActiveView] = useState<'extract' | 'history' | 'shopping-list' | 'settings'>('history');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isCatalogSelectMode, setIsCatalogSelectMode] = useState(false);
 
   // Custom Hooks for Theme, PWA Installation, Recipe Extraction, and Shopping List
-  const [theme, setTheme] = useTheme();
-  const { isInstallable, installStatus, handleInstallClick } = usePwaInstall();
+  const { isInstallable, handleInstallClick } = usePwaInstall();
   const {
     aggregatedList,
     addRecipeIngredients,
@@ -216,93 +213,14 @@ export default function App() {
     <div className="min-h-screen flex flex-col items-center transition-colors duration-300">
       {/* Sticky Header Container */}
       <header className="sticky top-0 z-40 w-full bg-[#f9fafb]/85 dark:bg-[#030712]/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
-        <div className="relative w-full max-w-2xl mx-auto px-4 py-3.5 flex flex-row justify-between items-center">
+        <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
           <div className="flex items-center gap-2">
             <div className="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20 text-emerald-400 flex-shrink-0">
               <ChefHat className="w-5 h-5" />
             </div>
             <div>
               <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">{t('app.title')}</h1>
-              <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 block">{t('app.subtitle')} ({installStatus})</span>
             </div>
-          </div>
-
-          {/* Desktop Navigation Tabs (hidden on mobile) */}
-          <div className="hidden md:flex border border-black/10 dark:border-white/10 p-1 rounded-xl bg-black/5 dark:bg-white/5 items-center">
-            <button
-              onClick={() => setActiveView('extract')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeView === 'extract' 
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/10' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{t('app.nav.newRecipe')}</span>
-            </button>
-            <button
-              onClick={() => {
-                setActiveView('history');
-                fetchHistory();
-              }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeView === 'history' 
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/10' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>{t('app.nav.savedRecipes')}</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-colors ${
-                activeView === 'history'
-                  ? 'bg-white/20 text-white'
-                  : 'bg-black/10 dark:bg-white/10 text-gray-600 dark:text-gray-300'
-              }`}>
-                {history.filter(h => h.status === 'completed').length}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveView('shopping-list')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 relative ${
-                activeView === 'shopping-list' 
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/10' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <ShoppingCart className="w-3.5 h-3.5" />
-              <span>{t('app.nav.shoppingList')}</span>
-              {aggregatedList.unchecked.length > 0 && (
-                <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full transition-colors ${
-                  activeView === 'shopping-list'
-                    ? 'bg-white text-emerald-600'
-                    : 'bg-rose-500 text-white'
-                }`}>
-                  {aggregatedList.unchecked.length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Button
-              size="sm"
-              variant="tertiary"
-              className="font-bold text-xs min-w-0 px-2 h-9 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all outline-none border-none"
-              onPress={() => setLanguage(language === 'de' ? 'en' : 'de')}
-              aria-label="Change Language"
-            >
-              {language.toUpperCase()}
-            </Button>
-            <ThemeToggle theme={theme} setTheme={setTheme} />
-            <Button
-              isIconOnly
-              variant="tertiary"
-              className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              onPress={() => signOut()}
-              aria-label="Sign Out"
-            >
-              <LogOut className="w-5 h-5" />
-            </Button>
           </div>
         </div>
       </header>
@@ -311,7 +229,7 @@ export default function App() {
       <InstallBanner isInstallable={isInstallable} handleInstallClick={handleInstallClick} />
 
       {/* Main content body */}
-      <main className="w-full max-w-2xl px-4 mt-6 flex-1 flex flex-col gap-6 pb-24 md:pb-8">
+      <main className="w-full max-w-md mx-auto px-4 mt-6 flex-1 flex flex-col gap-6 pb-24">
 
         {/* CONDITIONAL RENDERING OF VIEWS */}
         {activeView === 'extract' ? (
@@ -380,7 +298,7 @@ export default function App() {
             }}
             onSelectModeChange={setIsCatalogSelectMode}
           />
-        ) : (
+        ) : activeView === 'shopping-list' ? (
           /* SHOPPING LIST TAB */
           <ShoppingList
             aggregatedList={aggregatedList}
@@ -390,19 +308,22 @@ export default function App() {
             clearAll={clearAll}
             clearChecked={clearChecked}
           />
+        ) : (
+          /* SETTINGS TAB */
+          <SettingsView />
         )}
       </main>
 
       {/* Mobile Bottom Navigation Bar */}
       {(() => {
         const isBottomBarHidden = !!selectedJob || (activeView === 'extract' && !!recipe) || (activeView === 'history' && isCatalogSelectMode);
-        const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 md:hidden transition-all duration-300 ease-in-out pb-safe ${
+        const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out pb-safe ${
           isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
         }`;
 
         return (
           <div className={bottomBarClasses}>
-            <div className="flex justify-around items-center pt-2.5 pb-4 px-2">
+            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-2.5 pb-4 px-2">
               {/* Extract / New Recipe Tab */}
               <button
                 onClick={() => setActiveView('extract')}
@@ -459,6 +380,24 @@ export default function App() {
                 </div>
                 <span className="text-[10px] tracking-wide">{t('app.nav.shoppingList')}</span>
                 {activeView === 'shopping-list' && (
+                  <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                )}
+              </button>
+
+              {/* Settings Tab */}
+              <button
+                onClick={() => setActiveView('settings')}
+                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${
+                  activeView === 'settings'
+                    ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <div className="relative">
+                  <User className="w-5 h-5 mb-0.5" />
+                </div>
+                <span className="text-[10px] tracking-wide">{t('app.nav.settings') || 'Profil'}</span>
+                {activeView === 'settings' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
               </button>
