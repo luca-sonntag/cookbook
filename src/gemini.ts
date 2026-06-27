@@ -330,6 +330,7 @@ Key Constraints:
    - Temperature Units: ${tempInstruction}
    - Weight & Volume Units: ${unitSystemInstruction}
 4. Missing Data & Nutrition: If any information for a specific field is missing, leave it empty (empty string "", null, or empty array []). You MUST set "hasExplicitNutritionalValues" to true ONLY IF the recipe nutritional values are explicitly stated in the source text or audio. If they are not, set it to false and set "nutritionalValues" to null (do NOT estimate or calculate overall nutritional values at the recipe level). Note that "nutritionalValues" MUST represent values per single serving/portion. If the source lists total values for the entire recipe, divide them by the number of servings/portions first.
+5. Clean Ingredient Names: Ensure the "name" field contains only the clean ingredient name (e.g., "Frischkäse", "evaporated milk", "cream cheese", "butter"). Move all adjectives, processing states, or descriptions (such as "light", "mager", "low fat", "leichte", "gerieben", "grated") into the "modifier" field. Do NOT leave these descriptors inside the "name" field.
 
 Description/Caption:
 """
@@ -617,6 +618,7 @@ Important Constraints:
 5. Preferred Units:
    - Temperature Units: ${tempInstruction}
    - Weight & Volume Units: ${unitSystemInstruction}
+6. Clean Ingredient Names: Ensure the "name" field contains only the clean ingredient name (e.g., "evaporated milk", "cream cheese", "butter"). Move all adjectives, processing states, or descriptions (such as "light", "mager", "low fat", "leichte", "gerieben", "grated") into the "modifier" field. Do NOT leave these descriptors inside the "name" field.
 
 User's Remix Request:
 "${remixPrompt}"
