@@ -58,7 +58,7 @@ const styles = {
   
   instagramBadge: "absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 font-semibold backdrop-blur-sm pointer-events-none select-none z-[5] border border-white/10 shadow-md",
   
-  tagBadge: "bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm select-none border border-white/5 shadow-sm whitespace-nowrap",
+  tagBadge: "bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-md select-none border border-emerald-500/20 shadow-sm whitespace-nowrap",
   
   titleContainer: "flex justify-between items-start gap-2 px-5 pt-3",
   title: "text-sm font-bold text-gray-900 dark:text-white line-clamp-1",
