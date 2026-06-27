@@ -248,6 +248,7 @@ export default function App() {
               shoppingListCount={aggregatedList.unchecked.length}
               onRemixSuccess={(newRecipe) => setRecipe(newRecipe)}
               isParentAvailable={recipe?.parentJobId ? history.some(j => j.id === recipe?.parentJobId) : false}
+              parentRecipeTitle={recipe?.parentRecipeTitle || (recipe?.parentJobId ? history.find(j => j.id === recipe.parentJobId)?.recipe?.title : null)}
               onNavigateToRecipe={(recipeId) => {
                 const parentJob = history.find(j => j.id === recipeId);
                 if (parentJob) {
