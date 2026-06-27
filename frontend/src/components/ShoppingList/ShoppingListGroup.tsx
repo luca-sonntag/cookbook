@@ -53,12 +53,10 @@ export default function ShoppingListGroup({
                       onClick={() => onGroupHeaderClick(group.items)}
                       className="flex items-center gap-2.5 cursor-pointer select-none py-0.5 flex-1 min-w-0"
                     >
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all text-lg ${
-                        isAllChecked
-                          ? 'bg-emerald-500/20 border border-emerald-500/30'
-                          : 'bg-gradient-to-br from-emerald-500/15 to-emerald-500/5 border border-emerald-500/20'
+                      <div className={`w-9 h-9 flex items-center justify-center flex-shrink-0 transition-all text-lg ${
+                        isAllChecked ? 'opacity-60' : ''
                       }`}>
-                        <span className={isAllChecked ? 'opacity-60' : ''}>{icon}</span>
+                        <span>{icon}</span>
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className={`text-xs font-bold uppercase tracking-wider truncate ${
