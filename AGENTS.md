@@ -165,6 +165,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
    * Die Queue überspringt das Apify-Scraping und den Audio-Download, lädt direkt das Parent-Rezept aus der DB und sendet es mit dem Prompt an Gemini.
    * Gemini passt Zutaten und Instruktionen an, fügt bei ersetzten Zutaten das `replacedOriginal` Feld hinzu (wird im UI durchgestrichen dargestellt) und ändert den Rezepttitel (z.B. "(Vegan Remix)").
    * Das Remix-Ergebnis wird als eigenständiger Eintrag in die Recipe History des Users aufgenommen.
+   * **Parent-Referenzierung & Navigation:** Remixed-Rezepte referenzieren ihr Original-Rezept direkt unter dem Titel im Header (inkl. des genutzten Remix-Wunsches). Ein Klick auf den Link leitet den Nutzer direkt zum Original-Rezept weiter; falls das Original-Rezept gelöscht wurde, wird der Link deaktiviert und als plain text mit der Kennzeichnung `[gelöscht]` dargestellt.
 
 ---
 
