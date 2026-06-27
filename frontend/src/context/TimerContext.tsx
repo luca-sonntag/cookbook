@@ -152,16 +152,14 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         alarmIntervalsRef.current.set(timer.id, repeatInterval);
       });
 
-      // ── State update: mark expired timers as finished & trigger re-render for countdown ──
+      // ── State update: mark expired timers as finished ──
       if (newlyExpired.length > 0) {
         const expiredIds = new Set(newlyExpired.map(t => t.id));
         setTimers(prev =>
           prev.map(t => expiredIds.has(t.id) ? { ...t, isFinished: true } : t)
         );
-      } else if (current.some(t => !t.isFinished)) {
-        // Force re-render every tick so countdown display stays live
-        setTimers(prev => [...prev]);
       }
+      // No setTimers call for countdown ticks — TimerBanner handles its own re-render
     }, 500);
 
     return () => clearInterval(interval);
