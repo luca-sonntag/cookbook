@@ -379,6 +379,21 @@ export const uiTranslations = {
       confirmDefault: 'Bestätigen',
       cancelDefault: 'Abbrechen',
       closeAria: 'Schließen',
+    },
+    remix: {
+      title: 'Rezept Remix',
+      subtitle: 'Lass die KI das Rezept für dich anpassen.',
+      placeholder: 'Oder schreibe deinen eigenen Wunsch... z.B. \'Ich habe keine Eier, was kann ich nehmen?\'',
+      generating: 'Remix wird generiert...',
+      btnCancel: 'Abbrechen',
+      btnStart: 'Remix starten',
+      chips: {
+        vegan: { label: '🌱 Vegan', prompt: 'Mache es vegan' },
+        highProtein: { label: '💪 High Protein', prompt: 'Mache es eiweißreich' },
+        lowCalorie: { label: '📉 Kalorienarm', prompt: 'Mache es kalorienarm' },
+        budget: { label: '💰 Günstig', prompt: 'Mache es günstig' },
+        glutenFree: { label: '🌾 Glutenfrei', prompt: 'Mache es glutenfrei' }
+      }
     }
   },
   en: {
@@ -600,6 +615,21 @@ export const uiTranslations = {
       confirmDefault: 'Confirm',
       cancelDefault: 'Cancel',
       closeAria: 'Close',
+    },
+    remix: {
+      title: 'Recipe Remix',
+      subtitle: 'Let the AI customize the recipe for you.',
+      placeholder: 'Or write your own request... e.g. \'I don\'t have eggs, what can I use?\'',
+      generating: 'Generating remix...',
+      btnCancel: 'Cancel',
+      btnStart: 'Start Remix',
+      chips: {
+        vegan: { label: '🌱 Vegan', prompt: 'Make it vegan' },
+        highProtein: { label: '💪 High Protein', prompt: 'Make it high protein' },
+        lowCalorie: { label: '📉 Low Calorie', prompt: 'Make it low calorie' },
+        budget: { label: '💰 Budget Friendly', prompt: 'Make it budget friendly' },
+        glutenFree: { label: '🌾 Gluten Free', prompt: 'Make it gluten free' }
+      }
     }
   }
 } as const;
