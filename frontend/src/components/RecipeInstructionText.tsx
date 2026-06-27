@@ -9,6 +9,7 @@ interface RecipeInstructionTextProps {
   text: string;
   recipe: Recipe;
   formatAmount: (amount: number, unit?: string) => string;
+  stepNum?: number;
 }
 
 // ─── Time parsing helper ──────────────────────────────────────────────────────
@@ -40,7 +41,7 @@ function parseTimeToSeconds(timeStr: string): number {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function RecipeInstructionText({ text, recipe, formatAmount }: RecipeInstructionTextProps) {
+export default function RecipeInstructionText({ text, recipe, formatAmount, stepNum }: RecipeInstructionTextProps) {
   const { t } = useI18n();
 
   // Timer confirm sheet state
@@ -250,6 +251,8 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
         isOpen={timerSheet.isOpen}
         durationSeconds={timerSheet.seconds}
         label={timerSheet.label}
+        recipeId={recipe.id}
+        stepNum={stepNum}
         onClose={() => setTimerSheet(s => ({ ...s, isOpen: false }))}
       />
     </>

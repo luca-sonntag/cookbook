@@ -8,11 +8,13 @@ export interface TimerEntry {
   durationSeconds: number;
   endAt: number; // ms timestamp when timer expires
   isFinished: boolean;
+  recipeId?: string;
+  stepNum?: number;
 }
 
 interface TimerContextValue {
   timers: TimerEntry[];
-  addTimer: (durationSeconds: number, label: string) => string;
+  addTimer: (durationSeconds: number, label: string, recipeId?: string, stepNum?: number) => string;
   removeTimer: (id: string) => void;
   dismissFinished: (id: string) => void;
 }
@@ -190,7 +192,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const addTimer = useCallback((durationSeconds: number, label: string): string => {
+  const addTimer = useCallback((durationSeconds: number, label: string, recipeId?: string, stepNum?: number): string => {
     // Unlock/instantiate AudioContext on user gesture
     const audioCtx = getSharedAudioContext();
     if (audioCtx && audioCtx.state === 'suspended') {
@@ -205,6 +207,8 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       durationSeconds,
       endAt,
       isFinished: false,
+      recipeId,
+      stepNum,
     };
 
     // Pre-request notification permission on first timer start

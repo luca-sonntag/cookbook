@@ -9,6 +9,8 @@ interface TimerConfirmSheetProps {
   durationSeconds: number;
   label: string;
   onClose: () => void;
+  recipeId?: string;
+  stepNum?: number;
 }
 
 /** Format seconds as mm:ss */
@@ -30,6 +32,8 @@ export default function TimerConfirmSheet({
   durationSeconds,
   label,
   onClose,
+  recipeId,
+  stepNum,
 }: TimerConfirmSheetProps) {
   const { t } = useI18n();
   const { addTimer } = useTimerManager();
@@ -52,7 +56,7 @@ export default function TimerConfirmSheet({
   };
 
   const handleStart = () => {
-    addTimer(adjusted, label);
+    addTimer(adjusted, label, recipeId, stepNum);
     onClose();
   };
 

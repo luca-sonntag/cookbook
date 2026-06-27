@@ -91,6 +91,32 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [fetchHistory]);
 
+  // Listen to timer click navigation events to route to the correct tab and set selected recipe
+  useEffect(() => {
+    const handleNavigate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ recipeId: string; stepNum: number }>;
+      if (customEvent.detail && customEvent.detail.recipeId) {
+        const targetId = customEvent.detail.recipeId;
+        
+        // 1. Check if the target is the currently active/extracted recipe
+        if (recipe && (recipe.id === targetId || recipe.title === targetId)) {
+          setActiveView('extract');
+          setSelectedJob(null);
+          return;
+        }
+
+        // 2. Check if the recipe exists in history
+        const matchedJob = history.find(j => j.id === targetId || (j.recipe && j.recipe.title === targetId));
+        if (matchedJob) {
+          setSelectedJob(matchedJob);
+          setActiveView('history');
+        }
+      }
+    };
+    window.addEventListener('app:navigate-to-timer-step', handleNavigate);
+    return () => window.removeEventListener('app:navigate-to-timer-step', handleNavigate);
+  }, [recipe, history]);
+
   const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const confirmed = await dialog.confirm({

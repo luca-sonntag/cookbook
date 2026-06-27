@@ -111,7 +111,7 @@ export default function RecipeInstructions({
                   <span className={`text-sm leading-relaxed block select-none transition-all ${
                     isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
                   }`}>
-                    <RecipeInstructionText text={step.description} recipe={recipe} formatAmount={formatAmount} />
+                    <RecipeInstructionText text={step.description} recipe={recipe} formatAmount={formatAmount} stepNum={step.step} />
                   </span>
                 </div>
               </div>

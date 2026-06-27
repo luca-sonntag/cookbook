@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, Tabs } from '@heroui/react';
 import type { Recipe, Ingredient } from '../../types';
 import { useRecipeScaling } from '../../hooks/useRecipeScaling';
@@ -71,6 +71,24 @@ export default function RecipeDetails({
   const [isAdded, setIsAdded] = useState(false);
   const [isRemixModalOpen, setIsRemixModalOpen] = useState(false);
   const [isCookingMode, setIsCookingMode] = useState(false);
+  const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
+
+  // Listen to timer click navigation events to open cooking mode at the correct step
+  useEffect(() => {
+    const handleNavigate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ recipeId: string; stepNum: number }>;
+      if (
+        customEvent.detail &&
+        customEvent.detail.stepNum !== undefined &&
+        (customEvent.detail.recipeId === recipe.id || customEvent.detail.recipeId === recipe.title)
+      ) {
+        setInitialStepOverride(customEvent.detail.stepNum - 1);
+        setIsCookingMode(true);
+      }
+    };
+    window.addEventListener('app:navigate-to-timer-step', handleNavigate);
+    return () => window.removeEventListener('app:navigate-to-timer-step', handleNavigate);
+  }, [recipe.id, recipe.title]);
 
   // Show ingredient nutrition state (persisted in localStorage)
   const [showIngredientNutrition, setShowIngredientNutrition] = useState<boolean>(() => {
@@ -414,10 +432,14 @@ export default function RecipeDetails({
       {isCookingMode && (
         <CookingMode
           recipe={recipe}
-          onClose={() => setIsCookingMode(false)}
+          onClose={() => {
+            setIsCookingMode(false);
+            setInitialStepOverride(undefined);
+          }}
           checkedSteps={checkedSteps}
           toggleStep={toggleStep}
           formatAmount={formatAmount}
+          initialStepOverride={initialStepOverride}
         />
       )}
 

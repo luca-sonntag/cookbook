@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { Button } from '@heroui/react';
 import {
   ChefHat,
@@ -21,6 +21,7 @@ interface CookingModeProps {
   checkedSteps: Record<number, boolean>;
   toggleStep: (stepNum: number) => void;
   formatAmount: (amount: number, unit?: string) => string;
+  initialStepOverride?: number;
 }
 
 export default function CookingMode({
@@ -29,6 +30,7 @@ export default function CookingMode({
   checkedSteps,
   toggleStep,
   formatAmount,
+  initialStepOverride,
 }: CookingModeProps) {
   const dialog = useDialog();
   const { t } = useI18n();
@@ -36,15 +38,19 @@ export default function CookingMode({
 
   // Find the first uncompleted step as initial step index
   const initialStepIndex = useMemo(() => {
+    if (initialStepOverride !== undefined) {
+      return initialStepOverride;
+    }
     if (recipe.instructions) {
       const firstUncompleted = recipe.instructions.findIndex(s => !checkedSteps[s.step]);
       return firstUncompleted !== -1 ? firstUncompleted : 0;
     }
     return 0;
-  }, [recipe.instructions, checkedSteps]);
+  }, [recipe.instructions, checkedSteps, initialStepOverride]);
 
   const {
     cookingStepIndex,
+    setCookingStepIndex,
     handleNextCookingStep,
     handlePrevCookingStep,
     handleTouchStart,
@@ -54,6 +60,23 @@ export default function CookingMode({
     initialStepIndex,
     onClose
   });
+
+  // Listen to navigation events (e.g. clicking on a timer card) to jump to the step if Cooking Mode is open
+  useEffect(() => {
+    const handleNavigate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ recipeId: string; stepNum: number }>;
+      if (
+        customEvent.detail &&
+        customEvent.detail.stepNum !== undefined &&
+        (customEvent.detail.recipeId === recipe.id || customEvent.detail.recipeId === recipe.title)
+      ) {
+        // Jump to 0-based instruction index
+        setCookingStepIndex(customEvent.detail.stepNum - 1);
+      }
+    };
+    window.addEventListener('app:navigate-to-timer-step', handleNavigate);
+    return () => window.removeEventListener('app:navigate-to-timer-step', handleNavigate);
+  }, [recipe.id, recipe.title, setCookingStepIndex]);
 
   // Flat list of ingredients
   const allIngredients = useMemo(() => {
@@ -144,7 +167,14 @@ export default function CookingMode({
               return (
                 <div
                   key={timer.id}
+                  onClick={timer.recipeId && timer.stepNum ? () => {
+                    window.dispatchEvent(new CustomEvent('app:navigate-to-timer-step', {
+                      detail: { recipeId: timer.recipeId, stepNum: timer.stepNum }
+                    }));
+                  } : undefined}
                   className={`snap-center shrink-0 relative flex items-center gap-2.5 px-3 py-1.5 rounded-xl shadow-sm overflow-hidden transition-all duration-300 border ${
+                    timer.recipeId && timer.stepNum ? 'cursor-pointer active:scale-[0.98]' : ''
+                  } ${
                     isFinished
                       ? 'bg-rose-500/10 dark:bg-rose-500/20 border-rose-500/30 animate-pulse text-rose-600 dark:text-rose-400'
                       : 'bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'
@@ -196,7 +226,7 @@ export default function CookingMode({
         {/* Step Description */}
         {currentStep && (
           <h1 className="text-2xl md:text-3.5xl font-bold text-gray-900 dark:text-white leading-relaxed mb-8 max-h-[40dvh] overflow-y-auto px-2">
-            <RecipeInstructionText text={currentStep.description} recipe={recipe} formatAmount={formatAmount} />
+            <RecipeInstructionText text={currentStep.description} recipe={recipe} formatAmount={formatAmount} stepNum={currentStep.step} />
           </h1>
         )}
 
