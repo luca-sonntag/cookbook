@@ -60,6 +60,12 @@ function rowToJob(row: JobRow): Job {
   };
   if (job.recipe) {
     normalizeRecipe(job.recipe, job.id);
+    if (job.parentJobId) {
+      job.recipe.parentJobId = job.parentJobId;
+    }
+    if (job.prompt) {
+      job.recipe.remixPrompt = job.prompt;
+    }
   }
   return job;
 }
