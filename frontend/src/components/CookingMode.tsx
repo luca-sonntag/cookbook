@@ -1,7 +1,6 @@
 import { useMemo, useEffect } from 'react';
 import { Button } from '@heroui/react';
 import {
-  ChefHat,
   X,
   ArrowLeft,
   ArrowRight,
@@ -124,7 +123,7 @@ export default function CookingMode({
       {/* Top Bar */}
       <div className="flex justify-between items-center pb-4 border-b border-black/5 dark:border-white/5">
         <div className="flex items-center gap-2">
-          <ChefHat className="w-5 h-5 text-emerald-500 animate-pulse" />
+          <img src="/icon-512.png" alt="App Logo" className="w-5 h-5 object-contain rounded-md" />
           <span className="text-sm font-semibold text-gray-900 dark:text-white">{t('recipe.cookingMode')}</span>
         </div>
         {/* Progress indicator */}
