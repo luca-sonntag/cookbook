@@ -102,7 +102,7 @@ export default function RecipeCard({
         </div>
       )}
 
-      <div>
+      <div className="flex-1 flex flex-col">
         {/* Thumbnail Image Container */}
         {r.imageUrl && (
           <div className={styles.imageContainer}>
@@ -141,7 +141,7 @@ export default function RecipeCard({
 
         {/* Tag pills under the description */}
         {(durationBadge || recipeTags.length > 0) && (
-          <div className="flex flex-wrap gap-1.5 px-5 mt-3">
+          <div className="flex flex-wrap gap-1.5 px-5 mt-auto pt-4">
             {durationBadge && (
               <span className={styles.inlineTagBadge}>
                 {durationBadge}
