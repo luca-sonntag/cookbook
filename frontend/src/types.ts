@@ -54,6 +54,9 @@ export interface Recipe {
   imageUrls?: string[];
   tags?: string[];
   instagramHandle?: string | null;
+  parentJobId?: string | null;
+  parentRecipeTitle?: string | null;
+  remixPrompt?: string | null;
 }
 
 export interface Job {
