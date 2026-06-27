@@ -95,9 +95,9 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
             return (
               <span
                 key={index}
-                className="inline-flex items-center gap-1 px-2.5 py-0.5 mx-0.5 rounded-full text-xs font-semibold bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 border border-orange-200/60 dark:border-orange-900/30 align-middle transition-colors hover:bg-orange-100/50 dark:hover:bg-orange-900/40"
+                className="inline-flex items-center gap-0.5 mx-0.5 font-semibold text-orange-600 dark:text-orange-400 decoration-orange-500 hover:text-orange-500 dark:hover:text-orange-300 decoration-dotted underline underline-offset-4 align-middle transition-colors cursor-default"
               >
-                <Thermometer className="w-3 h-3 text-orange-500 dark:text-orange-400" />
+                <Thermometer className="w-3.5 h-3.5 text-orange-500 dark:text-orange-400 shrink-0" />
                 {part}
               </span>
             );
@@ -109,9 +109,9 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
             return (
               <span
                 key={index}
-                className="inline-flex items-center gap-1 px-2.5 py-0.5 mx-0.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/30 align-middle transition-colors hover:bg-blue-100/50 dark:hover:bg-blue-900/40"
+                className="inline-flex items-center gap-0.5 mx-0.5 font-semibold text-blue-600 dark:text-blue-400 decoration-blue-500 hover:text-blue-500 dark:hover:text-blue-300 decoration-dotted underline underline-offset-4 align-middle transition-colors cursor-default"
               >
-                <Clock className="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                <Clock className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 shrink-0" />
                 {part}
               </span>
             );
