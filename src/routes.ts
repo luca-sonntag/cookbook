@@ -89,6 +89,14 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
       return;
     }
 
+    if (prompt.length > 250) {
+      res.status(400).json({
+        success: false,
+        error: 'Remix prompt must not exceed 250 characters.',
+      });
+      return;
+    }
+
     // Get the parent job
     const parentJob = await getJob(id, req.userId!);
     if (!parentJob) {
