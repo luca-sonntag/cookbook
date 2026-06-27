@@ -32,6 +32,7 @@ export default function App() {
   const [history, setHistory] = useState<Job[]>([]);
   const [activeView, setActiveView] = useState<'extract' | 'history' | 'shopping-list'>('history');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isCatalogSelectMode, setIsCatalogSelectMode] = useState(false);
 
   // Custom Hooks for Theme, PWA Installation, Recipe Extraction, and Shopping List
   const [theme, setTheme] = useTheme();
@@ -377,6 +378,7 @@ export default function App() {
               setActiveView('extract');
               setSelectedJob(null);
             }}
+            onSelectModeChange={setIsCatalogSelectMode}
           />
         ) : (
           /* SHOPPING LIST TAB */
@@ -393,9 +395,9 @@ export default function App() {
 
       {/* Mobile Bottom Navigation Bar */}
       {(() => {
-        const isRecipeDetailOpen = !!selectedJob || (activeView === 'extract' && !!recipe);
+        const isBottomBarHidden = !!selectedJob || (activeView === 'extract' && !!recipe) || (activeView === 'history' && isCatalogSelectMode);
         const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 md:hidden transition-all duration-300 ease-in-out pb-safe ${
-          isRecipeDetailOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+          isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
         }`;
 
         return (

@@ -18,7 +18,7 @@ export default function BulkActionBar({
   const { t, language } = useI18n();
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 w-[90%] max-w-md bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border shadow-2xl rounded-2xl p-4 flex items-center justify-between gap-4 animate-slide-up border-emerald-500/30">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-md bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border shadow-2xl rounded-2xl p-4 flex items-center justify-between gap-4 animate-slide-up border-emerald-500/30">
       <div className="flex flex-col">
         <span className="text-xs font-bold text-gray-900 dark:text-white">
           {t('catalog.itemsSelected', { count: selectedCount })}
