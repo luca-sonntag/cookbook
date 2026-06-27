@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ChefHat, Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
+import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
 
 import type { Job } from './types';
 import InstallBanner from './components/InstallBanner';
@@ -215,8 +215,8 @@ export default function App() {
       <header className="sticky top-0 z-40 w-full bg-[#f9fafb]/85 dark:bg-[#030712]/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
         <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
           <div className="flex items-center gap-2">
-            <div className="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20 text-emerald-400 flex-shrink-0">
-              <ChefHat className="w-5 h-5" />
+            <div className="flex-shrink-0">
+              <img src="/icon-512.png" alt="App Logo" className="w-7 h-7 object-contain rounded-lg" />
             </div>
             <div>
               <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">{t('app.title')}</h1>
