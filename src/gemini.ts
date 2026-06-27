@@ -578,6 +578,8 @@ export async function remixRecipe(
   logDir?: string,
   userPrefs?: {
     recipeLanguage?: string;
+    preferredTemperatureUnit?: string;
+    preferredUnitSystem?: string;
   }
 ): Promise<Recipe> {
   const startTime = Date.now();
@@ -594,7 +596,15 @@ export async function remixRecipe(
       } as any,
     });
 
+    const targetTempUnit = userPrefs?.preferredTemperatureUnit || config.PREFERRED_TEMPERATURE_UNIT;
+    const targetUnitSystem = userPrefs?.preferredUnitSystem || config.PREFERRED_UNIT_SYSTEM;
     const targetLanguage = userPrefs?.recipeLanguage || config.RECIPE_LANGUAGE;
+
+    const tempInstruction = targetTempUnit.toLowerCase() === 'both'
+      ? 'Format all temperature values mentioned in the instructions, description, tips, or title using both Celsius and Fahrenheit (e.g., "200°C (400°F)").'
+      : `Format all temperature values mentioned in the instructions, description, tips, or title using the preferred unit: ${targetTempUnit} (e.g., convert and format as "200°C" or "400°F" depending on preference).`;
+
+    const unitSystemInstruction = `Format all ingredient weights, volumes, and measurements using the preferred unit system: ${targetUnitSystem} (e.g., metric units like grams, milliliters, kilograms, or imperial units like ounces, cups, pounds, fluid ounces) and perform conversions where appropriate.`;
 
     const prompt = `You are a creative professional chef. You are provided with an existing recipe in JSON format and a user's request for how to modify (remix) it (e.g. "make it vegan", "low calorie", or custom instructions).
 Your task is to modify the recipe logically and culinarily correctly based on the request.
@@ -604,6 +614,9 @@ Important Constraints:
 2. Instruction Update: If you change ingredients, you MUST update the cooking instructions to match the new ingredients (e.g., cooking time for tofu is different from beef).
 3. Title Update: Modify the title of the recipe to reflect the changes (e.g. add "(Vegan Remix)").
 4. Language & Format: Keep the output language the same as the original recipe (${targetLanguage}). Follow the schema strictly.
+5. Preferred Units:
+   - Temperature Units: ${tempInstruction}
+   - Weight & Volume Units: ${unitSystemInstruction}
 
 User's Remix Request:
 "${remixPrompt}"
