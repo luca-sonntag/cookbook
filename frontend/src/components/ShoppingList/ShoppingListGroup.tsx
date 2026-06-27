@@ -37,9 +37,15 @@ export default function ShoppingListGroup({
               const checkedCount = group.items.filter((item) => item.checked).length;
               const isAllChecked = checkedCount === group.items.length;
               const isSomeChecked = checkedCount > 0 && checkedCount < group.items.length;
+              const isGroupCollapsing = collapsingKeys.has(`group-${group.category}`);
 
               return (
-                <div key={group.category} className="flex flex-col gap-2 bg-black/[0.02] dark:bg-white/[0.02] p-3 rounded-2xl border border-black/5 dark:border-white/5">
+                <div
+                  key={`${group.category}-${isAllChecked ? 'completed' : 'active'}`}
+                  className={`flex flex-col gap-2 bg-black/[0.02] dark:bg-white/[0.02] p-3 rounded-2xl border border-black/5 dark:border-white/5 ${
+                    isGroupCollapsing ? 'animate-group-collapse' : 'animate-group-expand'
+                  }`}
+                >
                   <div className="flex items-center gap-1.5 px-1 py-0.5 border-b border-black/5 dark:border-white/5 pb-2 mb-1">
                     <div
                       onClick={() => onGroupHeaderClick(group.items)}

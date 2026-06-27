@@ -60,7 +60,27 @@ export default function ShoppingList({
   const handleItemToggle = (item: AggregatedShoppingItem) => {
     const key = getItemKey(item);
     const displayKey = `${item.checked ? 'checked' : 'unchecked'}-${key}`;
-    triggerCollapseAndAction([displayKey], () => {
+    const keysToCollapse = [displayKey];
+
+    const cat = item.category || 'OTHER';
+    const categoryItems = allAggregatedItems.filter((i) => (i.category || 'OTHER') === cat);
+    if (categoryItems.length > 0) {
+      if (!item.checked) {
+        // Checking: will it complete the category?
+        const otherItemsChecked = categoryItems.filter((i) => getItemKey(i) !== key).every((i) => i.checked);
+        if (otherItemsChecked) {
+          keysToCollapse.push(`group-${cat}`);
+        }
+      } else {
+        // Unchecking: was the category previously fully checked?
+        const allItemsChecked = categoryItems.every((i) => i.checked);
+        if (allItemsChecked) {
+          keysToCollapse.push(`group-${cat}`);
+        }
+      }
+    }
+
+    triggerCollapseAndAction(keysToCollapse, () => {
       toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, !item.checked);
     });
   };
@@ -73,6 +93,11 @@ export default function ShoppingList({
         const key = getItemKey(item);
         return `${item.checked ? 'checked' : 'unchecked'}-${key}`;
       });
+
+    if (items.length > 0) {
+      const cat = items[0].category || 'OTHER';
+      keysToCollapse.push(`group-${cat}`);
+    }
 
     triggerCollapseAndAction(keysToCollapse, () => {
       items.forEach((item) => {
