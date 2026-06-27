@@ -23,9 +23,12 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      workbox: {
+      // Use injectManifest to include our custom sw.js with notificationclick handler
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
-        cleanupOutdatedCaches: true,
       },
       manifest: {
         name: 'KochBuddy - Dein Reel-Rezeptbuch',

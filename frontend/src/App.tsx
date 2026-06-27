@@ -140,6 +140,24 @@ export default function App() {
     return () => window.removeEventListener('app:navigate-to-timer-step', handleNavigate);
   }, [recipe, history]);
 
+  // Listen for service worker messages (notification clicks on Android PWA)
+  useEffect(() => {
+    const handleSwMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'NOTIFICATION_CLICK') {
+        const { recipeId, stepNum } = event.data;
+        if (recipeId) {
+          window.dispatchEvent(
+            new CustomEvent('app:navigate-to-timer-step', {
+              detail: { recipeId, stepNum },
+            })
+          );
+        }
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', handleSwMessage);
+    return () => navigator.serviceWorker?.removeEventListener('message', handleSwMessage);
+  }, []);
+
   const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const confirmed = await dialog.confirm({

@@ -105,7 +105,12 @@ function vibrate(): void {
   }
 }
 
-async function sendNotification(title: string, body: string): Promise<void> {
+async function sendNotification(
+  title: string,
+  body: string,
+  recipeId?: string,
+  stepNum?: number,
+): Promise<void> {
   if (!('Notification' in window)) return;
 
   try {
@@ -115,7 +120,24 @@ async function sendNotification(title: string, body: string): Promise<void> {
       permission = await Notification.requestPermission();
     }
 
-    if (permission === 'granted') {
+    if (permission !== 'granted') return;
+
+    // Use service worker showNotification for reliable PWA notifications on Android.
+    // The main-thread `new Notification()` is unreliable when the PWA is backgrounded
+    // or the screen is off — the SW-based approach delegates to the persistent SW.
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification(title, {
+        body,
+        icon: '/icon-512.png',
+        badge: '/icon-192.png',
+        tag: 'cooking-timer',
+        vibrate: [200, 100, 200, 100, 400],
+        data: { recipeId, stepNum },
+        requireInteraction: true,
+      } as NotificationOptions & { vibrate?: number[] });
+    } else {
+      // Fallback for non-PWA / SW-not-ready contexts
       const notification = new Notification(title, {
         body,
         icon: '/icon-512.png',
@@ -123,7 +145,6 @@ async function sendNotification(title: string, body: string): Promise<void> {
         tag: 'cooking-timer',
         vibrate: [200, 100, 200, 100, 400],
       } as any);
-      // Auto-close after 8 seconds
       setTimeout(() => notification.close(), 8000);
     }
   } catch {
@@ -169,7 +190,12 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         // First ring immediately
         playAlarm();
         vibrate();
-        sendNotification(timer.label, '🍳 Dein Koch-Timer ist abgelaufen. / Your cooking timer finished.');
+        sendNotification(
+          timer.label,
+          '🍳 Dein Koch-Timer ist abgelaufen. / Your cooking timer finished.',
+          timer.recipeId,
+          timer.stepNum,
+        );
 
         // Repeat every 2.5 s until user dismisses
         const repeatInterval = setInterval(() => {
