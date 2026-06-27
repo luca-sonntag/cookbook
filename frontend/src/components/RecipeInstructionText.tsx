@@ -95,7 +95,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
             return (
               <span
                 key={index}
-                className="inline-flex items-center gap-0.5 mx-0.5 font-semibold text-orange-600 dark:text-orange-400 decoration-orange-500 hover:text-orange-500 dark:hover:text-orange-300 decoration-dotted underline underline-offset-4 align-middle transition-colors cursor-default"
+                className="inline-flex items-center gap-0.5 mx-0.5 font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 align-middle transition-colors cursor-default"
               >
                 <Thermometer className="w-3.5 h-3.5 text-orange-500 dark:text-orange-400 shrink-0" />
                 {part}
@@ -109,7 +109,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount }: Re
             return (
               <span
                 key={index}
-                className="inline-flex items-center gap-0.5 mx-0.5 font-semibold text-blue-600 dark:text-blue-400 decoration-blue-500 hover:text-blue-500 dark:hover:text-blue-300 decoration-dotted underline underline-offset-4 align-middle transition-colors cursor-default"
+                className="inline-flex items-center gap-0.5 mx-0.5 font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 align-middle transition-colors cursor-default"
               >
                 <Clock className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 shrink-0" />
                 {part}
