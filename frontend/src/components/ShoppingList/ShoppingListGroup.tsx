@@ -40,10 +40,10 @@ export default function ShoppingListGroup({
               return (
                 <div
                   key={`${group.category}-${isAllChecked ? 'completed' : 'active'}`}
-                  className={`flex flex-col gap-2 p-3 rounded-2xl border transition-all ${
+                  className={`flex flex-col gap-2 p-3 rounded-2xl border transition-all bg-black/[0.02] dark:bg-white/[0.02] ${
                     isAllChecked
-                      ? 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06] border-emerald-500/20'
-                      : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5 hover:border-emerald-500/20'
+                      ? 'border-black/5 dark:border-white/5'
+                      : 'border-black/5 dark:border-white/5 hover:border-emerald-500/20'
                   } ${
                     isGroupCollapsing ? 'animate-group-collapse' : 'animate-group-expand'
                   }`}
