@@ -172,14 +172,14 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                   e.stopPropagation();
                   setTimerSheet({ isOpen: true, seconds, label: text });
                 } : undefined}
-                className={`inline mx-0.5 font-semibold text-blue-600 dark:text-blue-400 transition-colors ${
+                className={`inline mx-0.5 font-semibold text-teal-600 dark:text-teal-400 transition-colors ${
                   canTimer
-                    ? 'cursor-pointer hover:text-blue-500 dark:hover:text-blue-300 underline decoration-dotted underline-offset-2'
-                    : 'cursor-default hover:text-blue-500 dark:hover:text-blue-300'
+                    ? 'cursor-pointer hover:text-teal-500 dark:hover:text-teal-300 underline decoration-dotted underline-offset-2'
+                    : 'cursor-default hover:text-teal-500 dark:hover:text-teal-300'
                 }`}
                 title={canTimer ? 'Timer starten / Start timer' : undefined}
               >
-                <Clock className="inline w-3.5 h-3.5 mr-0.5 text-blue-500 dark:text-blue-400" style={{ verticalAlign: 'middle' }} />
+                <Clock className="inline w-3.5 h-3.5 mr-0.5 text-teal-500 dark:text-teal-400" style={{ verticalAlign: 'middle' }} />
                 {part}
               </span>
             );
