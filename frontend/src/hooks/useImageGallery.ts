@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 export function useImageGallery(images: string[]) {
   // Fullscreen image state
@@ -18,9 +18,15 @@ export function useImageGallery(images: string[]) {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [hasDragged, setHasDragged] = useState(false);
 
+  const closeFullscreen = useCallback(() => {
+    setFullscreenIndex(null);
+  }, []);
+
   useEffect(() => {
     if (fullscreenIndex !== null) {
       document.body.style.overflow = 'hidden';
+      // Push a history state so browser back / Android back button can close the gallery
+      window.history.pushState({ galleryOpen: true }, '');
       // Auto focus container to listen for keyboard events
       setTimeout(() => {
         fullscreenContainerRef.current?.focus();
@@ -33,6 +39,38 @@ export function useImageGallery(images: string[]) {
     }
     return () => {
       document.body.style.overflow = 'unset';
+    };
+  }, [fullscreenIndex]);
+
+  // Browser back button / Android back gesture → close gallery
+  useEffect(() => {
+    if (fullscreenIndex === null) return;
+    const onPopState = () => closeFullscreen();
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [fullscreenIndex, closeFullscreen]);
+
+  // Swipe-right from left edge → close gallery
+  useEffect(() => {
+    if (fullscreenIndex === null) return;
+    const touchStart = { x: 0, y: 0 };
+    const onTouchStart = (e: TouchEvent) => {
+      touchStart.x = e.touches[0].clientX;
+      touchStart.y = e.touches[0].clientY;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      const dx = e.changedTouches[0].clientX - touchStart.x;
+      const dy = Math.abs(e.changedTouches[0].clientY - touchStart.y);
+      if (touchStart.x <= 40 && dx >= 80 && dy < 60) {
+        // Manually go back so the pushState entry is consumed
+        window.history.back();
+      }
+    };
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchend', onTouchEnd, { passive: true });
+    return () => {
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchend', onTouchEnd);
     };
   }, [fullscreenIndex]);
 
