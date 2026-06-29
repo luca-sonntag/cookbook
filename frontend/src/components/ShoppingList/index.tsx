@@ -283,7 +283,7 @@ export default function ShoppingList({
       </Card>
 
       {/* Floating Action Bar (Add + optional clear actions) */}
-      <FloatingActionBar className="bottom-28">
+      <FloatingActionBar className="bottom-32">
         {/* Add Item — primary action, always visible */}
         <button
           type="button"

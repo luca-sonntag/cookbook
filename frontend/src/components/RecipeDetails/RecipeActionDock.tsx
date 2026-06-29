@@ -32,7 +32,7 @@ export default function RecipeActionDock({
   const showShoppingDivider = showShopping && (showStart || showRemix);
 
   return (
-    <FloatingActionBar className="bottom-28">
+    <FloatingActionBar className="bottom-32">
       {/* Start Cooking Button */}
       {showStart && (
         <Button

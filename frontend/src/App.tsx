@@ -301,7 +301,7 @@ export default function App() {
 
       {/* Main content body */}
       <main className={`w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 ${
-        selectedJob || (activeView === 'extract' && recipe) || activeView === 'shopping-list' ? 'pb-40' : 'pb-24'
+        selectedJob || (activeView === 'extract' && recipe) || activeView === 'shopping-list' ? 'pb-48' : 'pb-24'
       }`}>
 
         {/* CONDITIONAL RENDERING OF VIEWS */}
