@@ -98,7 +98,7 @@ export default function RecipeInstructions({
                   {isChecked ? (
                     <Check className="w-3 h-3 text-white" />
                   ) : (
-                    <span className="text-[10px] text-gray-500 dark:text-gray-400">{step.step}</span>
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{step.step}</span>
                   )}
                 </div>
                 <div className="flex-1 flex flex-col gap-1">
@@ -126,10 +126,10 @@ export default function RecipeInstructions({
             <ChefHat className="w-4 h-4" />
             <span>{t('recipe.tipsTitle')}</span>
           </h3>
-          <ul className="flex flex-col gap-3 text-xs text-gray-700 dark:text-gray-300">
+          <ul className="flex flex-col gap-3 text-sm text-gray-700 dark:text-gray-300">
             {recipe.tips.map((tip, idx) => (
               <li key={idx} className="flex items-start gap-2.5 leading-normal">
-                <span className="bg-emerald-500/10 text-emerald-500 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold border border-emerald-500/20">{idx + 1}</span>
+                <span className="bg-emerald-500/10 text-emerald-500 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold border border-emerald-500/20">{idx + 1}</span>
                 <span>
                   <RecipeInstructionText text={tip} recipe={recipe} formatAmount={formatAmount} />
                 </span>
