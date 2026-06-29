@@ -293,6 +293,39 @@ export default function RecipeDetails({
     setTimeout(() => setIsAdded(false), 2000);
   };
 
+  const handleAddAndNavigateToShoppingList = () => {
+    // Add ingredients silently (without warning alert) if there are any to add
+    const itemsToAdd: Ingredient[] = [];
+    sortedIngredients.forEach(({ group, originalIdx }) => {
+      group.items.forEach((ing, idx) => {
+        const uniqueId = `${ing.name}-${originalIdx}-${idx}`;
+        const isChecked = !!checkedIngredients[uniqueId];
+        if (!isChecked) {
+          const baseAmount = ing.amount || 0;
+          const scaledAmount = baseAmount * scaleFactor;
+          itemsToAdd.push({
+            name: ing.name,
+            amount: scaledAmount,
+            unit: ing.unit || '',
+            notes: ing.notes,
+            modifier: ing.modifier,
+            category: group.name
+          });
+        }
+      });
+    });
+
+    if (itemsToAdd.length > 0 && onAddIngredients) {
+      const recipeId = recipe.id || recipe.title;
+      onAddIngredients(itemsToAdd, recipeId, recipe.title);
+      setIsAdded(true);
+      setTimeout(() => setIsAdded(false), 2000);
+    }
+    
+    // Always navigate
+    onNavigateToShoppingList?.();
+  };
+
   const copyRecipeMarkdown = () => {
     let md = `# ${recipe.title}\n\n${recipe.description}\n\n`;
     md += `**Prep Time:** ${formatTimeValue(recipe.prepTime)} | **Cook Time:** ${formatTimeValue(recipe.cookTime)} | **Servings:** ${servings}\n\n`;
@@ -355,7 +388,7 @@ export default function RecipeDetails({
           reelUrl={reelUrl}
           createdAt={createdAt}
           onBack={onBack}
-          onNavigateToShoppingList={onNavigateToShoppingList}
+          onNavigateToShoppingList={onAddIngredients ? handleAddAndNavigateToShoppingList : onNavigateToShoppingList}
           onDelete={onDelete}
           onCopyMarkdown={copyRecipeMarkdown}
           isCopied={isCopied}
