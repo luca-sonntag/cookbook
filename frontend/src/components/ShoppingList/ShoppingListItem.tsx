@@ -26,15 +26,15 @@ export default function ShoppingListItem({
 
   if (isChecked) {
     return (
-      <li className={`flex items-start justify-between gap-3 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${
+      <li className={`flex items-start justify-between gap-3 py-2.5 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${
         isCollapsing ? 'animate-item-collapse' : 'animate-item-expand'
       }`}>
         <div
           onClick={onClick}
           className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
         >
-          <div className="w-5 h-5 rounded-md bg-emerald-500 border border-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all">
-            <Check className="w-3.5 h-3.5 text-white" />
+          <div className="w-6 h-6 rounded-md bg-emerald-500 border border-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all">
+            <Check className="w-4 h-4 text-white" />
           </div>
           <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate font-medium">
             {amountStr && (
@@ -53,7 +53,7 @@ export default function ShoppingListItem({
 
         <button
           onClick={onDelete}
-          className="text-gray-400 hover:text-red-500 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer flex-shrink-0 self-center"
+          className="text-gray-400 hover:text-red-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer flex-shrink-0 self-center"
           aria-label={t('shopping.deleteItem')}
         >
           <Trash2 className="w-4 h-4" />
@@ -63,15 +63,15 @@ export default function ShoppingListItem({
   }
 
   return (
-    <li className={`flex items-start justify-between gap-3 py-1.5 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${
+    <li className={`flex items-start justify-between gap-3 py-2.5 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${
       isCollapsing ? 'animate-item-collapse' : 'animate-item-expand'
     }`}>
       <div
         onClick={onClick}
         className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
       >
-        <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isPending ? 'bg-emerald-500 border border-emerald-500' : 'border border-black/20 dark:border-white/20'}`}>
-          {isPending && <Check className="w-3.5 h-3.5 text-white" />}
+        <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isPending ? 'bg-emerald-500 border border-emerald-500' : 'border border-black/20 dark:border-white/20'}`}>
+          {isPending && <Check className="w-4 h-4 text-white" />}
         </div>
         <div className="flex flex-col min-w-0">
           <span className={`text-sm font-medium transition-all ${isPending ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'}`}>
@@ -131,7 +131,7 @@ export default function ShoppingListItem({
 
       <button
         onClick={onDelete}
-        className="text-gray-400 hover:text-red-500 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer flex-shrink-0 self-center"
+        className="text-gray-400 hover:text-red-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer flex-shrink-0 self-center"
         aria-label={t('shopping.deleteItem')}
       >
         <Trash2 className="w-4 h-4" />
