@@ -81,29 +81,29 @@ export default function RecipeHeader({
             <Button
               isIconOnly
               variant="outline"
-              className="flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center"
               aria-label="Options"
             >
-              <MoreVertical className="w-4 h-4" />
+              <MoreVertical className="w-5 h-5" />
             </Button>
           </Popover.Trigger>
-          <Popover.Content placement="bottom end" className="p-1 min-w-[160px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
+          <Popover.Content placement="bottom end" className="p-1.5 min-w-[180px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
             <div className="flex flex-col w-full">
               <button
                 onClick={() => {
                   onCopyMarkdown();
                   setIsMenuOpen(false);
                 }}
-                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
               >
                 {isCopied ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-emerald-500 font-semibold">{t('recipe.copied')}</span>
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span className="text-emerald-500 font-bold">{t('recipe.copied')}</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5" />
+                    <Copy className="w-4 h-4" />
                     <span>{t('recipe.copyRecipe')}</span>
                   </>
                 )}
@@ -115,9 +115,9 @@ export default function RecipeHeader({
                     setIsMenuOpen(false);
                     onNavigateToShoppingList();
                   }}
-                  className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                  className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
                 >
-                  <ShoppingCart className="w-3.5 h-3.5 text-emerald-500" />
+                  <ShoppingCart className="w-4 h-4 text-emerald-500" />
                   <span>{t('recipe.goToShoppingList')}</span>
                 </button>
               )}
@@ -128,9 +128,9 @@ export default function RecipeHeader({
                     setIsMenuOpen(false);
                     onDelete();
                   }}
-                  className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                  className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                   <span>{t('recipe.delete')}</span>
                 </button>
               )}
