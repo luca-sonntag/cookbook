@@ -22,9 +22,12 @@ interface FloatingActionBarProps {
  * frosted-glass container, the rounded-full shape and the soft shadow.
  */
 export default function FloatingActionBar({ children, className = '' }: FloatingActionBarProps) {
+  const hasBottomClass = className.split(' ').some(c => c.startsWith('bottom-') || c.includes(':bottom-'));
+  const defaultBottom = hasBottomClass ? '' : 'bottom-6';
+
   return (
     <div
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up ${className}`}
+      className={`fixed ${defaultBottom} left-1/2 -translate-x-1/2 z-40 animate-fade-in-up ${className}`}
     >
       <div className="flex items-center gap-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-2.5 rounded-full border border-black/10 dark:border-white/10 shadow-2xl">
         {children}

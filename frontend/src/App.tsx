@@ -300,7 +300,9 @@ export default function App() {
       <TimerBanner />
 
       {/* Main content body */}
-      <main className="w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 pb-24">
+      <main className={`w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 ${
+        selectedJob || (activeView === 'extract' && recipe) || activeView === 'shopping-list' ? 'pb-36' : 'pb-24'
+      }`}>
 
         {/* CONDITIONAL RENDERING OF VIEWS */}
         {activeView === 'extract' ? (
@@ -398,7 +400,7 @@ export default function App() {
 
       {/* Mobile Bottom Navigation Bar */}
       {(() => {
-        const isBottomBarHidden = !!selectedJob || (activeView === 'extract' && !!recipe) || (activeView === 'history' && isCatalogSelectMode);
+        const isBottomBarHidden = activeView === 'history' && isCatalogSelectMode;
         const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out pb-safe ${isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
           }`;
 
