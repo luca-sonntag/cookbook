@@ -69,9 +69,9 @@ export default function RecipeHeader({
               )}
             </div>
           )}
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed break-words">{recipe.description}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed break-words">{recipe.description}</p>
           {createdAt && (
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2 font-medium">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 font-medium">
               {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
             </p>
           )}
