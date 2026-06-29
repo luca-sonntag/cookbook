@@ -31,11 +31,11 @@ export default function RecipeNutrition({
         </div>
         
         {/* Portion / Gesamt Switcher */}
-        <div className="flex bg-black/5 dark:bg-white/5 p-0.5 rounded-lg border border-black/5 dark:border-white/5 select-none shrink-0">
+        <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-black/5 dark:border-white/5 select-none shrink-0">
           <button
             type="button"
             onClick={() => onToggleTotalNutrition(false)}
-            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap transition-all cursor-pointer outline-none border-none ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer outline-none border-none ${
               !showTotalNutrition
                 ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -46,7 +46,7 @@ export default function RecipeNutrition({
           <button
             type="button"
             onClick={() => onToggleTotalNutrition(true)}
-            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap transition-all cursor-pointer outline-none border-none ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer outline-none border-none ${
               showTotalNutrition
                 ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -58,20 +58,20 @@ export default function RecipeNutrition({
       </div>
       <div className="grid grid-cols-4 gap-2 text-center text-xs">
         <div>
-          <div className="text-gray-900 dark:text-white font-bold">{getNutritionDisplayValue(nutritionalValues.calories, 'kcal', showTotalNutrition, false)}</div>
-          <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionCalories')}</div>
+          <div className="text-gray-900 dark:text-white text-sm font-bold">{getNutritionDisplayValue(nutritionalValues.calories, 'kcal', showTotalNutrition, false)}</div>
+          <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{t('recipe.nutritionCalories')}</div>
         </div>
         <div>
-          <div className="text-gray-900 dark:text-white font-bold">{getNutritionDisplayValue(nutritionalValues.protein, 'g', showTotalNutrition, true)}</div>
-          <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionProtein')}</div>
+          <div className="text-gray-900 dark:text-white text-sm font-bold">{getNutritionDisplayValue(nutritionalValues.protein, 'g', showTotalNutrition, true)}</div>
+          <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{t('recipe.nutritionProtein')}</div>
         </div>
         <div>
-          <div className="text-gray-900 dark:text-white font-bold">{getNutritionDisplayValue(nutritionalValues.carbs, 'g', showTotalNutrition, true)}</div>
-          <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionCarbs')}</div>
+          <div className="text-gray-900 dark:text-white text-sm font-bold">{getNutritionDisplayValue(nutritionalValues.carbs, 'g', showTotalNutrition, true)}</div>
+          <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{t('recipe.nutritionCarbs')}</div>
         </div>
         <div>
-          <div className="text-gray-900 dark:text-white font-bold">{getNutritionDisplayValue(nutritionalValues.fat, 'g', showTotalNutrition, true)}</div>
-          <div className="text-[9px] text-gray-500 dark:text-gray-400">{t('recipe.nutritionFat')}</div>
+          <div className="text-gray-900 dark:text-white text-sm font-bold">{getNutritionDisplayValue(nutritionalValues.fat, 'g', showTotalNutrition, true)}</div>
+          <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{t('recipe.nutritionFat')}</div>
         </div>
       </div>
     </div>
