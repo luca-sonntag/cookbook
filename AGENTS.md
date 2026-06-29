@@ -121,7 +121,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * **Bottom Navigation Bar:** Die fixierte untere Navigationsleiste ist das primäre und einzige Navigationswerkzeug (sichtbar auf Mobile und Desktop). Sie enthält nun einen vierten Tab ("Profil" / "Settings").
   * **SettingsView:** Alle Konfigurationsoptionen (Sprachwechsel, Hell-/Dunkelmodus, Logout und PWA-Installationshinweise) sind in den neuen "Profil"-Tab ausgelagert, um den Header sauber zu halten.
   * **Smarte Badges:** Die Einkaufsliste verfügt über eine mit `animate-pulse-slow` atmende, kreisförmige Benachrichtigungsplakette über dem Shopping-List-Icon.
-  * **Distraction-Free Mode:** Um den Fokus beim Kochen zu maximieren, schiebt sich die mobile Bottom Navigation bei aktiver Rezept-Detailansicht (sowohl aus der Historie als auch direkt nach der Extraktion) flüssig nach unten aus dem Viewport (`translate-y-full`).
+  * **Distraction-Free Mode & Persistent Navigation:** Die mobile Bottom Navigation bleibt auch auf der aktiven Rezept-Detailansicht (sowohl aus der Historie als auch direkt nach der Extraktion) voll sichtbar, um dem Nutzer schnellen Zugriff auf andere App-Bereiche (wie die Einkaufsliste) zu ermöglichen. Der schwebende Rezept-Aktionsbereich (Unified Action Dock) wird stattdessen nach oben verschoben (`bottom-24`), um Überlagerungen zu verhindern.
   * **Erweiterter Back-Workflow:** Durch Einbindung des `useMobileNavigationBack`-Hooks in den Extraktions-Tab wird der Zurück-Gesten- und Back-Button-Workflow auch für neu extrahierte Rezepte bereitgestellt.
 * **Sprach- und Theme-Steuerung:**
   * Bietet einen Header-Schalter (Sonne/Mond) für den Hell- und Dunkelmodus. Die Auswahl wird im `localStorage` persistiert.
