@@ -42,7 +42,6 @@ export default function RecipeDetails({
   createdAt,
   onBack,
   onNavigateToShoppingList,
-  shoppingListCount,
   onRemixSuccess,
   isParentAvailable,
   onNavigateToRecipe,
