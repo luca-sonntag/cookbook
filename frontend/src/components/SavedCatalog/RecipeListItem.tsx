@@ -72,12 +72,12 @@ export default function RecipeListItem({
         {(durationBadge || recipeTags.length > 0) && (
           <div className="flex flex-wrap gap-1 mt-1 pr-20">
             {durationBadge && (
-              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none whitespace-nowrap">
+              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap">
                 {durationBadge}
               </span>
             )}
             {recipeTags.slice(0, 2).map((tag: string, idx: number) => (
-              <span key={idx} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full select-none whitespace-nowrap">
+              <span key={idx} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap">
                 {tag}
               </span>
             ))}
@@ -96,12 +96,12 @@ export default function RecipeListItem({
 
       {/* Actions */}
       {!isSelectMode && (
-        <div className="absolute right-3 bottom-2.5 flex items-center gap-1">
+        <div className="absolute right-3 bottom-2 flex items-center gap-1.5">
           <button
             className={`active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
               isAdded
-                ? 'w-8 h-8 rounded-lg bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent text-xs'
-                : 'text-gray-500 hover:text-emerald-500 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors'
+                ? 'w-9 h-9 rounded-xl bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent text-xs'
+                : 'text-gray-500 hover:text-emerald-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors'
             }`}
             onClick={onDirectAdd}
             aria-label="Direct add"
@@ -114,7 +114,7 @@ export default function RecipeListItem({
           </button>
           <button
             onClick={onDelete}
-            className="text-gray-500 hover:text-red-500 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+            className="text-gray-500 hover:text-red-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
             aria-label="Delete recipe"
           >
             <Trash2 className="w-4 h-4" />

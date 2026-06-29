@@ -56,21 +56,21 @@ const styles = {
   imageCheckboxSelected: "bg-emerald-500 border-emerald-500 text-white shadow-md",
   imageCheckboxUnselected: "bg-black/40 backdrop-blur-sm border-white/30 text-white",
 
-  instagramBadge: "absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 font-semibold backdrop-blur-sm pointer-events-none select-none z-[5] border border-white/10 shadow-md",
+  instagramBadge: "absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2.5 py-1.5 rounded-xl flex items-center gap-1 font-semibold backdrop-blur-sm pointer-events-none select-none z-[5] border border-white/10 shadow-md",
 
-  inlineTagBadge: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap",
+  inlineTagBadge: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-full select-none whitespace-nowrap",
 
   titleContainer: "flex justify-between items-start gap-2 px-5 pt-3",
   title: "text-sm font-bold text-gray-900 dark:text-white line-clamp-1",
   description: "text-xs text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed px-5",
 
-  footer: "flex items-center justify-between pt-3 px-5 border-t border-black/5 dark:border-white/5 text-[10px] text-gray-500 dark:text-gray-400",
+  footer: "flex items-center justify-between pt-3 px-5 border-t border-black/5 dark:border-white/5 text-xs text-gray-500 dark:text-gray-400",
 
   addBtnBase: "active:scale-95 transition-all cursor-pointer flex items-center justify-center",
-  addBtnAdded: "w-8 h-8 rounded-lg bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent text-xs",
-  addBtnNotAdded: "text-gray-500 hover:text-emerald-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors",
+  addBtnAdded: "w-9 h-9 rounded-xl bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent text-xs",
+  addBtnNotAdded: "text-gray-500 hover:text-emerald-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors",
 
-  deleteBtn: "text-gray-500 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+  deleteBtn: "text-gray-500 hover:text-red-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
 };
 
 export default function RecipeCard({
