@@ -97,7 +97,7 @@ export default function App() {
   useEffect(() => {
     if (pendingNavigation) {
       const targetId = pendingNavigation.recipeId;
-      
+
       // 1. Check if the target is the currently active/extracted recipe
       if (recipe && (recipe.id === targetId || recipe.title === targetId)) {
         setActiveView('extract');
@@ -120,7 +120,7 @@ export default function App() {
       const customEvent = e as CustomEvent<{ recipeId: string; stepNum: number }>;
       if (customEvent.detail && customEvent.detail.recipeId) {
         const targetId = customEvent.detail.recipeId;
-        
+
         // 1. Check if the target is the currently active/extracted recipe
         if (recipe && (recipe.id === targetId || recipe.title === targetId)) {
           setActiveView('extract');
@@ -300,9 +300,8 @@ export default function App() {
       <TimerBanner />
 
       {/* Main content body */}
-      <main className={`w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 ${
-        selectedJob || (activeView === 'extract' && recipe) || activeView === 'shopping-list' ? 'pb-48' : 'pb-24'
-      }`}>
+      <main className={`w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 pb-24 ${selectedJob || (activeView === 'extract' && recipe) || activeView === 'shopping-list' ? 'pb-48' : 'pb-24'
+        }`}>
 
         {/* CONDITIONAL RENDERING OF VIEWS */}
         {activeView === 'extract' ? (
@@ -406,17 +405,17 @@ export default function App() {
 
         return (
           <div className={bottomBarClasses}>
-            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-2.5 pb-4 px-2">
+            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-5 px-3">
               {/* Extract / New Recipe Tab */}
               <button
                 onClick={() => setActiveView('extract')}
-                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${activeView === 'extract'
+                className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'extract'
                   ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
-                <Sparkles className="w-5 h-5 mb-0.5" />
-                <span className="text-[10px] tracking-wide">{t('app.nav.newRecipe')}</span>
+                <Sparkles className="w-5.5 h-5.5 mb-1" />
+                <span className="text-[11px] tracking-wide font-medium">{t('app.nav.newRecipe')}</span>
                 {activeView === 'extract' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
@@ -428,15 +427,15 @@ export default function App() {
                   setActiveView('history');
                   fetchHistory();
                 }}
-                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${activeView === 'history'
+                className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'history'
                   ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
                 <div className="relative">
-                  <BookOpen className="w-5 h-5 mb-0.5" />
+                  <BookOpen className="w-5.5 h-5.5 mb-1" />
                 </div>
-                <span className="text-[10px] tracking-wide">{t('app.nav.savedRecipes')}</span>
+                <span className="text-[11px] tracking-wide font-medium">{t('app.nav.savedRecipes')}</span>
                 {activeView === 'history' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
@@ -445,20 +444,20 @@ export default function App() {
               {/* Shopping List Tab */}
               <button
                 onClick={() => setActiveView('shopping-list')}
-                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${activeView === 'shopping-list'
+                className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'shopping-list'
                   ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
                 <div className="relative">
-                  <ShoppingCart className="w-5 h-5 mb-0.5" />
+                  <ShoppingCart className="w-5.5 h-5.5 mb-1" />
                   {aggregatedList.unchecked.length > 0 && (
                     <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
                       {aggregatedList.unchecked.length}
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] tracking-wide">{t('app.nav.shoppingList')}</span>
+                <span className="text-[11px] tracking-wide font-medium">{t('app.nav.shoppingList')}</span>
                 {activeView === 'shopping-list' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
@@ -467,15 +466,15 @@ export default function App() {
               {/* Settings Tab */}
               <button
                 onClick={() => setActiveView('settings')}
-                className={`flex-1 flex flex-col items-center justify-center pt-1.5 pb-3 relative transition-colors ${activeView === 'settings'
+                className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'settings'
                   ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
                 <div className="relative">
-                  <User className="w-5 h-5 mb-0.5" />
+                  <User className="w-5.5 h-5.5 mb-1" />
                 </div>
-                <span className="text-[10px] tracking-wide">{t('app.nav.settings') || 'Profil'}</span>
+                <span className="text-[11px] tracking-wide font-medium">{t('app.nav.settings') || 'Profil'}</span>
                 {activeView === 'settings' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
