@@ -1,8 +1,6 @@
 import { Button } from '@heroui/react';
 import { createPortal } from 'react-dom';
 import {
-  ZoomIn,
-  ZoomOut,
   X,
   ChevronLeft,
   ChevronRight,
@@ -70,6 +68,9 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
     handlePointerUp,
     handlePointerMove,
     handleImageClick,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
   } = useImageGallery(images);
 
   const overlayButtons = (
@@ -180,16 +181,6 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
         >
           {/* Top Controls Overlay */}
           <div className="absolute top-4 right-4 z-[101] flex items-center gap-2">
-            {/* Zoom Toggle Button */}
-            <Button
-              isIconOnly
-              variant="ghost"
-              onPress={handleDoubleTap}
-              className="text-white/70 hover:text-white bg-black/40 hover:bg-black/60 rounded-full border-none"
-              aria-label={scale > 1 ? "Zoom Out" : "Zoom In"}
-            >
-              {scale > 1 ? <ZoomOut size={22} /> : <ZoomIn size={22} />}
-            </Button>
             {/* Close Button */}
             <Button
               isIconOnly
@@ -210,6 +201,10 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
             onPointerUp={handleFullscreenPointerUp}
             onPointerCancel={handleFullscreenPointerUp}
             onDoubleClick={handleDoubleTap}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: 'none' }}
           >
             <div
               className={`flex w-full h-full ${!isDraggingImage ? 'transition-transform duration-300 ease-out' : ''}`}

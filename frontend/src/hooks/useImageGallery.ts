@@ -10,6 +10,11 @@ export function useImageGallery(images: string[]) {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [swipeTranslation, setSwipeTranslation] = useState(0);
 
+  // Pinch-to-zoom state
+  const pinchStartDistanceRef = useRef<number | null>(null);
+  const pinchStartScaleRef = useRef(1);
+  const isPinchingRef = useRef(false);
+
   const fullscreenContainerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -148,6 +153,44 @@ export function useImageGallery(images: string[]) {
     }
   };
 
+  // --- Pinch-to-zoom touch handlers ---
+  const getPinchDistance = (touches: React.TouchList): number => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      isPinchingRef.current = true;
+      pinchStartDistanceRef.current = getPinchDistance(e.touches);
+      pinchStartScaleRef.current = scale;
+      // Prevent swipe logic from kicking in
+      setIsDraggingImage(false);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && isPinchingRef.current && pinchStartDistanceRef.current !== null) {
+      e.preventDefault();
+      const currentDistance = getPinchDistance(e.touches);
+      const ratio = currentDistance / pinchStartDistanceRef.current;
+      const newScale = Math.min(4, Math.max(1, pinchStartScaleRef.current * ratio));
+      setScale(newScale);
+      // If pinching back to 1 reset offset
+      if (newScale <= 1) {
+        setOffset({ x: 0, y: 0 });
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      isPinchingRef.current = false;
+      pinchStartDistanceRef.current = null;
+    }
+  };
+
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType !== 'mouse' || !scrollContainerRef.current) return;
     setIsDragging(true);
@@ -228,5 +271,8 @@ export function useImageGallery(images: string[]) {
     handlePointerUp,
     handlePointerMove,
     handleImageClick,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
   };
 }
