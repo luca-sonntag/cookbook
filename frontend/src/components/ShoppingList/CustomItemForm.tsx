@@ -35,8 +35,8 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
 
   return (
     <div ref={addFormRef}>
-      <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5">
-        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
+      <Card className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5">
+        <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider flex items-center gap-2">
           <Plus className="w-4 h-4 text-emerald-500" />
           <span>{t('shopping.addTitle')}</span>
         </h3>
@@ -49,7 +49,7 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
                 placeholder={t('shopping.placeholderName')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-1.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                 required
               />
             </div>
@@ -59,7 +59,7 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
                 placeholder={t('shopping.placeholderAmount')}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-1.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
             <div className="col-span-3 md:col-span-3">
@@ -68,7 +68,7 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
                 placeholder={t('shopping.placeholderUnit')}
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-1.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
           </div>
@@ -90,7 +90,7 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
 
           <Button
             type="submit"
-            className="w-full py-3.5 mt-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 h-12 text-sm"
+            className="w-full mt-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 h-10 text-sm"
           >
             <Plus className="w-4 h-4" />
             <span>{t('shopping.btnAdd')}</span>
