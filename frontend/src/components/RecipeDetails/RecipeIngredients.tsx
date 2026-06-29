@@ -112,7 +112,7 @@ export default function RecipeIngredients({
                           
                           if (parts.length === 0) return null;
                           return (
-                            <span className="inline-flex gap-1 ml-2 text-[10px] text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded-md font-medium select-none align-middle">
+                            <span className="inline-flex gap-1 ml-2 text-[11px] text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md font-medium select-none align-middle">
                               {parts.join(' | ')}
                             </span>
                           );
