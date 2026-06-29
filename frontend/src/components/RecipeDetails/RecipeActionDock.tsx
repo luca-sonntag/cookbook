@@ -1,12 +1,12 @@
 import { Button } from '@heroui/react';
-import { ShoppingCart, Play, Sparkles } from 'lucide-react';
+import { ShoppingCart, ShoppingBag, Play, Sparkles } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import FloatingActionBar, { FloatingDivider } from '../FloatingActionBar';
 
 interface RecipeActionDockProps {
   totalStepsCount: number;
-  onNavigateToShoppingList?: () => void;
-  shoppingListCount?: number;
+  onAddToCart?: () => void;
+  isAdded?: boolean;
   onStartCooking: () => void;
   recipeId?: string;
   onRemixClick?: () => void;
@@ -14,8 +14,8 @@ interface RecipeActionDockProps {
 
 export default function RecipeActionDock({
   totalStepsCount,
-  onNavigateToShoppingList,
-  shoppingListCount,
+  onAddToCart,
+  isAdded,
   onStartCooking,
   recipeId,
   onRemixClick
@@ -24,7 +24,7 @@ export default function RecipeActionDock({
 
   const showStart = totalStepsCount > 0;
   const showRemix = !!recipeId && !!onRemixClick;
-  const showShopping = !!onNavigateToShoppingList;
+  const showShopping = !!onAddToCart;
 
   // Compute whether each optional divider should render based on what
   // actions are present on either side.
@@ -58,21 +58,23 @@ export default function RecipeActionDock({
         </>
       )}
 
-      {/* Shopping List Button */}
+      {/* Add to Shopping List Button */}
       {showShopping && (
         <>
           <FloatingDivider show={showShoppingDivider} />
           <button
-            onClick={onNavigateToShoppingList}
-            className="relative p-3 text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none border-none"
-            aria-label="Go to shopping list"
+            onClick={onAddToCart}
+            className={`relative p-3 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full outline-none border-none ${
+              isAdded
+                ? 'text-emerald-500 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30'
+                : 'text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-black/5 dark:hover:bg-white/5'
+            }`}
+            aria-label="Add to shopping list"
           >
-            <ShoppingCart className="w-5.5 h-5.5" />
-            {shoppingListCount !== undefined && shoppingListCount > 0 && (
-              <span className="absolute top-0 right-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
-                {shoppingListCount}
-              </span>
-            )}
+            {isAdded
+              ? <ShoppingBag className="w-5.5 h-5.5" />
+              : <ShoppingCart className="w-5.5 h-5.5" />
+            }
           </button>
         </>
       )}

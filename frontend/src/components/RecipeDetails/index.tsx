@@ -466,11 +466,11 @@ export default function RecipeDetails({
       </Tabs>
 
       {/* Unified Floating Action Dock (Bottom-Center) */}
-      {!isCookingMode && (totalStepsCount > 0 || onNavigateToShoppingList) && (
+      {!isCookingMode && (totalStepsCount > 0 || onAddIngredients || onNavigateToShoppingList) && (
         <RecipeActionDock
           totalStepsCount={totalStepsCount}
-          onNavigateToShoppingList={onNavigateToShoppingList}
-          shoppingListCount={shoppingListCount}
+          onAddToCart={onAddIngredients ? handleAddToShoppingList : undefined}
+          isAdded={isAdded}
           onStartCooking={() => setIsCookingMode(true)}
           recipeId={recipe.id}
           onRemixClick={() => setIsRemixModalOpen(true)}
