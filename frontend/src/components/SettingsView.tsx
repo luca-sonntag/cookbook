@@ -67,20 +67,20 @@ export default function SettingsView() {
             variant="secondary"
             selectedKey={language}
             onSelectionChange={(key) => setLanguage(key as 'en' | 'de')}
-            className="w-20"
+            className="w-24"
             aria-label="Language"
           >
-            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center leading-none">
-              <Select.Value className="text-[12px] font-medium" />
-              <Select.Indicator className="size-3" />
+            <Select.Trigger className="h-10 py-1.5 px-3 flex items-center leading-none rounded-xl">
+              <Select.Value className="text-xs font-semibold" />
+              <Select.Indicator className="size-3.5" />
             </Select.Trigger>
-            <Select.Popover>
+            <Select.Popover className="p-1 min-w-[100px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
               <ListBox>
-                <ListBox.Item id="en" textValue="EN">
+                <ListBox.Item id="en" textValue="EN" className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
                   EN
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
-                <ListBox.Item id="de" textValue="DE">
+                <ListBox.Item id="de" textValue="DE" className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
                   DE
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
@@ -106,24 +106,24 @@ export default function SettingsView() {
             selectedKey={preferredTempUnit}
             onSelectionChange={(key) => handleUpdateSetting('preferred_temperature_unit', key as string)}
             isDisabled={isSaving}
-            className="w-32"
+            className="w-36"
             aria-label="Temperature Unit"
           >
-            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center leading-none">
-              <Select.Value className="text-[12px] font-medium" />
-              <Select.Indicator className="size-3" />
+            <Select.Trigger className="h-10 py-1.5 px-3 flex items-center leading-none rounded-xl">
+              <Select.Value className="text-xs font-semibold" />
+              <Select.Indicator className="size-3.5" />
             </Select.Trigger>
-            <Select.Popover>
+            <Select.Popover className="p-1 min-w-[150px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
               <ListBox>
-                <ListBox.Item id="Celsius" textValue={t('app.settings.tempUnitCelsius') || 'Celsius (°C)'}>
+                <ListBox.Item id="Celsius" textValue={t('app.settings.tempUnitCelsius') || 'Celsius (°C)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
                   {t('app.settings.tempUnitCelsius') || 'Celsius (°C)'}
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
-                <ListBox.Item id="Fahrenheit" textValue={t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'}>
+                <ListBox.Item id="Fahrenheit" textValue={t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
                   {t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'}
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
-                <ListBox.Item id="both" textValue={t('app.settings.tempUnitBoth') || 'Both (°C & °F)'}>
+                <ListBox.Item id="both" textValue={t('app.settings.tempUnitBoth') || 'Both (°C & °F)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
                   {t('app.settings.tempUnitBoth') || 'Both (°C & °F)'}
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
@@ -149,20 +149,20 @@ export default function SettingsView() {
             selectedKey={preferredUnitSystem}
             onSelectionChange={(key) => handleUpdateSetting('preferred_unit_system', key as string)}
             isDisabled={isSaving}
-            className="w-36"
+            className="w-40"
             aria-label="Unit System"
           >
-            <Select.Trigger className="h-7 min-h-0 py-0 px-2 flex items-center leading-none">
-              <Select.Value className="text-[12px] font-medium" />
-              <Select.Indicator className="size-3" />
+            <Select.Trigger className="h-10 py-1.5 px-3 flex items-center leading-none rounded-xl">
+              <Select.Value className="text-xs font-semibold" />
+              <Select.Indicator className="size-3.5" />
             </Select.Trigger>
-            <Select.Popover>
+            <Select.Popover className="p-1 min-w-[170px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
               <ListBox>
-                <ListBox.Item id="metric" textValue={t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'}>
+                <ListBox.Item id="metric" textValue={t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
                   {t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'}
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
-                <ListBox.Item id="imperial" textValue={t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'}>
+                <ListBox.Item id="imperial" textValue={t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
                   {t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'}
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
@@ -186,7 +186,7 @@ export default function SettingsView() {
           <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
             <button
               onClick={() => setTheme('light')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${theme === 'light'
+              className={`px-4.5 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-1.5 ${theme === 'light'
                 ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                 }`}
@@ -196,7 +196,7 @@ export default function SettingsView() {
             </button>
             <button
               onClick={() => setTheme('dark')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${theme === 'dark'
+              className={`px-4.5 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-1.5 ${theme === 'dark'
                 ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                 }`}
@@ -221,8 +221,7 @@ export default function SettingsView() {
               </div>
             </div>
             <Button
-              size="sm"
-              className="bg-blue-600 text-white font-semibold text-xs px-4"
+              className="bg-blue-600 text-white font-bold text-xs h-10 px-5 rounded-xl shadow-md active:scale-95 transition-all"
               onPress={handleInstallClick}
             >
               Install
@@ -243,9 +242,8 @@ export default function SettingsView() {
             </div>
           </div>
           <Button
-            size="sm"
             variant="danger-soft"
-            className="font-semibold text-xs"
+            className="font-bold text-xs h-10 px-5 rounded-xl active:scale-95 transition-all"
             onPress={() => signOut()}
           >
             {t('auth.signOut') || 'Sign Out'}
