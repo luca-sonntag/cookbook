@@ -86,7 +86,7 @@ export default function TimerBanner() {
               {/* Dismiss / Cancel button */}
               <button
                 onClick={() => isFinished ? dismissFinished(timer.id) : removeTimer(timer.id)}
-                className="relative flex-shrink-0 w-7 h-7 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center transition-colors"
+                className="relative flex-shrink-0 w-9 h-9 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center transition-colors cursor-pointer"
                 aria-label={isFinished ? t('timer.dismiss') : 'Cancel timer'}
               >
                 <X className="w-3.5 h-3.5 text-white" />
