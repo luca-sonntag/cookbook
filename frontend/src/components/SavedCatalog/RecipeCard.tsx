@@ -61,10 +61,10 @@ const styles = {
   inlineTagBadge: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-full select-none whitespace-nowrap",
 
   titleContainer: "flex justify-between items-start gap-2 px-5 pt-3",
-  title: "text-sm font-bold text-gray-900 dark:text-white line-clamp-1",
-  description: "text-xs text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed px-5",
+  title: "text-base font-bold text-gray-900 dark:text-white line-clamp-1",
+  description: "text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed px-5",
 
-  footer: "flex items-center justify-between pt-3 px-5 border-t border-black/5 dark:border-white/5 text-xs text-gray-500 dark:text-gray-400",
+  footer: "flex items-center justify-between pt-3 px-5 border-t border-black/5 dark:border-white/5 text-sm text-gray-500 dark:text-gray-400",
 
   addBtnBase: "active:scale-95 transition-all cursor-pointer flex items-center justify-center",
   addBtnAdded: "w-9 h-9 rounded-xl bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent text-xs",
