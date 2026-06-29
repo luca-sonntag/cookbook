@@ -134,7 +134,7 @@ export default function CookingMode({
           isIconOnly
           variant="ghost"
           onPress={onClose}
-          className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-none"
+          className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-none"
           aria-label={t('dialog.closeAria')}
         >
           <X className="w-5 h-5" />
@@ -223,9 +223,9 @@ export default function CookingMode({
                         removeTimer(timer.id);
                       }
                     }}
-                    className="relative flex-shrink-0 w-5 h-5 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center transition-colors"
+                    className="relative flex-shrink-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center transition-colors cursor-pointer"
                   >
-                    <X className="w-3 h-3 text-white" />
+                    <X className="w-4 h-4 text-white" />
                   </button>
                 </div>
               );
