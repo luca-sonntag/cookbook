@@ -213,30 +213,30 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                   </Popover.Trigger>
                   <Popover.Content
                     placement="top"
-                    className="bg-white dark:bg-gray-950 text-gray-700 dark:text-gray-300 border border-black/10 dark:border-white/10 rounded-xl shadow-lg px-3 py-2"
+                    className="bg-white dark:bg-gray-950 text-gray-700 dark:text-gray-300 border border-black/10 dark:border-white/10 rounded-xl shadow-lg px-4 py-2.5"
                   >
                     <Popover.Dialog className="outline-none border-none p-0 m-0">
                       {matched.type === 'ingredient' && matched.ingredient ? (
-                        <div className="flex flex-col min-w-[120px] max-w-[240px]">
+                        <div className="flex flex-col min-w-[140px] max-w-[260px]">
                           <div className="flex items-center justify-between gap-3">
-                            <span className="text-xs font-bold text-gray-900 dark:text-white leading-tight">
+                            <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
                               {matched.ingredient.name}
                             </span>
                             {(matched.ingredient.amount > 0 || matched.ingredient.unit) && (
-                              <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">
+                              <span className="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 px-2 py-0.5 rounded-lg shrink-0 whitespace-nowrap">
                                 {formatAmount(matched.ingredient.amount, matched.ingredient.unit)}
                                 {matched.ingredient.unit ? ` ${matched.ingredient.unit}` : ''}
                               </span>
                             )}
                           </div>
                           {(matched.ingredient.modifier || matched.ingredient.notes) && (
-                            <span className="text-[10px] text-gray-600 dark:text-gray-400 italic mt-0.5 leading-tight">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 italic mt-1 leading-tight">
                               {[matched.ingredient.modifier, matched.ingredient.notes].filter(Boolean).join(' • ')}
                             </span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs font-semibold text-gray-900 dark:text-white">{matched.info}</span>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{matched.info}</span>
                       )}
                     </Popover.Dialog>
                   </Popover.Content>
