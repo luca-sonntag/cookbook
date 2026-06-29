@@ -62,15 +62,15 @@ export default function RecipeIngredients({
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           {sortedIngredients.map(({ group, originalIdx }, sortedIdx) => (
-            <div key={sortedIdx} className="flex flex-col gap-2.5">
+            <div key={sortedIdx} className="flex flex-col gap-2">
               {recipe.ingredients.length > 1 && (
                 <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider px-3 border-l-2 border-emerald-500 flex items-center gap-1.5">
                   <span>{translateCategory(group.name)}</span>
                 </h4>
               )}
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-1">
                 {group.items.map((ing, idx) => {
                   const scaledAmount = formatAmount(ing.amount, ing.unit);
                   const amountStr = scaledAmount ? `${scaledAmount} ` : '';
@@ -83,12 +83,12 @@ export default function RecipeIngredients({
                     <li
                       key={uniqueId}
                       onClick={() => toggleIngredient(uniqueId)}
-                      className="flex items-center gap-3.5 py-2.5 px-3.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                      className="flex items-center gap-3 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
                     >
-                      <div className={`w-6 h-6 rounded-md border flex items-center justify-center flex-shrink-0 transition-all ${
+                      <div className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition-all ${
                         isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
                       }`}>
-                        {isChecked && <Check className="w-4 h-4 text-white" />}
+                        {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
                       </div>
                       <span className={`text-sm select-none transition-all ${
                         isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
