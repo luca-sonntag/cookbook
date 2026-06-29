@@ -49,7 +49,7 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
                 placeholder={t('shopping.placeholderName')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                 required
               />
             </div>
@@ -59,7 +59,7 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
                 placeholder={t('shopping.placeholderAmount')}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
             <div className="col-span-3 md:col-span-3">
@@ -68,20 +68,20 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
                 placeholder={t('shopping.placeholderUnit')}
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
           </div>
 
           {/* Quick suggestions */}
           <div className="flex flex-wrap gap-1.5 items-center mt-1">
-            <span className="text-[10px] text-gray-500 dark:text-gray-400 mr-1">{t('shopping.suggestions')}</span>
+            <span className="text-[11px] text-gray-500 dark:text-gray-400 mr-1">{t('shopping.suggestions')}</span>
             {suggestions.map((sug) => (
               <button
                 key={sug}
                 type="button"
                 onClick={() => setUnit(sug)}
-                className="text-[10px] px-2 py-0.5 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-colors cursor-pointer"
+                className="text-xs px-2.5 py-1 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-colors cursor-pointer"
               >
                 {sug}
               </button>
@@ -90,7 +90,7 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
 
           <Button
             type="submit"
-            className="w-full py-2.5 mt-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 mt-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 h-12 text-sm"
           >
             <Plus className="w-4 h-4" />
             <span>{t('shopping.btnAdd')}</span>
