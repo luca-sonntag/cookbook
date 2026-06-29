@@ -91,7 +91,7 @@ export default function ShoppingListItem({
             {item.sources.map((src, sIdx) => (
               <span
                 key={sIdx}
-                className="inline-flex items-center text-[9px] text-gray-500 dark:text-gray-400 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 px-1.5 py-0.2 rounded-md mr-1 mt-1 font-medium max-w-[200px] sm:max-w-[320px] min-w-0"
+                className="inline-flex items-center text-[10px] text-gray-500 dark:text-gray-400 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 px-1.5 py-0.2 rounded-md mr-1 mt-1 font-medium max-w-[200px] sm:max-w-[320px] min-w-0"
                 style={{
                   display: 'inline-flex',
                   whiteSpace: 'nowrap',
