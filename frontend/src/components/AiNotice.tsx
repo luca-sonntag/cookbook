@@ -19,8 +19,8 @@ export default function AiNotice({ type = 'badge', label, tooltipText, className
     return (
       <Popover>
         <Popover.Trigger>
-          <button className={`text-gray-400 hover:text-emerald-500 dark:text-gray-500 dark:hover:text-emerald-400 transition-colors p-0.5 rounded-full outline-none focus:ring-1 focus:ring-emerald-500/30 cursor-pointer flex items-center justify-center ${className}`}>
-            <Info className="w-3.5 h-3.5" />
+          <button className={`text-gray-400 hover:text-emerald-500 dark:text-gray-500 dark:hover:text-emerald-400 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none focus:ring-1 focus:ring-emerald-500/30 cursor-pointer ${className}`}>
+            <Info className="w-4 h-4" />
           </button>
         </Popover.Trigger>
         <Popover.Content
