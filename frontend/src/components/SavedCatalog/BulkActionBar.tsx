@@ -18,40 +18,37 @@ export default function BulkActionBar({
   const { t, language } = useI18n();
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-md bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border shadow-2xl rounded-2xl p-4 flex items-center justify-between gap-4 animate-slide-up border-emerald-500/30">
-      <div className="flex flex-col">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-md bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border shadow-2xl rounded-2xl p-3 flex flex-col gap-2 animate-slide-up border-emerald-500/30">
+      <div className="flex items-center justify-between px-1">
         <span className="text-xs font-bold text-gray-900 dark:text-white">
           {t('catalog.itemsSelected', { count: selectedCount })}
         </span>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex items-center justify-end gap-2 flex-wrap">
         <Button
-          size="sm"
           variant="outline"
           onPress={onCancel}
-          className="text-xs border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl font-semibold"
+          className="text-sm h-11 px-4 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl font-semibold active:scale-95 transition-all"
         >
           {t('dialog.cancelDefault')}
         </Button>
 
         <Button
-          size="sm"
           onPress={onBulkAdd}
           isDisabled={selectedCount === 0}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md shadow-emerald-600/10 active:scale-95 transition-all"
+          className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm h-11 px-4 font-bold rounded-xl flex items-center gap-1.5 shadow-md shadow-emerald-600/10 active:scale-95 transition-all"
         >
-          <ShoppingCart className="w-3.5 h-3.5" />
+          <ShoppingCart className="w-4 h-4" />
           <span>{language === 'de' ? 'Einkaufsliste' : 'Cart'}</span>
         </Button>
 
         <Button
-          size="sm"
           onPress={onBulkDelete}
           isDisabled={selectedCount === 0}
-          className="bg-red-500 hover:bg-red-400 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md shadow-red-500/10 active:scale-95 transition-all"
+          className="bg-red-500 hover:bg-red-400 text-white text-sm h-11 px-4 font-bold rounded-xl flex items-center gap-1.5 shadow-md shadow-red-500/10 active:scale-95 transition-all"
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          <Trash2 className="w-4 h-4" />
           <span>{language === 'de' ? 'Löschen' : 'Delete'}</span>
         </Button>
       </div>
