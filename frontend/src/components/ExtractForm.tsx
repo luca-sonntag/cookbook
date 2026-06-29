@@ -39,13 +39,13 @@ export default function ExtractForm({
           <div className="relative mt-2">
             <Input
               placeholder={t('form.urlPlaceholder')}
-              className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-3 pr-10 py-3 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+              className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-3 pr-10 py-3.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
               disabled={isPending}
             />
             {url && (
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5"
                 onClick={() => setUrl('')}
                 disabled={isPending}
               >
@@ -60,7 +60,7 @@ export default function ExtractForm({
           type="submit"
           fullWidth
           isPending={isPending}
-          className={`py-3 rounded-xl font-semibold shadow-lg text-white ${
+          className={`py-3.5 h-12 text-sm rounded-xl font-semibold shadow-lg text-white ${
             isPending 
               ? 'bg-emerald-800' 
               : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all'
