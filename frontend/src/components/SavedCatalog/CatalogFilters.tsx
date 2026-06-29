@@ -37,14 +37,14 @@ export default function CatalogFilters({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('catalog.searchPlaceholder')}
-            className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-10 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none placeholder-gray-400 dark:placeholder-gray-500"
+            className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-10 py-3 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none placeholder-gray-400 dark:placeholder-gray-500"
           />
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-lg font-bold w-5 h-5 flex items-center justify-center cursor-pointer"
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
             >
               ×
             </button>
@@ -53,7 +53,7 @@ export default function CatalogFilters({
         <Button
           isIconOnly
           variant="tertiary"
-          className="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-500 hover:text-emerald-500 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shrink-0"
+          className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-500 hover:text-emerald-500 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shrink-0"
           onPress={() => setViewMode(viewMode === 'card' ? 'compact' : 'card')}
           aria-label={t('catalog.viewToggle')}
         >
@@ -62,7 +62,7 @@ export default function CatalogFilters({
         <Button
           isIconOnly
           variant="tertiary"
-          className={`w-10 h-10 rounded-xl border active:scale-95 transition-all shrink-0 ${
+          className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border active:scale-95 transition-all shrink-0 ${
             isSelectMode
               ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-500 shadow-md shadow-emerald-600/10'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-500 hover:text-emerald-500 hover:bg-black/10 dark:hover:bg-white/10'
@@ -75,11 +75,11 @@ export default function CatalogFilters({
       </div>
 
       {/* Horizontal Scrollable Filter Chips */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-none py-0.5 -mx-4 px-4 md:-mx-6 md:px-6 scroll-smooth">
+      <div className="flex gap-2 overflow-x-auto scrollbar-none py-1 -mx-4 px-4 md:-mx-6 md:px-6 scroll-smooth">
         {/* 'All' chip */}
         <button
           onClick={() => setActiveFilter('all')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
+          className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
             activeFilter === 'all'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -91,7 +91,7 @@ export default function CatalogFilters({
         {/* 'Under 15' chip */}
         <button
           onClick={() => setActiveFilter('under15')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
+          className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
             activeFilter === 'under15'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -103,7 +103,7 @@ export default function CatalogFilters({
         {/* 'Under 30' chip */}
         <button
           onClick={() => setActiveFilter('under30')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
+          className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
             activeFilter === 'under30'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -117,7 +117,7 @@ export default function CatalogFilters({
           <button
             key={tag}
             onClick={() => setActiveFilter(tag)}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
+            className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
               activeFilter === tag
                 ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
                 : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
