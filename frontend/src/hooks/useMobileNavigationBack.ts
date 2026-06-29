@@ -1,30 +1,19 @@
 import { useEffect, useRef } from 'react';
 
+/**
+ * Adds a swipe-right-from-left-edge gesture to trigger a "go back" action.
+ *
+ * NOTE: We intentionally do NOT push/intercept browser history entries here.
+ * The app uses hash-based routing (useHashRouter), which already creates proper
+ * browser history entries for every navigation. The popstate / hashchange events
+ * are handled by the router. This hook only adds the swipe gesture on top.
+ */
 export function useMobileNavigationBack(
   isActive: boolean,
   onGoBack: () => void
 ) {
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
-
-  // Push browser history state when the detail view becomes active
-  useEffect(() => {
-    if (isActive) {
-      window.history.pushState({ mobileNavigationBack: true }, '');
-    }
-  }, [isActive]);
-
-  // Intercept back-button clicks (system back gesture / button on mobile)
-  useEffect(() => {
-    const onPopState = (e: PopStateEvent) => {
-      if (isActive) {
-        e.preventDefault?.();
-        onGoBack();
-      }
-    };
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-  }, [isActive, onGoBack]);
 
   // Intercept swipe-right gesture from left screen edge to go back
   useEffect(() => {
