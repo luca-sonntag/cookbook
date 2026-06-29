@@ -19,6 +19,7 @@ import { useShoppingList } from './hooks/useShoppingList';
 import { useDialog } from './context/DialogContext';
 import { useI18n } from './context/I18nContext';
 import { useAuth } from './context/AuthContext';
+import { useHashRouter } from './hooks/useHashRouter';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
 import { useTimerManager } from './hooks/useTimerManager';
@@ -28,14 +29,31 @@ export default function App() {
   const { t } = useI18n();
   const { user, loading: authLoading, getAccessToken } = useAuth();
 
-  // History & Multi-view states
+  // ── URL-based routing ────────────────────────────────────────────────────
+  const { tab: activeView, subPath, navigate, replace } = useHashRouter();
+
+  // History & multi-view states
   const [history, setHistory] = useState<Job[]>([]);
-  const [activeView, setActiveView] = useState<'extract' | 'history' | 'shopping-list' | 'settings'>('history');
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const [isCatalogSelectMode, setIsCatalogSelectMode] = useState(false);
   const { pendingNavigation } = useTimerManager();
 
-  // Custom Hooks for Theme, PWA Installation, Recipe Extraction, and Shopping List
+  // Derived: which saved job is currently open (from URL sub-path)
+  const selectedJob: Job | null =
+    activeView === 'history' && subPath && historyLoaded
+      ? (history.find(j => j.id === subPath) ?? null)
+      : null;
+
+  // Setter for selected job — navigates via URL
+  const setSelectedJob = useCallback((job: Job | null) => {
+    if (job) {
+      navigate('history', job.id);
+    } else {
+      navigate('history');
+    }
+  }, [navigate]);
+
+  // Custom Hooks for PWA Installation, Recipe Extraction, and Shopping List
   const { isInstallable, handleInstallClick } = usePwaInstall();
   const {
     aggregatedList,
@@ -63,6 +81,8 @@ export default function App() {
       }
     } catch (err) {
       console.error('Failed to fetch history:', err);
+    } finally {
+      setHistoryLoaded(true);
     }
   }, [getAccessToken]);
 
@@ -83,15 +103,28 @@ export default function App() {
   useMobileNavigationBack(activeView === 'extract' && !!recipe, () => {
     setRecipe(null);
     setUrl('');
+    navigate('extract');
   });
 
-  // Fetch history on load and when API key changes
+  // Fetch history on load
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchHistory();
     }, 0);
     return () => clearTimeout(timer);
   }, [fetchHistory]);
+
+  // After history loads, check if current URL references a valid jobId and keep it,
+  // or clear the subPath if the jobId no longer exists.
+  useEffect(() => {
+    if (!historyLoaded) return;
+    if (activeView === 'history' && subPath) {
+      const exists = history.some(j => j.id === subPath);
+      if (!exists) {
+        replace('history');
+      }
+    }
+  }, [historyLoaded, history, activeView, subPath, replace]);
 
   // Listen to state-based pending navigation (handles timing/mount delays)
   useEffect(() => {
@@ -100,21 +133,19 @@ export default function App() {
 
       // 1. Check if the target is the currently active/extracted recipe
       if (recipe && (recipe.id === targetId || recipe.title === targetId)) {
-        setActiveView('extract');
-        setSelectedJob(null);
+        navigate('extract');
         return;
       }
 
       // 2. Check if the recipe exists in history
       const matchedJob = history.find(j => j.id === targetId || (j.recipe && j.recipe.title === targetId));
       if (matchedJob) {
-        setSelectedJob(matchedJob);
-        setActiveView('history');
+        navigate('history', matchedJob.id);
       }
     }
-  }, [pendingNavigation, recipe, history]);
+  }, [pendingNavigation, recipe, history, navigate]);
 
-  // Listen to timer click navigation events to route to the correct tab and set selected recipe
+  // Listen for timer click navigation events to route to the correct tab and set selected recipe
   useEffect(() => {
     const handleNavigate = (e: Event) => {
       const customEvent = e as CustomEvent<{ recipeId: string; stepNum: number }>;
@@ -123,22 +154,20 @@ export default function App() {
 
         // 1. Check if the target is the currently active/extracted recipe
         if (recipe && (recipe.id === targetId || recipe.title === targetId)) {
-          setActiveView('extract');
-          setSelectedJob(null);
+          navigate('extract');
           return;
         }
 
         // 2. Check if the recipe exists in history
         const matchedJob = history.find(j => j.id === targetId || (j.recipe && j.recipe.title === targetId));
         if (matchedJob) {
-          setSelectedJob(matchedJob);
-          setActiveView('history');
+          navigate('history', matchedJob.id);
         }
       }
     };
     window.addEventListener('app:navigate-to-timer-step', handleNavigate);
     return () => window.removeEventListener('app:navigate-to-timer-step', handleNavigate);
-  }, [recipe, history]);
+  }, [recipe, history, navigate]);
 
   // Listen for service worker messages (notification clicks on Android PWA)
   useEffect(() => {
@@ -196,7 +225,7 @@ export default function App() {
       if (response.ok) {
         fetchHistory();
         if (selectedJob?.id === id) {
-          setSelectedJob(null);
+          navigate('history');
         }
       } else {
         dialog.alert({
@@ -228,11 +257,11 @@ export default function App() {
       const match = combinedSearch.match(regex);
       if (match) {
         const extractedUrl = match[1];
-        window.history.replaceState({}, document.title, '/');
-        // Defer state update to avoid calling setState synchronously in effect
+        // Clear the query params and redirect to extract tab
+        window.history.replaceState({}, document.title, window.location.pathname + '#/extract');
         setTimeout(() => {
           setUrl(extractedUrl);
-          setActiveView('extract');
+          navigate('extract');
           triggerExtraction(extractedUrl);
         }, 0);
       }
@@ -315,8 +344,9 @@ export default function App() {
               onBack={() => {
                 setRecipe(null);
                 setUrl('');
+                navigate('extract');
               }}
-              onNavigateToShoppingList={() => setActiveView('shopping-list')}
+              onNavigateToShoppingList={() => navigate('shopping-list')}
               shoppingListCount={aggregatedList.unchecked.length}
               onRemixSuccess={(newRecipe) => setRecipe(newRecipe)}
               isParentAvailable={recipe?.parentJobId ? history.some(j => j.id === recipe?.parentJobId) : false}
@@ -324,8 +354,7 @@ export default function App() {
               onNavigateToRecipe={(recipeId) => {
                 const parentJob = history.find(j => j.id === recipeId);
                 if (parentJob) {
-                  setSelectedJob(parentJob);
-                  setActiveView('history');
+                  navigate('history', parentJob.id);
                   setRecipe(null);
                   setUrl('');
                 }
@@ -367,8 +396,7 @@ export default function App() {
             fetchHistory={fetchHistory}
             getAccessToken={getAccessToken}
             onNavigateToShoppingList={() => {
-              setSelectedJob(null);
-              setActiveView('shopping-list');
+              navigate('shopping-list');
             }}
             shoppingListCount={aggregatedList.unchecked.length}
             onRemixSuccess={(newRecipe) => {
@@ -376,8 +404,7 @@ export default function App() {
               // To immediately show the new recipe, we can switch to extraction view
               setRecipe(newRecipe);
               setUrl('');
-              setActiveView('extract');
-              setSelectedJob(null);
+              navigate('extract');
             }}
             onSelectModeChange={setIsCatalogSelectMode}
           />
@@ -408,7 +435,7 @@ export default function App() {
             <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-5 px-3">
               {/* Extract / New Recipe Tab */}
               <button
-                onClick={() => setActiveView('extract')}
+                onClick={() => navigate('extract')}
                 className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'extract'
                   ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -424,7 +451,7 @@ export default function App() {
               {/* Recipes / History Tab */}
               <button
                 onClick={() => {
-                  setActiveView('history');
+                  navigate('history');
                   fetchHistory();
                 }}
                 className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'history'
@@ -443,7 +470,7 @@ export default function App() {
 
               {/* Shopping List Tab */}
               <button
-                onClick={() => setActiveView('shopping-list')}
+                onClick={() => navigate('shopping-list')}
                 className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'shopping-list'
                   ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -465,7 +492,7 @@ export default function App() {
 
               {/* Settings Tab */}
               <button
-                onClick={() => setActiveView('settings')}
+                onClick={() => navigate('settings')}
                 className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'settings'
                   ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'

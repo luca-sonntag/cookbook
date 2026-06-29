@@ -41,7 +41,11 @@ export default function SavedCatalog({
   const { language } = useI18n();
 
   // Custom hook for swipe-to-go-back and mobile back button handling
-  useMobileNavigationBack(!!selectedJob, () => setSelectedJob(null));
+  // Swipe-back / browser back: navigate to the history list URL so App.tsx
+  // derives selectedJob = null from the hash automatically.
+  useMobileNavigationBack(!!selectedJob, () => {
+    window.location.hash = '#/history';
+  });
 
   // Custom hook to manage the complex state, long-press, filters, and actions
   const {
