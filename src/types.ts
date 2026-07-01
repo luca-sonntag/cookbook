@@ -76,7 +76,8 @@ export interface Job {
   url: string;
   status: JobStatus;
   error?: string | null;
-  recipe?: Recipe | ProgressData | null;
+  recipe?: Recipe | null;
+  progress?: ProgressData | null;
   parentJobId?: string | null;
   prompt?: string | null;
   userId?: string;

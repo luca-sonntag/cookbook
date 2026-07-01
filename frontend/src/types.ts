@@ -71,7 +71,8 @@ export interface Job {
   id: string;
   url: string;
   status: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed';
-  recipe?: Recipe | ProgressData;
+  recipe?: Recipe;
+  progress?: ProgressData;
   error?: string;
   parentJobId?: string | null;
   prompt?: string | null;

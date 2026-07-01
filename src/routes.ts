@@ -168,6 +168,7 @@ apiRouter.get('/jobs/:id', async (req: Request, res: Response): Promise<void> =>
         status: job.status,
         error: job.error,
         recipe: job.recipe,
+        progress: job.progress,
         parentJobId: job.parentJobId,
         prompt: job.prompt,
         createdAt: job.createdAt,

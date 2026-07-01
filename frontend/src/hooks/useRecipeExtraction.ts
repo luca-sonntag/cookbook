@@ -67,11 +67,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setProgress(null);
           setIsPending(false);
         } else {
-          if (job.recipe && (job.recipe as any).isProgress) {
-            setProgress(job.recipe as ProgressData);
-          } else {
-            setProgress(null);
-          }
+          setProgress(job.progress || null);
         }
       } catch {
         clearInterval(interval);
