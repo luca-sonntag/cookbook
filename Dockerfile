@@ -12,6 +12,10 @@ COPY frontend/package*.json frontend/
 RUN cd frontend && npm ci && cd ..
 
 COPY frontend/ frontend/
+ARG SUPABASE_URL
+ARG SUPABASE_PUBLISHABLE_KEY
+ENV VITE_SUPABASE_URL=$SUPABASE_URL
+ENV VITE_SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY
 RUN cd frontend && npm run build
 
 # Backend TypeScript compilation

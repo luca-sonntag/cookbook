@@ -27,7 +27,14 @@ async function bootstrap() {
     // Security headers (helmet)
     app.use(helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' }, // für recipe-images
-      contentSecurityPolicy: isProduction ? undefined : false, // CSP nur in production
+      contentSecurityPolicy: isProduction ? {
+        directives: {
+          ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+          "script-src": ["'self'", "'sha256-gRea1ud4dovMrn/WaGWbyWZ3C28Ahr9nd40nKPz0IO8='"],
+          "connect-src": ["'self'", "https://*.supabase.co", "wss://*.supabase.co"],
+          "img-src": ["'self'", "data:", "https://*.supabase.co"],
+        }
+      } : false, // CSP nur in production
     }));
 
     // CORS – permissiv in dev, restriktiv in production
