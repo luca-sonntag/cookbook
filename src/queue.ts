@@ -3,7 +3,7 @@ import { createWriteStream } from 'fs';
 import path from 'path';
 import https from 'https';
 import http from 'http';
-import { getNextPendingJob, updateJob, getJob, getClient } from './db.js';
+import { getNextPendingJob, updateJob, getJob, getClient, resetStuckJobs } from './db.js';
 import { getScraperForUrl } from './scrapers/index.js';
 import { extractRecipe, remixRecipe } from './gemini.js';
 import type { Job } from './types.js';
@@ -340,6 +340,12 @@ async function workerTick(): Promise<void> {
 export function startQueue(pollIntervalMs = 2000): void {
   if (workerInterval) return;
   console.log('Background job queue worker started.');
+
+  // Reset any scraping/processing jobs stuck from a previous crash/restart to failed
+  resetStuckJobs().catch(err => {
+    console.error('Failed to reset stuck jobs on startup:', err);
+  });
+
   workerInterval = setInterval(workerTick, pollIntervalMs);
 }
 
