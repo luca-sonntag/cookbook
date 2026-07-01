@@ -450,20 +450,16 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
     });
     throw err;
   } finally {
-    // 4. Ensure cleanup of the uploaded files on Gemini servers
+    // 4. Ensure cleanup of the uploaded files on Gemini servers in the background (non-blocking)
     if (uploadResult?.file?.name) {
-      try {
-        await fileManager.deleteFile(uploadResult.file.name);
-      } catch (err: any) {
+      fileManager.deleteFile(uploadResult.file.name).catch((err: any) => {
         console.error(`Failed to clean up file ${uploadResult.file.name} from Gemini File API:`, err.message);
-      }
+      });
     }
     if (gridUploadResult?.file?.name) {
-      try {
-        await fileManager.deleteFile(gridUploadResult.file.name);
-      } catch (err: any) {
+      fileManager.deleteFile(gridUploadResult.file.name).catch((err: any) => {
         console.error(`Failed to clean up file ${gridUploadResult.file.name} from Gemini File API:`, err.message);
-      }
+      });
     }
   }
 }
