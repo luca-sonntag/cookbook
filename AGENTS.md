@@ -73,7 +73,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
     * **Zentralisierte Hooks (`frontend/src/hooks/`):**
       * **`useTheme.ts`:** Steuert das clientseitige Umschalten des Hell- und Dunkelmodus und persistiert die Einstellung im `localStorage`.
       * **`usePwaInstall.ts`:** Kapselt das Abfangen des `beforeinstallprompt`-Events und steuert die Installationslogik.
-      * **`useRecipeExtraction.ts`:** Orchestriert die Validierung der URLs, die Job-Übermittlung und das asynchrone Polling des Queue-Status, gekoppelt mit dynamischen Lade-Animationen. Autorisiert alle API-Calls mit `Authorization: Bearer <jwt>`.
+      * **`useRecipeExtraction.ts`:** Orchestriert die Validierung der URLs, die Job-Übermittlung und das asynchrone Polling des Queue-Status, gekoppelt mit dynamischen Lade-Animationen und Echtzeit-Fortschrittsdaten. Autorisiert alle API-Calls mit `Authorization: Bearer <jwt>`.
       * **`useRecipeNutrition.ts`:** Liefert die Nährwerte normiert pro Portion. Falls keine expliziten Werte aus dem Quellmaterial von der KI extrahiert wurden, werden die Nährwerte der Einzelzutaten aufsummiert und durch die Basis-Portionsanzahl geteilt, um die Nährwerte pro Portion zu berechnen.
       * **`useRecipeScaling.ts`:** Berechnet Skalierungsfaktoren für Zutaten und Nährwerte. Discrete Einheiten (z.B. Stück, Zehen, EL, TL) werden in küchenübliche gemischte Brüche (z.B. `1 ½`) formatiert, während kontinuierliche Gewichte/Volumina als Ganz- oder Dezimalzahlen gerendert werden. Die ausgewählte Portionsgröße wird persistent im `localStorage` unter Verwendung des ID-basierten Schlüssels gespeichert.
       * **`useRecipeProgress.ts`:** Persistiert den Abhakk-Zustand (Checklisten-Fortschritt) von Zutaten und Zubereitungsschritten im `localStorage` basierend auf der eindeutigen Rezept-ID.
@@ -89,7 +89,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **`ThemeToggle.tsx`:** Kontrolliert den clientseitigen Hell- und Dunkelmodus.
       * **`InstallBanner.tsx`:** Kapselt den PWA-Installationshinweis.
       * **`ExtractForm.tsx`**: Ein komplett neu gestaltetes, modernes Importformular zur Eingabe und Validierung der Rezept-URLs. Unterstützt Ein-Klick-Einfügen aus der Zwischenablage (Clipboard API), zeigt Badges für unterstützte Plattformen (Instagram, TikTok, YouTube Shorts, Websites), bietet anklickbare Demo-Rezepte zum schnellen Testen und enthält eine ausklappbare Schritt-für-Schritt-Hilfe (HeroUI Accordion) zum Kopieren von Links.
-      * **`ProgressTracker.tsx`:** Visualisiert den aktuellen Job-Status in Echtzeit, untermalt durch dynamische Cooking-Fun-Facts, Fortschrittsbalken und humorvolle Ladebotschaften.
+      * **`ProgressTracker.tsx`:** Visualisiert den Extraktions-Fortschritt in Echtzeit über einen flüssig animierten Fortschrittsbalken (0-100%) sowie eine dynamische Checklist der Milestones (Warteschlange, Scraping, Downloads, Bild-Analyse, KI-Verarbeitung, Speichern). Untermalt durch rotierende, kontextsensitive Ladebotschaften.
       * **`ErrorBanner.tsx`:** Zeigt detaillierte Fehler und ermöglicht erneutes Ausführen.
       * **`AiNotice.tsx`:** Eine wiederverwendbare Badge- oder Inline-Komponente, die geschätzte Nährwertangaben visualisiert und über ein Smartphone-freundliches HeroUI-Popover (klickbar) nähere Details anzeigt.
       * **`RecipeDetails/`:** Ein modularisiertes Verzeichnis für die Rezept-Interaktionsansichten:
