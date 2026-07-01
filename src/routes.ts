@@ -139,6 +139,9 @@ apiRouter.get('/jobs/:id', async (req: Request, res: Response): Promise<void> =>
   try {
     const { id } = req.params;
 
+    // Prevent browser caching of dynamic job status
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
     if (!id) {
       res.status(400).json({
         success: false,
@@ -186,6 +189,9 @@ apiRouter.get('/jobs/:id', async (req: Request, res: Response): Promise<void> =>
  */
 apiRouter.get('/jobs', async (req: Request, res: Response): Promise<void> => {
   try {
+    // Prevent browser caching of dynamic job list
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
     const jobs = await getAllJobs(req.userId!);
     res.status(200).json({
       success: true,
