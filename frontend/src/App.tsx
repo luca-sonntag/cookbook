@@ -92,6 +92,7 @@ export default function App() {
     jobError,
     recipe,
     setRecipe,
+    progress,
     url,
     setUrl,
     urlError,
@@ -373,7 +374,7 @@ export default function App() {
               />
 
               {/* Processing State Tracker */}
-              <ProgressTracker isPending={isPending} jobStatus={jobStatus} statusDetails={statusDetails} />
+              <ProgressTracker isPending={isPending} jobStatus={jobStatus} statusDetails={statusDetails} progress={progress} />
 
               {/* Error State Banner */}
               <ErrorBanner
