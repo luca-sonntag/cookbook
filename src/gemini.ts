@@ -583,13 +583,11 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
     });
     throw err;
   } finally {
-    // Clean up uploaded grid image from Gemini File API
+    // Clean up uploaded grid image from Gemini File API in the background (non-blocking)
     if (uploadResult?.file?.name) {
-      try {
-        await fileManager.deleteFile(uploadResult.file.name);
-      } catch (err: any) {
+      fileManager.deleteFile(uploadResult.file.name).catch((err: any) => {
         console.error(`Failed to clean up file ${uploadResult.file.name} from Gemini File API:`, err.message);
-      }
+      });
     }
   }
 }
