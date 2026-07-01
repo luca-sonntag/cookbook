@@ -6,11 +6,9 @@ export const apiRouter = Router();
 
 apiRouter.use(requireAuth);
 
-// Regular expression to validate basic Instagram Reel URLs
-// Examples:
-// - https://www.instagram.com/reel/C8C_jApt_2j/
-// - https://instagram.com/reel/C8C_jApt_2j
-const INSTAGRAM_REEL_REGEX = /^(https?:\/\/)?(www\.)?instagram\.com\/(?:reel|reels|p)\/[A-Za-z0-9_-]+\/?(\?.*)?$/i;
+// Regular expression to validate standard URLs
+// Supports Instagram, TikTok, YouTube Shorts, and generic websites
+const SUPPORTED_URL_REGEX = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/i;
 
 /**
  * Endpoint to submit an Instagram Reel URL for recipe extraction.
@@ -32,10 +30,10 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     // Clean up the URL by stripping leading/trailing curly braces, parentheses, quotes, or spaces
     const cleanUrl = url.trim().replace(/^[{("'\s]+|[})"'\s]+$/g, '');
 
-    if (!INSTAGRAM_REEL_REGEX.test(cleanUrl)) {
+    if (!SUPPORTED_URL_REGEX.test(cleanUrl)) {
       res.status(400).json({
         success: false,
-        error: 'Invalid URL. Must be a valid Instagram Reel URL (e.g., https://www.instagram.com/reel/.../ ).',
+        error: 'Invalid URL. Must be a valid URL (e.g., Instagram Reel, TikTok, YouTube Shorts, or Recipe Website).',
       });
       return;
     }

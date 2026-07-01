@@ -257,16 +257,17 @@ function getPromptUnitInstructions(userPrefs?: UserPreferences) {
 /**
  * Uploads an audio file and optionally a grid image to the Google AI File API,
  * waits for them to become ACTIVE, prompts Gemini with the audio, caption, and grid image context,
- * and extracts a structured recipe.
+ * and extracts a structured recipe. If no audio is provided, it extracts from the text/html context.
  * Automatically deletes the files from Gemini storage when done.
  */
-export async function extractRecipeFromAudio(
-  audioFilePath: string,
-  mimeType: string,
+export async function extractRecipe(
+  audioFilePath: string | undefined,
+  mimeType: string | undefined,
   caption: string,
   gridImagePath?: string,
   logDir?: string,
-  userPrefs?: UserPreferences
+  userPrefs?: UserPreferences,
+  htmlContent?: string
 ): Promise<Recipe> {
   if (!config.GEMINI_API_KEY || config.GEMINI_API_KEY === 'your_gemini_api_key_here') {
     throw new Error('Gemini API key is not configured in environment variables.');
@@ -279,40 +280,44 @@ export async function extractRecipeFromAudio(
   let rawOutput: string | undefined;
 
   try {
-    // If the MIME type is video/mp4 but it's audio-only, force audio/mp4 to avoid Gemini video-processing failures
-    const uploadMimeType = mimeType === 'video/mp4' ? 'audio/mp4' : mimeType;
+    if (audioFilePath && mimeType) {
+      // If the MIME type is video/mp4 but it's audio-only, force audio/mp4 to avoid Gemini video-processing failures
+      const uploadMimeType = mimeType === 'video/mp4' ? 'audio/mp4' : mimeType;
 
-    // 1. Upload the audio file to Google AI File API
-    uploadResult = await fileManager.uploadFile(audioFilePath, {
-      mimeType: uploadMimeType,
-      displayName: `instagram-reel-audio-${Date.now()}`,
-    });
+      // 1. Upload the audio file to Google AI File API
+      uploadResult = await fileManager.uploadFile(audioFilePath, {
+        mimeType: uploadMimeType,
+        displayName: `recipe-audio-${Date.now()}`,
+      });
 
-    // 2. Poll for file state to become ACTIVE
-    let file = await fileManager.getFile(uploadResult.file.name);
-    let attempts = 0;
-    while (file.state === 'PROCESSING') {
-      attempts++;
-      if (attempts > 30) {
-        throw new Error('Timeout waiting for audio file to process on Google AI File API.');
+      // 2. Poll for file state to become ACTIVE
+      let file = await fileManager.getFile(uploadResult.file.name);
+      let attempts = 0;
+      while (file.state === 'PROCESSING') {
+        attempts++;
+        if (attempts > 30) {
+          throw new Error('Timeout waiting for audio file to process on Google AI File API.');
+        }
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        file = await fileManager.getFile(uploadResult.file.name);
       }
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      file = await fileManager.getFile(uploadResult.file.name);
-    }
 
-    if (file.state !== 'ACTIVE') {
-      throw new Error(`Google AI File API processing failed with state: ${file.state}`);
+      if (file.state !== 'ACTIVE') {
+        throw new Error(`Google AI File API processing failed with state: ${file.state}`);
+      }
     }
 
     // 2b. If a grid image is provided, upload it as well
-    const contentParts: any[] = [
-      {
+    const contentParts: any[] = [];
+    
+    if (uploadResult) {
+      contentParts.push({
         fileData: {
           fileUri: uploadResult.file.uri,
           mimeType: uploadResult.file.mimeType,
         },
-      },
-    ];
+      });
+    }
 
     if (gridImagePath) {
       console.log('[extractRecipeFromAudio] Uploading grid image for recipe extraction context...');
@@ -340,9 +345,9 @@ export async function extractRecipeFromAudio(
 
     const { targetLanguage, tempInstruction, unitSystemInstruction, languageInstruction } = getPromptUnitInstructions(userPrefs);
 
-    const prompt = `You are an expert recipe extractor. Analyze the provided audio file (which is the audio track of an Instagram recipe Reel) and the reel's description (caption) below.${gridImagePath ? ' You are also given an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating).' : ''}
-
-Combine the${gridImagePath ? ' three' : ' two'} sources to reconstruct the complete recipe, resolving any contradictions culinary-wise. Ensure to follow the field-level guidelines specified in the descriptions of the output schema.
+    const prompt = `You are an expert recipe extractor. Analyze the provided content (which may include audio, website text, or video caption)${gridImagePath ? ' and an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating)' : ''}.
+    
+Reconstruct the complete recipe, resolving any contradictions culinary-wise. Ensure to follow the field-level guidelines specified in the descriptions of the output schema.
 
 Key Constraints:
 1. Category Ordering: ${CATEGORY_ORDERING_INSTRUCTION}
@@ -357,7 +362,8 @@ Key Constraints:
 Description/Caption:
 """
 ${caption}
-"""`;
+"""
+${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` : ''}`;
 
     contentParts.push(prompt);
 
@@ -412,7 +418,7 @@ ${caption}
       success: true,
       input: {
         audioFilePath,
-        uploadMimeType,
+        uploadMimeType: mimeType === 'video/mp4' ? 'audio/mp4' : mimeType,
         captionLength: caption.length,
         captionPreview: caption.slice(0, 300),
         prompt,

@@ -4,9 +4,12 @@ import path from 'path';
 import https from 'https';
 import http from 'http';
 import { getNextPendingJob, updateJob, getJob, getClient } from './db.js';
-import { scrapeReel } from './apify.js';
-import { extractRecipeFromAudio, remixRecipe } from './gemini.js';
+import { getScraperForUrl } from './scrapers/index.js';
+import { extractRecipe, remixRecipe } from './gemini.js';
 import type { Job } from './types.js';
+import yt from 'youtube-dl-exec';
+
+const youtubedl: any = (yt as any).default || yt;
 
 let isRunning = false;
 let workerInterval: NodeJS.Timeout | null = null;
@@ -14,11 +17,11 @@ let workerInterval: NodeJS.Timeout | null = null;
 /**
  * Downloads a file from a URL to a local destination, following HTTP/HTTPS redirects.
  */
-async function downloadFile(url: string, destPath: string): Promise<string> {
+async function downloadFile(url: string, destPath: string, headers?: Record<string, string>): Promise<string> {
   return new Promise((resolve, reject) => {
     function attemptGet(currentUrl: string) {
       const protocol = currentUrl.startsWith('https') ? https : http;
-      const request = protocol.get(currentUrl, (response) => {
+      const request = protocol.get(currentUrl, { headers }, (response) => {
         // Handle redirect
         if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 307 || response.statusCode === 308) {
           const redirectUrl = response.headers.location;
@@ -147,9 +150,10 @@ async function processJob(job: Job): Promise<void> {
     console.log(`[Job ${jobId}] Starting scraping for ${url}...`);
     await updateJob(jobId, { status: 'scraping' });
 
-    // 2. Perform scraping via Apify
-    const scrapeResult = await scrapeReel(url);
-    console.log(`[Job ${jobId}] Scraped successfully. Caption length: ${scrapeResult.caption.length}`);
+    // 2. Perform scraping via the appropriate scraper
+    const scraper = getScraperForUrl(url);
+    const scrapeResult = await scraper.scrape(url);
+    console.log(`[Job ${jobId}] Scraped successfully. Caption/Title length: ${scrapeResult.caption.length}`);
 
     // 3. Mark job as processing
     await updateJob(jobId, { status: 'processing' });
@@ -157,22 +161,59 @@ async function processJob(job: Job): Promise<void> {
     // 4. Ensure run directory exists
     await fs.mkdir(runDir, { recursive: true });
 
-    const audioExt = scrapeResult.audioUrl.includes('.mp3') ? '.mp3' : '.mp4';
-    audioFilePath = path.join(runDir, `audio${audioExt}`);
-    const videoExt = '.mp4';
-    videoFilePath = path.join(runDir, `video${videoExt}`);
+    let mimeType: string | undefined = undefined;
 
-    // 5. Download audio and video in parallel
-    console.log(`[Job ${jobId}] Downloading audio and video in parallel...`);
-    const [mimeType] = await Promise.all([
-      downloadFile(scrapeResult.audioUrl, audioFilePath),
-      downloadFile(scrapeResult.videoUrl, videoFilePath).catch((err) => {
-        // Video download is best-effort — don't fail the job if it fails
-        console.warn(`[Job ${jobId}] Video download failed (will skip frame extraction): ${err.message}`);
-        videoFilePath = '';
-      }),
-    ]);
-    console.log(`[Job ${jobId}] Downloads complete.`);
+    // 5. Download audio and video in parallel (if available)
+    if (scrapeResult.audioUrl || scrapeResult.requiresYtDlpDownload) {
+      console.log(`[Job ${jobId}] Downloading audio/video...`);
+      const audioExt = scrapeResult.requiresYtDlpDownload ? '.mp3' : ((scrapeResult.audioUrl && scrapeResult.audioUrl.includes('.mp3')) ? '.mp3' : '.mp4');
+      audioFilePath = path.join(runDir, `audio${audioExt}`);
+      videoFilePath = path.join(runDir, 'video.mp4');
+      
+      const downloadPromises: Promise<any>[] = [];
+
+      if (scrapeResult.requiresYtDlpDownload && scrapeResult.originalUrl) {
+        // Use yt-dlp directly for robust downloading instead of native http requests
+        downloadPromises.push(
+          youtubedl(scrapeResult.originalUrl, { 
+            output: audioFilePath, 
+            format: 'bestaudio/best', 
+            extractAudio: true,
+            audioFormat: 'mp3',
+            noWarnings: true 
+          })
+            .catch((err: any) => {
+              console.warn(`[Job ${jobId}] yt-dlp audio download failed: ${err.message}`);
+              audioFilePath = '';
+            })
+        );
+        if (scrapeResult.videoUrl) {
+           downloadPromises.push(
+            youtubedl(scrapeResult.originalUrl, { output: videoFilePath, format: 'bestvideo/best', noWarnings: true })
+              .catch((err: any) => {
+                console.warn(`[Job ${jobId}] yt-dlp video download failed (will skip frame extraction): ${err.message}`);
+                videoFilePath = '';
+              })
+          );
+        }
+      } else {
+        downloadPromises.push(downloadFile(scrapeResult.audioUrl!, audioFilePath, scrapeResult.headers).catch((err) => {
+          console.warn(`[Job ${jobId}] Audio download failed: ${err.message}`);
+          audioFilePath = '';
+        }));
+        
+        if (scrapeResult.videoUrl) {
+          downloadPromises.push(downloadFile(scrapeResult.videoUrl, videoFilePath, scrapeResult.headers).catch((err) => {
+            console.warn(`[Job ${jobId}] Video download failed (will skip frame extraction): ${err.message}`);
+            videoFilePath = '';
+          }));
+        }
+      }
+
+      await Promise.allSettled(downloadPromises);
+      mimeType = audioExt === '.mp3' ? 'audio/mp3' : 'audio/mp4'; // Fallback
+      console.log(`[Job ${jobId}] Downloads complete.`);
+    }
 
     // 6. If video is available, extract frames and create grid first
     let gridImagePath: string | undefined;
@@ -224,13 +265,21 @@ async function processJob(job: Job): Promise<void> {
       : Promise.resolve(null);
 
     const [recipe, selectedImageUrls] = await Promise.all([
-      extractRecipeFromAudio(audioFilePath, mimeType as string, scrapeResult.caption, gridImagePath, runDir, userPrefs),
+      extractRecipe(
+        audioFilePath || undefined,
+        mimeType,
+        scrapeResult.caption,
+        gridImagePath,
+        runDir,
+        userPrefs,
+        scrapeResult.htmlContent
+      ),
       frameSelectionPromise,
     ]);
 
     console.log(`[Job ${jobId}] Recipe extracted: "${recipe.title}"`);
 
-    // Assign image: prefer Gemini-selected frames, fall back to Apify cover thumbnail
+    // Assign image: prefer Gemini-selected frames, fall back to scraper thumbnail
     if (selectedImageUrls && selectedImageUrls.length > 0) {
       recipe.imageUrls = selectedImageUrls;
       recipe.imageUrl = selectedImageUrls[0];
@@ -241,7 +290,7 @@ async function processJob(job: Job): Promise<void> {
       }
     }
 
-    recipe.instagramHandle = scrapeResult.instagramHandle || null;
+    recipe.instagramHandle = scrapeResult.authorHandle || null;
 
     // Assign unique recipe ID equal to jobId
     recipe.id = jobId;

@@ -16,7 +16,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       setUrlError(t('form.validation.required'));
       return false;
     }
-    const regex = /^https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels|p)\/[A-Za-z0-9_-]+\/?/i;
+    const regex = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/i;
     if (!regex.test(testUrl.trim())) {
       setUrlError(t('form.validation.invalid'));
       return false;
