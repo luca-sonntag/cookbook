@@ -266,4 +266,23 @@ export async function checkDbHealth(): Promise<boolean> {
   }
 }
 
+/** Reset any jobs stuck in 'scraping' or 'processing' status to 'failed' on startup. */
+export async function resetStuckJobs(): Promise<void> {
+  const { error } = await getClient()
+    .from('jobs')
+    .update({
+      status: 'failed',
+      error: 'Server was restarted while processing the recipe. Please try again.',
+      updated_at: new Date().toISOString(),
+    })
+    .in('status', ['scraping', 'processing']);
+
+  if (error) {
+    console.error('Failed to reset stuck jobs on startup:', error.message);
+  } else {
+    console.log('Stuck jobs reset to failed status successfully.');
+  }
+}
+
+
 
