@@ -63,15 +63,24 @@ export interface Recipe {
 
 export type JobStatus = 'pending' | 'scraping' | 'processing' | 'completed' | 'failed';
 
+export type ProgressStage = 'queued' | 'scraping' | 'downloading_media' | 'extracting_frames' | 'extracting_recipe' | 'finalizing';
+
+export interface ProgressData {
+  isProgress: true;
+  percent: number;
+  stage: ProgressStage;
+}
+
 export interface Job {
   id: string;
   url: string;
   status: JobStatus;
   error?: string | null;
-  recipe?: Recipe | null;
+  recipe?: Recipe | ProgressData | null;
   parentJobId?: string | null;
   prompt?: string | null;
   userId?: string;
   createdAt: string;
   updatedAt: string;
 }
+
