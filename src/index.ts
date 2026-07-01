@@ -51,7 +51,7 @@ async function bootstrap() {
     app.use(express.json({ limit: '1mb' }));
 
     // Serve static files from React build directory
-    const frontendDistPath = path.resolve(__dirname, '..', 'frontend', 'dist');
+    const frontendDistPath = path.resolve(process.cwd(), 'frontend', 'dist');
     app.use(express.static(frontendDistPath));
 
     // Serve permanently saved recipe food images (extracted video frames)
