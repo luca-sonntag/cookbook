@@ -163,7 +163,7 @@ export const uiTranslations = {
   de: {
     app: {
       title: 'CookBuddy',
-      subtitle: 'Instagram Reel Rezept-Assistent',
+      subtitle: 'Rezept-Assistent',
       nav: {
         newRecipe: 'Neu',
         savedRecipes: 'Rezepte',
@@ -207,7 +207,7 @@ export const uiTranslations = {
           sub: 'Warte auf Server-Ressourcen...',
         },
         scraping: {
-          text: 'Reel wird abgerufen...',
+          text: 'Quelle wird abgerufen...',
           sub: 'Instagram-Daten werden ausgelesen...',
         },
         processing: {
@@ -253,17 +253,17 @@ export const uiTranslations = {
     },
     error: {
       title: 'Extraktion fehlgeschlagen',
-      default: 'Beim Analysieren des Reels ist ein unbekannter Fehler aufgetreten.',
+      default: 'Beim Analysieren des Links ist ein unbekannter Fehler aufgetreten.',
       retry: 'Wiederholen',
     },
     form: {
-      urlLabel: 'Instagram Reel Link',
-      urlPlaceholder: 'https://www.instagram.com/reel/...',
+      urlLabel: 'Rezept Link (Instagram, TikTok, Website)',
+      urlPlaceholder: 'https://...',
       btnPending: 'Rezept wird gelesen...',
       btnSubmit: 'Rezept erstellen',
       validation: {
-        required: 'Instagram Reel URL ist erforderlich.',
-        invalid: 'Es muss eine gültige Instagram Reel URL sein (z.B. https://www.instagram.com/reel/...Parallel).',
+        required: 'Rezept URL ist erforderlich.',
+        invalid: 'Es muss eine gültige URL sein (z.B. Instagram, TikTok, Website).',
         failedCheck: 'Statusüberprüfung vom Server fehlgeschlagen.',
         failedExtraction: 'Die Rezept-Extraktion ist fehlgeschlagen.',
         lostConnection: 'Verbindung zum Backend-Server verloren.',
@@ -274,7 +274,7 @@ export const uiTranslations = {
     },
     install: {
       title: 'Als App installieren',
-      desc: 'Teile Reels direkt aus Instagram mit dieser App, um Rezepte schneller zu speichern!',
+      desc: 'Teile Links direkt mit dieser App, um Rezepte schneller zu speichern!',
       btn: 'Installieren',
     },
     recipe: {
@@ -330,10 +330,10 @@ export const uiTranslations = {
     },
     catalog: {
       savedOn: 'Gespeichert am {date}',
-      viewReel: 'Reel ansehen',
+      viewReel: 'Quelle ansehen',
       title: 'Rezepte',
       emptyTitle: 'Keine gespeicherten Rezepte',
-      emptyDesc: 'Extrahiere Rezepte aus Instagram Reels im "Neues Rezept" Tab, um sie hier zu speichern!',
+      emptyDesc: 'Extrahiere Rezepte im "Neues Rezept" Tab, um sie hier zu speichern!',
       deleteRecipe: 'Rezept löschen',
       backToSaved: 'Zurück zu gespeicherten Rezepten',
       searchPlaceholder: 'Rezepte nach Name, Zutaten oder Tags filtern...',
@@ -422,7 +422,7 @@ export const uiTranslations = {
   en: {
     app: {
       title: 'CookBuddy',
-      subtitle: 'Instagram Reel Recipe Assistant',
+      subtitle: 'Recipe Assistant',
       nav: {
         newRecipe: 'New',
         savedRecipes: 'Recipes',
@@ -466,7 +466,7 @@ export const uiTranslations = {
           sub: 'Waiting for server resources...',
         },
         scraping: {
-          text: 'Retrieving Reel...',
+          text: 'Retrieving source...',
           sub: 'Extracting Instagram data...',
         },
         processing: {
@@ -479,7 +479,7 @@ export const uiTranslations = {
         },
         failed: {
           text: 'Extraction failed',
-          sub: 'Could not extract recipe from Reel.',
+          sub: 'Could not extract recipe from link.',
         }
       }
     },
@@ -512,17 +512,17 @@ export const uiTranslations = {
     },
     error: {
       title: 'Extraction Failed',
-      default: 'An unknown error occurred while analyzing the Reel.',
+      default: 'An unknown error occurred while analyzing the link.',
       retry: 'Retry',
     },
     form: {
-      urlLabel: 'Instagram Reel Link',
-      urlPlaceholder: 'https://www.instagram.com/reel/...',
+      urlLabel: 'Recipe Link (Instagram, TikTok, Website)',
+      urlPlaceholder: 'https://...',
       btnPending: 'Reading recipe...',
       btnSubmit: 'Extract Recipe',
       validation: {
-        required: 'Instagram Reel URL is required.',
-        invalid: 'Must be a valid Instagram Reel URL (e.g., https://www.instagram.com/reel/...).',
+        required: 'Recipe URL is required.',
+        invalid: 'Must be a valid URL (e.g., Instagram, TikTok, Website).',
         failedCheck: 'Failed to check status from server.',
         failedExtraction: 'The recipe extraction failed.',
         lostConnection: 'Lost connection to backend server.',
@@ -533,7 +533,7 @@ export const uiTranslations = {
     },
     install: {
       title: 'Install as App',
-      desc: 'Share Reels directly from Instagram to this app to save recipes faster!',
+      desc: 'Share links directly to this app to save recipes faster!',
       btn: 'Install',
     },
     recipe: {
@@ -589,10 +589,10 @@ export const uiTranslations = {
     },
     catalog: {
       savedOn: 'Saved on {date}',
-      viewReel: 'View Reel',
+      viewReel: 'View Source',
       title: 'Recipes',
       emptyTitle: 'No Saved Recipes',
-      emptyDesc: 'Extract recipes from Instagram Reels in the "Extract New" tab to save them here!',
+      emptyDesc: 'Extract recipes in the "Extract New" tab to save them here!',
       deleteRecipe: 'Delete recipe',
       backToSaved: 'Back to Saved Recipes',
       searchPlaceholder: 'Search recipes by name, ingredients or tags...',

@@ -26,7 +26,7 @@ const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'pr
     ],
     scraping: [
       'Instagram-Küche wird durchwühlt... 🔍',
-      'Reel-Zutaten werden digital eingescannt... 📷',
+      'Video-Zutaten werden digital eingescannt... 📷',
       'Die Tonspur wird aus dem Video gefiltert... 🔊',
       'Untertitel werden entziffert... ✍️',
       'Video-Metadaten werden analysiert... 📊',
@@ -34,7 +34,7 @@ const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'pr
       'Instagrams Anti-Spam-Wächter werden abgelenkt... 🤫',
       'Der Apify-Küchenhelfer holt das Video ab... 📦',
       'Video-Bilder werden stichprobenartig betrachtet... 🎞️',
-      'Koch-Reel wird in die Küche getragen... 🏃‍♂️'
+      'Koch-Video wird in die Küche getragen... 🏃‍♂️'
     ],
     processing: [
       'Gemini probiert die Soße... 🥣',
@@ -70,7 +70,7 @@ const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'pr
     ],
     scraping: [
       'Rummaging through the Instagram kitchen... 🔍',
-      'Digitally scanning Reel ingredients... 📷',
+      'Digitally scanning video ingredients... 📷',
       'Filtering the audio track from the video... 🔊',
       'Deciphering subtitles... ✍️',
       'Analyzing video metadata... 📊',
@@ -78,7 +78,7 @@ const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'pr
       'Distracting Instagram\'s anti-spam guardians... 🤫',
       'The Apify kitchen helper is fetching the video... 📦',
       'Reviewing video frames... 🎞️',
-      'Carrying the cooking Reel into the kitchen... 🏃‍♂️'
+      'Carrying the cooking video into the kitchen... 🏃‍♂️'
     ],
     processing: [
       'Gemini is tasting the sauce... 🥣',
