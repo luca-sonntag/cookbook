@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@heroui/react';
-import { CheckCircle2, Loader2, Circle } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import type { SupportedLanguage } from '../i18n';
-import type { ProgressData, ProgressStage } from '../types';
+import type { ProgressData } from '../types';
 
 interface ProgressTrackerProps {
   isPending: boolean;
@@ -11,15 +10,6 @@ interface ProgressTrackerProps {
   statusDetails: { text: string; sub: string } | null;
   progress: ProgressData | null;
 }
-
-const STAGES: ProgressStage[] = [
-  'queued',
-  'scraping',
-  'downloading_media',
-  'extracting_frames',
-  'extracting_recipe',
-  'finalizing',
-];
 
 const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'processing' | 'completed' | 'failed', string[]>> = {
   de: {
@@ -156,9 +146,6 @@ export default function ProgressTracker({ isPending, jobStatus, statusDetails, p
 
   if (!isPending || !statusDetails) return null;
 
-  const currentStageIndex = STAGES.indexOf(activeStage);
-  const isJobCompleted = jobStatus === 'completed';
-
   return (
     <Card className="glass-panel p-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/5 shadow-md transition-all duration-300 w-full">
       <div className="flex flex-col gap-4">
@@ -178,39 +165,6 @@ export default function ProgressTracker({ isPending, jobStatus, statusDetails, p
               <div className="absolute inset-0 bg-white/20 animate-pulse" />
             </div>
           </div>
-        </div>
-
-        {/* Milestone Steps Checklist */}
-        <div className="grid grid-cols-1 gap-2 pt-3 border-t border-black/5 dark:border-white/5">
-          {STAGES.map((stageKey, idx) => {
-            const isCompleted = isJobCompleted || currentStageIndex > idx;
-            const isActive = !isJobCompleted && currentStageIndex === idx;
-
-            return (
-              <div key={stageKey} className="flex items-center gap-3">
-                <div className="shrink-0 flex items-center justify-center">
-                  {isCompleted ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  ) : isActive ? (
-                    <Loader2 className="w-4 h-4 text-teal-500 animate-spin" />
-                  ) : (
-                    <Circle className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-                  )}
-                </div>
-                <span
-                  className={`text-xs transition-colors duration-200 ${
-                    isCompleted
-                      ? 'text-gray-400 dark:text-gray-500 line-through decoration-gray-300/60 dark:decoration-gray-700/60'
-                      : isActive
-                      ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                      : 'text-gray-400 dark:text-gray-600'
-                  }`}
-                >
-                  {t(`job.progress.stages.${stageKey}` as any)}
-                </span>
-              </div>
-            );
-          })}
         </div>
 
         {/* Rotating funny status text */}
