@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { Recipe, Job } from '../types';
+import type { Recipe, Job, ProgressData } from '../types';
 import { useI18n } from '../context/I18nContext';
 
 export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: () => void) {
@@ -8,6 +8,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
   const [jobError, setJobError] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [progress, setProgress] = useState<ProgressData | null>(null);
   const [url, setUrl] = useState('');
   const [urlError, setUrlError] = useState('');
 
@@ -57,17 +58,26 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         if (job.status === 'completed') {
           clearInterval(interval);
           setRecipe(job.recipe);
+          setProgress(null);
           setIsPending(false);
           onExtractionSuccess();
         } else if (job.status === 'failed') {
           clearInterval(interval);
           setJobError(job.error || t('form.validation.failedExtraction'));
+          setProgress(null);
           setIsPending(false);
+        } else {
+          if (job.recipe && (job.recipe as any).isProgress) {
+            setProgress(job.recipe as ProgressData);
+          } else {
+            setProgress(null);
+          }
         }
       } catch {
         clearInterval(interval);
         setJobStatus('failed');
         setJobError(t('form.validation.lostConnection'));
+        setProgress(null);
         setIsPending(false);
       }
     }, 2000);
@@ -81,6 +91,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     setJobStatus('pending');
     setJobError(null);
     setRecipe(null);
+    setProgress(null);
 
     try {
       const token = await getAccessToken();
@@ -123,6 +134,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     jobError,
     recipe,
     setRecipe,
+    progress,
     url,
     setUrl,
     urlError,
