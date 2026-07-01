@@ -29,6 +29,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * Bietet Helper-Funktionen (`getAllJobs(userId)` und `deleteJob(id, userId)`) zur persistenten Abfrage und Bereinigung von Extraktionen – stets benutzerbezogen.
   * Stellt REST-Endpunkte bereit: `GET /api/jobs` (liefert den Extraktionsverlauf des authentifizierten Users) und `DELETE /api/jobs/:id` (löscht ein bestimmtes Rezept des Users).
   * **Eindeutige Identifikation:** Normalisiert Rezepte bei Abfragen und versieht sie mit einer eindeutigen `id` (entspricht der `jobId`), um Kollisionen zwischen Rezepten mit gleichem Titel zu unterbinden.
+  * **Caching-Deaktivierung:** Setzt explizit `Cache-Control` Header (`no-store, no-cache, must-revalidate, proxy-revalidate`) für dynamic endpoints (`/api/jobs` und `/api/jobs/:id`), um zu verhindern, dass Browser veraltete/gecachte Job-Zustände ausliefern.
 * **Frontend-Hosting:** Express dient gleichzeitig als Webserver für die React-Frontend-Assets (`frontend/dist`) und leitet alle Nicht-API-Routen (`*`) zwecks SPA-Routing an die `index.html` weiter.
 * **Sicherheits-Hardening (`src/index.ts`):**
   * **`helmet`:** Setzt standardmäßige Security-Header (X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security, etc.). `crossOriginResourcePolicy` ist auf `cross-origin` gesetzt, damit `recipe-images` aus anderen Origins geladen werden können. CSP wird nur in Production aktiviert.
