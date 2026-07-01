@@ -111,7 +111,10 @@ async function sendNotification(
   recipeId?: string,
   stepNum?: number,
 ): Promise<void> {
-  if (!('Notification' in window)) return;
+  if (!('Notification' in window)) {
+    console.warn('[Timer] Notification API not available');
+    return;
+  }
 
   try {
     let permission = Notification.permission;
@@ -120,24 +123,35 @@ async function sendNotification(
       permission = await Notification.requestPermission();
     }
 
-    if (permission !== 'granted') return;
+    if (permission !== 'granted') {
+      console.warn('[Timer] Notification permission not granted:', permission);
+      return;
+    }
 
-    // Use service worker showNotification for reliable PWA notifications on Android.
-    // The main-thread `new Notification()` is unreliable when the PWA is backgrounded
-    // or the screen is off — the SW-based approach delegates to the persistent SW.
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification(title, {
-        body,
-        icon: '/icon-512.png',
-        badge: '/icon-192.png',
-        tag: 'cooking-timer',
-        vibrate: [200, 100, 200, 100, 400],
-        data: { recipeId, stepNum },
-        requireInteraction: true,
-      } as NotificationOptions & { vibrate?: number[] });
-    } else {
-      // Fallback for non-PWA / SW-not-ready contexts
+    // Always prefer service worker showNotification for reliable PWA delivery.
+    // `navigator.serviceWorker.ready` waits for the SW to be active.
+    // We do NOT gate on `.controller` — it's null on first load after SW activation,
+    // but `registration.showNotification()` still works.
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+          body,
+          icon: '/icon-512.png',
+          badge: '/icon-192.png',
+          tag: 'cooking-timer',
+          vibrate: [200, 100, 200, 100, 400],
+          data: { recipeId, stepNum },
+          requireInteraction: true,
+        } as NotificationOptions & { vibrate?: number[] });
+        return;
+      } catch (swErr) {
+        console.error('[Timer] SW showNotification failed, falling back:', swErr);
+      }
+    }
+
+    // Ultimate fallback (non-PWA / SW failed)
+    try {
       const notification = new Notification(title, {
         body,
         icon: '/icon-512.png',
@@ -146,9 +160,11 @@ async function sendNotification(
         vibrate: [200, 100, 200, 100, 400],
       } as any);
       setTimeout(() => notification.close(), 8000);
+    } catch (fallbackErr) {
+      console.error('[Timer] Fallback Notification also failed:', fallbackErr);
     }
-  } catch {
-    // Silently ignore
+  } catch (err) {
+    console.error('[Timer] sendNotification error:', err);
   }
 }
 
@@ -224,6 +240,52 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     }, 500);
 
     return () => clearInterval(interval);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Catch-up handler: when the screen is off on Android, setInterval is throttled
+  // to ~1 tick per minute. This fires immediately when the user wakes the phone.
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'visible') return;
+
+      const now = Date.now();
+      const current = timersRef.current;
+      const missedExpiry = current.filter(
+        t => !t.isFinished && now >= t.endAt && !alreadyFiredRef.current.has(t.id)
+      );
+
+      missedExpiry.forEach(timer => {
+        alreadyFiredRef.current.add(timer.id);
+        playAlarm();
+        vibrate();
+        sendNotification(
+          timer.label,
+          '🍳 Dein Koch-Timer ist abgelaufen. / Your cooking timer finished.',
+          timer.recipeId,
+          timer.stepNum,
+        );
+
+        const repeatInterval = setInterval(() => {
+          if (timersRef.current.some(t => t.id === timer.id)) {
+            playAlarm();
+            vibrate();
+          } else {
+            clearInterval(repeatInterval);
+          }
+        }, 2500);
+        alarmIntervalsRef.current.set(timer.id, repeatInterval);
+      });
+
+      if (missedExpiry.length > 0) {
+        const expiredIds = new Set(missedExpiry.map(t => t.id));
+        setTimers(prev =>
+          prev.map(t => expiredIds.has(t.id) ? { ...t, isFinished: true } : t)
+        );
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addTimer = useCallback((durationSeconds: number, label: string, recipeId?: string, stepNum?: number): string => {
