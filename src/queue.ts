@@ -6,7 +6,7 @@ import http from 'http';
 import { getNextPendingJob, updateJob, getJob, getClient, resetStuckJobs } from './db.js';
 import { getScraperForUrl } from './scrapers/index.js';
 import { extractRecipe, remixRecipe } from './gemini.js';
-import type { Job } from './types.js';
+import type { Job, ProgressData } from './types.js';
 import yt from 'youtube-dl-exec';
 
 const youtubedl: any = (yt as any).default || yt;
@@ -119,7 +119,7 @@ async function processJob(job: Job): Promise<void> {
 
     if (job.parentJobId) {
       console.log(`[Job ${jobId}] Starting remix processing...`);
-      await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 30, stage: 'extracting_recipe' } });
+      await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 30, stage: 'extracting_recipe' } as ProgressData });
       await fs.mkdir(runDir, { recursive: true });
 
       const parentJob = await getJob(job.parentJobId);
@@ -148,7 +148,7 @@ async function processJob(job: Job): Promise<void> {
 
     // 1. Mark job as scraping
     console.log(`[Job ${jobId}] Starting scraping for ${url}...`);
-    await updateJob(jobId, { status: 'scraping', recipe: { isProgress: true, percent: 15, stage: 'scraping' } });
+    await updateJob(jobId, { status: 'scraping', recipe: { isProgress: true, percent: 15, stage: 'scraping' } as ProgressData });
 
     // 2. Perform scraping via the appropriate scraper
     const scraper = getScraperForUrl(url);
@@ -156,7 +156,7 @@ async function processJob(job: Job): Promise<void> {
     console.log(`[Job ${jobId}] Scraped successfully. Caption/Title length: ${scrapeResult.caption.length}`);
 
     // 3. Mark job as processing
-    await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 35, stage: 'downloading_media' } });
+    await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 35, stage: 'downloading_media' } as ProgressData });
 
     // 4. Ensure run directory exists
     await fs.mkdir(runDir, { recursive: true });
@@ -220,7 +220,7 @@ async function processJob(job: Job): Promise<void> {
     let framePaths: string[] = [];
 
     if (videoFilePath) {
-      await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 55, stage: 'extracting_frames' } });
+      await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 55, stage: 'extracting_frames' } as ProgressData });
       try {
         const { extractFrames, createImageGrid } = await import('./frameExtractor.js');
         console.log(`[Job ${jobId}] Extracting frames from video...`);
@@ -265,7 +265,7 @@ async function processJob(job: Job): Promise<void> {
       })()
       : Promise.resolve(null);
 
-    await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 75, stage: 'extracting_recipe' } });
+    await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 75, stage: 'extracting_recipe' } as ProgressData });
 
     const [recipe, selectedImageUrls] = await Promise.all([
       extractRecipe(
@@ -281,7 +281,7 @@ async function processJob(job: Job): Promise<void> {
     ]);
 
     console.log(`[Job ${jobId}] Recipe extracted: "${recipe.title}"`);
-    await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 90, stage: 'finalizing' } });
+    await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 90, stage: 'finalizing' } as ProgressData });
 
     // Assign image: prefer Gemini-selected frames, fall back to scraper thumbnail
     if (selectedImageUrls && selectedImageUrls.length > 0) {

@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient, PostgrestError } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
 import { config } from './config.js';
-import type { Job, JobStatus } from './types.js';
+import type { Job, JobStatus, Recipe, ProgressData } from './types.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
