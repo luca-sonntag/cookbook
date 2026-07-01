@@ -222,6 +222,16 @@ export const uiTranslations = {
           text: 'Extraktion fehlgeschlagen',
           sub: 'Das Rezept konnte nicht extrahiert werden.',
         }
+      },
+      progress: {
+        stages: {
+          queued: 'Warteschlange',
+          scraping: 'Instagram-Daten laden',
+          downloading_media: 'Audio & Video herunterladen',
+          extracting_frames: 'Videobilder extrahieren',
+          extracting_recipe: 'Rezept extrahieren (Gemini AI)',
+          finalizing: 'Speichern & Fertigstellen'
+        }
       }
     },
     theme: {
@@ -491,6 +501,16 @@ export const uiTranslations = {
         failed: {
           text: 'Extraction failed',
           sub: 'Could not extract recipe from link.',
+        }
+      },
+      progress: {
+        stages: {
+          queued: 'Queue',
+          scraping: 'Fetching Instagram data',
+          downloading_media: 'Downloading audio & video',
+          extracting_frames: 'Extracting video frames',
+          extracting_recipe: 'Extracting recipe (Gemini AI)',
+          finalizing: 'Saving & Finalizing'
         }
       }
     },
