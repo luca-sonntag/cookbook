@@ -59,17 +59,26 @@ export interface Recipe {
   remixPrompt?: string | null;
 }
 
+export type ProgressStage = 'queued' | 'scraping' | 'downloading_media' | 'extracting_frames' | 'extracting_recipe' | 'finalizing';
+
+export interface ProgressData {
+  isProgress: true;
+  percent: number;
+  stage: ProgressStage;
+}
+
 export interface Job {
   id: string;
   url: string;
   status: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed';
-  recipe?: Recipe;
+  recipe?: Recipe | ProgressData;
   error?: string;
   parentJobId?: string | null;
   prompt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
 
 export interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
