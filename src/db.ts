@@ -59,12 +59,15 @@ function rowToJob(row: JobRow): Job {
     updatedAt: row.updated_at,
   };
   if (job.recipe) {
-    normalizeRecipe(job.recipe, job.id);
-    if (job.parentJobId) {
-      job.recipe.parentJobId = job.parentJobId;
-    }
-    if (job.prompt) {
-      job.recipe.remixPrompt = job.prompt;
+    const isProgress = (job.recipe as any).isProgress;
+    if (!isProgress) {
+      normalizeRecipe(job.recipe, job.id);
+      if (job.parentJobId) {
+        (job.recipe as any).parentJobId = job.parentJobId;
+      }
+      if (job.prompt) {
+        (job.recipe as any).remixPrompt = job.prompt;
+      }
     }
   }
   return job;
@@ -87,6 +90,7 @@ function jobToRow(updates: Partial<Job>): Partial<JobRow> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeRecipe(recipe: any, jobId: string): void {
+  if (recipe && recipe.isProgress) return;
   if (!recipe.id) {
     recipe.id = jobId;
   }
