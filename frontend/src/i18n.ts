@@ -261,6 +261,17 @@ export const uiTranslations = {
       urlPlaceholder: 'https://...',
       btnPending: 'Rezept wird gelesen...',
       btnSubmit: 'Rezept erstellen',
+      pasteTooltip: 'Link aus Zwischenablage einfügen',
+      pasteFailed: 'Zwischenablage konnte nicht gelesen werden. Bitte manuell einfügen.',
+      demoTitle: 'Demo ausprobieren',
+      platformsTitle: 'Unterstützte Plattformen:',
+      helpTitle: 'Wie kopiere ich einen Rezept-Link?',
+      helpSteps: {
+        instagram: 'Öffne ein Instagram Reel, tippe auf Teilen (Papierflieger-Symbol) und wähle Link kopieren.',
+        tiktok: 'Öffne ein TikTok-Video, tippe auf den Teilen-Pfeil und wähle Link kopieren.',
+        youtube: 'Öffne ein YouTube Short oder Video, tippe auf Teilen und wähle Link kopieren.',
+        website: 'Kopiere einfach die vollständige URL aus der Adresszeile deines Browsers.'
+      },
       validation: {
         required: 'Rezept URL ist erforderlich.',
         invalid: 'Es muss eine gültige URL sein (z.B. Instagram, TikTok, Website).',
@@ -520,6 +531,17 @@ export const uiTranslations = {
       urlPlaceholder: 'https://...',
       btnPending: 'Reading recipe...',
       btnSubmit: 'Extract Recipe',
+      pasteTooltip: 'Paste link from clipboard',
+      pasteFailed: 'Could not read from clipboard. Please paste manually.',
+      demoTitle: 'Try a Demo',
+      platformsTitle: 'Supported Platforms:',
+      helpTitle: 'How do I copy a recipe link?',
+      helpSteps: {
+        instagram: 'Open an Instagram Reel, tap Share (paper airplane icon) and choose Copy Link.',
+        tiktok: 'Open a TikTok video, tap the Share arrow and choose Copy Link.',
+        youtube: 'Open a YouTube Short or video, tap Share and choose Copy Link.',
+        website: 'Simply copy the full URL from your browser\'s address bar.'
+      },
       validation: {
         required: 'Recipe URL is required.',
         invalid: 'Must be a valid URL (e.g., Instagram, TikTok, Website).',
