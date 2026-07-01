@@ -87,7 +87,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **`AuthForm.tsx`:** Vollbild-Login-/Registrierungsformular mit E-Mail- und Passwortfeldern sowie Google OAuth Integration. Nutzt HeroUI v3 `TextField`-Wrapper mit `onChange` (nicht v2-`onValueChange`). Schaltet zwischen Sign-In und Sign-Up um. Zeigt Success-/Error-Meldungen inline an.
       * **`ThemeToggle.tsx`:** Kontrolliert den clientseitigen Hell- und Dunkelmodus.
       * **`InstallBanner.tsx`:** Kapselt den PWA-Installationshinweis.
-      * **`ExtractForm.tsx`:** Formular zur Eingabe und Validierung der Reels-URLs.
+      * **`ExtractForm.tsx`**: Ein komplett neu gestaltetes, modernes Importformular zur Eingabe und Validierung der Rezept-URLs. Unterstützt Ein-Klick-Einfügen aus der Zwischenablage (Clipboard API), zeigt Badges für unterstützte Plattformen (Instagram, TikTok, YouTube Shorts, Websites), bietet anklickbare Demo-Rezepte zum schnellen Testen und enthält eine ausklappbare Schritt-für-Schritt-Hilfe (HeroUI Accordion) zum Kopieren von Links.
       * **`ProgressTracker.tsx`:** Visualisiert den aktuellen Job-Status in Echtzeit, untermalt durch dynamische Cooking-Fun-Facts, Fortschrittsbalken und humorvolle Ladebotschaften.
       * **`ErrorBanner.tsx`:** Zeigt detaillierte Fehler und ermöglicht erneutes Ausführen.
       * **`AiNotice.tsx`:** Eine wiederverwendbare Badge- oder Inline-Komponente, die geschätzte Nährwertangaben visualisiert und über ein Smartphone-freundliches HeroUI-Popover (klickbar) nähere Details anzeigt.
