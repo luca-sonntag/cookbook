@@ -1,14 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@heroui/react';
-import { RefreshCw } from 'lucide-react';
+import { CheckCircle2, Loader2, Circle } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import type { SupportedLanguage } from '../i18n';
+import type { ProgressData, ProgressStage } from '../types';
 
 interface ProgressTrackerProps {
   isPending: boolean;
   jobStatus: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed' | null;
   statusDetails: { text: string; sub: string } | null;
+  progress: ProgressData | null;
 }
+
+const STAGES: ProgressStage[] = [
+  'queued',
+  'scraping',
+  'downloading_media',
+  'extracting_frames',
+  'extracting_recipe',
+  'finalizing',
+];
 
 const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'processing' | 'completed' | 'failed', string[]>> = {
   de: {
@@ -101,14 +112,30 @@ const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'pr
   }
 };
 
-export default function ProgressTracker({ isPending, jobStatus, statusDetails }: ProgressTrackerProps) {
-  const { language } = useI18n();
+export default function ProgressTracker({ isPending, jobStatus, statusDetails, progress }: ProgressTrackerProps) {
+  const { language, t } = useI18n();
   const [funnyText, setFunnyText] = useState('');
+
+  // Determine current stage & percent
+  const percent = progress?.percent ?? (jobStatus === 'scraping' ? 15 : jobStatus === 'processing' ? 35 : 5);
+  const activeStage = progress?.stage ?? (jobStatus === 'scraping' ? 'scraping' : jobStatus === 'processing' ? 'downloading_media' : 'queued');
 
   useEffect(() => {
     if (!isPending || !jobStatus) return;
 
-    const texts = FUNNY_TEXTS[language][jobStatus] || [];
+    // Map the active stage to the funny text categories
+    let funnyKey: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed' = 'processing';
+    if (activeStage === 'queued') {
+      funnyKey = 'pending';
+    } else if (activeStage === 'scraping') {
+      funnyKey = 'scraping';
+    } else if (jobStatus === 'completed') {
+      funnyKey = 'completed';
+    } else if (jobStatus === 'failed') {
+      funnyKey = 'failed';
+    }
+
+    const texts = FUNNY_TEXTS[language][funnyKey] || [];
     if (texts.length === 0) return;
 
     const pickRandom = (current: string) => {
@@ -125,25 +152,73 @@ export default function ProgressTracker({ isPending, jobStatus, statusDetails }:
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [jobStatus, isPending, language]);
+  }, [jobStatus, activeStage, isPending, language]);
 
   if (!isPending || !statusDetails) return null;
 
+  const currentStageIndex = STAGES.indexOf(activeStage);
+  const isJobCompleted = jobStatus === 'completed';
 
   return (
-    <Card className="glass-panel p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/5 shadow-md transition-all duration-300">
-      <div className="flex items-center gap-4">
-        {/* Spinner */}
-        <div className="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 text-emerald-500 shrink-0">
-          <RefreshCw className="w-5 h-5 animate-spin" />
+    <Card className="glass-panel p-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/5 shadow-md transition-all duration-300 w-full">
+      <div className="flex flex-col gap-4">
+        {/* Top details and percent */}
+        <div>
+          <div className="flex justify-between items-center text-sm font-semibold text-gray-900 dark:text-white mb-2">
+            <span className="truncate pr-2">{statusDetails.text}</span>
+            <span className="text-emerald-600 dark:text-emerald-400 tabular-nums shrink-0">{percent}%</span>
+          </div>
+
+          {/* Smooth Linear Progress Bar */}
+          <div className="w-full bg-gray-200 dark:bg-gray-800 h-2.5 rounded-full overflow-hidden relative shadow-inner">
+            <div
+              className="bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 h-full rounded-full transition-all duration-500 ease-out relative"
+              style={{ width: `${percent}%` }}
+            >
+              <div className="absolute inset-0 bg-white/20 animate-pulse" />
+            </div>
+          </div>
         </div>
 
-        {/* Text Details */}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-            {statusDetails.text}
-          </h3>
-          <p key={funnyText} className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate transition-all duration-300 opacity-90 animate-pulse">
+        {/* Milestone Steps Checklist */}
+        <div className="grid grid-cols-1 gap-2 pt-3 border-t border-black/5 dark:border-white/5">
+          {STAGES.map((stageKey, idx) => {
+            const isCompleted = isJobCompleted || currentStageIndex > idx;
+            const isActive = !isJobCompleted && currentStageIndex === idx;
+
+            return (
+              <div key={stageKey} className="flex items-center gap-3">
+                <div className="shrink-0 flex items-center justify-center">
+                  {isCompleted ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  ) : isActive ? (
+                    <Loader2 className="w-4 h-4 text-teal-500 animate-spin" />
+                  ) : (
+                    <Circle className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                  )}
+                </div>
+                <span
+                  className={`text-xs transition-colors duration-200 ${
+                    isCompleted
+                      ? 'text-gray-400 dark:text-gray-500 line-through decoration-gray-300/60 dark:decoration-gray-700/60'
+                      : isActive
+                      ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                      : 'text-gray-400 dark:text-gray-600'
+                  }`}
+                >
+                  {t(`job.progress.stages.${stageKey}` as any)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Rotating funny status text */}
+        <div className="pt-2 border-t border-black/5 dark:border-white/5 min-h-[28px] flex items-center">
+          <p
+            key={funnyText}
+            className="text-xs text-gray-500 dark:text-gray-400 italic truncate opacity-90 animate-fade-in"
+          >
             {funnyText}
           </p>
         </div>
