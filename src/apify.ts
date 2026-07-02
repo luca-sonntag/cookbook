@@ -1,5 +1,6 @@
 import { ApifyClient } from 'apify-client';
 import { config } from './config.js';
+import { withRetry } from './retry.js';
 
 // Initialize the Apify Client
 const client = new ApifyClient({
@@ -23,14 +24,11 @@ export async function scrapeReel(reelUrl: string): Promise<ScrapingResult> {
     throw new Error('Apify API token is not configured in environment variables.');
   }
 
-  // Trigger the apify~instagram-reel-scraper actor
-  // According to AGENTS.md, Reel URLs are passed in the `username` array.
-  const run = await client.actor('apify/instagram-reel-scraper').call({
-    username: [reelUrl],
-  });
-
-  // Fetch the resulting dataset items
-  const { items } = await client.dataset(run.defaultDatasetId).listItems();
+  const { run, items } = await withRetry(async () => {
+    const run = await client.actor('apify/instagram-reel-scraper').call({ username: [reelUrl] });
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+    return { run, items };
+  }, { maxAttempts: 3, baseDelayMs: 2000 });
 
   if (!items || items.length === 0) {
     throw new Error('No items found in the scraper dataset output.');

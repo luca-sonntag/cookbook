@@ -3,6 +3,7 @@ import { GoogleAIFileManager } from '@google/generative-ai/files';
 import { config } from './config.js';
 import { Recipe } from './types.js';
 import { writeGeminiLog, estimateCost, type TokenUsage } from './logger.js';
+import { withRetry } from './retry.js';
 
 // Initialize Gemini Generative AI and File Manager
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -367,7 +368,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
 
     contentParts.push(prompt);
 
-    const result = await model.generateContent(contentParts);
+    const result = await withRetry(() => model.generateContent(contentParts), { maxAttempts: 3, baseDelayMs: 2000 });
 
     rawOutput = result.response.text();
     if (!rawOutput) {
