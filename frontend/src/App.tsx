@@ -264,6 +264,8 @@ export default function App() {
 
   // Web Share Target Interceptor
   useEffect(() => {
+    if (authLoading || !user) return;
+
     const params = new URLSearchParams(window.location.search);
     const text = params.get('text');
     const urlParam = params.get('url');
@@ -271,21 +273,20 @@ export default function App() {
 
     if (text || urlParam || title) {
       const combinedSearch = [text, urlParam, title].filter(Boolean).join(' ');
-      const regex = /(https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels|p)\/[A-Za-z0-9_-]+)/i;
+      const regex = /(https?:\/\/[^\s]+)/i;
       const match = combinedSearch.match(regex);
       if (match) {
-        const extractedUrl = match[1];
-        // Clear the query params and redirect to extract tab
-        window.history.replaceState({}, document.title, window.location.pathname + '#/extract');
-        setTimeout(() => {
-          setUrl(extractedUrl);
-          navigate('extract');
-          triggerExtraction(extractedUrl);
-        }, 0);
+        let extractedUrl = match[1];
+        // Clean trailing punctuation
+        extractedUrl = extractedUrl.replace(/[.,;:!?)]+$/, '');
+
+        // Clear query parameters, strip /share pathname, and switch to extract view
+        replace('extract');
+        setUrl(extractedUrl);
+        triggerExtraction(extractedUrl);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authLoading, user, replace, setUrl, triggerExtraction]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();

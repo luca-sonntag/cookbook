@@ -81,7 +81,11 @@ export function useHashRouter() {
   /** Replace current history entry (no back entry added). Useful for redirects. */
   const replace = useCallback((tab: AppTab, subPath?: string | null) => {
     const newHash = buildHash(tab, subPath);
-    window.history.replaceState(null, '', newHash);
+    const basePath = window.location.pathname.endsWith('/share')
+      ? window.location.pathname.slice(0, -6)
+      : window.location.pathname;
+    const cleanBasePath = basePath.endsWith('/') ? basePath : (basePath + '/');
+    window.history.replaceState(null, '', cleanBasePath + newHash);
     setRoute(parseHash(newHash));
   }, []);
 
