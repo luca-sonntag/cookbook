@@ -315,7 +315,7 @@ export default function App() {
   // ── Auth gate ────────────────────────────────────────────────────────────
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f9fafb] dark:bg-[#030712]">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent" />
       </div>
     );
@@ -328,7 +328,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col items-center transition-colors duration-300">
       {/* Sticky Header Container */}
-      <header className="sticky top-0 z-40 w-full bg-[#f9fafb]/85 dark:bg-[#030712]/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
+      <header className="sticky top-0 z-40 w-full bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
         <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
           <div className="flex items-center gap-2">
             <div className="flex-shrink-0">
