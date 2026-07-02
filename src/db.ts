@@ -19,6 +19,7 @@ interface JobRow {
   updated_at: string;
   locked_at: string | null;
   locked_by: string | null;
+  url_normalized: string | null;
 }
 
 // ── Supabase client (lazy singleton) ─────────────────────────────────────────
@@ -114,20 +115,11 @@ function normalizeRecipe(recipe: any, jobId: string): void {
 
 // ── URL normalization ────────────────────────────────────────────────────────
 
-/**
- * Normalizes a URL for duplicate-check comparisons.
- * - Dev: keeps query string (different queries ≠ duplicates).
- * - Prod: strips query string (same Reel with different params = duplicate).
- */
-function normalizeUrlForComparison(urlStr: string, keepQuery: boolean): string {
+function normalizeUrl(urlStr: string): string {
   let clean = urlStr.replace(/^(https?:\/\/)?(www\.)?/i, '');
-  const [base, ...queryParts] = clean.split('?');
-  clean = base.endsWith('/') ? base.slice(0, -1) : base;
-  clean = clean.toLowerCase();
-  if (keepQuery && queryParts.length > 0) {
-    return `${clean}?${queryParts.join('?')}`;
-  }
-  return clean;
+  clean = clean.split('?')[0];
+  clean = clean.endsWith('/') ? clean.slice(0, -1) : clean;
+  return clean.toLowerCase();
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
@@ -139,7 +131,7 @@ export async function createJob(url: string, userId: string): Promise<Job> {
 
   const { data, error } = await getClient()
     .from('jobs')
-    .insert({ id, url, status: 'pending', error: null, recipe: null, user_id: userId, created_at: now, updated_at: now })
+    .insert({ id, url, url_normalized: normalizeUrl(url), status: 'pending', error: null, recipe: null, user_id: userId, created_at: now, updated_at: now })
     .select()
     .returns<JobRow>()
     .single();
@@ -155,7 +147,7 @@ export async function createRemixJob(parentJobId: string, url: string, prompt: s
 
   const { data, error } = await getClient()
     .from('jobs')
-    .insert({ id, url, status: 'pending', error: null, recipe: null, user_id: userId, parent_job_id: parentJobId, prompt, created_at: now, updated_at: now })
+    .insert({ id, url, url_normalized: normalizeUrl(url), status: 'pending', error: null, recipe: null, user_id: userId, parent_job_id: parentJobId, prompt, created_at: now, updated_at: now })
     .select()
     .returns<JobRow>()
     .single();
@@ -211,22 +203,19 @@ export async function claimNextJob(workerId: string): Promise<Job | null> {
   return rowToJob(rows[0]);
 }
 
-/** Find a completed job by URL (with environment-aware normalization), scoped to userId. */
+/** Find a completed job by URL (normalized), scoped to userId. */
 export async function findCompletedJobByUrl(url: string, userId: string): Promise<Job | null> {
-  const isDev = process.env.NODE_ENV !== 'production';
-  const target = normalizeUrlForComparison(url, isDev);
-
   const { data, error } = await getClient()
     .from('jobs')
     .select()
     .eq('status', 'completed')
     .eq('user_id', userId)
-    .returns<JobRow[]>();
+    .eq('url_normalized', normalizeUrl(url))
+    .returns<JobRow[]>()
+    .limit(1);
 
   if (error) throw wrapError('Failed to search jobs by URL', error);
-
-  const match = data.find(row => normalizeUrlForComparison(row.url, isDev) === target);
-  return match ? rowToJob(match) : null;
+  return data.length > 0 ? rowToJob(data[0]) : null;
 }
 
 /** Retrieve all jobs for a user, newest first. */
@@ -295,22 +284,47 @@ export async function checkDbHealth(): Promise<boolean> {
   }
 }
 
-/** Reset any jobs stuck in 'scraping' or 'processing' status to 'failed' on startup. */
-export async function resetStuckJobs(): Promise<void> {
+/** Updates locked_at timestamp to signal a job is still actively being processed. */
+export async function heartbeatJob(id: string): Promise<void> {
   const { error } = await getClient()
     .from('jobs')
-    .update({
-      status: 'failed',
-      error: 'Server was restarted while processing the recipe. Please try again.',
-      updated_at: new Date().toISOString(),
-    })
-    .in('status', ['scraping', 'processing']);
+    .update({ locked_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq('id', id);
+
+  if (error) console.warn(`Heartbeat failed for job ${id}: ${error.message}`);
+}
+
+/**
+ * Reclaims jobs whose lease has expired back to 'pending' so another worker
+ * can pick them up. Runs periodically instead of at startup to support
+ * multiple worker instances safely.
+ */
+export async function reclaimExpiredJobs(timeoutMinutes: number): Promise<void> {
+  const cutoff = new Date(Date.now() - timeoutMinutes * 60 * 1000).toISOString();
+
+  const { error, count } = await getClient()
+    .from('jobs')
+    .update({ status: 'pending', locked_at: null, locked_by: null, updated_at: new Date().toISOString() }, { count: 'exact' })
+    .in('status', ['scraping', 'processing'])
+    .lt('locked_at', cutoff);
 
   if (error) {
-    console.error('Failed to reset stuck jobs on startup:', error.message);
-  } else {
-    console.log('Stuck jobs reset to failed status successfully.');
+    console.error('Failed to reclaim expired jobs:', error.message);
+  } else if (count && count > 0) {
+    console.log(`Reclaimed ${count} expired job(s) back to pending.`);
   }
+}
+
+/** Count active (pending/scraping/processing) jobs for a user. */
+export async function countActiveJobsForUser(userId: string): Promise<number> {
+  const { count, error } = await getClient()
+    .from('jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .in('status', ['pending', 'scraping', 'processing']);
+
+  if (error) throw wrapError('Failed to count active jobs', error);
+  return count ?? 0;
 }
 
 

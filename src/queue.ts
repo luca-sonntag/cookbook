@@ -3,7 +3,7 @@ import { createWriteStream } from 'fs';
 import path from 'path';
 import https from 'https';
 import http from 'http';
-import { claimNextJob, updateJob, getJob, getClient, resetStuckJobs, uploadRecipeFrame } from './db.js';
+import { claimNextJob, updateJob, getJob, getClient, reclaimExpiredJobs, heartbeatJob, uploadRecipeFrame } from './db.js';
 import { randomUUID } from 'node:crypto';
 import { getScraperForUrl } from './scrapers/index.js';
 import { extractRecipe, remixRecipe } from './gemini.js';
@@ -16,6 +16,7 @@ const youtubedl: any = (yt as any).default || yt;
 const workerId = randomUUID();
 let activeJobs = 0;
 let workerInterval: NodeJS.Timeout | null = null;
+let reclaimInterval: NodeJS.Timeout | null = null;
 
 /**
  * Downloads a file from a URL to a local destination, following HTTP/HTTPS redirects.
@@ -76,6 +77,8 @@ async function processJob(job: Job): Promise<void> {
   const framesDir = path.join(runDir, 'frames');
   let audioFilePath = '';
   let videoFilePath = '';
+
+  const heartbeat = setInterval(() => heartbeatJob(jobId), 30_000);
 
   try {
     // Fetch user preferences from Supabase Auth admin API if userId is present
@@ -312,7 +315,7 @@ async function processJob(job: Job): Promise<void> {
       error: error.message || 'Unknown error occurred during processing.',
     });
   } finally {
-    // 8. Cleanup local audio and video files (frames are kept for inspection)
+    clearInterval(heartbeat);
     const cleanupPaths = [audioFilePath, videoFilePath].filter(Boolean);
     await Promise.allSettled(cleanupPaths.map((p) => fs.unlink(p).catch(() => { })));
     console.log(`[Job ${jobId}] Temp files cleaned up. Run folder: ${runDir}`);
@@ -347,21 +350,18 @@ export function startQueue(pollIntervalMs = 2000): void {
   if (workerInterval) return;
   console.log('Background job queue worker started.');
 
-  // Reset any scraping/processing jobs stuck from a previous crash/restart to failed
-  resetStuckJobs().catch(err => {
-    console.error('Failed to reset stuck jobs on startup:', err);
-  });
-
   workerInterval = setInterval(workerTick, pollIntervalMs);
+  reclaimInterval = setInterval(
+    () => reclaimExpiredJobs(config.WORKER_LEASE_TIMEOUT_MINUTES).catch(console.error),
+    60_000
+  );
 }
 
 /**
  * Stops the background job queue loop.
  */
 export function stopQueue(): void {
-  if (workerInterval) {
-    clearInterval(workerInterval);
-    workerInterval = null;
-    console.log('Background job queue worker stopped.');
-  }
+  if (workerInterval) { clearInterval(workerInterval); workerInterval = null; }
+  if (reclaimInterval) { clearInterval(reclaimInterval); reclaimInterval = null; }
+  console.log('Background job queue worker stopped.');
 }

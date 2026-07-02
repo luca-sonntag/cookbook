@@ -18,7 +18,9 @@ export interface Config {
   PREFERRED_TEMPERATURE_UNIT: string;
   PREFERRED_UNIT_SYSTEM: string;
   WORKER_CONCURRENCY: number;
+  WORKER_LEASE_TIMEOUT_MINUTES: number;
   ROLE: 'web' | 'worker' | 'both';
+  MAX_JOBS_PER_USER: number;
 }
 
 // Validation helper
@@ -44,6 +46,8 @@ export const config: Config = {
   PREFERRED_TEMPERATURE_UNIT: getEnv('PREFERRED_TEMPERATURE_UNIT', 'Celsius'),
   PREFERRED_UNIT_SYSTEM: getEnv('PREFERRED_UNIT_SYSTEM', 'metric'),
   WORKER_CONCURRENCY: parseInt(getEnv('WORKER_CONCURRENCY', '3'), 10),
+  WORKER_LEASE_TIMEOUT_MINUTES: parseInt(getEnv('WORKER_LEASE_TIMEOUT_MINUTES', '10'), 10),
   ROLE: getEnv('ROLE', 'both') as 'web' | 'worker' | 'both',
+  MAX_JOBS_PER_USER: parseInt(getEnv('MAX_JOBS_PER_USER', '3'), 10),
 };
 
