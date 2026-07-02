@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, TextField, Label, Input, Button, FieldError, Spinner, Accordion } from '@heroui/react';
-import { BookOpen, Clipboard, Video, Globe, HelpCircle } from 'lucide-react';
+import { BookOpen, Clipboard, Globe, HelpCircle } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 
 // Custom SVG component for Instagram icon
@@ -39,6 +39,12 @@ const YoutubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
   >
     <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
     <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" />
+  </svg>
+);
+
+const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z" />
   </svg>
 );
 
@@ -130,7 +136,7 @@ export default function ExtractForm({
               <span className="text-[10px] text-gray-400 dark:text-gray-500">Instagram</span>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <Video className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+              <TikTokIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
               <span className="text-[10px] text-gray-400 dark:text-gray-500">TikTok</span>
             </div>
             <div className="flex flex-col items-center gap-1">
