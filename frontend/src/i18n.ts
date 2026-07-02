@@ -279,16 +279,17 @@ export const uiTranslations = {
       helpTitle: 'Wie kopiere ich einen Rezept-Link?',
       helpShareTitle: 'Direkt teilen (schnellste Methode)',
       helpShareDesc: 'Teile Links direkt über den Teilen-Button anderer Apps – ohne den Link zu kopieren.',
-      helpShareStep: 'Tippe in Instagram, TikTok oder YouTube auf Teilen, wähle dann CookBuddy aus der Liste.',
+      helpShareStep: 'Tippe in Instagram, TikTok oder YouTube Shorts auf Teilen, wähle dann CookBuddy aus der Liste.',
       helpSteps: {
         instagram: 'Öffne ein Instagram Reel, tippe auf Teilen (Papierflieger-Symbol) und wähle Link kopieren.',
         tiktok: 'Öffne ein TikTok-Video, tippe auf den Teilen-Pfeil und wähle Link kopieren.',
-        youtube: 'Öffne ein YouTube Short oder Video, tippe auf Teilen und wähle Link kopieren.',
+        youtube: 'Öffne ein YouTube Short, tippe auf Teilen und wähle Link kopieren.',
         website: 'Kopiere einfach die vollständige URL aus der Adresszeile deines Browsers.'
       },
       validation: {
         required: 'Rezept URL ist erforderlich.',
         invalid: 'Es muss eine gültige URL sein (z.B. Instagram, TikTok, Website).',
+        youtubeShortsOnly: 'Nur YouTube Shorts werden unterstützt, keine regulären YouTube-Videos.',
         failedCheck: 'Statusüberprüfung vom Server fehlgeschlagen.',
         failedExtraction: 'Die Rezept-Extraktion ist fehlgeschlagen.',
         lostConnection: 'Verbindung zum Backend-Server verloren.',
@@ -564,16 +565,17 @@ export const uiTranslations = {
       helpTitle: 'How do I copy a recipe link?',
       helpShareTitle: 'Share directly (fastest method)',
       helpShareDesc: 'Send links directly via the Share button in other apps — no need to copy the link.',
-      helpShareStep: 'Tap Share in Instagram, TikTok, or YouTube, then select CookBuddy from the list.',
+      helpShareStep: 'Tap Share in Instagram, TikTok, or YouTube Shorts, then select CookBuddy from the list.',
       helpSteps: {
         instagram: 'Open an Instagram Reel, tap Share (paper airplane icon) and choose Copy Link.',
         tiktok: 'Open a TikTok video, tap the Share arrow and choose Copy Link.',
-        youtube: 'Open a YouTube Short or video, tap Share and choose Copy Link.',
+        youtube: 'Open a YouTube Short, tap Share and choose Copy Link.',
         website: 'Simply copy the full URL from your browser\'s address bar.'
       },
       validation: {
         required: 'Recipe URL is required.',
         invalid: 'Must be a valid URL (e.g., Instagram, TikTok, Website).',
+        youtubeShortsOnly: 'Only YouTube Shorts are supported, not regular YouTube videos.',
         failedCheck: 'Failed to check status from server.',
         failedExtraction: 'The recipe extraction failed.',
         lostConnection: 'Lost connection to backend server.',
