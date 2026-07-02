@@ -12,19 +12,33 @@ import { checkDbHealth } from './db.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const isProduction = process.env.NODE_ENV === 'production';
+const isWorker = config.ROLE === 'worker' || config.ROLE === 'both';
+const isWeb    = config.ROLE === 'web'    || config.ROLE === 'both';
 
 async function bootstrap() {
   try {
-    // 1. Start the background queue worker
-    startQueue();
+    if (isWorker) {
+      startQueue();
+      console.log(`Worker started (ROLE=${config.ROLE}, concurrency=${config.WORKER_CONCURRENCY})`);
+    }
 
-    // 2. Create Express app
+    if (!isWeb) {
+      // Worker-only: keep process alive via the queue interval; handle shutdown here
+      const shutdown = () => {
+        console.log('\nShutting down worker gracefully...');
+        stopQueue();
+        process.exit(0);
+      };
+      process.on('SIGINT', shutdown);
+      process.on('SIGTERM', shutdown);
+      return;
+    }
+
     const app = express();
 
     // Trust first proxy for rate limiting behind nginx/railway/etc.
     app.set('trust proxy', 1);
 
-    // Security headers (helmet)
     app.use(helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' }, // für /api/image proxy
       contentSecurityPolicy: isProduction ? {
@@ -34,10 +48,9 @@ async function bootstrap() {
           "connect-src": ["'self'", "https://*.supabase.co", "wss://*.supabase.co"],
           "img-src": ["'self'", "data:", "https://*.supabase.co"],
         }
-      } : false, // CSP nur in production
+      } : false,
     }));
 
-    // CORS – permissiv in dev, restriktiv in production
     app.use(cors({
       origin: isProduction ? (process.env.CORS_ORIGIN || '*') : 'http://localhost:5173',
       methods: ['GET', 'POST', 'DELETE'],
@@ -45,10 +58,11 @@ async function bootstrap() {
       credentials: true,
     }));
 
-    // Rate limiting auf /api/ endpoints
+    // NOTE: this store is per-instance. For multiple web instances, move rate
+    // limiting to the load balancer or replace with a shared store (Redis).
     const apiLimiter = rateLimit({
-      windowMs: 15 * 60 * 1000, // 15 Minuten
-      max: 100, // max 100 Requests pro IP pro Fenster
+      windowMs: 15 * 60 * 1000,
+      max: 100,
       standardHeaders: true,
       legacyHeaders: false,
       message: { success: false, error: 'Too many requests, please try again later.' },
@@ -57,16 +71,15 @@ async function bootstrap() {
 
     app.use(express.json({ limit: '1mb' }));
 
-    // Serve static files from React build directory
     const frontendDistPath = path.resolve(process.cwd(), 'frontend', 'dist');
     app.use(express.static(frontendDistPath));
 
-    // Image proxy to bypass Instagram CORP blocks (MUST BE BEFORE apiRouter to bypass API key check)
+    // Image proxy to bypass Instagram CORP blocks (before apiRouter to skip API key check)
     app.get('/api/image', async (req, res) => {
       const imageUrl = req.query.url as string;
       if (!imageUrl) {
-         res.status(400).send('Missing url parameter');
-         return;
+        res.status(400).send('Missing url parameter');
+        return;
       }
       try {
         const response = await fetch(imageUrl, {
@@ -76,23 +89,19 @@ async function bootstrap() {
           }
         });
         if (!response.ok) throw new Error('Failed to fetch image');
-        
         res.set('Content-Type', response.headers.get('content-type') || 'image/jpeg');
         res.set('Cache-Control', 'public, max-age=31536000');
         res.set('Access-Control-Allow-Origin', '*');
         res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-        
         const buffer = await response.arrayBuffer();
         res.send(Buffer.from(buffer));
-      } catch (err) {
+      } catch {
         res.status(500).send('Error proxying image');
       }
     });
 
-    // 4. Register API routes
     app.use('/api', apiRouter);
 
-    // Health check endpoint (with DB connectivity check)
     app.get('/health', async (_req, res) => {
       const dbHealthy = await checkDbHealth();
       res.status(dbHealthy ? 200 : 503).json({
@@ -100,12 +109,10 @@ async function bootstrap() {
         uptime: process.uptime(),
         nodeEnv: process.env.NODE_ENV || 'development',
         dbConnected: dbHealthy,
+        role: config.ROLE,
       });
     });
 
-
-
-    // Fallback for React routing (SPA)
     app.get('*', (req, res, next) => {
       if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/proxy')) {
         return next();
@@ -113,18 +120,13 @@ async function bootstrap() {
       res.sendFile(path.resolve(frontendDistPath, 'index.html'));
     });
 
-    // Start server
     const server = app.listen(config.PORT, () => {
-      console.log(`Server is running at http://localhost:${config.PORT}`);
-      console.log(`API endpoints:`);
-      console.log(`- POST http://localhost:${config.PORT}/api/extract-recipe`);
-      console.log(`- GET  http://localhost:${config.PORT}/api/jobs/:id`);
+      console.log(`Web server running at http://localhost:${config.PORT} (ROLE=${config.ROLE})`);
     });
 
-    // Graceful shutdown handling
     const shutdown = () => {
       console.log('\nShutting down gracefully...');
-      stopQueue();
+      if (isWorker) stopQueue();
       server.close(() => {
         console.log('HTTP server closed.');
         process.exit(0);
