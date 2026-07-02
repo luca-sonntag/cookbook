@@ -36,7 +36,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/frontend/dist ./frontend/dist
 
 # Create directories for runtime artifacts
-RUN mkdir -p public/recipe-images logs
+RUN mkdir -p logs
 
 EXPOSE 3000
 

@@ -26,7 +26,7 @@ async function bootstrap() {
 
     // Security headers (helmet)
     app.use(helmet({
-      crossOriginResourcePolicy: { policy: 'cross-origin' }, // für recipe-images
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // für /api/image proxy
       contentSecurityPolicy: isProduction ? {
         directives: {
           ...helmet.contentSecurityPolicy.getDefaultDirectives(),
@@ -60,10 +60,6 @@ async function bootstrap() {
     // Serve static files from React build directory
     const frontendDistPath = path.resolve(process.cwd(), 'frontend', 'dist');
     app.use(express.static(frontendDistPath));
-
-    // Serve permanently saved recipe food images (extracted video frames)
-    const recipeImagesPath = path.resolve('public', 'recipe-images');
-    app.use('/recipe-images', express.static(recipeImagesPath));
 
     // Image proxy to bypass Instagram CORP blocks (MUST BE BEFORE apiRouter to bypass API key check)
     app.get('/api/image', async (req, res) => {

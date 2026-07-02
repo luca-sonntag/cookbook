@@ -11,10 +11,6 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true
       },
-      '/recipe-images': {
-        target: 'http://localhost:3000',
-        changeOrigin: true
-      }
     }
   },
   plugins: [

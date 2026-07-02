@@ -3,7 +3,7 @@ import { createWriteStream } from 'fs';
 import path from 'path';
 import https from 'https';
 import http from 'http';
-import { claimNextJob, updateJob, getJob, getClient, resetStuckJobs } from './db.js';
+import { claimNextJob, updateJob, getJob, getClient, resetStuckJobs, uploadRecipeFrame } from './db.js';
 import { randomUUID } from 'node:crypto';
 import { getScraperForUrl } from './scrapers/index.js';
 import { extractRecipe, remixRecipe } from './gemini.js';
@@ -248,16 +248,13 @@ async function processJob(job: Job): Promise<void> {
           const bestIndices = await selectBestFoodFrame(framePaths, gridImagePath, runDir);
           console.log(`[Job ${jobId}] Best frames selected: indices ${bestIndices.join(', ')}`);
 
-          // Save best frames permanently as local files
-          const recipeImagesDir = path.resolve('public', 'recipe-images');
-          await fs.mkdir(recipeImagesDir, { recursive: true });
-          
+          // Upload best frames to Supabase Storage (private bucket)
           const savedUrls: string[] = [];
           for (let i = 0; i < bestIndices.length; i++) {
             const idx = bestIndices[i];
-            const savedImagePath = path.join(recipeImagesDir, `${jobId}-${i}.jpg`);
-            await fs.copyFile(framePaths[idx], savedImagePath);
-            savedUrls.push(`/recipe-images/${jobId}-${i}.jpg`);
+            const buffer = await fs.readFile(framePaths[idx]);
+            const signedUrl = await uploadRecipeFrame(jobId, i, buffer);
+            savedUrls.push(signedUrl);
           }
 
           return savedUrls;

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob } from './db.js';
+import { createJob, createRemixJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames } from './db.js';
 import { requireAuth } from './auth.js';
 
 export const apiRouter = Router();
@@ -215,6 +215,11 @@ apiRouter.delete('/jobs/:id', async (req: Request, res: Response): Promise<void>
   try {
     const { id } = req.params;
     const deleted = await deleteJob(id, req.userId!);
+    if (deleted) {
+      deleteRecipeFrames(id).catch(err =>
+        console.warn(`Failed to delete storage frames for job ${id}:`, err.message)
+      );
+    }
     if (!deleted) {
       res.status(404).json({
         success: false,

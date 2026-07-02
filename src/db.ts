@@ -254,6 +254,32 @@ export async function deleteJob(id: string, userId: string): Promise<boolean> {
   return (count ?? 0) > 0;
 }
 
+/** Uploads a recipe frame to private Supabase Storage and returns a long-lived signed URL. */
+export async function uploadRecipeFrame(jobId: string, index: number, buffer: Buffer): Promise<string> {
+  const storagePath = `${jobId}/${index}.jpg`;
+
+  const { error: uploadError } = await getClient().storage
+    .from('recipe-frames')
+    .upload(storagePath, buffer, { contentType: 'image/jpeg', upsert: true });
+
+  if (uploadError) throw new Error(`Failed to upload frame: ${uploadError.message}`);
+
+  const { data, error: urlError } = await getClient().storage
+    .from('recipe-frames')
+    .createSignedUrl(storagePath, 10 * 365 * 24 * 3600); // 10 years
+
+  if (urlError || !data) throw new Error(`Failed to create signed URL: ${urlError?.message}`);
+  return data.signedUrl;
+}
+
+/** Deletes all stored frames for a job from Supabase Storage. */
+export async function deleteRecipeFrames(jobId: string): Promise<void> {
+  const { data, error } = await getClient().storage.from('recipe-frames').list(jobId);
+  if (error || !data || data.length === 0) return;
+  const paths = data.map(f => `${jobId}/${f.name}`);
+  await getClient().storage.from('recipe-frames').remove(paths);
+}
+
 /** Check whether the Supabase database connection is healthy. */
 export async function checkDbHealth(): Promise<boolean> {
   try {
