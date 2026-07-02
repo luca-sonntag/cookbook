@@ -224,33 +224,6 @@ export default function ExtractForm({
         </form>
       </Card>
 
-      {/* Demo Recipes Card */}
-      {!url && (
-        <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-md flex flex-col gap-3">
-          <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            {t('form.demoTitle')}
-          </span>
-          <div className="grid grid-cols-3 gap-2">
-            {DEMO_RECIPES.map((demo, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleDemoClick(demo.url)}
-                disabled={isPending}
-                className="flex flex-col items-center justify-center p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all text-center gap-1.5 group"
-              >
-                <div className={`p-2 rounded-lg bg-gradient-to-br ${demo.color} shadow-sm group-hover:scale-110 transition-transform`}>
-                  {demo.icon}
-                </div>
-                <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                  {demo.name}
-                </span>
-              </button>
-            ))}
-          </div>
-        </Card>
-      )}
-
       {/* Help / Instructions Accordion */}
       {!url && (
         <Accordion variant="surface" className="w-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden">
@@ -306,6 +279,33 @@ export default function ExtractForm({
             </Accordion.Panel>
           </Accordion.Item>
         </Accordion>
+      )}
+
+      {/* Demo Recipes Card */}
+      {!url && (
+        <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-md flex flex-col gap-3">
+          <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            {t('form.demoTitle')}
+          </span>
+          <div className="grid grid-cols-3 gap-2">
+            {DEMO_RECIPES.map((demo, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleDemoClick(demo.url)}
+                disabled={isPending}
+                className="flex flex-col items-center justify-center p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all text-center gap-1.5 group"
+              >
+                <div className={`p-2 rounded-lg bg-gradient-to-br ${demo.color} shadow-sm group-hover:scale-110 transition-transform`}>
+                  {demo.icon}
+                </div>
+                <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                  {demo.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        </Card>
       )}
     </div>
   );
