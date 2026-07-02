@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
 
 import type { Job } from './types';
@@ -65,6 +65,10 @@ export default function App() {
     clearChecked
   } = useShoppingList();
 
+  // Tracks the jobId of a just-completed extraction so the history validity
+  // effect doesn't clear its subPath before the history state catches up.
+  const newlyExtractedJobIdRef = useRef<string | null>(null);
+
   // Fetch recipe extraction history (using JWT)
   const fetchHistory = useCallback(async () => {
     try {
@@ -86,6 +90,12 @@ export default function App() {
     }
   }, [getAccessToken]);
 
+  const handleExtractionSuccess = useCallback((jobId: string) => {
+    newlyExtractedJobIdRef.current = jobId;
+    navigate('history', jobId);
+    fetchHistory();
+  }, [fetchHistory, navigate]);
+
   const {
     isPending,
     jobStatus,
@@ -98,7 +108,7 @@ export default function App() {
     urlError,
     validateUrl,
     triggerExtraction,
-  } = useRecipeExtraction(getAccessToken, fetchHistory);
+  } = useRecipeExtraction(getAccessToken, handleExtractionSuccess);
 
   // Mobile back button & swipe gestures for newly extracted recipe details
   useMobileNavigationBack(activeView === 'extract' && !!recipe, () => {
@@ -121,7 +131,14 @@ export default function App() {
     if (!historyLoaded) return;
     if (activeView === 'history' && subPath) {
       const exists = history.some(j => j.id === subPath);
-      if (!exists) {
+      if (exists) {
+        // Clear the guard once the job is confirmed in history.
+        if (newlyExtractedJobIdRef.current === subPath) {
+          newlyExtractedJobIdRef.current = null;
+        }
+      } else if (subPath !== newlyExtractedJobIdRef.current) {
+        // Only clear stale subPaths — never clear a newly-extracted job
+        // that hasn't landed in history state yet.
         replace('history');
       }
     }

@@ -103,7 +103,7 @@ const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'pr
 };
 
 export default function ProgressTracker({ isPending, jobStatus, statusDetails, progress }: ProgressTrackerProps) {
-  const { language, t } = useI18n();
+  const { language } = useI18n();
   const [funnyText, setFunnyText] = useState('');
 
   // Determine current stage & percent

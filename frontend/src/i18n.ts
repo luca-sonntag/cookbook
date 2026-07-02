@@ -291,6 +291,7 @@ export const uiTranslations = {
         unauthorized: 'Nicht autorisiert. Bitte überprüfe deinen API-Schlüssel in den Einstellungen.',
         submitFailed: 'Auftrag konnte nicht übermittelt werden.',
         submissionError: 'Bei der Übermittlung ist ein Fehler aufgetreten.',
+        serverError: 'Der Server hat keine gültige Antwort zurückgegeben. Bitte versuche es erneut.',
       }
     },
     install: {
@@ -571,6 +572,7 @@ export const uiTranslations = {
         unauthorized: 'Unauthorized. Please verify your API Key in Settings.',
         submitFailed: 'Failed to submit extraction job.',
         submissionError: 'An error occurred during submission.',
+        serverError: 'The server returned an unexpected response. Please try again.',
       }
     },
     install: {

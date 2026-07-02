@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import type { Recipe, Job, ProgressData } from '../types';
 import { useI18n } from '../context/I18nContext';
 
-export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: () => void) {
+export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void) {
   const { t } = useI18n();
   const [isPending, setIsPending] = useState(false);
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
@@ -42,7 +42,16 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
             'Authorization': `Bearer ${token}`
           }
         });
-        const data = await response.json();
+        let data: any;
+        try {
+          data = await response.json();
+        } catch {
+          clearInterval(interval);
+          setJobStatus('failed');
+          setJobError(t('form.validation.serverError'));
+          setIsPending(false);
+          return;
+        }
         
         if (!response.ok || !data.success) {
           clearInterval(interval);
@@ -57,10 +66,10 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
 
         if (job.status === 'completed') {
           clearInterval(interval);
-          setRecipe(job.recipe);
           setProgress(null);
           setIsPending(false);
-          onExtractionSuccess();
+          setUrl('');
+          onExtractionSuccess(job.id);
         } else if (job.status === 'failed') {
           clearInterval(interval);
           setJobError(job.error || t('form.validation.failedExtraction'));
@@ -103,7 +112,12 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         body: JSON.stringify({ url: cleanUrl })
       });
 
-      const data = await response.json();
+      let data: any;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error(t('form.validation.serverError'));
+      }
       
       if (response.status === 401) {
         throw new Error(t('form.validation.unauthorized'));
