@@ -35,6 +35,9 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/frontend/dist ./frontend/dist
 
+# Install runtime dependencies (ffmpeg/ffprobe for frame extraction, python3 for yt-dlp)
+RUN apk add --no-cache ffmpeg python3
+
 # Create directories for runtime artifacts
 RUN mkdir -p logs
 
