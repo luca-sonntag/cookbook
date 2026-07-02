@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames } from './db.js';
+import { createJob, createRemixJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser } from './db.js';
+import { config } from './config.js';
 import { requireAuth } from './auth.js';
 
 export const apiRouter = Router();
@@ -46,6 +47,16 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
         jobId: existingJob.id,
         status: existingJob.status,
         message: 'Recipe already extracted successfully.',
+      });
+      return;
+    }
+
+    // Enforce per-user quota to protect Apify/Gemini budget
+    const activeCount = await countActiveJobsForUser(req.userId!);
+    if (activeCount >= config.MAX_JOBS_PER_USER) {
+      res.status(429).json({
+        success: false,
+        error: `You already have ${activeCount} active job(s). Please wait for them to finish before submitting more.`,
       });
       return;
     }

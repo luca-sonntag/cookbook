@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { config } from './config.js';
 
 // Extend Express Request to carry the authenticated user's ID
@@ -11,24 +11,15 @@ declare global {
   }
 }
 
-// ── Supabase admin client (service_role) for JWT verification ────────────────
-
-let _adminClient: SupabaseClient | undefined;
-
-function getAdminClient(): SupabaseClient {
-  _adminClient ??= createClient(config.SUPABASE_URL, config.SUPABASE_SECRET_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  return _adminClient;
-}
-
-// ── Middleware ────────────────────────────────────────────────────────────────
+// JWKS fetched once and cached by jose (auto-refreshed on key rotation)
+const JWKS = createRemoteJWKSet(
+  new URL(`${config.SUPABASE_URL}/auth/v1/.well-known/jwks.json`)
+);
 
 /**
- * Middleware that verifies the Supabase JWT from the Authorization header.
+ * Middleware that verifies the Supabase JWT locally via JWKS.
+ * No network round-trip to Supabase Auth per request.
  * Attaches `req.userId` on success.
- *
- * Header format:  Authorization: Bearer <supabase_access_token>
  */
 export async function requireAuth(
   req: Request,
@@ -36,33 +27,26 @@ export async function requireAuth(
   next: NextFunction,
 ): Promise<void> {
   const header = req.header('Authorization');
-  if (!header || !header.startsWith('Bearer ')) {
-    res.status(401).json({
-      success: false,
-      error: 'Unauthorized: Missing or malformed Authorization header. Expected: Bearer <token>',
-    });
+  if (!header?.startsWith('Bearer ')) {
+    res.status(401).json({ success: false, error: 'Unauthorized: Missing or malformed Authorization header.' });
     return;
   }
 
-  const token = header.slice(7); // strip "Bearer "
+  const token = header.slice(7);
 
   try {
-    const { data, error } = await getAdminClient().auth.getUser(token);
+    const { payload } = await jwtVerify(token, JWKS, {
+      audience: 'authenticated',
+    });
 
-    if (error || !data.user) {
-      res.status(401).json({
-        success: false,
-        error: 'Unauthorized: Invalid or expired token.',
-      });
+    if (!payload.sub) {
+      res.status(401).json({ success: false, error: 'Unauthorized: Token missing subject.' });
       return;
     }
 
-    req.userId = data.user.id;
+    req.userId = payload.sub;
     next();
   } catch {
-    res.status(401).json({
-      success: false,
-      error: 'Unauthorized: Token verification failed.',
-    });
+    res.status(401).json({ success: false, error: 'Unauthorized: Invalid or expired token.' });
   }
 }
