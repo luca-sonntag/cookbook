@@ -3,15 +3,18 @@ import { createWriteStream } from 'fs';
 import path from 'path';
 import https from 'https';
 import http from 'http';
-import { getNextPendingJob, updateJob, getJob, getClient, resetStuckJobs } from './db.js';
+import { claimNextJob, updateJob, getJob, getClient, resetStuckJobs } from './db.js';
+import { randomUUID } from 'node:crypto';
 import { getScraperForUrl } from './scrapers/index.js';
 import { extractRecipe, remixRecipe } from './gemini.js';
 import type { Job, ProgressData } from './types.js';
+import { config } from './config.js';
 import yt from 'youtube-dl-exec';
 
 const youtubedl: any = (yt as any).default || yt;
 
-let isRunning = false;
+const workerId = randomUUID();
+let activeJobs = 0;
 let workerInterval: NodeJS.Timeout | null = null;
 
 /**
@@ -320,21 +323,23 @@ async function processJob(job: Job): Promise<void> {
 }
 
 /**
- * Worker loop that picks up the next pending job.
+ * Worker loop that claims and dispatches jobs up to WORKER_CONCURRENCY in parallel.
  */
 async function workerTick(): Promise<void> {
-  if (isRunning) return;
-  isRunning = true;
-
-  try {
-    const job = await getNextPendingJob();
-    if (job) {
-      await processJob(job);
+  while (activeJobs < config.WORKER_CONCURRENCY) {
+    let job;
+    try {
+      job = await claimNextJob(workerId);
+    } catch (error: any) {
+      console.error('Error claiming job:', error.message);
+      break;
     }
-  } catch (error: any) {
-    console.error('Error in worker queue tick:', error.message);
-  } finally {
-    isRunning = false;
+    if (!job) break;
+
+    activeJobs++;
+    processJob(job).finally(() => {
+      activeJobs--;
+    });
   }
 }
 

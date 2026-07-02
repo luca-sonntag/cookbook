@@ -17,6 +17,8 @@ export interface Config {
   RECIPE_LANGUAGE: string;
   PREFERRED_TEMPERATURE_UNIT: string;
   PREFERRED_UNIT_SYSTEM: string;
+  WORKER_CONCURRENCY: number;
+  ROLE: 'web' | 'worker' | 'both';
 }
 
 // Validation helper
@@ -41,5 +43,7 @@ export const config: Config = {
   RECIPE_LANGUAGE: getEnv('RECIPE_LANGUAGE', 'German'),
   PREFERRED_TEMPERATURE_UNIT: getEnv('PREFERRED_TEMPERATURE_UNIT', 'Celsius'),
   PREFERRED_UNIT_SYSTEM: getEnv('PREFERRED_UNIT_SYSTEM', 'metric'),
+  WORKER_CONCURRENCY: parseInt(getEnv('WORKER_CONCURRENCY', '3'), 10),
+  ROLE: getEnv('ROLE', 'both') as 'web' | 'worker' | 'both',
 };
 

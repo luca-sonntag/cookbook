@@ -17,6 +17,8 @@ interface JobRow {
   prompt: string | null;
   created_at: string;
   updated_at: string;
+  locked_at: string | null;
+  locked_by: string | null;
 }
 
 // ── Supabase client (lazy singleton) ─────────────────────────────────────────
@@ -195,22 +197,18 @@ export async function getJob(id: string, userId?: string): Promise<Job | null> {
   return rowToJob(data);
 }
 
-/** Retrieve the oldest pending job (FIFO), or `null` if none. */
-export async function getNextPendingJob(): Promise<Job | null> {
+/**
+ * Atomically claims the oldest pending job for a worker using SKIP LOCKED.
+ * Returns null if no pending jobs are available.
+ */
+export async function claimNextJob(workerId: string): Promise<Job | null> {
   const { data, error } = await getClient()
-    .from('jobs')
-    .select()
-    .eq('status', 'pending')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .returns<JobRow>()
-    .single();
+    .rpc('claim_next_job', { worker_id: workerId });
 
-  if (error) {
-    if (isNoRowsError(error)) return null;
-    throw wrapError('Failed to get next pending job', error);
-  }
-  return rowToJob(data);
+  if (error) throw wrapError('Failed to claim next job', error);
+  const rows = data as JobRow[] | null;
+  if (!rows || rows.length === 0) return null;
+  return rowToJob(rows[0]);
 }
 
 /** Find a completed job by URL (with environment-aware normalization), scoped to userId. */
