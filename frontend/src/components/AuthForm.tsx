@@ -57,7 +57,7 @@ export default function AuthForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-[#f9fafb] dark:bg-[#030712] transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       <Card className="w-full max-w-sm p-6 rounded-2xl">
         <div className="flex flex-col items-center gap-3 mb-6">
           <div className="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 text-emerald-400">
