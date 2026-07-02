@@ -1,10 +1,33 @@
 import { useState } from 'react';
-import { Button, Select, ListBox } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale } from 'lucide-react';
+import { Button, Select, ListBox, Popover } from '@heroui/react';
+import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
 import { usePwaInstall } from '../hooks/usePwaInstall';
+
+function SettingInfo({ text }: { text: string }) {
+  return (
+    <Popover>
+      <Popover.Trigger>
+        <button
+          className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none focus:ring-1 focus:ring-gray-400/30 cursor-pointer"
+          aria-label={text}
+        >
+          <Info className="w-3.5 h-3.5" />
+        </button>
+      </Popover.Trigger>
+      <Popover.Content
+        placement="top"
+        className="max-w-[240px] p-2.5 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg"
+      >
+        <Popover.Dialog className="outline-none border-none p-0 m-0">
+          {text}
+        </Popover.Dialog>
+      </Popover.Content>
+    </Popover>
+  );
+}
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
@@ -95,10 +118,11 @@ export default function SettingsView() {
             <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
               <Thermometer className="w-5 h-5" />
             </div>
-            <div>
+            <div className="flex items-center gap-1">
               <p className="font-semibold text-gray-900 dark:text-white text-sm">
                 {t('app.settings.tempUnit') || 'Temperature Unit'}
               </p>
+              <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
             </div>
           </div>
           <Select
@@ -138,10 +162,11 @@ export default function SettingsView() {
             <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
               <Scale className="w-5 h-5" />
             </div>
-            <div>
+            <div className="flex items-center gap-1">
               <p className="font-semibold text-gray-900 dark:text-white text-sm">
                 {t('app.settings.unitSystem') || 'Unit System'}
               </p>
+              <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
             </div>
           </div>
           <Select
