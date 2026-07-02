@@ -11,7 +11,7 @@ function SettingInfo({ text }: { text: string }) {
     <Popover>
       <Popover.Trigger>
         <button
-          className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none focus:ring-1 focus:ring-gray-400/30 cursor-pointer"
+          className="inline-flex align-middle ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors w-5 h-5 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none focus:ring-1 focus:ring-gray-400/30 cursor-pointer"
           aria-label={text}
         >
           <Info className="w-3.5 h-3.5" />
@@ -118,11 +118,11 @@ export default function SettingsView() {
             <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
               <Thermometer className="w-5 h-5" />
             </div>
-            <div className="flex items-center gap-1">
+            <div>
               <p className="font-semibold text-gray-900 dark:text-white text-sm">
                 {t('app.settings.tempUnit') || 'Temperature Unit'}
+                <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
               </p>
-              <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
             </div>
           </div>
           <Select
@@ -162,11 +162,11 @@ export default function SettingsView() {
             <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
               <Scale className="w-5 h-5" />
             </div>
-            <div className="flex items-center gap-1">
+            <div>
               <p className="font-semibold text-gray-900 dark:text-white text-sm">
                 {t('app.settings.unitSystem') || 'Unit System'}
+                <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
               </p>
-              <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
             </div>
           </div>
           <Select
