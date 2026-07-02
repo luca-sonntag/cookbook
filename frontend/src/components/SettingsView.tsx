@@ -73,7 +73,7 @@ export default function SettingsView() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-[#0f172a] rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden">
         {/* Language Option */}
         <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
           <div className="flex items-center gap-3">
