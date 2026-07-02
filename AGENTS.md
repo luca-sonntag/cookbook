@@ -158,7 +158,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 
 ## 🔄 Workflow im Detail
 
-1. **Medien-Sharing / Eingabe:** Der Nutzer teilt einen unterstützten Rezept-Link (Instagram Reel, TikTok Video, YouTube Short, Website) direkt über die Teilen-Schaltfläche an die installierte PWA oder fügt die URL manuell im Dashboard ein.
+1. **Medien-Sharing / Eingabe:** Der Nutzer teilt einen unterstützten Rezept-Link (Instagram Reel, TikTok Video, YouTube Short, Website) direkt über die Teilen-Schaltfläche an die installierte PWA oder fügt die URL manuell im Dashboard ein. **Hinweis:** Bei YouTube sind ausschließlich YouTube Shorts (URLs mit `/shorts/`-Pfad) erlaubt, um den Download extrem langer Standardvideos zu verhindern. Andere YouTube-Videos werden per Frontend/Backend-Validierung abgewiesen.
 2. **Parsing & Navigation:** Das Frontend empfängt die geteilten Parameter (`/share?text=...`), filtert die URL per allgemeiner Regex, säubert etwaige Interpunktionszeichen am URL-Ende, bereinigt den Pfad und die Suchparameter im Router und navigiert direkt zur "Extract"-Ansicht (`#/extract`).
 3. **Authentifizierung:** Alle API-Calls verwenden `Authorization: Bearer <supabase_jwt>` im Header. Der Benutzer muss sich zuerst via E-Mail/Passwort registrieren oder anmelden (Supabase Auth). Ohne gültige Session ist die App vollständig gesperrt.
 4. **Anfrage:** Der React-Client sendet eine `POST /api/extract-recipe` Anfrage (mit JWT-Token) an den Server.
