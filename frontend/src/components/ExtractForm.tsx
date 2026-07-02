@@ -111,7 +111,7 @@ export default function ExtractForm({
       name: 'TikTok Video',
       url: 'https://www.tiktok.com/@gordonramsayofficial/video/7312345678901234567',
       color: 'from-gray-900 to-black dark:from-gray-800 dark:to-gray-900',
-      icon: <Video className="w-4 h-4 text-white" />
+      icon: <TikTokIcon className="w-4 h-4 text-white" />
     },
     {
       name: 'Web Recipe',
@@ -277,7 +277,7 @@ export default function ExtractForm({
                 </div>
                 <div className="flex gap-2.5 items-start">
                   <div className="p-1.5 rounded-lg bg-black/10 dark:bg-white/10 text-gray-800 dark:text-gray-200 shrink-0">
-                    <Video className="w-3.5 h-3.5" />
+                    <TikTokIcon className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">TikTok Video</h4>
