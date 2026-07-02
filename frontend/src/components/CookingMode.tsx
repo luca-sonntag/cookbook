@@ -245,14 +245,14 @@ export default function CookingMode({
 
         {/* Step Description */}
         {currentStep && (
-          <h1 className="text-xl sm:text-2xl md:text-3.5xl font-bold text-gray-900 dark:text-white leading-relaxed mb-4 sm:mb-8 max-h-[30vh] sm:max-h-[35vh] md:max-h-[40dvh] overflow-y-auto px-2">
+          <h1 className="text-xl sm:text-2xl md:text-3.5xl font-bold text-gray-900 dark:text-white leading-relaxed mb-4 sm:mb-8 max-h-[40dvh] overflow-y-auto px-2 flex-shrink-0">
             <RecipeInstructionText text={currentStep.description} recipe={recipe} formatAmount={formatAmount} stepNum={currentStep.step} />
           </h1>
         )}
 
         {/* Contextual Ingredients needed for this step */}
         {currentStep && getIngredientsForStep(currentStep.description).length > 0 && (
-          <div className="w-full max-w-lg bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-3 sm:p-4 text-left backdrop-blur-sm flex flex-col min-h-0 max-h-[20vh] sm:max-h-[25vh]">
+          <div className="w-full max-w-lg bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-3 sm:p-4 text-left backdrop-blur-sm flex flex-col min-h-0">
             <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 flex-shrink-0 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
               <span>{t('recipe.ingredientsForStep')}</span>
