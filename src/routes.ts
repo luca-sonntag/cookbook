@@ -39,6 +39,29 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       return;
     }
 
+    try {
+      const urlObj = new URL(cleanUrl);
+      const hostname = urlObj.hostname.toLowerCase();
+      const isYouTube = hostname === 'youtube.com' || hostname.endsWith('.youtube.com') || hostname === 'youtu.be';
+      
+      if (isYouTube) {
+        const isShort = urlObj.pathname.startsWith('/shorts/');
+        if (!isShort) {
+          res.status(400).json({
+            success: false,
+            error: 'Only YouTube Shorts are supported, not regular YouTube videos.',
+          });
+          return;
+        }
+      }
+    } catch (e) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid URL format.',
+      });
+      return;
+    }
+
     // Check if job for this URL has already successfully completed (scoped to user)
     const existingJob = await findCompletedJobByUrl(cleanUrl, req.userId!);
     if (existingJob) {
