@@ -31,6 +31,81 @@ const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z" />
+  </svg>
+);
+
+const YouTubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 0 0 .5 6.19C0 8.04 0 12 0 12s0 3.96.5 5.81a3.02 3.02 0 0 0 2.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14C24 15.96 24 12 24 12s0-3.96-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z" />
+  </svg>
+);
+
+const GlobeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <circle cx="12" cy="12" r="10" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+  </svg>
+);
+
+type Platform = 'instagram' | 'tiktok' | 'youtube' | 'website';
+
+function detectPlatform(url: string): Platform {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    if (host.includes('instagram.com')) return 'instagram';
+    if (host.includes('tiktok.com')) return 'tiktok';
+    if (host.includes('youtube.com') || host.includes('youtu.be')) return 'youtube';
+  } catch { /* ignore */ }
+  return 'website';
+}
+
+function PlatformIcon({ platform, className }: { platform: Platform; className?: string }) {
+  switch (platform) {
+    case 'instagram': return <InstagramIcon className={className} />;
+    case 'tiktok': return <TikTokIcon className={className} />;
+    case 'youtube': return <YouTubeIcon className={className} />;
+    default: return <GlobeIcon className={className} />;
+  }
+}
+
+function platformIconColor(platform: Platform): string {
+  switch (platform) {
+    case 'instagram': return 'text-pink-400';
+    case 'tiktok': return 'text-cyan-300';
+    case 'youtube': return 'text-red-400';
+    default: return 'text-blue-300';
+  }
+}
+
 interface RecipeImageGalleryProps {
   recipe: Recipe;
   reelUrl?: string;
@@ -88,32 +163,36 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
       )}
 
       {/* Floating Bottom Actions */}
-      {(reelUrl || recipe.instagramHandle) && (
-        <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
-          {recipe.instagramHandle && (
-            <a
-              href={`https://instagram.com/${recipe.instagramHandle.replace('@', '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-black/65 hover:bg-emerald-600/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-md transition-all duration-300 hover:scale-105"
-            >
-              <InstagramIcon className="w-3 h-3 text-pink-400" />
-              <span>{recipe.instagramHandle}</span>
-            </a>
-          )}
-          {reelUrl && (
-            <a
-              href={reelUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-black/65 hover:bg-emerald-600/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
-            >
-              <InstagramIcon className="w-3 h-3 text-pink-400" />
-              <span>{t('catalog.viewReel')}</span>
-            </a>
-          )}
-        </div>
-      )}
+      {(reelUrl || recipe.instagramHandle) && (() => {
+        const platform = reelUrl ? detectPlatform(reelUrl) : 'instagram';
+        const iconColor = platformIconColor(platform);
+        return (
+          <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
+            {recipe.instagramHandle && (
+              <a
+                href={`https://instagram.com/${recipe.instagramHandle.replace('@', '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-black/65 hover:bg-emerald-600/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-md transition-all duration-300 hover:scale-105"
+              >
+                <InstagramIcon className="w-3 h-3 text-pink-400" />
+                <span>{recipe.instagramHandle}</span>
+              </a>
+            )}
+            {reelUrl && (
+              <a
+                href={reelUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-black/65 hover:bg-emerald-600/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
+              >
+                <PlatformIcon platform={platform} className={`w-3 h-3 ${iconColor}`} />
+                <span>{t('catalog.viewReel')}</span>
+              </a>
+            )}
+          </div>
+        );
+      })()}
     </>
   );
 
