@@ -4,11 +4,16 @@ import path from 'path';
 import fs from 'fs/promises';
 import { spawn } from 'child_process';
 
-// Point fluent-ffmpeg at the bundled static binary
+const isProduction = process.env.NODE_ENV === 'production';
 const ffmpegPath = ffmpegStatic as unknown as string;
-if (ffmpegPath) {
+
+// On production (e.g. Alpine), use system ffmpeg/ffprobe installed via apk
+if (!isProduction && ffmpegPath) {
   ffmpeg.setFfmpegPath(ffmpegPath);
 }
+
+// Resolved path for direct spawns (e.g. creating tiled grid)
+const activeFfmpegBinary = (isProduction || !ffmpegPath) ? 'ffmpeg' : ffmpegPath;
 
 /**
  * Returns the duration of a video file in seconds.
@@ -125,7 +130,7 @@ export async function createImageGrid(
     args.push('-map', '[outv]');
     args.push('-y', outputPath);
 
-    const cp = spawn(ffmpegPath, args);
+    const cp = spawn(activeFfmpegBinary, args);
 
     let stderr = '';
     cp.stderr.on('data', (chunk) => {
