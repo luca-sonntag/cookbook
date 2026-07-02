@@ -119,28 +119,28 @@ export default function ExtractForm({
     <div className="flex flex-col gap-6 w-full">
       {/* Input Card */}
       <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
-        {/* Supported Platforms Badges */}
+        {/* Supported Platforms */}
         <div className="flex flex-col gap-2 mb-4">
           <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
             {t('form.platformsTitle')}
           </span>
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/15 rounded-full">
-              <InstagramIcon className="w-3.5 h-3.5" />
-              Instagram
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-black/5 dark:bg-white/5 text-gray-800 dark:text-gray-200 border border-black/10 dark:border-white/10 rounded-full">
-              <Video className="w-3.5 h-3.5" />
-              TikTok
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/15 rounded-full">
-              <YoutubeIcon className="w-3.5 h-3.5" />
-              YouTube Shorts
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/15 rounded-full">
-              <Globe className="w-3.5 h-3.5" />
-              Websites
-            </span>
+          <div className="flex gap-5">
+            <div className="flex flex-col items-center gap-1">
+              <InstagramIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">Instagram</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <Video className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">TikTok</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <YoutubeIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">YouTube</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <Globe className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">Websites</span>
+            </div>
           </div>
         </div>
 
