@@ -276,6 +276,9 @@ export const uiTranslations = {
       demoTitle: 'Demo ausprobieren',
       platformsTitle: 'Unterstützte Plattformen:',
       helpTitle: 'Wie kopiere ich einen Rezept-Link?',
+      helpShareTitle: 'Direkt teilen (schnellste Methode)',
+      helpShareDesc: 'Wenn CookBuddy als App installiert ist, kannst du Links direkt über den Teilen-Button anderer Apps senden – ohne den Link zu kopieren.',
+      helpShareStep: 'Tippe in Instagram, TikTok oder YouTube auf Teilen, wähle dann CookBuddy aus der Liste.',
       helpSteps: {
         instagram: 'Öffne ein Instagram Reel, tippe auf Teilen (Papierflieger-Symbol) und wähle Link kopieren.',
         tiktok: 'Öffne ein TikTok-Video, tippe auf den Teilen-Pfeil und wähle Link kopieren.',
@@ -557,6 +560,9 @@ export const uiTranslations = {
       demoTitle: 'Try a Demo',
       platformsTitle: 'Supported Platforms:',
       helpTitle: 'How do I copy a recipe link?',
+      helpShareTitle: 'Share directly (fastest method)',
+      helpShareDesc: 'If CookBuddy is installed as an app, you can send links directly via the Share button in other apps — no need to copy the link.',
+      helpShareStep: 'Tap Share in Instagram, TikTok, or YouTube, then select CookBuddy from the list.',
       helpSteps: {
         instagram: 'Open an Instagram Reel, tap Share (paper airplane icon) and choose Copy Link.',
         tiktok: 'Open a TikTok video, tap the Share arrow and choose Copy Link.',
