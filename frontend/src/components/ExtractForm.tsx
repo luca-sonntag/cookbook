@@ -224,6 +224,33 @@ export default function ExtractForm({
         </form>
       </Card>
 
+      {/* Share Directly Accordion */}
+      {!url && (
+        <Accordion variant="surface" className="w-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden">
+          <Accordion.Item className="border-none">
+            <Accordion.Heading>
+              <Accordion.Trigger className="px-5 py-4 flex items-center justify-between text-gray-800 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5">
+                <span className="flex items-center gap-2 text-sm font-semibold">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                    <polyline points="16 6 12 2 8 6" />
+                    <line x1="12" y1="2" x2="12" y2="15" />
+                  </svg>
+                  {t('form.helpShareTitle')}
+                </span>
+                <Accordion.Indicator />
+              </Accordion.Trigger>
+            </Accordion.Heading>
+            <Accordion.Panel>
+              <Accordion.Body className="px-5 pb-5 pt-1 text-xs text-gray-600 dark:text-gray-400 flex flex-col gap-2 border-t border-black/5 dark:border-white/5">
+                <p>{t('form.helpShareDesc')}</p>
+                <p>{t('form.helpShareStep')}</p>
+              </Accordion.Body>
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+      )}
+
       {/* Help / Instructions Accordion */}
       {!url && (
         <Accordion variant="surface" className="w-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden">
@@ -239,21 +266,6 @@ export default function ExtractForm({
             </Accordion.Heading>
             <Accordion.Panel>
               <Accordion.Body className="px-5 pb-5 pt-1 text-xs text-gray-600 dark:text-gray-400 flex flex-col gap-3.5 border-t border-black/5 dark:border-white/5">
-                <div className="flex gap-2.5 items-start">
-                  <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                      <polyline points="16 6 12 2 8 6" />
-                      <line x1="12" y1="2" x2="12" y2="15" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">{t('form.helpShareTitle')}</h4>
-                    <p className="mb-1">{t('form.helpShareDesc')}</p>
-                    <p>{t('form.helpShareStep')}</p>
-                  </div>
-                </div>
-                <div className="border-t border-black/5 dark:border-white/5 -mx-5" />
                 <div className="flex gap-2.5 items-start">
                   <div className="p-1.5 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-400 shrink-0">
                     <InstagramIcon className="w-3.5 h-3.5" />
