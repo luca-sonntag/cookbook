@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Backend deps
 COPY package*.json ./
-RUN npm ci
+RUN YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm ci
 
 # Frontend build
 COPY frontend/package*.json frontend/
