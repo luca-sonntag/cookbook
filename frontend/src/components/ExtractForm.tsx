@@ -125,31 +125,6 @@ export default function ExtractForm({
     <div className="flex flex-col gap-6 w-full">
       {/* Input Card */}
       <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
-        {/* Supported Platforms */}
-        <div className="flex flex-col gap-2 mb-4">
-          <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            {t('form.platformsTitle')}
-          </span>
-          <div className="flex gap-5">
-            <div className="flex flex-col items-center gap-1">
-              <InstagramIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-              <span className="text-[10px] text-gray-400 dark:text-gray-500">Instagram</span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <TikTokIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-              <span className="text-[10px] text-gray-400 dark:text-gray-500">TikTok</span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <YoutubeIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-              <span className="text-[10px] text-gray-400 dark:text-gray-500">YouTube</span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <Globe className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-              <span className="text-[10px] text-gray-400 dark:text-gray-500">Websites</span>
-            </div>
-          </div>
-        </div>
-
         <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
           <TextField 
             fullWidth 
@@ -221,6 +196,31 @@ export default function ExtractForm({
               </span>
             )}
           </Button>
+
+          {/* Supported Platforms */}
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              {t('form.platformsTitle')}
+            </span>
+            <div className="flex gap-5">
+              <div className="flex flex-col items-center gap-1">
+                <InstagramIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <span className="text-[10px] text-gray-400 dark:text-gray-500">Instagram</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <TikTokIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <span className="text-[10px] text-gray-400 dark:text-gray-500">TikTok</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <YoutubeIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <span className="text-[10px] text-gray-400 dark:text-gray-500">YouTube</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <Globe className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <span className="text-[10px] text-gray-400 dark:text-gray-500">Websites</span>
+              </div>
+            </div>
+          </div>
         </form>
       </Card>
 
