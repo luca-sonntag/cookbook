@@ -2,6 +2,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
+
+@theme {
+  --color-emerald-50: #f3f6f4;
+  --color-emerald-100: #e2ebe5;
+  --color-emerald-200: #c7d8cc;
+  --color-emerald-300: #a3c0ab;
+  --color-emerald-400: #789c83;
+  --color-emerald-500: #5a7d65;
+  --color-emerald-600: #435d4b;
+  --color-emerald-700: #314436;
+  --color-emerald-800: #2a3d31;
+  --color-emerald-900: #223127;
+  --color-emerald-950: #111914;
+
+  --color-gray-950: #0d0e12;
+  --color-gray-900: #1b1d24;
+  --color-gray-800: #2b2e3a;
+
+  --color-slate-950: #0d0e12;
+  --color-slate-900: #1b1d24;
+  --color-slate-800: #2b2e3a;
+}
+
 @import "@heroui/styles";
 
 :root {
@@ -18,7 +41,7 @@ body {
 }
 
 html.dark body {
-  background-color: #030712; /* Dark slate background */
+  background-color: var(--color-gray-950);
   color: #f3f4f6;
 }
 
@@ -41,11 +64,11 @@ html.dark body {
   background: #0b0f19;
 }
 ::-webkit-scrollbar-thumb {
-  background: #10b981; /* Emerald green accent */
+  background: var(--color-emerald-500); /* Muted sage green accent */
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #34d399;
+  background: var(--color-emerald-400);
 }
 
 /* Glassmorphism utility */
@@ -59,8 +82,8 @@ html.dark body {
 }
 
 html.dark .glass-panel {
-  background: rgba(17, 24, 39, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(27, 29, 36, 0.75); /* Muted warm charcoal card background */
+  border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: none;
 }
 
