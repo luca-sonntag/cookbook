@@ -89,7 +89,12 @@ async function bootstrap() {
           }
         });
         if (!response.ok) throw new Error('Failed to fetch image');
-        res.set('Content-Type', response.headers.get('content-type') || 'image/jpeg');
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.startsWith('image/')) {
+          res.status(415).send('URL did not return an image');
+          return;
+        }
+        res.set('Content-Type', contentType);
         res.set('Cache-Control', 'public, max-age=31536000');
         res.set('Access-Control-Allow-Origin', '*');
         res.set('Cross-Origin-Resource-Policy', 'cross-origin');
