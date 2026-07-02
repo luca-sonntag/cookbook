@@ -235,29 +235,29 @@ export default function CookingMode({
       )}
 
       {/* Central Instruction Step Card */}
-      <div className="flex-1 flex flex-col justify-center items-center my-6 max-w-4xl mx-auto w-full px-4 text-center">
+      <div className="flex-1 min-h-0 flex flex-col justify-center items-center my-2 sm:my-6 max-w-4xl mx-auto w-full px-4 text-center">
         {/* Step Number Badge */}
         {currentStep && (
-          <div className="w-12 h-12 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg mb-6 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg mb-3 sm:mb-6 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)] flex-shrink-0">
             {currentStep.step}
           </div>
         )}
 
         {/* Step Description */}
         {currentStep && (
-          <h1 className="text-2xl md:text-3.5xl font-bold text-gray-900 dark:text-white leading-relaxed mb-8 max-h-[40dvh] overflow-y-auto px-2">
+          <h1 className="text-xl sm:text-2xl md:text-3.5xl font-bold text-gray-900 dark:text-white leading-relaxed mb-4 sm:mb-8 max-h-[30vh] sm:max-h-[35vh] md:max-h-[40dvh] overflow-y-auto px-2">
             <RecipeInstructionText text={currentStep.description} recipe={recipe} formatAmount={formatAmount} stepNum={currentStep.step} />
           </h1>
         )}
 
         {/* Contextual Ingredients needed for this step */}
         {currentStep && getIngredientsForStep(currentStep.description).length > 0 && (
-          <div className="w-full max-w-lg bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-4 text-left backdrop-blur-sm">
-            <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+          <div className="w-full max-w-lg bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-3 sm:p-4 text-left backdrop-blur-sm flex flex-col min-h-0 max-h-[20vh] sm:max-h-[25vh]">
+            <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 flex-shrink-0 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
               <span>{t('recipe.ingredientsForStep')}</span>
             </h3>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-xs overflow-y-auto pr-1 min-h-0">
               {getIngredientsForStep(currentStep.description).map((ing, i) => {
                 const scaledAmount = formatAmount(ing.amount, ing.unit);
                 const amountStr = scaledAmount ? `${scaledAmount} ` : '';
