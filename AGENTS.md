@@ -134,7 +134,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * Ein Inline-Interceptor im `<head>` der `index.html` liest `localStorage.theme` und wendet die `dark`-Klasse synchron vor dem ersten Paint an, um ein Aufblitzen des falschen Designs (FOUC) zu verhindern.
 * **PWA & Share Target Integration:**
   * Die Webanwendung ist über den Browser direkt als PWA (Progressive Web App) installierbar.
-  * Registriert die **Web Share Target API**, sodass Instagram Reels direkt aus der Instagram-App an die PWA geteilt werden können. Der URL-Parameter wird beim Start der PWA automatisch ausgewertet, bereinigt und an den Extraktor gesendet.
+  * Registriert die **Web Share Target API**, sodass unterstützte Medien-Links (Instagram Reels, TikTok Videos, YouTube Shorts oder Web-Rezepte) direkt aus der jeweiligen App an die PWA geteilt werden können. Der geteilte Text wird beim Start der PWA automatisch ausgewertet, die URL per allgemeiner Regex extrahiert, bereinigt, die Query-Parameter und der `/share`-Pfad im Router zurückgesetzt und die Extraktion gestartet.
 * **Rezeptverlauf & Interaktion:**
   * **Saved Recipes:** Ermöglicht das Durchsuchen aller erfolgreich verarbeiteten Rezepte in einer Grid-Ansicht mit Filter- (z.B. Zeitlimit- und Tag-Filter) und Löschoptionen. Standalone-Seitenüberschriften wurden zugunsten eines cleanen, konsistenten UI-Aufbaus entfernt.
   * **Detailansicht:** Das Laden eines archivierten Rezepts integriert sich nahtlos in die interaktive Checklisten-Oberfläche (Zutaten- und Schritt-Abhaken).
@@ -158,8 +158,8 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 
 ## 🔄 Workflow im Detail
 
-1. **Reel-Sharing / Eingabe:** Der Nutzer teilt ein Reel direkt über die Instagram-Teilen-Schaltfläche an die installierte PWA oder fügt die Reel-URL manuell im Dashboard ein.
-2. **Parsing:** Das Frontend empfängt die geteilten Parameter (`/share?text=...`), filtert die Reel-URL per Regex und bereinigt sie.
+1. **Medien-Sharing / Eingabe:** Der Nutzer teilt einen unterstützten Rezept-Link (Instagram Reel, TikTok Video, YouTube Short, Website) direkt über die Teilen-Schaltfläche an die installierte PWA oder fügt die URL manuell im Dashboard ein.
+2. **Parsing & Navigation:** Das Frontend empfängt die geteilten Parameter (`/share?text=...`), filtert die URL per allgemeiner Regex, säubert etwaige Interpunktionszeichen am URL-Ende, bereinigt den Pfad und die Suchparameter im Router und navigiert direkt zur "Extract"-Ansicht (`#/extract`).
 3. **Authentifizierung:** Alle API-Calls verwenden `Authorization: Bearer <supabase_jwt>` im Header. Der Benutzer muss sich zuerst via E-Mail/Passwort registrieren oder anmelden (Supabase Auth). Ohne gültige Session ist die App vollständig gesperrt.
 4. **Anfrage:** Der React-Client sendet eine `POST /api/extract-recipe` Anfrage (mit JWT-Token) an den Server.
 5. **Erstellung:** Der Server validiert das JWT (`requireAuth`-Middleware), extrahiert die `userId`, legt einen Job mit Status `pending` und `user_id` an, startet die Queue und antwortet sofort mit der `jobId` (202 Accepted).
