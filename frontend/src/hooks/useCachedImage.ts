@@ -24,8 +24,10 @@ async function compressAndConvertToBase64(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous'; // Ensure CORS is handled
-    
+    const objectUrl = URL.createObjectURL(blob);
+
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       try {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -62,10 +64,11 @@ async function compressAndConvertToBase64(url: string): Promise<string> {
     };
 
     img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
       reject(new Error('Failed to load image into HTMLImageElement'));
     };
 
-    img.src = URL.createObjectURL(blob);
+    img.src = objectUrl;
   });
 }
 

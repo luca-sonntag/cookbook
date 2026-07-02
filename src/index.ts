@@ -46,7 +46,7 @@ async function bootstrap() {
           ...helmet.contentSecurityPolicy.getDefaultDirectives(),
           "script-src": ["'self'", "'sha256-gRea1ud4dovMrn/WaGWbyWZ3C28Ahr9nd40nKPz0IO8='"],
           "connect-src": ["'self'", "https://*.supabase.co", "wss://*.supabase.co"],
-          "img-src": ["'self'", "data:", "https://*.supabase.co"],
+          "img-src": ["'self'", "data:", "blob:", "https://*.supabase.co"],
         }
       } : false,
     }));
