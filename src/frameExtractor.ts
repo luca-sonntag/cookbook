@@ -88,14 +88,30 @@ export async function createImageGrid(
   const rowCount = Math.ceil(count / colCount);
   const scaleSize = 300;
 
-  // Find standard font file for text drawing
-  let fontOption = "font='Arial'";
-  try {
-    const winFont = 'C:\\Windows\\Fonts\\arial.ttf';
-    await fs.access(winFont);
-    fontOption = `fontfile='C\\\\:/Windows/Fonts/arial.ttf'`;
-  } catch {
-    // Keep fallback to Arial font query
+  // Find standard font file for text drawing (important for Linux/Alpine Docker environments)
+  const fontCandidates = [
+    'C:\\Windows\\Fonts\\arial.ttf',
+    '/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf',
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+    '/usr/share/fonts/liberation/LiberationSans-Regular.ttf',
+    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+    '/usr/share/fonts/TTF/DejaVuSans.ttf',
+  ];
+
+  let fontOption = '';
+  for (const candidate of fontCandidates) {
+    try {
+      await fs.access(candidate);
+      const escapedPath = candidate.replace(/\\/g, '/').replace(/:/g, '\\:');
+      fontOption = `fontfile='${escapedPath}'`;
+      break;
+    } catch {
+      // Font not found, try next candidate
+    }
+  }
+
+  if (!fontOption) {
+    fontOption = "font='Sans'";
   }
 
   return new Promise((resolve, reject) => {
