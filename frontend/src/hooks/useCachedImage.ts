@@ -13,7 +13,12 @@ async function compressAndConvertToBase64(url: string): Promise<string> {
   if (!response.ok) {
     throw new Error(`Failed to fetch image via proxy: ${response.statusText}`);
   }
-  
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.startsWith('image/')) {
+    throw new Error(`URL did not return an image (got ${contentType})`);
+  }
+
   const blob = await response.blob();
   
   return new Promise((resolve, reject) => {
