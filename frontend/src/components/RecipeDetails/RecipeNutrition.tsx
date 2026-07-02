@@ -24,18 +24,18 @@ export default function RecipeNutrition({
         ? 'bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] shadow-[0_0_15px_rgba(99,102,241,0.05)]'
         : 'bg-black/5 dark:bg-white/5'
     }`}>
-      <div className="flex justify-between items-center mb-2.5 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3.5">
         <div className="flex items-center gap-1.5">
           <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{t('recipe.nutritionTitle')}</h4>
           {isAiEstimated && <AiNotice type="badge" />}
         </div>
         
         {/* Portion / Gesamt Switcher */}
-        <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-black/5 dark:border-white/5 select-none shrink-0">
+        <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-black/5 dark:border-white/5 select-none w-full sm:w-auto">
           <button
             type="button"
             onClick={() => onToggleTotalNutrition(false)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer outline-none border-none ${
+            className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer outline-none border-none text-center ${
               !showTotalNutrition
                 ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -46,7 +46,7 @@ export default function RecipeNutrition({
           <button
             type="button"
             onClick={() => onToggleTotalNutrition(true)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer outline-none border-none ${
+            className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer outline-none border-none text-center ${
               showTotalNutrition
                 ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -56,7 +56,7 @@ export default function RecipeNutrition({
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-4 gap-2 text-center text-xs">
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-2 text-center text-xs">
         <div>
           <div className="text-gray-900 dark:text-white text-sm font-bold">{getNutritionDisplayValue(nutritionalValues.calories, 'kcal', showTotalNutrition, false)}</div>
           <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{t('recipe.nutritionCalories')}</div>
