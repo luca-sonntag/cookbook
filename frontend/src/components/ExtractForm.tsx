@@ -227,7 +227,7 @@ export default function ExtractForm({
       {/* Share Directly Accordion */}
       {!url && (
         <Accordion variant="surface" className="w-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden">
-          <Accordion.Item className="border-none">
+          <Accordion.Item className="border-none" defaultExpanded>
             <Accordion.Heading>
               <Accordion.Trigger className="px-5 py-4 flex items-center justify-between text-gray-800 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5">
                 <span className="flex items-center gap-2 text-sm font-semibold">
