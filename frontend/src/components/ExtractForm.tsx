@@ -140,7 +140,7 @@ export default function ExtractForm({
             <div className="relative mt-2">
               <Input
                 placeholder={t('form.urlPlaceholder')}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-3 pr-20 py-3.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-3 !pr-12 py-3.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                 disabled={isPending}
               />
               <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
