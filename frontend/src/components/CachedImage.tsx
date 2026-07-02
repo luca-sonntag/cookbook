@@ -12,6 +12,11 @@ interface CachedImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement
  */
 export default function CachedImage({ src: originalUrl, fallbackComponent, className, alt, ...props }: CachedImageProps) {
   const { src, isLoading } = useCachedImage(originalUrl);
+  const [hasError, setHasError] = React.useState(false);
+
+  React.useEffect(() => {
+    setHasError(false);
+  }, [src]);
 
   if (isLoading && !src) {
     return (
@@ -21,7 +26,7 @@ export default function CachedImage({ src: originalUrl, fallbackComponent, class
     );
   }
 
-  if (!src) {
+  if (!src || hasError) {
     return fallbackComponent ? (
       <>{fallbackComponent}</>
     ) : (
@@ -34,6 +39,7 @@ export default function CachedImage({ src: originalUrl, fallbackComponent, class
       src={src}
       alt={alt || ''}
       className={className}
+      onError={() => setHasError(true)}
       {...props}
     />
   );

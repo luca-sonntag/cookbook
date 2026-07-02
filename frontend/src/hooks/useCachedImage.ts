@@ -115,11 +115,7 @@ export function useCachedImage(originalUrl: string | null | undefined) {
       } catch (err: any) {
         console.error('Error in useCachedImage:', err);
         if (isMounted) {
-          // Fallback to proxy URL directly if compression/caching fails
-          const fallbackUrl = originalUrl!.startsWith('/') 
-            ? originalUrl! 
-            : `/api/image?url=${encodeURIComponent(originalUrl!)}`;
-          setSrc(fallbackUrl);
+          setSrc(null);
           setError(err instanceof Error ? err : new Error(String(err)));
           setIsLoading(false);
         }
