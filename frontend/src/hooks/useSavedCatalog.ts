@@ -206,6 +206,7 @@ export function useSavedCatalog({
       onPointerDown: (e: React.PointerEvent) => handlePointerDown(e, jobId),
       onPointerUp: (e: React.PointerEvent) => handlePointerUp(e, job),
       onPointerLeave: () => handlePointerLeave(jobId),
+      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
     };
   };
 

@@ -90,7 +90,7 @@ interface RecipeCardProps {
 
 // --- Class Name Constants ---
 const styles = {
-  cardBase: "glass-panel rounded-2xl hover:border-emerald-500/30 cursor-pointer active:scale-[0.99] transition-all flex flex-col gap-0 justify-between overflow-hidden relative border",
+  cardBase: "glass-panel rounded-2xl hover:border-emerald-500/30 cursor-pointer active:scale-[0.99] transition-all flex flex-col gap-0 justify-between overflow-hidden relative border select-none",
   cardSelected: "!border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10",
   cardUnselected: "border-black/5 dark:border-white/5",
 
@@ -99,7 +99,7 @@ const styles = {
   fallbackCheckboxUnselected: "bg-black/5 dark:bg-white/5 border-black/20 dark:border-white/20 text-gray-500 dark:text-gray-400",
 
   imageContainer: "h-32 w-full bg-black/5 dark:bg-white/5 relative overflow-hidden",
-  image: "w-full h-full object-cover object-center rounded-t-2xl",
+  image: "w-full h-full object-cover object-center rounded-t-2xl pointer-events-none select-none",
 
   imageCheckbox: "absolute top-2.5 left-2.5 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all border",
   imageCheckboxSelected: "bg-emerald-500 border-emerald-500 text-white shadow-md",
