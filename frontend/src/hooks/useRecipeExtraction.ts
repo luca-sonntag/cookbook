@@ -13,15 +13,35 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   const [urlError, setUrlError] = useState('');
 
   const validateUrl = useCallback((testUrl: string): boolean => {
-    if (!testUrl.trim()) {
+    const trimmed = testUrl.trim();
+    if (!trimmed) {
       setUrlError(t('form.validation.required'));
       return false;
     }
     const regex = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/i;
-    if (!regex.test(testUrl.trim())) {
+    if (!regex.test(trimmed)) {
       setUrlError(t('form.validation.invalid'));
       return false;
     }
+
+    try {
+      const urlWithProtocol = trimmed.match(/^https?:\/\//i) ? trimmed : `https://${trimmed}`;
+      const urlObj = new URL(urlWithProtocol);
+      const hostname = urlObj.hostname.toLowerCase();
+      const isYouTube = hostname === 'youtube.com' || hostname.endsWith('.youtube.com') || hostname === 'youtu.be';
+      
+      if (isYouTube) {
+        const isShort = urlObj.pathname.startsWith('/shorts/');
+        if (!isShort) {
+          setUrlError(t('form.validation.youtubeShortsOnly'));
+          return false;
+        }
+      }
+    } catch (e) {
+      setUrlError(t('form.validation.invalid'));
+      return false;
+    }
+
     setUrlError('');
     return true;
   }, [t]);
