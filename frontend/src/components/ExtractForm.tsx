@@ -1,7 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { Card, TextField, Label, Input, Button, FieldError, Spinner, Accordion } from '@heroui/react';
-import { BookOpen, Clipboard, Instagram, Video, Globe, HelpCircle, Youtube } from 'lucide-react';
+import { BookOpen, Clipboard, Video, Globe, HelpCircle } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
+
+// Custom SVG component for Instagram icon
+const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
+
+// Custom SVG component for YouTube icon
+const YoutubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
+    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" />
+  </svg>
+);
 
 interface ExtractFormProps {
   url: string;
@@ -60,7 +99,7 @@ export default function ExtractForm({
       name: 'Instagram Reel',
       url: 'https://www.instagram.com/reel/C8qV_0yIm2q/',
       color: 'from-pink-500 to-rose-500',
-      icon: <Instagram className="w-4 h-4 text-white" />
+      icon: <InstagramIcon className="w-4 h-4 text-white" />
     },
     {
       name: 'TikTok Video',
@@ -87,7 +126,7 @@ export default function ExtractForm({
           </span>
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/15 rounded-full">
-              <Instagram className="w-3.5 h-3.5" />
+              <InstagramIcon className="w-3.5 h-3.5" />
               Instagram
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-black/5 dark:bg-white/5 text-gray-800 dark:text-gray-200 border border-black/10 dark:border-white/10 rounded-full">
@@ -95,7 +134,7 @@ export default function ExtractForm({
               TikTok
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/15 rounded-full">
-              <Youtube className="w-3.5 h-3.5" />
+              <YoutubeIcon className="w-3.5 h-3.5" />
               YouTube Shorts
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/15 rounded-full">
@@ -223,7 +262,7 @@ export default function ExtractForm({
               <Accordion.Body className="px-5 pb-5 pt-1 text-xs text-gray-600 dark:text-gray-400 flex flex-col gap-3.5 border-t border-black/5 dark:border-white/5">
                 <div className="flex gap-2.5 items-start">
                   <div className="p-1.5 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-400 shrink-0">
-                    <Instagram className="w-3.5 h-3.5" />
+                    <InstagramIcon className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">Instagram Reel</h4>
@@ -241,7 +280,7 @@ export default function ExtractForm({
                 </div>
                 <div className="flex gap-2.5 items-start">
                   <div className="p-1.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 shrink-0">
-                    <Youtube className="w-3.5 h-3.5" />
+                    <YoutubeIcon className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">YouTube Shorts</h4>
