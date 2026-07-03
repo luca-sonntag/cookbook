@@ -22,7 +22,7 @@ export async function scrapeVideoData(url: string): Promise<ScrapingResult> {
       audioUrl: metadata.url,
       videoUrl: metadata.url, // yt-dlp 'url' often contains the combined stream or audio stream
       imageUrl: metadata.thumbnail || '',
-      authorHandle: metadata.uploader || metadata.channel || '',
+      authorHandle: metadata.uploader_id || metadata.uploader || metadata.channel || '',
       headers: {
         ...metadata.http_headers,
         ...(metadata.cookies ? { Cookie: metadata.cookies } : {})
