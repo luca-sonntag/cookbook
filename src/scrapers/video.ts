@@ -5,6 +5,44 @@ import { getYtdlpCookieOptions } from '../config.js';
 const youtubedl: any = (yt as any).default || yt;
 
 export async function scrapeVideoData(url: string): Promise<ScrapingResult> {
+  const urlObj = new URL(url);
+  const hostname = urlObj.hostname.toLowerCase();
+  const isYouTube = hostname === 'youtube.com' || hostname.endsWith('.youtube.com') || hostname === 'youtu.be';
+  const isTikTok = hostname.includes('tiktok.com');
+
+  if (isYouTube || isTikTok) {
+    try {
+      if (isYouTube) {
+        const { scrapeYoutubeVideo } = await import('../apify.js');
+        const res = await scrapeYoutubeVideo(url);
+        return {
+          caption: res.caption,
+          audioUrl: res.audioUrl,
+          videoUrl: res.videoUrl,
+          imageUrl: res.imageUrl,
+          authorHandle: res.instagramHandle,
+          requiresYtDlpDownload: false,
+          originalUrl: url,
+        };
+      } else {
+        const { scrapeTiktokVideo } = await import('../apify.js');
+        const res = await scrapeTiktokVideo(url);
+        return {
+          caption: res.caption,
+          audioUrl: res.audioUrl,
+          videoUrl: res.videoUrl,
+          imageUrl: res.imageUrl,
+          authorHandle: res.instagramHandle,
+          requiresYtDlpDownload: false,
+          originalUrl: url,
+        };
+      }
+    } catch (apifyError: any) {
+      console.warn(`Apify scraping failed for ${url}, falling back to local yt-dlp:`, apifyError.message);
+    }
+  }
+
+  // Fallback to local yt-dlp
   try {
     // Extract video metadata and the best direct audio/video URL
     const output = await youtubedl(url, {
@@ -36,3 +74,4 @@ export async function scrapeVideoData(url: string): Promise<ScrapingResult> {
     throw new Error(`Failed to extract video data using yt-dlp: ${error.message}`);
   }
 }
+
