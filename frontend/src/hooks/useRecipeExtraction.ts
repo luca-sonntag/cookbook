@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
 import type { Recipe, Job, ProgressData } from '../types';
 import { useI18n } from '../context/I18nContext';
+import { translateApiError } from '../i18n';
 
 export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [isPending, setIsPending] = useState(false);
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
   const [jobError, setJobError] = useState<string | null>(null);
@@ -68,7 +69,10 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         } catch {
           clearInterval(interval);
           setJobStatus('failed');
-          setJobError(t('form.validation.serverError'));
+          const errMsg = response.status === 429
+            ? translateApiError('too many requests', language)
+            : t('form.validation.serverError');
+          setJobError(errMsg);
           setIsPending(false);
           return;
         }
@@ -76,7 +80,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         if (!response.ok || !data.success) {
           clearInterval(interval);
           setJobStatus('failed');
-          setJobError(data.error || t('form.validation.failedCheck'));
+          setJobError(translateApiError(data.error, language) || t('form.validation.failedCheck'));
           setIsPending(false);
           return;
         }
@@ -92,21 +96,22 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           onExtractionSuccess(job.id);
         } else if (job.status === 'failed') {
           clearInterval(interval);
-          setJobError(job.error || t('form.validation.failedExtraction'));
+          setJobError(translateApiError(job.error, language) || t('form.validation.failedExtraction'));
           setProgress(null);
           setIsPending(false);
         } else {
           setProgress(job.progress || null);
         }
-      } catch {
+      } catch (err: unknown) {
         clearInterval(interval);
         setJobStatus('failed');
-        setJobError(t('form.validation.lostConnection'));
+        const errMsg = err instanceof Error ? translateApiError(err.message, language) : t('form.validation.lostConnection');
+        setJobError(errMsg);
         setProgress(null);
         setIsPending(false);
       }
     }, 2000);
-  }, [getAccessToken, onExtractionSuccess, t]);
+  }, [getAccessToken, onExtractionSuccess, t, language]);
 
   const triggerExtraction = useCallback(async (targetUrl: string) => {
     const cleanUrl = targetUrl.trim();
@@ -136,6 +141,9 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       try {
         data = await response.json();
       } catch {
+        if (response.status === 429) {
+          throw new Error(translateApiError('too many requests', language));
+        }
         throw new Error(t('form.validation.serverError'));
       }
       
@@ -144,18 +152,18 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       }
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || t('form.validation.submitFailed'));
+        throw new Error(translateApiError(data.error, language) || t('form.validation.submitFailed'));
       }
 
       setJobStatus(data.status);
       startPolling(data.jobId);
     } catch (err: unknown) {
       setJobStatus('failed');
-      const errorMessage = err instanceof Error ? err.message : t('form.validation.submissionError');
+      const errorMessage = err instanceof Error ? translateApiError(err.message, language) : t('form.validation.submissionError');
       setJobError(errorMessage);
       setIsPending(false);
     }
-  }, [getAccessToken, startPolling, validateUrl, t]);
+  }, [getAccessToken, startPolling, validateUrl, t, language]);
 
 
   return {
