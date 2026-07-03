@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto';
 import { getScraperForUrl } from './scrapers/index.js';
 import { extractRecipe, remixRecipe } from './gemini.js';
 import type { Job, ProgressData } from './types.js';
-import { config } from './config.js';
+import { config, getYtdlpCookieOptions } from './config.js';
 import yt from 'youtube-dl-exec';
 
 const youtubedl: any = (yt as any).default || yt;
@@ -187,7 +187,8 @@ async function processJob(job: Job): Promise<void> {
             extractAudio: true,
             audioFormat: 'mp3',
             noWarnings: true,
-            noPlaylist: true
+            noPlaylist: true,
+            ...getYtdlpCookieOptions()
           })
             .catch((err: any) => {
               console.warn(`[Job ${jobId}] yt-dlp audio download failed: ${err.message}`);
@@ -200,7 +201,8 @@ async function processJob(job: Job): Promise<void> {
               output: videoFilePath, 
               format: 'bestvideo/best', 
               noWarnings: true,
-              noPlaylist: true
+              noPlaylist: true,
+              ...getYtdlpCookieOptions()
             })
               .catch((err: any) => {
                 console.warn(`[Job ${jobId}] yt-dlp video download failed (will skip frame extraction): ${err.message}`);
