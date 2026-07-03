@@ -186,7 +186,8 @@ async function processJob(job: Job): Promise<void> {
             format: 'bestaudio/best', 
             extractAudio: true,
             audioFormat: 'mp3',
-            noWarnings: true 
+            noWarnings: true,
+            noPlaylist: true
           })
             .catch((err: any) => {
               console.warn(`[Job ${jobId}] yt-dlp audio download failed: ${err.message}`);
@@ -195,7 +196,12 @@ async function processJob(job: Job): Promise<void> {
         );
         if (scrapeResult.videoUrl) {
            downloadPromises.push(
-            youtubedl(scrapeResult.originalUrl, { output: videoFilePath, format: 'bestvideo/best', noWarnings: true })
+            youtubedl(scrapeResult.originalUrl, { 
+              output: videoFilePath, 
+              format: 'bestvideo/best', 
+              noWarnings: true,
+              noPlaylist: true
+            })
               .catch((err: any) => {
                 console.warn(`[Job ${jobId}] yt-dlp video download failed (will skip frame extraction): ${err.message}`);
                 videoFilePath = '';
