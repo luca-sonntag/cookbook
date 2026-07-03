@@ -77,7 +77,7 @@ export async function scrapeYoutubeVideo(videoUrl: string): Promise<ScrapingResu
     throw new Error('No items found in the YouTube downloader dataset output.');
   }
 
-  const item = items[0];
+  const item = items[0] as any;
 
   const caption = (item.title || item.description || item.caption || '') as string;
   const audioUrl = (item.audioUrl || item.downloadUrl || item.videoUrl || item.url || item.formats?.[0]?.url || '') as string;
@@ -123,7 +123,7 @@ export async function scrapeTiktokVideo(videoUrl: string): Promise<ScrapingResul
     throw new Error('No items found in the TikTok video scraper dataset output.');
   }
 
-  const item = items[0];
+  const item = items[0] as any;
 
   const caption = (item.text || item.caption || '') as string;
   const playAddr = (item.video?.downloadAddr || item.video?.playAddr || item.videoUrl || item.downloadAddr || '') as string;
