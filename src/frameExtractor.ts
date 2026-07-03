@@ -59,7 +59,7 @@ export async function extractFrames(
     await new Promise<void>((resolve, reject) => {
       ffmpeg(videoPath)
         .seekInput(ts)
-        .outputOptions('-vframes', '1', '-q:v', '3')
+        .outputOptions('-vframes', '1', '-q:v', '3', '-vf', "scale='min(400,iw)':-1")
         .output(outputPath)
         .on('end', () => resolve())
         .on('error', (err) => reject(err))
