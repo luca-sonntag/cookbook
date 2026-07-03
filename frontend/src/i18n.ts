@@ -756,3 +756,100 @@ export function getTranslation(key: string, lang: SupportedLanguage, variables?:
   return result;
 }
 
+export function translateApiError(errorMsg: string | null | undefined, lang: SupportedLanguage = 'de'): string {
+  if (!errorMsg) return '';
+  
+  const lowerMsg = errorMsg.toLowerCase();
+  
+  if (lowerMsg.includes('too many requests')) {
+    return lang === 'de' 
+      ? 'Zu viele Anfragen. Bitte versuche es später noch einmal.' 
+      : 'Too many requests. Please try again later.';
+  }
+  
+  if (lowerMsg.includes('active job')) {
+    const match = errorMsg.match(/\d+/);
+    const count = match ? match[0] : '1';
+    return lang === 'de'
+      ? `Du hast bereits ${count} aktive(n) Auftrag/Aufträge. Bitte warte, bis diese abgeschlossen sind.`
+      : `You already have ${count} active job(s). Please wait for them to finish.`;
+  }
+  
+  if (lowerMsg.includes('youtube shorts')) {
+    return lang === 'de'
+      ? 'Nur YouTube Shorts werden unterstützt, keine regulären YouTube-Videos.'
+      : 'Only YouTube Shorts are supported, not regular YouTube videos.';
+  }
+  
+  if (lowerMsg.includes('invalid url')) {
+    return lang === 'de'
+      ? 'Ungültige URL. Bitte überprüfe den Link (muss Instagram, TikTok, YouTube Shorts oder Website sein).'
+      : 'Invalid URL. Please check the link (must be Instagram, TikTok, YouTube Shorts, or website).';
+  }
+  
+  if (lowerMsg.includes('unauthorized') || lowerMsg.includes('not authorized') || lowerMsg.includes('401')) {
+    return lang === 'de'
+      ? 'Nicht autorisiert. Bitte melde dich erneut an.'
+      : 'Unauthorized. Please sign in again.';
+  }
+
+  if (lowerMsg.includes('parent job not found') || lowerMsg.includes('parent job or recipe not found')) {
+    return lang === 'de'
+      ? 'Ursprungsrezept nicht gefunden.'
+      : 'Parent recipe not found.';
+  }
+
+  if (lowerMsg.includes('remix prompt must not exceed')) {
+    return lang === 'de'
+      ? 'Der Remix-Text darf maximal 250 Zeichen lang sein.'
+      : 'Remix prompt must not exceed 250 characters.';
+  }
+
+  if (lowerMsg.includes('unrelated request')) {
+    return lang === 'de'
+      ? 'Ungültige Anfrage: Die KI hat keine Rezeptänderung im eingegebenen Text erkannt.'
+      : 'Invalid request: The AI did not recognize any recipe modifications in the text.';
+  }
+
+  if (lowerMsg.includes('failed to scrape instagram') || lowerMsg.includes('instagram data')) {
+    return lang === 'de'
+      ? 'Fehler beim Abrufen des Instagram Reels. Bitte überprüfe, ob das Video öffentlich und der Link korrekt ist.'
+      : 'Failed to retrieve the Instagram Reel. Please make sure the video is public and the link is correct.';
+  }
+
+  if (lowerMsg.includes('could not find any recipe details')) {
+    return lang === 'de'
+      ? 'Auf dieser Website konnte kein Rezept gefunden werden.'
+      : 'Could not find any recipe details on this website.';
+  }
+
+  if (lowerMsg.includes('failed to download') || lowerMsg.includes('audio download failed') || lowerMsg.includes('video download failed')) {
+    return lang === 'de'
+      ? 'Fehler beim Herunterladen der Medien-Audiodatei. Bitte versuche es noch einmal.'
+      : 'Failed to download the media audio file. Please try again.';
+  }
+
+  if (lowerMsg.includes('internal server error')) {
+    return lang === 'de'
+      ? 'Ein interner Serverfehler ist aufgetreten. Bitte versuche es später erneut.'
+      : 'An internal server error occurred. Please try again later.';
+  }
+
+  // Handle standard default messages
+  if (errorMsg === 'failed_check' || errorMsg === 'failedCheck') {
+    return lang === 'de' ? 'Statusüberprüfung vom Server fehlgeschlagen.' : 'Failed to check status from server.';
+  }
+  if (errorMsg === 'failed_extraction' || errorMsg === 'failedExtraction') {
+    return lang === 'de' ? 'Die Rezept-Extraktion ist fehlgeschlagen.' : 'The recipe extraction failed.';
+  }
+  if (errorMsg === 'lost_connection' || errorMsg === 'lostConnection') {
+    return lang === 'de' ? 'Verbindung zum Backend-Server verloren.' : 'Lost connection to backend server.';
+  }
+  if (errorMsg === 'submit_failed' || errorMsg === 'submitFailed') {
+    return lang === 'de' ? 'Auftrag konnte nicht übermittelt werden.' : 'Failed to submit extraction job.';
+  }
+
+  return errorMsg;
+}
+
+
