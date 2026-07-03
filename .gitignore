@@ -11,4 +11,5 @@ logs/
 public/recipe-images/
 temp-downloads/
 .agents
-.afdesign
+.claude/
+*.afdesign*
