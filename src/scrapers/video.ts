@@ -10,6 +10,7 @@ export async function scrapeVideoData(url: string): Promise<ScrapingResult> {
       dumpSingleJson: true,
       noWarnings: true,
       preferFreeFormats: true,
+      noPlaylist: true,
       // Prefer best audio format that's small
       format: 'bestaudio/best',
     });
