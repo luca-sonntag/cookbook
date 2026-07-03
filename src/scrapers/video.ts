@@ -1,5 +1,6 @@
 import yt from 'youtube-dl-exec';
 import type { ScrapingResult } from './index.js';
+import { getYtdlpCookieOptions } from '../config.js';
 
 const youtubedl: any = (yt as any).default || yt;
 
@@ -13,6 +14,7 @@ export async function scrapeVideoData(url: string): Promise<ScrapingResult> {
       noPlaylist: true,
       // Prefer best audio format that's small
       format: 'bestaudio/best',
+      ...getYtdlpCookieOptions()
     });
 
     const metadata = output as any;
