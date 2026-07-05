@@ -12,6 +12,35 @@ apiRouter.use(requireAuth);
 const SUPPORTED_URL_REGEX = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/i;
 
 /**
+ * Helper to determine a user's rate limit based on their tier and overrides in app_metadata.
+ */
+function resolveUserRateLimit(user: any): number {
+  const meta = user?.app_metadata || {};
+
+  // 1. Custom override check
+  if (typeof meta.custom_extraction_limit === 'number') {
+    return meta.custom_extraction_limit;
+  }
+  if (typeof meta.max_extractions_per_window === 'number') {
+    return meta.max_extractions_per_window;
+  }
+  if (typeof meta.custom_extraction_limit === 'string') {
+    return parseInt(meta.custom_extraction_limit, 10);
+  }
+  if (typeof meta.max_extractions_per_window === 'string') {
+    return parseInt(meta.max_extractions_per_window, 10);
+  }
+
+  // 2. Subscription tier check
+  if (meta.tier === 'premium') {
+    return config.PREMIUM_MAX_EXTRACTIONS_PER_WINDOW;
+  }
+
+  // 3. Fallback to free tier
+  return config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
+}
+
+/**
  * Endpoint to submit an Instagram Reel URL for recipe extraction.
  * POST /api/extract-recipe
  * Body: { url: string }
@@ -85,26 +114,15 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     }
 
     // Enforce rolling rate limit per user (with custom override in app_metadata)
-    let customLimit: number | undefined;
+    let limit = config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
     try {
       const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError && user?.app_metadata) {
-        const meta = user.app_metadata;
-        if (typeof meta.custom_extraction_limit === 'number') {
-          customLimit = meta.custom_extraction_limit;
-        } else if (typeof meta.max_extractions_per_window === 'number') {
-          customLimit = meta.max_extractions_per_window;
-        } else if (typeof meta.custom_extraction_limit === 'string') {
-          customLimit = parseInt(meta.custom_extraction_limit, 10);
-        } else if (typeof meta.max_extractions_per_window === 'string') {
-          customLimit = parseInt(meta.max_extractions_per_window, 10);
-        }
+      if (!authError && user) {
+        limit = resolveUserRateLimit(user);
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for rate limit check:`, err);
     }
-
-    const limit = customLimit !== undefined ? customLimit : config.DEFAULT_MAX_EXTRACTIONS_PER_WINDOW;
 
     // If limit is non-negative (not -1 for unlimited)
     if (limit >= 0) {
@@ -324,31 +342,24 @@ apiRouter.delete('/jobs/:id', async (req: Request, res: Response): Promise<void>
  */
 apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise<void> => {
   try {
-    let customLimit: number | undefined;
+    let limit = config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
+    let tier: 'free' | 'premium' = 'free';
     try {
       const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError && user?.app_metadata) {
-        const meta = user.app_metadata;
-        if (typeof meta.custom_extraction_limit === 'number') {
-          customLimit = meta.custom_extraction_limit;
-        } else if (typeof meta.max_extractions_per_window === 'number') {
-          customLimit = meta.max_extractions_per_window;
-        } else if (typeof meta.custom_extraction_limit === 'string') {
-          customLimit = parseInt(meta.custom_extraction_limit, 10);
-        } else if (typeof meta.max_extractions_per_window === 'string') {
-          customLimit = parseInt(meta.max_extractions_per_window, 10);
-        }
+      if (!authError && user) {
+        limit = resolveUserRateLimit(user);
+        tier = user.app_metadata?.tier === 'premium' ? 'premium' : 'free';
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for rate limit status:`, err);
     }
 
-    const limit = customLimit !== undefined ? customLimit : config.DEFAULT_MAX_EXTRACTIONS_PER_WINDOW;
     const windowDays = config.EXTRACTION_LIMIT_WINDOW_DAYS;
 
     if (limit < 0) {
       res.status(200).json({
         success: true,
+        tier,
         limit: -1,
         used: 0,
         remaining: -1,
@@ -363,6 +374,7 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
 
     res.status(200).json({
       success: true,
+      tier,
       limit,
       used,
       remaining,
