@@ -48,6 +48,12 @@ const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+  </svg>
+);
+
 interface ExtractFormProps {
   url: string;
   setUrl: (url: string) => void;
@@ -55,6 +61,7 @@ interface ExtractFormProps {
   validateUrl: (url: string) => boolean;
   isPending: boolean;
   handleFormSubmit: (e: React.FormEvent) => void;
+  limitStatus?: { limit: number; used: number; remaining: number; windowDays: number } | null;
 }
 
 export default function ExtractForm({
@@ -63,7 +70,8 @@ export default function ExtractForm({
   urlError,
   validateUrl,
   isPending,
-  handleFormSubmit
+  handleFormSubmit,
+  limitStatus
 }: ExtractFormProps) {
   const { t } = useI18n();
   const [canPaste, setCanPaste] = useState(false);
@@ -197,6 +205,18 @@ export default function ExtractForm({
             )}
           </Button>
 
+          {limitStatus && limitStatus.limit >= 0 && (
+            <p className="text-center text-xs text-gray-500 dark:text-gray-400 -mt-1 font-medium transition-colors">
+              {t('form.remainingExtractions', {
+                remaining: limitStatus.remaining,
+                limit: limitStatus.limit,
+                days: limitStatus.windowDays === 1
+                  ? t('form.remainingExtractionsToday')
+                  : t('form.remainingExtractionsDays', { days: limitStatus.windowDays })
+              })}
+            </p>
+          )}
+
           {/* Supported Platforms */}
           <div className="flex flex-col gap-2">
             <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -214,6 +234,10 @@ export default function ExtractForm({
               <div className="flex flex-col items-center gap-1">
                 <YoutubeIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <span className="text-[10px] text-gray-400 dark:text-gray-500 text-center">YouTube Shorts</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <FacebookIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <span className="text-[10px] text-gray-400 dark:text-gray-500">Facebook</span>
               </div>
               <div className="flex flex-col items-center gap-1">
                 <Globe className="w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -291,6 +315,15 @@ export default function ExtractForm({
                   <div>
                     <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">YouTube Shorts</h4>
                     <p>{t('form.helpSteps.youtube')}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2.5 items-start">
+                  <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+                    <FacebookIcon className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">Facebook Video</h4>
+                    <p>{t('form.helpSteps.facebook')}</p>
                   </div>
                 </div>
                 <div className="flex gap-2.5 items-start">
