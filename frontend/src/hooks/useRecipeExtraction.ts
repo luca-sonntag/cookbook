@@ -12,6 +12,30 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [url, setUrl] = useState('');
   const [urlError, setUrlError] = useState('');
+  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number } | null>(null);
+
+  const fetchLimitStatus = useCallback(async () => {
+    try {
+      const token = await getAccessToken();
+      if (!token) return;
+      const response = await fetch('/api/extractions/limit', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setLimitStatus({
+          limit: data.limit,
+          used: data.used,
+          remaining: data.remaining,
+          windowDays: data.windowDays
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to fetch rate limit status:', err);
+    }
+  }, [getAccessToken]);
 
   const validateUrl = useCallback((testUrl: string): boolean => {
     const trimmed = testUrl.trim();
@@ -156,6 +180,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       }
 
       setJobStatus(data.status);
+      fetchLimitStatus();
       startPolling(data.jobId);
     } catch (err: unknown) {
       setJobStatus('failed');
@@ -163,7 +188,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       setJobError(errorMessage);
       setIsPending(false);
     }
-  }, [getAccessToken, startPolling, validateUrl, t, language]);
+  }, [getAccessToken, startPolling, validateUrl, t, language, fetchLimitStatus]);
 
 
   return {
@@ -179,5 +204,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     setUrlError,
     validateUrl,
     triggerExtraction,
+    limitStatus,
+    fetchLimitStatus
   };
 }
