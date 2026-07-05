@@ -760,6 +760,42 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
   if (!errorMsg) return '';
   
   const lowerMsg = errorMsg.toLowerCase();
+
+  if (lowerMsg.includes('rate limit:')) {
+    const limitMatch = errorMsg.match(/limit of (\d+)/i);
+    const hoursMatch = errorMsg.match(/per (\d+) hours/i);
+    const minMatch = errorMsg.match(/in (\d+) minutes/i);
+
+    const limit = limitMatch ? limitMatch[1] : '10';
+    const hours = hoursMatch ? hoursMatch[1] : '24';
+    const minutes = minMatch ? parseInt(minMatch[1], 10) : 0;
+
+    let timeTextDe = '';
+    let timeTextEn = '';
+
+    if (minutes > 0) {
+      if (minutes >= 60) {
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        timeTextDe = m > 0 
+          ? `Bitte versuche es in ${h} Std. und ${m} Min. erneut.` 
+          : `Bitte versuche es in ${h} Std. erneut.`;
+        timeTextEn = m > 0 
+          ? `Please try again in ${h} hr. and ${m} min.` 
+          : `Please try again in ${h} hr.`;
+      } else {
+        timeTextDe = `Bitte versuche es in ${minutes} Min. erneut.`;
+        timeTextEn = `Please try again in ${minutes} min.`;
+      }
+    } else {
+      timeTextDe = 'Bitte versuche es später erneut.';
+      timeTextEn = 'Please try again later.';
+    }
+
+    return lang === 'de'
+      ? `Du hast dein Limit von ${limit} Rezept-Extraktionen pro ${hours} Stunden erreicht. ${timeTextDe}`
+      : `You have reached your limit of ${limit} recipe extractions per ${hours} hours. ${timeTextEn}`;
+  }
   
   if (lowerMsg.includes('too many requests')) {
     return lang === 'de' 
