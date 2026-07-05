@@ -139,7 +139,7 @@ export const categoryIcons: Record<IngredientCategory, string> = {
   [IngredientCategory.GRAINS_PASTA]: '🍝',
   [IngredientCategory.SPICES_HERBS]: '🧂',
   [IngredientCategory.BAKING]: '🥣',
-  [IngredientCategory.CONDIMENTS_OILS]: '🍾',
+  [IngredientCategory.CONDIMENTS_OILS]: '🍶',
   [IngredientCategory.FROZEN]: '❄️',
   [IngredientCategory.BEVERAGES]: '🥤',
   [IngredientCategory.OTHER]: '🛍️',
