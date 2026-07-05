@@ -6,6 +6,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   server: {
+    // Bind to 0.0.0.0 so a physical device / emulator can reach the dev server
+    // during Capacitor live-reload (`npm run cap:live`).
+    host: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3000',

@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "cap:sync": "npm run build && cap sync android",
     "cap:open": "cap open android",
-    "cap:run": "npm run build && cap sync android && cap run android"
+    "cap:run": "npm run build && cap sync android && cap run android",
+    "cap:live": "cap run android --live-reload --external"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
