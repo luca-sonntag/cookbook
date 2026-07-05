@@ -43,7 +43,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       const urlObj = new URL(cleanUrl);
       const hostname = urlObj.hostname.toLowerCase();
       const isYouTube = hostname === 'youtube.com' || hostname.endsWith('.youtube.com') || hostname === 'youtu.be';
-      
+
       if (isYouTube) {
         const isShort = urlObj.pathname.startsWith('/shorts/');
         if (!isShort) {
@@ -84,12 +84,12 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // Enforce rolling rate limit per user (with custom override in user_metadata)
+    // Enforce rolling rate limit per user (with custom override in app_metadata)
     let customLimit: number | undefined;
     try {
       const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError && user?.user_metadata) {
-        const meta = user.user_metadata;
+      if (!authError && user?.app_metadata) {
+        const meta = user.app_metadata;
         if (typeof meta.custom_extraction_limit === 'number') {
           customLimit = meta.custom_extraction_limit;
         } else if (typeof meta.max_extractions_per_window === 'number') {
@@ -327,8 +327,8 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
     let customLimit: number | undefined;
     try {
       const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError && user?.user_metadata) {
-        const meta = user.user_metadata;
+      if (!authError && user?.app_metadata) {
+        const meta = user.app_metadata;
         if (typeof meta.custom_extraction_limit === 'number') {
           customLimit = meta.custom_extraction_limit;
         } else if (typeof meta.max_extractions_per_window === 'number') {
