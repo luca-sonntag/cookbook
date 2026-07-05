@@ -3,6 +3,8 @@ import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
 
 import type { Job } from './types';
 import { apiUrl } from './api';
+import { registerShareIntent } from './native';
+import { parseSharedUrl } from './utils/shareUrl';
 import InstallBanner from './components/InstallBanner';
 import ExtractForm from './components/ExtractForm';
 import ProgressTracker from './components/ProgressTracker';
@@ -283,19 +285,25 @@ export default function App() {
 
     if (text || urlParam || title) {
       const combinedSearch = [text, urlParam, title].filter(Boolean).join(' ');
-      const regex = /(https?:\/\/[^\s]+)/i;
-      const match = combinedSearch.match(regex);
-      if (match) {
-        let extractedUrl = match[1];
-        // Clean trailing punctuation
-        extractedUrl = extractedUrl.replace(/[.,;:!?)]+$/, '');
-
+      const extractedUrl = parseSharedUrl(combinedSearch);
+      if (extractedUrl) {
         // Clear query parameters, strip /share pathname, and switch to extract view
         replace('extract');
         setUrl(extractedUrl);
         triggerExtraction(extractedUrl);
       }
     }
+  }, [authLoading, user, replace, setUrl, triggerExtraction]);
+
+  // Native (Capacitor) share intent: route a shared Instagram link into the
+  // same extraction flow as the Web Share Target above.
+  useEffect(() => {
+    if (authLoading || !user) return;
+    return registerShareIntent((sharedUrl) => {
+      replace('extract');
+      setUrl(sharedUrl);
+      triggerExtraction(sharedUrl);
+    });
   }, [authLoading, user, replace, setUrl, triggerExtraction]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
