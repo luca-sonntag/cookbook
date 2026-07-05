@@ -327,5 +327,22 @@ export async function countActiveJobsForUser(userId: string): Promise<number> {
   return count ?? 0;
 }
 
+/** Get all extraction jobs created by a user in the last N hours (excluding remixes). */
+export async function getExtractionsForUserInTimeframe(userId: string, hours: number): Promise<Job[]> {
+  const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+  const { data, error } = await getClient()
+    .from('jobs')
+    .select()
+    .eq('user_id', userId)
+    .is('parent_job_id', null)
+    .gte('created_at', cutoff)
+    .order('created_at', { ascending: true })
+    .returns<JobRow[]>();
+
+  if (error) throw wrapError('Failed to get extractions in timeframe', error);
+  return data.map(rowToJob);
+}
+
+
 
 
