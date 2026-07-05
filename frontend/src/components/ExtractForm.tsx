@@ -98,7 +98,7 @@ export default function ExtractForm({
     if (isPending) return;
     setUrl(demoUrl);
     validateUrl(demoUrl);
-    
+
     // Auto-submit the form
     setTimeout(() => {
       const form = document.querySelector('form');
@@ -111,21 +111,15 @@ export default function ExtractForm({
   const DEMO_RECIPES = [
     {
       name: 'Instagram Reel',
-      url: 'https://www.instagram.com/reel/C8qV_0yIm2q/',
+      url: 'https://www.instagram.com/p/DYixugyxvSe/',
       color: 'from-pink-500 to-rose-500',
       icon: <InstagramIcon className="w-4 h-4 text-white" />
     },
     {
       name: 'TikTok Video',
-      url: 'https://www.tiktok.com/@gordonramsayofficial/video/7312345678901234567',
+      url: 'https://www.tiktok.com/@on_todays_bake/video/7618942237535194390',
       color: 'from-gray-900 to-black dark:from-gray-800 dark:to-gray-900',
       icon: <TikTokIcon className="w-4 h-4 text-white" />
-    },
-    {
-      name: 'Web Recipe',
-      url: 'https://www.seriouseats.com/easy-pan-pizza-recipe',
-      color: 'from-emerald-500 to-teal-500',
-      icon: <Globe className="w-4 h-4 text-white" />
     }
   ];
 
@@ -134,10 +128,10 @@ export default function ExtractForm({
       {/* Input Card */}
       <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
         <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
-          <TextField 
-            fullWidth 
-            name="url" 
-            value={url} 
+          <TextField
+            fullWidth
+            name="url"
+            value={url}
             onChange={(val) => {
               setUrl(val);
               if (urlError) validateUrl(val);
@@ -182,11 +176,10 @@ export default function ExtractForm({
             type="submit"
             fullWidth
             isPending={isPending}
-            className={`py-3.5 h-12 text-sm rounded-xl font-semibold shadow-lg text-white ${
-              isPending 
-                ? 'bg-emerald-800' 
-                : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all'
-            }`}
+            className={`py-3.5 h-12 text-sm rounded-xl font-semibold shadow-lg text-white ${isPending
+              ? 'bg-emerald-800'
+              : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all'
+              }`}
           >
             {({ isPending }) => (
               <span className="flex items-center gap-2 justify-center">
@@ -347,7 +340,7 @@ export default function ExtractForm({
           <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
             {t('form.demoTitle')}
           </span>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {DEMO_RECIPES.map((demo, idx) => (
               <button
                 key={idx}
