@@ -10,9 +10,11 @@ import RecipeListItem from './RecipeListItem';
 import CatalogFilters from './CatalogFilters';
 import BulkActionBar from './BulkActionBar';
 import CatalogEmptyState from './CatalogEmptyState';
+import CatalogLoadingState from './CatalogLoadingState';
 
 interface SavedCatalogProps {
   history: Job[];
+  historyLoaded?: boolean;
   selectedJob: Job | null;
   setSelectedJob: (job: Job | null) => void;
   handleDeleteJob: (e: React.MouseEvent, id: string) => void;
@@ -27,6 +29,7 @@ interface SavedCatalogProps {
 
 export default function SavedCatalog({
   history,
+  historyLoaded = true,
   selectedJob,
   setSelectedJob,
   handleDeleteJob,
@@ -112,7 +115,11 @@ export default function SavedCatalog({
         /* LIST VIEW OF SAVED RECIPES */
         <div className="flex flex-col gap-4">
           {completedJobs.length === 0 ? (
-            <CatalogEmptyState />
+            !historyLoaded ? (
+              <CatalogLoadingState />
+            ) : (
+              <CatalogEmptyState />
+            )
           ) : (
             <>
               {/* Sticky Search and Filter Chips Row */}

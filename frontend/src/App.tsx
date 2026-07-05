@@ -3,7 +3,7 @@ import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
 
 import type { Job } from './types';
 import { apiUrl } from './api';
-import { registerShareIntent } from './native';
+import { registerShareIntent, registerNotificationTap } from './native';
 import { parseSharedUrl } from './utils/shareUrl';
 import InstallBanner from './components/InstallBanner';
 import ExtractForm from './components/ExtractForm';
@@ -215,6 +215,19 @@ export default function App() {
     };
     navigator.serviceWorker?.addEventListener('message', handleSwMessage);
     return () => navigator.serviceWorker?.removeEventListener('message', handleSwMessage);
+  }, []);
+
+  // Listen for taps on native local notifications (Capacitor Android/iOS)
+  useEffect(() => {
+    return registerNotificationTap((recipeId, stepNum) => {
+      if (recipeId) {
+        window.dispatchEvent(
+          new CustomEvent('app:navigate-to-timer-step', {
+            detail: { recipeId, stepNum },
+          })
+        );
+      }
+    });
   }, []);
 
   const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
@@ -434,6 +447,7 @@ export default function App() {
           /* SAVED RECIPES TAB */
           <SavedCatalog
             history={history}
+            historyLoaded={historyLoaded}
             selectedJob={selectedJob}
             setSelectedJob={setSelectedJob}
             handleDeleteJob={handleDeleteJob}
