@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser } from './db.js';
+import { createJob, createRemixJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe } from './db.js';
 import { config } from './config.js';
 import { requireAuth } from './auth.js';
 
@@ -82,6 +82,50 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
         error: `You already have ${activeCount} active job(s). Please wait for them to finish before submitting more.`,
       });
       return;
+    }
+
+    // Enforce rolling rate limit per user (with custom override in user_metadata)
+    let customLimit: number | undefined;
+    try {
+      const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
+      if (!authError && user?.user_metadata) {
+        const meta = user.user_metadata;
+        if (typeof meta.custom_extraction_limit === 'number') {
+          customLimit = meta.custom_extraction_limit;
+        } else if (typeof meta.max_extractions_per_window === 'number') {
+          customLimit = meta.max_extractions_per_window;
+        } else if (typeof meta.custom_extraction_limit === 'string') {
+          customLimit = parseInt(meta.custom_extraction_limit, 10);
+        } else if (typeof meta.max_extractions_per_window === 'string') {
+          customLimit = parseInt(meta.max_extractions_per_window, 10);
+        }
+      }
+    } catch (err) {
+      console.warn(`Failed to fetch user metadata for rate limit check:`, err);
+    }
+
+    const limit = customLimit !== undefined ? customLimit : config.DEFAULT_MAX_EXTRACTIONS_PER_WINDOW;
+
+    // If limit is non-negative (not -1 for unlimited)
+    if (limit >= 0) {
+      const windowHours = config.EXTRACTION_LIMIT_WINDOW_HOURS;
+      const extractions = await getExtractionsForUserInTimeframe(req.userId!, windowHours);
+      if (extractions.length >= limit) {
+        const oldestJob = extractions[0];
+        let minutesRemaining = 0;
+        if (oldestJob) {
+          const resetTime = new Date(new Date(oldestJob.createdAt).getTime() + windowHours * 60 * 60 * 1000);
+          const msRemaining = resetTime.getTime() - Date.now();
+          minutesRemaining = Math.max(1, Math.ceil(msRemaining / (60 * 1000)));
+        }
+
+        res.status(429).json({
+          success: false,
+          error: `Rate limit: You have reached your limit of ${limit} recipe extractions per ${windowHours} hours.` +
+            (minutesRemaining > 0 ? ` Please try again in ${minutesRemaining} minutes.` : ''),
+        });
+        return;
+      }
     }
 
     // Create a new pending job in the database
