@@ -12,7 +12,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [url, setUrl] = useState('');
   const [urlError, setUrlError] = useState('');
-  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number } | null>(null);
+  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'premium' } | null>(null);
 
   const fetchLimitStatus = useCallback(async () => {
     try {
@@ -29,7 +29,8 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           limit: data.limit,
           used: data.used,
           remaining: data.remaining,
-          windowDays: data.windowDays
+          windowDays: data.windowDays,
+          tier: data.tier
         });
       }
     } catch (err) {
