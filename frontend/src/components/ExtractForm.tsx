@@ -55,7 +55,7 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 const ShareStep1Mockup = () => (
-  <div className="relative w-full aspect-[4/3] max-w-[150px] mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-between">
+  <div className="relative w-[110px] h-[82px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-between">
     <div className="flex-1 rounded-lg bg-gray-200 dark:bg-gray-700/50 flex items-center justify-center relative overflow-hidden">
       <InstagramIcon className="w-8 h-8 text-black/10 dark:text-white/10" />
       <div className="absolute bottom-1.5 left-1.5 flex flex-col gap-0.5 w-2/3">
@@ -84,7 +84,7 @@ const ShareStep1Mockup = () => (
 );
 
 const ShareStep2Mockup = () => (
-  <div className="relative w-full aspect-[4/3] max-w-[150px] mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-end">
+  <div className="relative w-[110px] h-[82px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-end">
     <div className="flex-1 flex flex-col gap-2 opacity-25 px-1 pt-1">
       <div className="h-2 w-full rounded bg-black/20 dark:bg-white/20" />
       <div className="grid grid-cols-4 gap-2">
@@ -137,7 +137,7 @@ const ShareStep2Mockup = () => (
 );
 
 const ShareStep3Mockup = () => (
-  <div className="relative w-full aspect-[4/3] max-w-[150px] mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-end">
+  <div className="relative w-[110px] h-[82px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-end">
     <div className="flex-1 flex flex-col gap-1 opacity-25 px-0.5 pt-0.5">
       <div className="h-2 w-1/3 rounded bg-black/40 dark:bg-white/40" />
       <div className="h-1.5 w-full rounded bg-black/20 dark:bg-white/20" />
