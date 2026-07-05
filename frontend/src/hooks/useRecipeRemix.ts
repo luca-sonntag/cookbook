@@ -3,6 +3,7 @@ import type { Recipe, Job } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { translateApiError } from '../i18n';
+import { apiUrl } from '../api';
 
 export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
   const { t, language } = useI18n();
@@ -23,7 +24,7 @@ export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
           setIsPending(false);
           return;
         }
-        const response = await fetch(`/api/jobs/${id}`, {
+        const response = await fetch(apiUrl(`/api/jobs/${id}`), {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -85,7 +86,7 @@ export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
         throw new Error(t('form.validation.unauthorized'));
       }
       
-      const response = await fetch(`/api/jobs/${parentJobId}/remix`, {
+      const response = await fetch(apiUrl(`/api/jobs/${parentJobId}/remix`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

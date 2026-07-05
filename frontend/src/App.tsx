@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
 
 import type { Job } from './types';
+import { apiUrl } from './api';
 import InstallBanner from './components/InstallBanner';
 import ExtractForm from './components/ExtractForm';
 import ProgressTracker from './components/ProgressTracker';
@@ -74,7 +75,7 @@ export default function App() {
     try {
       const token = await getAccessToken();
       if (!token) return;
-      const response = await fetch('/api/jobs', {
+      const response = await fetch(apiUrl('/api/jobs'), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -242,7 +243,7 @@ export default function App() {
 
       const token = await getAccessToken();
       if (!token) return;
-      const response = await fetch(`/api/jobs/${id}`, {
+      const response = await fetch(apiUrl(`/api/jobs/${id}`), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

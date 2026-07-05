@@ -3,6 +3,7 @@ import type { Job, Ingredient } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
 import { deleteCachedImage } from '../utils/imageStore';
+import { apiUrl } from '../api';
 
 interface UseSavedCatalogProps {
   history: Job[];
@@ -337,7 +338,7 @@ export function useSavedCatalog({
 
         const token = getAccessToken ? await getAccessToken() : null;
         if (!token) return;
-        await fetch(`/api/jobs/${id}`, {
+        await fetch(apiUrl(`/api/jobs/${id}`), {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`

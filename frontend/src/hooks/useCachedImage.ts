@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getCachedImage, setCachedImage } from '../utils/imageStore';
+import { apiUrl } from '../api';
 
 /**
  * Helper to fetch an image via the backend proxy, draw it onto a canvas,
@@ -7,7 +8,7 @@ import { getCachedImage, setCachedImage } from '../utils/imageStore';
  */
 async function compressAndConvertToBase64(url: string): Promise<string> {
   // Use the existing backend image proxy to bypass CORS/CORP blocks
-  const proxyUrl = url.startsWith('/') ? url : `/api/image?url=${encodeURIComponent(url)}`;
+  const proxyUrl = apiUrl(url.startsWith('/') ? url : `/api/image?url=${encodeURIComponent(url)}`);
   
   const response = await fetch(proxyUrl);
   if (!response.ok) {

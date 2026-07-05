@@ -7,9 +7,15 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cap:sync": "npm run build && cap sync android",
+    "cap:open": "cap open android",
+    "cap:run": "npm run build && cap sync android && cap run android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
     "@gravity-ui/icons": "^2.18.0",
     "@heroui/react": "^3.2.1",
     "@heroui/styles": "^3.2.1",
@@ -19,10 +25,10 @@
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@tailwindcss/vite": "^4.3.1",
     "@emnapi/core": "1.11.1",
     "@emnapi/runtime": "1.11.1",
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.1",
     "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

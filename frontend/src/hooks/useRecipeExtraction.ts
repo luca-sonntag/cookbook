@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import type { Recipe, Job, ProgressData } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { translateApiError } from '../i18n';
+import { apiUrl } from '../api';
 
 export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void) {
   const { t, language } = useI18n();
@@ -18,7 +19,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     try {
       const token = await getAccessToken();
       if (!token) return;
-      const response = await fetch('/api/extractions/limit', {
+      const response = await fetch(apiUrl('/api/extractions/limit'), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -83,7 +84,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setIsPending(false);
           return;
         }
-        const response = await fetch(`/api/jobs/${id}`, {
+        const response = await fetch(apiUrl(`/api/jobs/${id}`), {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -153,7 +154,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       if (!token) {
         throw new Error(t('form.validation.unauthorized'));
       }
-      const response = await fetch('/api/extract-recipe', {
+      const response = await fetch(apiUrl('/api/extract-recipe'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
