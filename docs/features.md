@@ -1,0 +1,1 @@
+- Generierte Smart Filter Chips konsistenter machen
