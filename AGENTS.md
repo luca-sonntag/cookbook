@@ -43,10 +43,11 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * Um Missbrauch und API-Kosten (Apify & Gemini) zu begrenzen, verfügt die Anwendung über ein rollierendes Ratenlimit für Rezept-Extraktionen.
   * **Globale Limits:** Gesteuert über `.env`-Umgebungsvariablen:
     * `EXTRACTION_LIMIT_WINDOW_DAYS` (Default: `1`): Größe des rollierenden Fensters in Tagen.
-    * `DEFAULT_MAX_EXTRACTIONS_PER_WINDOW` (Default: `10`): Maximale Anzahl an Extraktionen pro Nutzer im Fenster.
+    * `FREE_MAX_EXTRACTIONS_PER_WINDOW` (Default: `3`): Maximale Anzahl an Extraktionen für Free-User.
+    * `PREMIUM_MAX_EXTRACTIONS_PER_WINDOW` (Default: `50`): Maximale Anzahl an Extraktionen für Premium-User.
+  * **Subscription Tiers:** Benutzer befinden sich standardmäßig im `free` Tier. Sobald sie Premium kaufen, wird ihr Tier auf `premium` gesetzt (gesichert in `app_metadata.tier`).
   * **Benutzerbezogene Limits (Overrides):** Werden über Supabase Auth `app_metadata` individuell gesteuert:
-    * `custom_extraction_limit` bzw. `max_extractions_per_window` gibt die maximale Anzahl frei.
-    * Ein Wert von `-1` deaktiviert die Ratenbegrenzung für diesen Benutzer vollständig (unlimited).
+    * `custom_extraction_limit` bzw. `max_extractions_per_window` gibt die maximale Anzahl frei (z. B. `-1` für unbegrenzt).
   * **Nutzererfahrung:** Wenn das Limit erreicht ist, ermittelt das Backend die älteste Extraktion im Fenster und berechnet die verbleibende Wartezeit minutengenau. Das Frontend übersetzt diese Fehlermeldung dynamisch im `translateApiError`-Helper und zeigt dem Nutzer die genaue Restdauer an.
 
 ### 3. KI-Layer (Google Gemini)
