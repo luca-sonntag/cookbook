@@ -230,7 +230,7 @@ export const uiTranslations = {
           scraping: 'Instagram-Daten laden',
           downloading_media: 'Audio & Video herunterladen',
           extracting_frames: 'Videobilder extrahieren',
-          extracting_recipe: 'Rezept extrahieren (Gemini AI)',
+          extracting_recipe: 'Rezept extrahieren',
           finalizing: 'Speichern & Fertigstellen'
         }
       }
@@ -526,7 +526,7 @@ export const uiTranslations = {
           scraping: 'Fetching Instagram data',
           downloading_media: 'Downloading audio & video',
           extracting_frames: 'Extracting video frames',
-          extracting_recipe: 'Extracting recipe (Gemini AI)',
+          extracting_recipe: 'Extracting recipe',
           finalizing: 'Saving & Finalizing'
         }
       }

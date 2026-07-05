@@ -22,7 +22,7 @@ const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'pr
       'Kochschürze wird festgeknotet... 🎽',
       'Der Ofen wird auf Betriebstemperatur gebracht... 🌡️',
       'Kochlöffel wird bereitgelegt... 🥄',
-      'Gemini zieht die Kochschürze an... 🤖',
+      'KI zieht die Kochschürze an... 🤖',
       'Gewürzregal wird auf Vollständigkeit geprüft... 🌶️'
     ],
     scraping: [
@@ -38,14 +38,14 @@ const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'pr
       'Koch-Video wird in die Küche getragen... 🏃‍♂️'
     ],
     processing: [
-      'Gemini probiert die Soße... 🥣',
+      'KI probiert die Soße... 🥣',
       'Gemüse wird geschnippelt... 🥕',
       'Zwiebeln werden geschnitten (Tränen fließen!)... 🧅',
-      'Google Gemini liest das Rezept Korrektur... 📖',
+      'KI liest das Rezept Korrektur... 📖',
       'Soße wird abgeschmeckt und nachgewürzt... 🧂',
       'Kreatives Küchen-Chaos wird verwaltet... 🍳',
       'Portionsgrößen werden mathematisch berechnet... 🧮',
-      'Gemini berät sich mit dem Chefkoch... 🧑‍🍳',
+      'KI berät sich mit dem Chefkoch... 🧑‍🍳',
       'Eine Prise KI-Magie wird hinzugefügt... ✨',
       'Gericht wird im Ofen überbacken... 🧀'
     ],
@@ -66,7 +66,7 @@ const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'pr
       'Tying the apron... 🎽',
       'Bringing the oven to temperature... 🌡️',
       'Setting out the wooden spoon... 🥄',
-      'Gemini is putting on the apron... 🤖',
+      'AI is putting on the apron... 🤖',
       'Checking the spice rack... 🌶️'
     ],
     scraping: [
@@ -82,14 +82,14 @@ const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'pr
       'Carrying the cooking video into the kitchen... 🏃‍♂️'
     ],
     processing: [
-      'Gemini is tasting the sauce... 🥣',
+      'AI is tasting the sauce... 🥣',
       'Chopping vegetables... 🥕',
       'Chopping onions (tears are falling!)... 🧅',
-      'Google Gemini is proofreading the recipe... 📖',
+      'AI is proofreading the recipe... 📖',
       'Tasting and seasoning the sauce... 🧂',
       'Managing creative kitchen chaos... 🍳',
       'Mathematically calculating portion sizes... 🧮',
-      'Gemini is consulting with the head chef... 🧑‍🍳',
+      'AI is consulting with the head chef... 🧑‍🍳',
       'Adding a pinch of AI magic... ✨',
       'Grilling the dish in the oven... 🧀'
     ],
