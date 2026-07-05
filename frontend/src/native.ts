@@ -108,7 +108,10 @@ export async function sendNativeNotification(
           body,
           channelId: TIMER_CHANNEL_ID,
           smallIcon: 'ic_stat_icon',
-          largeIcon: 'ic_launcher',
+          // Full-color app icon on the right. Must live in a `drawable` folder —
+          // the plugin resolves largeIcon there (not `mipmap`), so we reference a
+          // raster copy of the launcher icon, not `ic_launcher` itself.
+          largeIcon: 'ic_notification_large',
           ongoing: false,
           extra: { recipeId, stepNum },
         },
