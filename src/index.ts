@@ -51,8 +51,26 @@ async function bootstrap() {
       } : false,
     }));
 
+    // Origins used by the native (Capacitor) app's webview. These are always
+    // allowed so the Android/iOS builds can reach the API regardless of the
+    // configured web origin.
+    const nativeOrigins = ['http://localhost', 'https://localhost', 'capacitor://localhost'];
+    const configuredOrigins = (process.env.CORS_ORIGIN || '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean);
+
     app.use(cors({
-      origin: isProduction ? (process.env.CORS_ORIGIN || '*') : 'http://localhost:5173',
+      origin: (origin, callback) => {
+        // Non-browser clients (curl, server-to-server) send no Origin header.
+        if (!origin || nativeOrigins.includes(origin)) return callback(null, true);
+        if (!isProduction) return callback(null, origin === 'http://localhost:5173');
+        // Production: allow the configured web origin(s); if none set, allow all.
+        if (configuredOrigins.length === 0 || configuredOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        return callback(null, false);
+      },
       methods: ['GET', 'POST', 'DELETE'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,
