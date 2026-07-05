@@ -270,7 +270,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
           onClick={handleFullscreenContainerClick}
         >
           {/* Top Controls Overlay */}
-          <div className="absolute top-4 right-4 z-[101] flex items-center gap-2">
+          <div className="absolute top-[calc(1rem_+_env(safe-area-inset-top))] right-4 z-[101] flex items-center gap-2">
             {/* Close Button */}
             <Button
               isIconOnly
@@ -358,7 +358,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
 
           {/* Page Indicator */}
           {images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full pointer-events-none z-[101] backdrop-blur-sm">
+            <div className="absolute bottom-[calc(1rem_+_env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full pointer-events-none z-[101] backdrop-blur-sm">
               {fullscreenIndex + 1} / {images.length}
             </div>
           )}
