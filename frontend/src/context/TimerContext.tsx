@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { isNative, sendNativeNotification, requestNativeNotificationPermission } from '../native';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -111,6 +112,14 @@ async function sendNotification(
   recipeId?: string,
   stepNum?: number,
 ): Promise<void> {
+  // On native (Capacitor) the Web Notification API / service worker don't post
+  // real system notifications — use the native local-notifications plugin.
+  if (isNative()) {
+    const delivered = await sendNativeNotification(title, body, recipeId, stepNum);
+    if (delivered) return;
+    // If native delivery failed, fall through to the web path as a best effort.
+  }
+
   if (!('Notification' in window)) {
     console.warn('[Timer] Notification API not available');
     return;
@@ -308,7 +317,9 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     };
 
     // Pre-request notification permission on first timer start
-    if ('Notification' in window && Notification.permission === 'default') {
+    if (isNative()) {
+      requestNativeNotificationPermission().catch(() => {/* ignore */});
+    } else if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {/* ignore */});
     }
 

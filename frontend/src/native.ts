@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { SendIntent } from 'send-intent';
 import { parseSharedUrl } from './utils/shareUrl';
 
@@ -27,6 +28,89 @@ export async function initNativeUi(): Promise<void> {
     // Hide the splash once the web layer is ready, regardless of status bar result.
     SplashScreen.hide().catch(() => {});
   }
+}
+
+// ─── Local Notifications ──────────────────────────────────────────────────────
+
+const TIMER_NOTIFICATION_ID = 1;
+
+/**
+ * Ask the OS for permission to post local notifications (Android 13+ / iOS).
+ * No-op returning `false` on web — callers fall back to the Web Notification API.
+ */
+export async function requestNativeNotificationPermission(): Promise<boolean> {
+  if (!isNative()) return false;
+  try {
+    const status = await LocalNotifications.checkPermissions();
+    if (status.display === 'granted') return true;
+    const requested = await LocalNotifications.requestPermissions();
+    return requested.display === 'granted';
+  } catch (err) {
+    console.warn('LocalNotifications permission request failed:', err);
+    return false;
+  }
+}
+
+/**
+ * Show an immediate native local notification for a finished cooking timer.
+ * The recipe/step are stored in `extra` so a tap can route back to the step.
+ * Returns `false` if not on native or if delivery failed (caller may fall back).
+ */
+export async function sendNativeNotification(
+  title: string,
+  body: string,
+  recipeId?: string,
+  stepNum?: number,
+): Promise<boolean> {
+  if (!isNative()) return false;
+  try {
+    const granted = await requestNativeNotificationPermission();
+    if (!granted) return false;
+
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: TIMER_NOTIFICATION_ID,
+          title,
+          body,
+          smallIcon: 'ic_stat_icon',
+          largeIcon: 'ic_launcher',
+          ongoing: false,
+          extra: { recipeId, stepNum },
+        },
+      ],
+    });
+    return true;
+  } catch (err) {
+    console.error('sendNativeNotification failed:', err);
+    return false;
+  }
+}
+
+/**
+ * Register a handler for taps on native local notifications. Invokes `onTap`
+ * with the recipe/step stored in the notification's `extra`. Returns a cleanup
+ * function. No-op on web.
+ */
+export function registerNotificationTap(
+  onTap: (recipeId?: string, stepNum?: number) => void,
+): () => void {
+  if (!isNative()) return () => {};
+
+  const handlePromise = LocalNotifications.addListener(
+    'localNotificationActionPerformed',
+    (action) => {
+      const extra = (action.notification.extra ?? {}) as {
+        recipeId?: string;
+        stepNum?: number;
+      };
+      onTap(extra.recipeId, extra.stepNum);
+    },
+  );
+
+  return () => {
+    handlePromise.then((handle) => handle.remove()).catch(() => {});
+  };
 }
 
 /**
