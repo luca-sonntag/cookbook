@@ -268,13 +268,16 @@ export const uiTranslations = {
       retry: 'Wiederholen',
     },
     form: {
-      urlLabel: 'Rezept Link (Instagram, TikTok, Website)',
-      urlPlaceholder: 'https://...',
+      urlLabel: 'Rezept Link',
+      urlPlaceholder: 'https://www.instagram.com/reel/...',
       btnPending: 'Rezept wird gelesen...',
       btnSubmit: 'Rezept erstellen',
       pasteTooltip: 'Link aus Zwischenablage einfügen',
       pasteFailed: 'Zwischenablage konnte nicht gelesen werden. Bitte manuell einfügen.',
       demoTitle: 'Demo ausprobieren',
+      remainingExtractions: 'Noch {remaining} von {limit} Rezepten {days} übrig',
+      remainingExtractionsToday: 'heute',
+      remainingExtractionsDays: 'in den letzten {days} Tagen',
       platformsTitle: 'Unterstützte Plattformen:',
       helpTitle: 'Wie kopiere ich einen Rezept-Link?',
       helpShareTitle: 'Direkt teilen (schnellste Methode)',
@@ -284,11 +287,12 @@ export const uiTranslations = {
         instagram: 'Öffne ein Instagram Reel, tippe auf Teilen (Papierflieger-Symbol) und wähle Link kopieren.',
         tiktok: 'Öffne ein TikTok-Video, tippe auf den Teilen-Pfeil und wähle Link kopieren.',
         youtube: 'Öffne ein YouTube Short, tippe auf Teilen und wähle Link kopieren.',
+        facebook: 'Öffne ein Facebook-Video, tippe auf Teilen und wähle Link kopieren.',
         website: 'Kopiere einfach die vollständige URL aus der Adresszeile deines Browsers.'
       },
       validation: {
         required: 'Rezept URL ist erforderlich.',
-        invalid: 'Es muss eine gültige URL sein (z.B. Instagram, TikTok, Website).',
+        invalid: 'Es muss eine gültige URL sein (z.B. Instagram, TikTok, Facebook, Website).',
         youtubeShortsOnly: 'Nur YouTube Shorts werden unterstützt, keine regulären YouTube-Videos.',
         failedCheck: 'Statusüberprüfung vom Server fehlgeschlagen.',
         failedExtraction: 'Die Rezept-Extraktion ist fehlgeschlagen.',
@@ -554,13 +558,16 @@ export const uiTranslations = {
       retry: 'Retry',
     },
     form: {
-      urlLabel: 'Recipe Link (Instagram, TikTok, Website)',
-      urlPlaceholder: 'https://...',
+      urlLabel: 'Recipe Link',
+      urlPlaceholder: 'https://www.instagram.com/reel/...',
       btnPending: 'Reading recipe...',
       btnSubmit: 'Extract Recipe',
       pasteTooltip: 'Paste link from clipboard',
       pasteFailed: 'Could not read from clipboard. Please paste manually.',
       demoTitle: 'Try a Demo',
+      remainingExtractions: '{remaining} of {limit} recipes remaining {days}',
+      remainingExtractionsToday: 'today',
+      remainingExtractionsDays: 'in the last {days} days',
       platformsTitle: 'Supported Platforms:',
       helpTitle: 'How do I copy a recipe link?',
       helpShareTitle: 'Share directly (fastest method)',
@@ -570,11 +577,12 @@ export const uiTranslations = {
         instagram: 'Open an Instagram Reel, tap Share (paper airplane icon) and choose Copy Link.',
         tiktok: 'Open a TikTok video, tap the Share arrow and choose Copy Link.',
         youtube: 'Open a YouTube Short, tap Share and choose Copy Link.',
+        facebook: 'Open a Facebook video, tap Share and choose Copy Link.',
         website: 'Simply copy the full URL from your browser\'s address bar.'
       },
       validation: {
         required: 'Recipe URL is required.',
-        invalid: 'Must be a valid URL (e.g., Instagram, TikTok, Website).',
+        invalid: 'Must be a valid URL (e.g., Instagram, TikTok, Facebook, Website).',
         youtubeShortsOnly: 'Only YouTube Shorts are supported, not regular YouTube videos.',
         failedCheck: 'Failed to check status from server.',
         failedExtraction: 'The recipe extraction failed.',
@@ -758,7 +766,7 @@ export function getTranslation(key: string, lang: SupportedLanguage, variables?:
 
 export function translateApiError(errorMsg: string | null | undefined, lang: SupportedLanguage = 'de'): string {
   if (!errorMsg) return '';
-  
+
   const lowerMsg = errorMsg.toLowerCase();
 
   if (lowerMsg.includes('rate limit:')) {
@@ -790,11 +798,11 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
       } else if (minutes >= 60) {
         const h = Math.floor(minutes / 60);
         const m = minutes % 60;
-        timeTextDe = m > 0 
-          ? `Bitte versuche es in ${h} Std. und ${m} Min. erneut.` 
+        timeTextDe = m > 0
+          ? `Bitte versuche es in ${h} Std. und ${m} Min. erneut.`
           : `Bitte versuche es in ${h} Std. erneut.`;
-        timeTextEn = m > 0 
-          ? `Please try again in ${h} hr. and ${m} min.` 
+        timeTextEn = m > 0
+          ? `Please try again in ${h} hr. and ${m} min.`
           : `Please try again in ${h} hr.`;
       } else {
         timeTextDe = `Bitte versuche es in ${minutes} Min. erneut.`;
@@ -805,21 +813,21 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
       timeTextEn = 'Please try again later.';
     }
 
-    const daysStr = days === '1' 
-      ? (lang === 'de' ? 'Tag' : 'day') 
+    const daysStr = days === '1'
+      ? (lang === 'de' ? 'Tag' : 'day')
       : (lang === 'de' ? `${days} Tagen` : `${days} days`);
 
     return lang === 'de'
       ? `Du hast dein Limit von ${limit} Rezept-Extraktionen pro ${daysStr} erreicht. ${timeTextDe}`
       : `You have reached your limit of ${limit} recipe extractions per ${daysStr}. ${timeTextEn}`;
   }
-  
+
   if (lowerMsg.includes('too many requests')) {
-    return lang === 'de' 
-      ? 'Zu viele Anfragen. Bitte versuche es später noch einmal.' 
+    return lang === 'de'
+      ? 'Zu viele Anfragen. Bitte versuche es später noch einmal.'
       : 'Too many requests. Please try again later.';
   }
-  
+
   if (lowerMsg.includes('active job')) {
     const match = errorMsg.match(/\d+/);
     const count = match ? match[0] : '1';
@@ -827,19 +835,19 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
       ? `Du hast bereits ${count} aktive(n) Auftrag/Aufträge. Bitte warte, bis diese abgeschlossen sind.`
       : `You already have ${count} active job(s). Please wait for them to finish.`;
   }
-  
+
   if (lowerMsg.includes('youtube shorts')) {
     return lang === 'de'
       ? 'Nur YouTube Shorts werden unterstützt, keine regulären YouTube-Videos.'
       : 'Only YouTube Shorts are supported, not regular YouTube videos.';
   }
-  
+
   if (lowerMsg.includes('invalid url')) {
     return lang === 'de'
       ? 'Ungültige URL. Bitte überprüfe den Link (muss Instagram, TikTok, YouTube Shorts oder Website sein).'
       : 'Invalid URL. Please check the link (must be Instagram, TikTok, YouTube Shorts, or website).';
   }
-  
+
   if (lowerMsg.includes('unauthorized') || lowerMsg.includes('not authorized') || lowerMsg.includes('401')) {
     return lang === 'de'
       ? 'Nicht autorisiert. Bitte melde dich erneut an.'
