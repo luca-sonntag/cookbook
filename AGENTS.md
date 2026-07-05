@@ -12,11 +12,16 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 
 ## 🏗️ Implementierte Technische Architektur & Tech-Stack
 
-### 1. Scraping-Layer (Apify)
+### 1. Scraping-Layer (Apify & Fallbacks)
 
 * **Technologie:** Apify API Client (`apify-client`).
-* **Funktion:** Instagrams Anti-Bot-Maßnahmen werden vollständig umgangen. Die Reel-URLs werden im Feld `username` als Array übergeben.
-* **Ergebnis:** Die API-Antwort liefert neben der `caption` direkte, abrufbare Links für die **`audioUrl`** (in der Regel eine MP4/M4A-Audiodatei).
+* **Funktion:** Der primäre Scraper für alle Social-Media-Links (Instagram Reels, TikTok Videos, YouTube Shorts) ist der **All Social Media Video Downloader** (`wilcode/all-social-media-video-downloader`). Dieser Actor extrahiert die relevanten Videolinks, Titel/Captions und Thumbnails über einen einzigen Actor-Call mit `mergeAV: true`.
+* **Fallback-Mechanismen:** Sollte der primäre Multi-Plattform-Downloader fehlschlagen (z. B. durch strikte Bot-Sperren), fällt das System automatisch auf dedizierte, plattformspezifische Apify-Scraper zurück:
+  * **Instagram:** `apify/instagram-reel-scraper` (übergibt die URL im Feld `username`).
+  * **YouTube:** `apilabs/youtube-video-downloader` (übergibt die URL im Array `urls`).
+  * **TikTok:** `clockworks/tiktok-video-scraper` (übergibt die URL im Array `postURLs`).
+* **Zusatz-Fallback für YouTube/TikTok:** Bei anhaltenden API-Fehlern wird das lokale Command-Line Tool `yt-dlp` als letzter Fallback-Schritt direkt auf dem Server ausgeführt.
+* **Ergebnis:** Die Scraper-Pipeline liefert in jedem Fall ein standardisiertes `ScrapingResult`-Objekt, das eine Caption, das Bild-Cover (`imageUrl`) und einen direct abspielbaren Medien-Link (`audioUrl` / `videoUrl`) für die Transkription und Frame-Extraktion bereitstellt.
 
 ### 2. Processing- & Database-Layer (Node.js & Supabase Postgres)
 
