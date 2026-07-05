@@ -393,50 +393,44 @@ export default function ExtractForm({
                 <p className="leading-relaxed">{t('form.helpShareDesc')}</p>
                 
                 {/* Visual Step-by-Step Guide */}
-                <div className="grid grid-cols-3 gap-2 pt-1">
+                <div className="flex flex-col gap-3 pt-1">
                   {/* Step 1 */}
-                  <div className="flex flex-col gap-2 p-2 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5">
-                    <div className="flex flex-col gap-0.5 min-h-[50px]">
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-[10px] leading-tight">
+                  <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
+                    <div className="flex-1 flex flex-col gap-1">
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
                         {t('form.helpShareStep1Title')}
                       </h4>
-                      <p className="text-[8.5px] text-gray-500 dark:text-gray-400 leading-tight">
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
                         {t('form.helpShareStep1Desc')}
                       </p>
                     </div>
-                    <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-900/50 rounded-lg p-1 border border-black/5 dark:border-white/5">
-                      <ShareStep1Mockup />
-                    </div>
+                    <ShareStep1Mockup />
                   </div>
                   
                   {/* Step 2 */}
-                  <div className="flex flex-col gap-2 p-2 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5">
-                    <div className="flex flex-col gap-0.5 min-h-[50px]">
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-[10px] leading-tight">
+                  <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
+                    <div className="flex-1 flex flex-col gap-1">
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
                         {t('form.helpShareStep2Title')}
                       </h4>
-                      <p className="text-[8.5px] text-gray-500 dark:text-gray-400 leading-tight">
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
                         {t('form.helpShareStep2Desc')}
                       </p>
                     </div>
-                    <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-900/50 rounded-lg p-1 border border-black/5 dark:border-white/5">
-                      <ShareStep2Mockup />
-                    </div>
+                    <ShareStep2Mockup />
                   </div>
 
                   {/* Step 3 */}
-                  <div className="flex flex-col gap-2 p-2 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5">
-                    <div className="flex flex-col gap-0.5 min-h-[50px]">
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-[10px] leading-tight">
+                  <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
+                    <div className="flex-1 flex flex-col gap-1">
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
                         {t('form.helpShareStep3Title')}
                       </h4>
-                      <p className="text-[8.5px] text-gray-500 dark:text-gray-400 leading-tight">
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
                         {t('form.helpShareStep3Desc')}
                       </p>
                     </div>
-                    <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-900/50 rounded-lg p-1 border border-black/5 dark:border-white/5">
-                      <ShareStep3Mockup />
-                    </div>
+                    <ShareStep3Mockup />
                   </div>
                 </div>
 
