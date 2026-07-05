@@ -108,6 +108,8 @@ export default function App() {
     urlError,
     validateUrl,
     triggerExtraction,
+    limitStatus,
+    fetchLimitStatus
   } = useRecipeExtraction(getAccessToken, handleExtractionSuccess);
 
   // Mobile back button & swipe gestures for newly extracted recipe details
@@ -124,6 +126,13 @@ export default function App() {
     }, 0);
     return () => clearTimeout(timer);
   }, [fetchHistory]);
+
+  // Fetch rate limit status when entering the extract tab
+  useEffect(() => {
+    if (activeView === 'extract' && user) {
+      fetchLimitStatus();
+    }
+  }, [activeView, user, fetchLimitStatus]);
 
   // After history loads, check if current URL references a valid jobId and keep it,
   // or clear the subPath if the jobId no longer exists.
@@ -392,6 +401,7 @@ export default function App() {
                 validateUrl={validateUrl}
                 isPending={isPending}
                 handleFormSubmit={handleFormSubmit}
+                limitStatus={limitStatus}
               />
 
               {/* Processing State Tracker */}
