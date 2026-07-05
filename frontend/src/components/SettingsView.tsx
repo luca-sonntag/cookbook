@@ -59,9 +59,20 @@ export default function SettingsView() {
         <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-1">
           {t('app.nav.settings') || 'Settings'}
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {user?.email}
-        </p>
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            {user?.email}
+          </span>
+          {user?.app_metadata?.tier === 'premium' ? (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+              Premium
+            </span>
+          ) : (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-black/5 dark:border-white/5 uppercase tracking-wider">
+              Freemium
+            </span>
+          )}
+        </div>
       </div>
 
       {saveMessage && (
