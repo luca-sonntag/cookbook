@@ -33,6 +33,37 @@ export async function initNativeUi(): Promise<void> {
 // ─── Local Notifications ──────────────────────────────────────────────────────
 
 const TIMER_NOTIFICATION_ID = 1;
+const TIMER_CHANNEL_ID = 'cooking-timers';
+
+// Guard so we only create the channel once per app run.
+let channelReady: Promise<void> | null = null;
+
+/**
+ * Create the high-importance Android notification channel used for timer
+ * alerts. HIGH importance is what makes the notification pop up as a heads-up
+ * banner (with sound + vibration) instead of appearing silently in the shade.
+ * No-op on iOS/web. Channel settings are locked by Android after creation, so
+ * changing importance later requires a new channel id.
+ */
+async function ensureTimerChannel(): Promise<void> {
+  if (Capacitor.getPlatform() !== 'android') return;
+  if (!channelReady) {
+    channelReady = LocalNotifications.createChannel({
+      id: TIMER_CHANNEL_ID,
+      name: 'Cooking timers',
+      description: 'Alerts when a cooking timer finishes',
+      importance: 5, // MAX — heads-up banner
+      visibility: 1, // public — show on lock screen
+      sound: undefined, // default notification sound
+      vibration: true,
+      lights: true,
+    }).catch((err) => {
+      console.warn('Failed to create notification channel:', err);
+      channelReady = null; // allow a retry on the next attempt
+    });
+  }
+  await channelReady;
+}
 
 /**
  * Ask the OS for permission to post local notifications (Android 13+ / iOS).
@@ -67,12 +98,15 @@ export async function sendNativeNotification(
     const granted = await requestNativeNotificationPermission();
     if (!granted) return false;
 
+    await ensureTimerChannel();
+
     await LocalNotifications.schedule({
       notifications: [
         {
           id: TIMER_NOTIFICATION_ID,
           title,
           body,
+          channelId: TIMER_CHANNEL_ID,
           smallIcon: 'ic_stat_icon',
           largeIcon: 'ic_launcher',
           ongoing: false,
