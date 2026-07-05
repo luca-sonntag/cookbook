@@ -61,30 +61,4 @@ export async function scrapeSocialMediaVideo(videoUrl: string): Promise<Scraping
   };
 }
 
-/**
- * Triggers the Apify Instagram Reel Scraper for the given Reel URL.
- * Strictly uses the All Social Media Video Downloader.
- */
-export async function scrapeReel(reelUrl: string): Promise<ScrapingResult> {
-  console.log(`[Apify] Scraping Instagram Reel: ${reelUrl}`);
-  return scrapeSocialMediaVideo(reelUrl);
-}
-
-/**
- * Triggers the Apify Youtube Video Downloader for the given YouTube URL.
- * Strictly uses the All Social Media Video Downloader.
- */
-export async function scrapeYoutubeVideo(videoUrl: string): Promise<ScrapingResult> {
-  console.log(`[Apify] Scraping YouTube: ${videoUrl}`);
-  return scrapeSocialMediaVideo(videoUrl);
-}
-
-/**
- * Triggers the Apify TikTok Video Scraper for the given TikTok URL.
- * Strictly uses the All Social Media Video Downloader.
- */
-export async function scrapeTiktokVideo(videoUrl: string): Promise<ScrapingResult> {
-  console.log(`[Apify] Scraping TikTok: ${videoUrl}`);
-  return scrapeSocialMediaVideo(videoUrl);
-}
 

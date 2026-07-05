@@ -12,31 +12,17 @@ export async function scrapeVideoData(url: string): Promise<ScrapingResult> {
 
   if (isYouTube || isTikTok) {
     try {
-      if (isYouTube) {
-        const { scrapeYoutubeVideo } = await import('../apify.js');
-        const res = await scrapeYoutubeVideo(url);
-        return {
-          caption: res.caption,
-          audioUrl: res.audioUrl,
-          videoUrl: res.videoUrl,
-          imageUrl: res.imageUrl,
-          authorHandle: res.instagramHandle,
-          requiresYtDlpDownload: false,
-          originalUrl: url,
-        };
-      } else {
-        const { scrapeTiktokVideo } = await import('../apify.js');
-        const res = await scrapeTiktokVideo(url);
-        return {
-          caption: res.caption,
-          audioUrl: res.audioUrl,
-          videoUrl: res.videoUrl,
-          imageUrl: res.imageUrl,
-          authorHandle: res.instagramHandle,
-          requiresYtDlpDownload: false,
-          originalUrl: url,
-        };
-      }
+      const { scrapeSocialMediaVideo } = await import('../apify.js');
+      const res = await scrapeSocialMediaVideo(url);
+      return {
+        caption: res.caption,
+        audioUrl: res.audioUrl,
+        videoUrl: res.videoUrl,
+        imageUrl: res.imageUrl,
+        authorHandle: res.instagramHandle,
+        requiresYtDlpDownload: false,
+        originalUrl: url,
+      };
     } catch (apifyError: any) {
       console.warn(`Apify scraping failed for ${url}, falling back to local yt-dlp:`, apifyError.message);
     }
