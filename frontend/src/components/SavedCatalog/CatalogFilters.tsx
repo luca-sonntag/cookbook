@@ -50,7 +50,7 @@ export default function CatalogFilters({
             <Button
               isIconOnly
               variant="tertiary"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-500 hover:text-emerald-500 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shrink-0"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
               onPress={handleCloseSearch}
               aria-label="Back"
             >
@@ -85,7 +85,7 @@ export default function CatalogFilters({
             <Button
               isIconOnly
               variant="tertiary"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-500 hover:text-emerald-500 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shrink-0"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
               onPress={() => setIsSearchActive(true)}
               aria-label="Search"
             >
@@ -94,7 +94,7 @@ export default function CatalogFilters({
             <Button
               isIconOnly
               variant="tertiary"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-500 hover:text-emerald-500 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shrink-0"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
               onPress={() => setViewMode(viewMode === 'card' ? 'compact' : 'card')}
               aria-label={t('catalog.viewToggle')}
             >
@@ -103,10 +103,10 @@ export default function CatalogFilters({
             <Button
               isIconOnly
               variant="tertiary"
-              className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border active:scale-95 transition-all shrink-0 ${
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl active:scale-95 transition-all shrink-0 ${
                 isSelectMode
-                  ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-500 shadow-md shadow-emerald-600/10'
-                  : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-500 hover:text-emerald-500 hover:bg-black/10 dark:hover:bg-white/10'
+                  ? 'bg-emerald-600 border-0 text-white hover:bg-emerald-500 shadow-md shadow-emerald-600/10'
+                  : 'bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5'
               }`}
               onPress={() => setIsSelectMode(!isSelectMode)}
               aria-label={t('catalog.selectModeToggle')}
