@@ -286,7 +286,7 @@ export const uiTranslations = {
       helpShareStep1Title: '1. Papierflieger tippen',
       helpShareStep1Desc: 'Tippe im Instagram Reel auf das Teilen-Symbol (Papierflieger).',
       helpShareStep2Title: '2. Auf „Teilen“ tippen',
-      helpShareStep2Desc: 'Tippe unten in der Liste auf das Symbol „Teilen“, um das Systemmenü zu öffnen.',
+      helpShareStep2Desc: 'Tippe unten auf das Symbol „Teilen“ (nur bei Instagram nötig, um das Systemmenü zu öffnen).',
       helpShareStep3Title: '3. CookBuddy auswählen',
       helpShareStep3Desc: 'Wähle CookBuddy aus der Liste der Apps aus.',
       helpSteps: {
@@ -582,7 +582,7 @@ export const uiTranslations = {
       helpShareStep1Title: '1. Tap paper airplane',
       helpShareStep1Desc: 'Open the Reel, tap the Share icon (paper airplane).',
       helpShareStep2Title: '2. Tap "Share"',
-      helpShareStep2Desc: 'Tap the "Share" button at the bottom of the list to open the system menu.',
+      helpShareStep2Desc: 'Tap the "Share" button at the bottom (only required for Instagram to open the system menu).',
       helpShareStep3Title: '3. Select CookBuddy',
       helpShareStep3Desc: 'Select CookBuddy from the list of available apps.',
       helpSteps: {
