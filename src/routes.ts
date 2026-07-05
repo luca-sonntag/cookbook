@@ -108,20 +108,20 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
 
     // If limit is non-negative (not -1 for unlimited)
     if (limit >= 0) {
-      const windowHours = config.EXTRACTION_LIMIT_WINDOW_HOURS;
-      const extractions = await getExtractionsForUserInTimeframe(req.userId!, windowHours);
+      const windowDays = config.EXTRACTION_LIMIT_WINDOW_DAYS;
+      const extractions = await getExtractionsForUserInTimeframe(req.userId!, windowDays);
       if (extractions.length >= limit) {
         const oldestJob = extractions[0];
         let minutesRemaining = 0;
         if (oldestJob) {
-          const resetTime = new Date(new Date(oldestJob.createdAt).getTime() + windowHours * 60 * 60 * 1000);
+          const resetTime = new Date(new Date(oldestJob.createdAt).getTime() + windowDays * 24 * 60 * 60 * 1000);
           const msRemaining = resetTime.getTime() - Date.now();
           minutesRemaining = Math.max(1, Math.ceil(msRemaining / (60 * 1000)));
         }
 
         res.status(429).json({
           success: false,
-          error: `Rate limit: You have reached your limit of ${limit} recipe extractions per ${windowHours} hours.` +
+          error: `Rate limit: You have reached your limit of ${limit} recipe extractions per ${windowDays} days.` +
             (minutesRemaining > 0 ? ` Please try again in ${minutesRemaining} minutes.` : ''),
         });
         return;
