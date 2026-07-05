@@ -774,7 +774,20 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
     let timeTextEn = '';
 
     if (minutes > 0) {
-      if (minutes >= 60) {
+      if (minutes >= 1440) {
+        const d = Math.floor(minutes / 1440);
+        const remainingMin = minutes % 1440;
+        const h = Math.floor(remainingMin / 60);
+
+        const dayStrDe = d === 1 ? '1 Tag' : `${d} Tagen`;
+        const dayStrEn = d === 1 ? '1 day' : `${d} days`;
+
+        const hourTextDe = h > 0 ? ` und ${h} Std.` : '';
+        const hourTextEn = h > 0 ? ` and ${h} hr.` : '';
+
+        timeTextDe = `Bitte versuche es in ${dayStrDe}${hourTextDe} erneut.`;
+        timeTextEn = `Please try again in ${dayStrEn}${hourTextEn}.`;
+      } else if (minutes >= 60) {
         const h = Math.floor(minutes / 60);
         const m = minutes % 60;
         timeTextDe = m > 0 
