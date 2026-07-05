@@ -224,7 +224,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
           >
             {recipe.imageUrls.map((img, idx) => {
               return (
-                <div key={idx} className="w-full shrink-0 snap-center relative">
+                <div key={idx} className="w-full shrink-0 snap-center snap-always relative">
                   <CachedImage
                     src={img}
                     draggable={false}
