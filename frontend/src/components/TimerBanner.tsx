@@ -25,7 +25,7 @@ export default function TimerBanner() {
       className="sticky top-0 z-50 w-full"
       style={{ animation: 'timerBannerSlideDown 0.25s cubic-bezier(0.32,0.72,0,1) both' }}
     >
-      <div className="w-full max-w-md mx-auto px-3 pt-2 pb-1.5 flex flex-col gap-1.5">
+      <div className="w-full max-w-md mx-auto px-3 pt-[calc(0.5rem_+_env(safe-area-inset-top))] pb-1.5 flex flex-col gap-1.5">
         {timers.map(timer => {
           const remaining = getRemainingSeconds(timer.endAt);
           const isFinished = timer.isFinished;
