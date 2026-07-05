@@ -107,11 +107,11 @@ export async function sendNativeNotification(
           title,
           body,
           channelId: TIMER_CHANNEL_ID,
+          // Status-bar (small) icon only — a monochrome silhouette of the app
+          // logo. Android tints small icons to a single color, so this is the
+          // app's own mark, not a generic glyph. No largeIcon: we intentionally
+          // don't want a big icon on the right of the notification.
           smallIcon: 'ic_stat_icon',
-          // Full-color app icon on the right. Must live in a `drawable` folder —
-          // the plugin resolves largeIcon there (not `mipmap`), so we reference a
-          // raster copy of the launcher icon, not `ic_launcher` itself.
-          largeIcon: 'ic_notification_large',
           ongoing: false,
           extra: { recipeId, stepNum },
         },
