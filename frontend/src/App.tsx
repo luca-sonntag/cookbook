@@ -345,25 +345,29 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col items-center transition-colors duration-300">
-      {/* Sticky Header Container */}
-      <header className="sticky top-0 z-40 w-full bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300 pt-[env(safe-area-inset-top)]">
-        <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
-          <div className="flex items-center gap-2">
-            <div className="flex-shrink-0">
-              <img src="/icon-512.png" alt="App Logo" className="w-7 h-7 object-contain rounded-lg" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">{t('app.title')}</h1>
+      {/* Sticky top region: header + banners share one sticky container so the
+          status-bar safe-area inset is applied once and they stack without a gap
+          or overlapping each other when pinned. */}
+      <div className="sticky top-0 z-40 w-full pt-[env(safe-area-inset-top)]">
+        <header className="w-full bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
+          <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
+            <div className="flex items-center gap-2">
+              <div className="flex-shrink-0">
+                <img src="/icon-512.png" alt="App Logo" className="w-7 h-7 object-contain rounded-lg" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">{t('app.title')}</h1>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* App Install Banner */}
-      <InstallBanner isInstallable={isInstallable} handleInstallClick={handleInstallClick} />
+        {/* App Install Banner */}
+        <InstallBanner isInstallable={isInstallable} handleInstallClick={handleInstallClick} />
 
-      {/* Active Cooking Timers Banner */}
-      <TimerBanner />
+        {/* Active Cooking Timers Banner */}
+        <TimerBanner />
+      </div>
 
       {/* Main content body */}
       <main className={`w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 ${
