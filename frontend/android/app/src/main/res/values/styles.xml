@@ -21,6 +21,9 @@
         <!-- Android 12+ system splash: brand the background and icon so there is
              no white flash before the Capacitor splash drawable appears. -->
         <item name="windowSplashScreenBackground">#064e3b</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <!-- Dedicated splash icon (green circle + logo) sized so the utensils
+             stay inside Android 12's circular icon mask instead of the launcher
+             icon, whose art reached the edge and got clipped / looked soft. -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
     </style>
 </resources>
