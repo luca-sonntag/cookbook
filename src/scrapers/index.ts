@@ -1,5 +1,4 @@
-import { scrapeInstagramReel } from './instagram.js';
-import { scrapeVideoData } from './video.js';
+import { scrapeSocial } from './social.js';
 import { scrapeWebsite } from './website.js';
 
 export interface ScrapingResult {
@@ -22,10 +21,14 @@ export function getScraperForUrl(url: string): Scraper {
   const urlObj = new URL(url);
   const hostname = urlObj.hostname.toLowerCase();
 
-  if (hostname.includes('instagram.com')) {
-    return { scrape: scrapeInstagramReel };
-  } else if (hostname.includes('tiktok.com') || hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
-    return { scrape: scrapeVideoData };
+  const isSocial = hostname.includes('instagram.com') ||
+                   hostname.includes('facebook.com') ||
+                   hostname.includes('tiktok.com') ||
+                   hostname.includes('youtube.com') ||
+                   hostname.includes('youtu.be');
+
+  if (isSocial) {
+    return { scrape: scrapeSocial };
   } else {
     return { scrape: scrapeWebsite };
   }
