@@ -80,9 +80,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       try {
         await ensureSocialLoginInitialized();
+        // Don't pass `scopes`: the plugin already requests email/profile/openid
+        // by default, and supplying a custom scopes array switches Android into
+        // an extended-authorization flow that requires modifying MainActivity.
         const { result } = await SocialLogin.login({
           provider: 'google',
-          options: { scopes: ['email', 'profile'] },
+          options: {},
         });
         // Online-mode Google response carries the OpenID Connect ID token.
         const idToken = 'idToken' in result ? result.idToken : null;
