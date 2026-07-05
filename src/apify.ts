@@ -40,7 +40,24 @@ export async function scrapeSocialMediaVideo(videoUrl: string): Promise<Scraping
   const item = items[0] as any;
 
   const caption = (item.description || item.title || item.caption || '') as string;
-  const downloadUrl = (item.download || item.direct_url || item.downloadUrl || item.videoUrl || '') as string;
+  
+  let downloadUrl = '';
+  if (item.download) {
+    if (Array.isArray(item.download) && item.download.length > 0) {
+      const mergedItem = item.download.find((d: any) => d.resolution === 'merged');
+      if (mergedItem && typeof mergedItem.url === 'string') {
+        downloadUrl = mergedItem.url;
+      } else if (typeof item.download[0].url === 'string') {
+        downloadUrl = item.download[0].url;
+      }
+    } else if (typeof item.download === 'string') {
+      downloadUrl = item.download;
+    }
+  }
+
+  if (!downloadUrl) {
+    downloadUrl = (item.direct_url || item.downloadUrl || item.videoUrl || '') as string;
+  }
   const imageUrl = (item.thumbnail || item.thumbnailUrl || item.imageUrl || '') as string;
   
   let authorHandle = (item.uploader || item.author || '') as string;
