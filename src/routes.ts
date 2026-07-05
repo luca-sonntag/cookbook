@@ -317,3 +317,63 @@ apiRouter.delete('/jobs/:id', async (req: Request, res: Response): Promise<void>
     });
   }
 });
+
+/**
+ * Endpoint to retrieve the current user's recipe extraction rate limit status.
+ * GET /api/extractions/limit
+ */
+apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise<void> => {
+  try {
+    let customLimit: number | undefined;
+    try {
+      const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
+      if (!authError && user?.user_metadata) {
+        const meta = user.user_metadata;
+        if (typeof meta.custom_extraction_limit === 'number') {
+          customLimit = meta.custom_extraction_limit;
+        } else if (typeof meta.max_extractions_per_window === 'number') {
+          customLimit = meta.max_extractions_per_window;
+        } else if (typeof meta.custom_extraction_limit === 'string') {
+          customLimit = parseInt(meta.custom_extraction_limit, 10);
+        } else if (typeof meta.max_extractions_per_window === 'string') {
+          customLimit = parseInt(meta.max_extractions_per_window, 10);
+        }
+      }
+    } catch (err) {
+      console.warn(`Failed to fetch user metadata for rate limit status:`, err);
+    }
+
+    const limit = customLimit !== undefined ? customLimit : config.DEFAULT_MAX_EXTRACTIONS_PER_WINDOW;
+    const windowDays = config.EXTRACTION_LIMIT_WINDOW_DAYS;
+
+    if (limit < 0) {
+      res.status(200).json({
+        success: true,
+        limit: -1,
+        used: 0,
+        remaining: -1,
+        windowDays
+      });
+      return;
+    }
+
+    const extractions = await getExtractionsForUserInTimeframe(req.userId!, windowDays);
+    const used = extractions.length;
+    const remaining = Math.max(0, limit - used);
+
+    res.status(200).json({
+      success: true,
+      limit,
+      used,
+      remaining,
+      windowDays
+    });
+  } catch (error) {
+    console.error('Error fetching rate limit status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error while fetching rate limit status.',
+    });
+  }
+});
+
