@@ -283,6 +283,10 @@ export const uiTranslations = {
       helpShareTitle: 'Direkt teilen (schnellste Methode)',
       helpShareDesc: 'Teile Links direkt über den Teilen-Button anderer Apps – ohne den Link zu kopieren.',
       helpShareStep: 'Tippe in Instagram, TikTok oder YouTube Shorts auf Teilen, wähle dann CookBuddy aus der Liste.',
+      helpShareStep1Title: '1. In Instagram auf Teilen tippen',
+      helpShareStep1Desc: 'Öffne das Reel, tippe auf das Teilen-Symbol (Papierflieger).',
+      helpShareStep2Title: '2. CookBuddy auswählen',
+      helpShareStep2Desc: 'Wähle CookBuddy aus der Liste der Apps aus.',
       helpSteps: {
         instagram: 'Öffne ein Instagram Reel, tippe auf Teilen (Papierflieger-Symbol) und wähle Link kopieren.',
         tiktok: 'Öffne ein TikTok-Video, tippe auf den Teilen-Pfeil und wähle Link kopieren.',
@@ -573,6 +577,10 @@ export const uiTranslations = {
       helpShareTitle: 'Share directly (fastest method)',
       helpShareDesc: 'Send links directly via the Share button in other apps — no need to copy the link.',
       helpShareStep: 'Tap Share in Instagram, TikTok, or YouTube Shorts, then select CookBuddy from the list.',
+      helpShareStep1Title: '1. Tap Share in Instagram',
+      helpShareStep1Desc: 'Open the Reel, tap the Share icon (paper airplane).',
+      helpShareStep2Title: '2. Select CookBuddy',
+      helpShareStep2Desc: 'Select CookBuddy from the list of available apps.',
       helpSteps: {
         instagram: 'Open an Instagram Reel, tap Share (paper airplane icon) and choose Copy Link.',
         tiktok: 'Open a TikTok video, tap the Share arrow and choose Copy Link.',
