@@ -327,9 +327,9 @@ export async function countActiveJobsForUser(userId: string): Promise<number> {
   return count ?? 0;
 }
 
-/** Get all extraction jobs created by a user in the last N hours (excluding remixes). */
-export async function getExtractionsForUserInTimeframe(userId: string, hours: number): Promise<Job[]> {
-  const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+/** Get all extraction jobs created by a user in the last N days (excluding remixes). */
+export async function getExtractionsForUserInTimeframe(userId: string, days: number): Promise<Job[]> {
+  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await getClient()
     .from('jobs')
     .select()
