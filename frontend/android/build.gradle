@@ -24,6 +24,19 @@ allprojects {
     }
 }
 
+// Force all Android subprojects (including third-party Capacitor plugins that
+// hardcode an older compileSdk in node_modules, e.g. send-intent) to compile
+// against the SDK version defined in variables.gradle.
+subprojects {
+    afterEvaluate { project ->
+        if (project.plugins.hasPlugin('com.android.library') || project.plugins.hasPlugin('com.android.application')) {
+            project.android {
+                compileSdkVersion rootProject.ext.compileSdkVersion
+            }
+        }
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
