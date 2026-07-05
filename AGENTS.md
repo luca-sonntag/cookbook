@@ -42,7 +42,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 * **Rolling Timeframe Rate Limiting (Extraktionsbegrenzung):**
   * Um Missbrauch und API-Kosten (Apify & Gemini) zu begrenzen, verfügt die Anwendung über ein rollierendes Ratenlimit für Rezept-Extraktionen.
   * **Globale Limits:** Gesteuert über `.env`-Umgebungsvariablen:
-    * `EXTRACTION_LIMIT_WINDOW_HOURS` (Default: `24`): Größe des rollierenden Fensters in Stunden.
+    * `EXTRACTION_LIMIT_WINDOW_DAYS` (Default: `1`): Größe des rollierenden Fensters in Tagen.
     * `DEFAULT_MAX_EXTRACTIONS_PER_WINDOW` (Default: `10`): Maximale Anzahl an Extraktionen pro Nutzer im Fenster.
   * **Benutzerbezogene Limits (Overrides):** Werden über Supabase Auth `user_metadata` individuell gesteuert:
     * `custom_extraction_limit` bzw. `max_extractions_per_window` gibt die maximale Anzahl frei.
