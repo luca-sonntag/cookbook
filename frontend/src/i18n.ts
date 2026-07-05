@@ -763,11 +763,11 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
 
   if (lowerMsg.includes('rate limit:')) {
     const limitMatch = errorMsg.match(/limit of (\d+)/i);
-    const hoursMatch = errorMsg.match(/per (\d+) hours/i);
+    const daysMatch = errorMsg.match(/per (\d+) days/i);
     const minMatch = errorMsg.match(/in (\d+) minutes/i);
 
     const limit = limitMatch ? limitMatch[1] : '10';
-    const hours = hoursMatch ? hoursMatch[1] : '24';
+    const days = daysMatch ? daysMatch[1] : '1';
     const minutes = minMatch ? parseInt(minMatch[1], 10) : 0;
 
     let timeTextDe = '';
@@ -792,9 +792,13 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
       timeTextEn = 'Please try again later.';
     }
 
+    const daysStr = days === '1' 
+      ? (lang === 'de' ? 'Tag' : 'day') 
+      : (lang === 'de' ? `${days} Tagen` : `${days} days`);
+
     return lang === 'de'
-      ? `Du hast dein Limit von ${limit} Rezept-Extraktionen pro ${hours} Stunden erreicht. ${timeTextDe}`
-      : `You have reached your limit of ${limit} recipe extractions per ${hours} hours. ${timeTextEn}`;
+      ? `Du hast dein Limit von ${limit} Rezept-Extraktionen pro ${daysStr} erreicht. ${timeTextDe}`
+      : `You have reached your limit of ${limit} recipe extractions per ${daysStr}. ${timeTextEn}`;
   }
   
   if (lowerMsg.includes('too many requests')) {
