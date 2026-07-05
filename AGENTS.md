@@ -39,6 +39,15 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * **`trust proxy`:** Auf `1` gesetzt für korrekte Rate-Limiting-Erkennung hinter Reverse-Proxies (nginx, Railway, etc.).
   * **Body-Limit:** `express.json({ limit: '1mb' })` schützt vor Memory-Exhaustion durch große Payloads.
 * **Health-Check (`/health`):** Erweiterter Endpunkt prüft Supabase-Datenbankverbindung via `checkDbHealth()` (HEAD-Request auf `jobs`-Tabelle). Antwortet `200 OK` bei gesunder DB, `503 Service Unavailable` bei Problemen. Liefert `uptime`, `nodeEnv` und `dbConnected`-Status.
+* **Rolling Timeframe Rate Limiting (Extraktionsbegrenzung):**
+  * Um Missbrauch und API-Kosten (Apify & Gemini) zu begrenzen, verfügt die Anwendung über ein rollierendes Ratenlimit für Rezept-Extraktionen.
+  * **Globale Limits:** Gesteuert über `.env`-Umgebungsvariablen:
+    * `EXTRACTION_LIMIT_WINDOW_HOURS` (Default: `24`): Größe des rollierenden Fensters in Stunden.
+    * `DEFAULT_MAX_EXTRACTIONS_PER_WINDOW` (Default: `10`): Maximale Anzahl an Extraktionen pro Nutzer im Fenster.
+  * **Benutzerbezogene Limits (Overrides):** Werden über Supabase Auth `user_metadata` individuell gesteuert:
+    * `custom_extraction_limit` bzw. `max_extractions_per_window` gibt die maximale Anzahl frei.
+    * Ein Wert von `-1` deaktiviert die Ratenbegrenzung für diesen Benutzer vollständig (unlimited).
+  * **Nutzererfahrung:** Wenn das Limit erreicht ist, ermittelt das Backend die älteste Extraktion im Fenster und berechnet die verbleibende Wartezeit minutengenau. Das Frontend übersetzt diese Fehlermeldung dynamisch im `translateApiError`-Helper und zeigt dem Nutzer die genaue Restdauer an.
 
 ### 3. KI-Layer (Google Gemini)
 
