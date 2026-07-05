@@ -44,7 +44,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * **Globale Limits:** Gesteuert über `.env`-Umgebungsvariablen:
     * `EXTRACTION_LIMIT_WINDOW_DAYS` (Default: `1`): Größe des rollierenden Fensters in Tagen.
     * `DEFAULT_MAX_EXTRACTIONS_PER_WINDOW` (Default: `10`): Maximale Anzahl an Extraktionen pro Nutzer im Fenster.
-  * **Benutzerbezogene Limits (Overrides):** Werden über Supabase Auth `user_metadata` individuell gesteuert:
+  * **Benutzerbezogene Limits (Overrides):** Werden über Supabase Auth `app_metadata` individuell gesteuert:
     * `custom_extraction_limit` bzw. `max_extractions_per_window` gibt die maximale Anzahl frei.
     * Ein Wert von `-1` deaktiviert die Ratenbegrenzung für diesen Benutzer vollständig (unlimited).
   * **Nutzererfahrung:** Wenn das Limit erreicht ist, ermittelt das Backend die älteste Extraktion im Fenster und berechnet die verbleibende Wartezeit minutengenau. Das Frontend übersetzt diese Fehlermeldung dynamisch im `translateApiError`-Helper und zeigt dem Nutzer die genaue Restdauer an.
