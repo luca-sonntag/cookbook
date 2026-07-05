@@ -346,7 +346,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col items-center transition-colors duration-300">
       {/* Sticky Header Container */}
-      <header className="sticky top-0 z-40 w-full bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
+      <header className="sticky top-0 z-40 w-full bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300 pt-[env(safe-area-inset-top)]">
         <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
           <div className="flex items-center gap-2">
             <div className="flex-shrink-0">
@@ -473,7 +473,7 @@ export default function App() {
 
         return (
           <div className={bottomBarClasses}>
-            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-5 px-3">
+            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] px-3">
               {/* Extract / New Recipe Tab */}
               <button
                 onClick={() => navigate('extract')}
