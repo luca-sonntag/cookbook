@@ -12,11 +12,13 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 
 ## 🏗️ Implementierte Technische Architektur & Tech-Stack
 
-### 1. Scraping-Layer (Apify & yt-dlp Fallback)
+### 1. Scraping-Layer (Apify Provider-Chain & yt-dlp Fallback)
 
 * **Technologie:** Apify API Client (`apify-client`).
-* **Funktion:** Der primäre und einzige Apify-Scraper für alle Social-Media-Links (Instagram Reels, TikTok Videos, YouTube Shorts, Facebook Videos) ist der **All Social Media Video Downloader** (`wilcode/all-social-media-video-downloader`). Dieser Actor wird mit `mergeAV: true` aufgerufen und wird bei transienten Fehlern bis zu 3-mal automatisch wiederholt.
-* **Local Fallback für YouTube/TikTok/Facebook:** Falls die Apify-API fehlschlägt oder blockiert wird, greift das System für YouTube Shorts, TikTok und Facebook auf das lokale Command-Line Tool `yt-dlp` als robusten Fallback zurück.
+* **Pluggable Provider-Chain (`src/apify/`):** Das Social-Media-Scraping ist als erweiterbare Provider-Kette implementiert. Jeder Provider kapselt einen Apify-Actor über das `ApifySocialProvider`-Interface (`name`, `actorId`, `buildInput()`, `parse()`) und liefert ein normalisiertes `ApifySocialScrapeResult` (`caption`, `videoUrl`, `audioUrl`, `imageUrl`, `authorHandle`). Der Orchestrator `scrapeSocialMediaVideo()` (`src/apify/index.ts`) iteriert die in `src/apify/providers/index.ts` registrierten Provider **der Reihe nach** (Registrierungsreihenfolge = Priorität): Jeder Provider wird bei transienten Fehlern bis zu 3-mal mit exponentiellem Backoff wiederholt; schlägt er endgültig fehl (Fehler oder kein Download-Link im Ergebnis), fällt das System automatisch auf den nächsten Provider zurück. Erst wenn **alle** Provider scheitern, wirft der Orchestrator einen aggregierten Fehler. Alle Provider teilen sich einen Apify-Client (`src/apify/client.ts`) mit demselben `APIFY_TOKEN`.
+* **Neuen Fallback-Actor hinzufügen:** Einen Provider unter `src/apify/providers/` implementieren (Actor-spezifisches `buildInput()`/`parse()`) und dem Array in `src/apify/providers/index.ts` hinzufügen — kein Eingriff in die Aufruflogik oder `.env` nötig.
+* **Primärer Provider:** **All Social Media Video Downloader** (`wilcode/all-social-media-video-downloader`), aufgerufen mit `mergeAV: true`, deckt Instagram Reels, TikTok Videos, YouTube Shorts und Facebook Videos ab. Siehe `docs/apify.social-downloader.md` für das Input/Output-Schema des Actors.
+* **Local Fallback für YouTube/TikTok/Facebook:** Falls die gesamte Apify-Provider-Chain fehlschlägt oder blockiert wird, greift das System für YouTube Shorts, TikTok und Facebook auf das lokale Command-Line Tool `yt-dlp` als robusten Fallback zurück.
 * **Ergebnis:** Die Scraper-Pipeline liefert ein standardisiertes `ScrapingResult`-Objekt mit einer Caption, der Bild-Cover-URL (`imageUrl`) und einem direkt abspielbaren Medien-Link (`audioUrl` / `videoUrl`) für die Transkription und Frame-Extraktion.
 
 ### 2. Processing- & Database-Layer (Node.js & Supabase Postgres)
