@@ -215,9 +215,13 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         // First ring immediately
         playAlarm();
         vibrate();
+        // Keep the text short so the notification renders compact (app name in
+        // the header, one line below) — this centers the colored icon on the
+        // left, like YouTube/Gmail. Tapping still routes to the recipe step via
+        // the recipeId/stepNum stored in the notification's `extra`.
         sendNotification(
-          timer.label,
-          '🍳 Dein Koch-Timer ist abgelaufen. / Your cooking timer finished.',
+          'Koch-Timer abgelaufen',
+          'Cooking timer finished',
           timer.recipeId,
           timer.stepNum,
         );
@@ -267,9 +271,13 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         alreadyFiredRef.current.add(timer.id);
         playAlarm();
         vibrate();
+        // Keep the text short so the notification renders compact (app name in
+        // the header, one line below) — this centers the colored icon on the
+        // left, like YouTube/Gmail. Tapping still routes to the recipe step via
+        // the recipeId/stepNum stored in the notification's `extra`.
         sendNotification(
-          timer.label,
-          '🍳 Dein Koch-Timer ist abgelaufen. / Your cooking timer finished.',
+          'Koch-Timer abgelaufen',
+          'Cooking timer finished',
           timer.recipeId,
           timer.stepNum,
         );
