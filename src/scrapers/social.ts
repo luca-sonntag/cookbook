@@ -1,5 +1,5 @@
 import yt from 'youtube-dl-exec';
-import { scrapeSocialMediaVideo } from '../apify.js';
+import { scrapeSocialMediaVideo } from '../apify/index.js';
 import type { ScrapingResult } from './index.js';
 import { getYtdlpCookieOptions } from '../config.js';
 
@@ -21,7 +21,7 @@ export async function scrapeSocial(url: string): Promise<ScrapingResult> {
     throw new Error(`scrapeSocial called with unsupported URL: ${url}`);
   }
 
-  // Try Apify All Social Media Video Downloader first
+  // Try the Apify social provider chain first (see src/apify/)
   try {
     const res = await scrapeSocialMediaVideo(url);
     return {
@@ -29,7 +29,7 @@ export async function scrapeSocial(url: string): Promise<ScrapingResult> {
       audioUrl: res.audioUrl,
       videoUrl: res.videoUrl,
       imageUrl: res.imageUrl,
-      authorHandle: res.instagramHandle,
+      authorHandle: res.authorHandle,
       requiresYtDlpDownload: false,
       originalUrl: url,
     };
