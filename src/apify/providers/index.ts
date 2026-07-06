@@ -1,5 +1,5 @@
 import type { ApifySocialProvider } from '../types.js';
-import { allSocialMediaVideoDownloader } from './allSocialMediaVideoDownloader.js';
+import { mediaDownloaderActor } from './mediaDownloaderActor.js';
 
 /**
  * Ordered registry of Apify social download providers.
@@ -10,5 +10,5 @@ import { allSocialMediaVideoDownloader } from './allSocialMediaVideoDownloader.j
  * `providers/` and appending it here — order defines priority.
  */
 export const apifySocialProviders: ApifySocialProvider[] = [
-  allSocialMediaVideoDownloader,
+  mediaDownloaderActor,
 ];
