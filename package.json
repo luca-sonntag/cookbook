@@ -11,10 +11,7 @@
     "dev": "concurrently -n \"backend,frontend\" -c \"blue,green\" \"npm run dev -w backend\" \"npm run dev -w frontend\"",
     "build": "npm run build -w frontend && npm run build -w backend",
     "start": "npm run start -w backend",
-    "preview": "npm run preview -w backend",
-    "test-client": "npm run test-client -w backend",
-    "test-grid": "npm run test-grid -w backend",
-    "kill-server": "powershell -Command \"$conn = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($conn) { Stop-Process -Id $conn.OwningProcess -Force }; exit 0\""
+    "preview": "npm run preview -w backend"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"

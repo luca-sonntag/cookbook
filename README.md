@@ -63,17 +63,6 @@ Runs the server with hot-reloading:
 npm run dev
 ```
 
-### 2. Run the Manual E2E Test Client
-In another shell, run the test script using a real Instagram Reel URL:
-```powershell
-npm run test-client -- --url https://www.instagram.com/reel/C8C_jApt_2j/
-```
-
-This script will:
-* Submit the URL to your local server.
-* Poll status updates (e.g. `PENDING` -> `SCRAPING` -> `PROCESSING` -> `COMPLETED`).
-* Format and print the final structured recipe to the console.
-
 ---
 
 ## 📡 API Reference
