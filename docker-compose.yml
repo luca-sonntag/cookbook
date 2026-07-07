@@ -20,8 +20,8 @@ services:
 
   apk-host:
     build:
-      context: ./apk-host
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apk-host/Dockerfile
     image: recipe-extractor-apk-host:latest
     container_name: recipe-extractor-apk-host
     ports:
