@@ -32,7 +32,7 @@ function resolveUserRateLimit(user: any): number {
   }
 
   // 2. Subscription tier check
-  if (meta.tier === 'premium') {
+  if (meta.tier === 'premium' || user?.user_metadata?.tier === 'premium') {
     return config.PREMIUM_MAX_EXTRACTIONS_PER_WINDOW;
   }
 
@@ -348,7 +348,7 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
       const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
       if (!authError && user) {
         limit = resolveUserRateLimit(user);
-        tier = user.app_metadata?.tier === 'premium' ? 'premium' : 'free';
+        tier = (user.app_metadata?.tier === 'premium' || user.user_metadata?.tier === 'premium') ? 'premium' : 'free';
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for rate limit status:`, err);

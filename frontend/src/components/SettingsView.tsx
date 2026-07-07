@@ -41,7 +41,7 @@ export default function SettingsView() {
 
   const preferredTempUnit = user?.user_metadata?.preferred_temperature_unit || 'Celsius';
   const preferredUnitSystem = user?.user_metadata?.preferred_unit_system || 'metric';
-  const isPremium = user?.app_metadata?.tier === 'premium';
+  const isPremium = user?.app_metadata?.tier === 'premium' || user?.user_metadata?.tier === 'premium';
 
   const handleUpdateSetting = async (key: string, value: string) => {
     setIsSaving(true);
