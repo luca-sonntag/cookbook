@@ -1,6 +1,7 @@
 import { Purchases, LOG_LEVEL } from '@revenuecat/purchases-capacitor';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '../supabase';
+import { apiUrl } from '../api';
 
 const REVENUECAT_ANDROID_API_KEY = import.meta.env.VITE_REVENUECAT_ANDROID_API_KEY as string | undefined;
 
@@ -42,7 +43,7 @@ async function syncBillingStatus(isPremium: boolean): Promise<void> {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    const response = await fetch('/api/billing/sync', {
+    const response = await fetch(apiUrl('/api/billing/sync'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

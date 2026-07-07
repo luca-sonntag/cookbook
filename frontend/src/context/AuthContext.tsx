@@ -3,6 +3,7 @@ import type { User, Session } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { supabase } from '../supabase';
+import { apiUrl } from '../api';
 
 const GOOGLE_WEB_CLIENT_ID = import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID as string | undefined;
 
@@ -140,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = await getAccessToken();
       if (!token) return { error: 'Not authenticated' };
 
-      const response = await fetch('/api/users/me', {
+      const response = await fetch(apiUrl('/api/users/me'), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
