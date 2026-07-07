@@ -1,70 +1,17 @@
 import fs from 'fs/promises';
-import { createWriteStream } from 'fs';
 import path from 'path';
-import https from 'https';
-import http from 'http';
 import { claimNextJob, updateJob, getJob, getClient, reclaimExpiredJobs, heartbeatJob, uploadRecipeFrame } from './db.js';
 import { randomUUID } from 'node:crypto';
 import { getScraperForUrl } from './scrapers/index.js';
+import { downloadMedia } from './scrapers/download.js';
 import { extractRecipe, remixRecipe } from './gemini.js';
 import type { Job, ProgressData } from './types.js';
-import { config, getYtdlpCookieOptions } from './config.js';
-import yt from 'youtube-dl-exec';
-
-const youtubedl: any = (yt as any).default || yt;
+import { config } from './config.js';
 
 const workerId = randomUUID();
 let activeJobs = 0;
 let workerInterval: NodeJS.Timeout | null = null;
 let reclaimInterval: NodeJS.Timeout | null = null;
-
-/**
- * Downloads a file from a URL to a local destination, following HTTP/HTTPS redirects.
- */
-async function downloadFile(url: string, destPath: string, headers?: Record<string, string>): Promise<string> {
-  return new Promise((resolve, reject) => {
-    function attemptGet(currentUrl: string) {
-      const protocol = currentUrl.startsWith('https') ? https : http;
-      const request = protocol.get(currentUrl, { headers }, (response) => {
-        // Handle redirect
-        if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 307 || response.statusCode === 308) {
-          const redirectUrl = response.headers.location;
-          if (redirectUrl) {
-            attemptGet(redirectUrl);
-            return;
-          }
-        }
-
-        if (response.statusCode !== 200) {
-          reject(new Error(`Failed to download audio file from ${currentUrl}: HTTP ${response.statusCode} ${response.statusMessage}`));
-          return;
-        }
-
-        const mimeType = response.headers['content-type'] || 'audio/mp4';
-        const fileStream = createWriteStream(destPath);
-
-        response.pipe(fileStream);
-
-        fileStream.on('finish', () => {
-          fileStream.close(() => {
-            resolve(mimeType);
-          });
-        });
-
-        fileStream.on('error', (err) => {
-          fs.unlink(destPath).catch(() => { });
-          reject(err);
-        });
-      });
-
-      request.on('error', (err) => {
-        reject(err);
-      });
-    }
-
-    attemptGet(url);
-  });
-}
 
 /**
  * Processes a single job end-to-end.
@@ -167,67 +114,13 @@ async function processJob(job: Job): Promise<void> {
     // 4. Ensure run directory exists
     await fs.mkdir(runDir, { recursive: true });
 
-    let mimeType: string | undefined = undefined;
-
-    // 5. Download audio and video in parallel (if available)
-    if (scrapeResult.audioUrl || scrapeResult.requiresYtDlpDownload) {
-      console.log(`[Job ${jobId}] Downloading audio/video...`);
-      const audioExt = scrapeResult.requiresYtDlpDownload ? '.mp3' : ((scrapeResult.audioUrl && scrapeResult.audioUrl.includes('.mp3')) ? '.mp3' : '.mp4');
-      audioFilePath = path.join(runDir, `audio${audioExt}`);
-      videoFilePath = path.join(runDir, 'video.mp4');
-      
-      const downloadPromises: Promise<any>[] = [];
-
-      if (scrapeResult.requiresYtDlpDownload && scrapeResult.originalUrl) {
-        // Use yt-dlp directly for robust downloading instead of native http requests
-        downloadPromises.push(
-          youtubedl(scrapeResult.originalUrl, { 
-            output: audioFilePath, 
-            format: 'bestaudio/best', 
-            extractAudio: true,
-            audioFormat: 'mp3',
-            noWarnings: true,
-            noPlaylist: true,
-            ...getYtdlpCookieOptions()
-          })
-            .catch((err: any) => {
-              console.warn(`[Job ${jobId}] yt-dlp audio download failed: ${err.message}`);
-              audioFilePath = '';
-            })
-        );
-        if (scrapeResult.videoUrl) {
-           downloadPromises.push(
-            youtubedl(scrapeResult.originalUrl, { 
-              output: videoFilePath, 
-              format: 'bestvideo/best', 
-              noWarnings: true,
-              noPlaylist: true,
-              ...getYtdlpCookieOptions()
-            })
-              .catch((err: any) => {
-                console.warn(`[Job ${jobId}] yt-dlp video download failed (will skip frame extraction): ${err.message}`);
-                videoFilePath = '';
-              })
-          );
-        }
-      } else {
-        downloadPromises.push(downloadFile(scrapeResult.audioUrl!, audioFilePath, scrapeResult.headers).catch((err) => {
-          console.warn(`[Job ${jobId}] Audio download failed: ${err.message}`);
-          audioFilePath = '';
-        }));
-        
-        if (scrapeResult.videoUrl) {
-          downloadPromises.push(downloadFile(scrapeResult.videoUrl, videoFilePath, scrapeResult.headers).catch((err) => {
-            console.warn(`[Job ${jobId}] Video download failed (will skip frame extraction): ${err.message}`);
-            videoFilePath = '';
-          }));
-        }
-      }
-
-      await Promise.allSettled(downloadPromises);
-      mimeType = audioExt === '.mp3' ? 'audio/mp3' : 'audio/mp4'; // Fallback
-      console.log(`[Job ${jobId}] Downloads complete.`);
-    }
+    // 5. Download audio + video to local files (download strategy encapsulated per provider).
+    console.log(`[Job ${jobId}] Downloading media...`);
+    const downloaded = await downloadMedia(scrapeResult.media, runDir);
+    audioFilePath = downloaded.audioFilePath;
+    videoFilePath = downloaded.videoFilePath;
+    const mimeType = downloaded.mimeType;
+    console.log(`[Job ${jobId}] Downloads complete.`);
 
     // 6. If video is available, extract frames and create grid first
     let gridImagePath: string | undefined;

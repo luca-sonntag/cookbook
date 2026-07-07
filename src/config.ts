@@ -8,6 +8,12 @@ dotenv.config();
 export interface Config {
   PORT: number;
   APIFY_TOKEN: string;
+  /** RapidAPI key for the "Social Download All In One" API (primary social scraper). Optional — falls back to the Apify chain when unset. */
+  RAPIDAPI_KEY?: string;
+  /** RapidAPI host for the social downloader. */
+  RAPIDAPI_SOCIAL_HOST: string;
+  /** Actor id (`owner/name` or id) of the first-party social downloader (apify-actor repo). Optional final-fallback provider. */
+  APIFY_SOCIAL_ACTOR_ID?: string;
   GEMINI_API_KEY: string;
   DATABASE_PATH: string;
   SUPABASE_URL: string;
@@ -41,6 +47,9 @@ const getEnv = (key: string, defaultValue?: string): string => {
 export const config: Config = {
   PORT: parseInt(getEnv('PORT', '3000'), 10),
   APIFY_TOKEN: getEnv('APIFY_TOKEN'),
+  RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
+  RAPIDAPI_SOCIAL_HOST: getEnv('RAPIDAPI_SOCIAL_HOST', 'social-download-all-in-one.p.rapidapi.com'),
+  APIFY_SOCIAL_ACTOR_ID: process.env.APIFY_SOCIAL_ACTOR_ID,
   GEMINI_API_KEY: getEnv('GEMINI_API_KEY'),
   DATABASE_PATH: getEnv('DATABASE_PATH', 'database.json'), // Use database.json as the persistent JSON file store
   SUPABASE_URL: getEnv('SUPABASE_URL'),

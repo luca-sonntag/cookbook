@@ -1,16 +1,27 @@
 import { scrapeSocial } from './social.js';
 import { scrapeWebsite } from './website.js';
 
+/**
+ * How a scraped item's media should be fetched to local files (see `download.ts`).
+ *
+ * The download *strategy* is part of the scrape result, so `queue.ts` never branches
+ * on ad-hoc flags — it just calls `downloadMedia(result.media, dir)`:
+ *  - `direct` — the URLs are directly fetchable (with optional `headers`); we GET them.
+ *  - `ytdlp`  — the URLs aren't reliably fetchable; re-run yt-dlp against `sourceUrl`.
+ *  - `none`   — no media (e.g. websites; text goes via `htmlContent`).
+ */
+export type MediaDownload =
+  | { kind: 'direct'; videoUrl?: string; audioUrl?: string; headers?: Record<string, string> }
+  | { kind: 'ytdlp'; sourceUrl: string }
+  | { kind: 'none' };
+
 export interface ScrapingResult {
   caption: string;
-  audioUrl?: string; // Optional because websites might not have audio
-  videoUrl?: string; // Optional because websites might not have video
   imageUrl?: string;
   authorHandle?: string;
   htmlContent?: string; // For text-based websites
-  headers?: Record<string, string>; // Necessary HTTP headers for downloading media (like User-Agent)
-  requiresYtDlpDownload?: boolean; // Signal to queue.ts to use yt-dlp for downloading
-  originalUrl?: string; // The original URL for yt-dlp to download from
+  /** Media source + download strategy; `{ kind: 'none' }` for text-only results. */
+  media: MediaDownload;
 }
 
 export interface Scraper {

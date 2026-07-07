@@ -34,6 +34,7 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
       caption: title, // We use caption as the title
       htmlContent: content, // The raw text to feed into Gemini
       authorHandle: new URL(url).hostname, // Use hostname as author
+      media: { kind: 'none' }, // websites have no downloadable media
     };
   } catch (error: any) {
     throw new Error(`Failed to scrape website: ${error.message}`);
