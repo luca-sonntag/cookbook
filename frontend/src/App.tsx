@@ -143,6 +143,11 @@ export default function App() {
       return;
     }
     fetchHistory();
+
+    // Initialize RevenueCat billing for the logged-in user
+    import('./utils/purchase').then(({ initBilling }) => {
+      initBilling(user.id);
+    }).catch(err => console.error('Failed to load billing module:', err));
   }, [authLoading, user, fetchHistory]);
 
   // Fetch rate limit status when entering the extract tab
