@@ -60,6 +60,8 @@ export async function buyPremium(): Promise<boolean> {
 
     // Check if the user has active entitlements.
     // In RevenueCat, you usually configure an entitlement like 'premium'.
+    const activeEntitlements = Object.keys(customerInfo.entitlements.active);
+    console.log('Active entitlements:', activeEntitlements);
     const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
 
     if (isPremium) {
@@ -74,7 +76,8 @@ export async function buyPremium(): Promise<boolean> {
       return true;
     }
 
-    throw new Error('Purchase was successful, but Premium entitlement is not active. Please contact support.');
+    const activeList = activeEntitlements.length > 0 ? activeEntitlements.join(', ') : 'none';
+    throw new Error(`Purchase was successful, but the 'premium' entitlement is not active (Active: [${activeList}]). Please verify that you have configured an entitlement with ID 'premium' in the RevenueCat dashboard and linked it to this product.`);
   } catch (err: any) {
     // If the user cancelled, return false silently
     if (err.userCancelled) {
