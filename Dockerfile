@@ -3,36 +3,37 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Backend deps
+# Copy root and workspace package files
 COPY package*.json ./
-RUN YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm ci
-
-# Frontend build
+COPY backend/package*.json backend/
 COPY frontend/package*.json frontend/
-RUN cd frontend && npm ci && cd ..
 
+# Install dependencies for the workspaces
+RUN npm ci
+
+# Build frontend
 COPY frontend/ frontend/
 ARG SUPABASE_URL
 ARG SUPABASE_PUBLISHABLE_KEY
 ENV VITE_SUPABASE_URL=$SUPABASE_URL
 ENV VITE_SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY
-RUN cd frontend && npm run build
+RUN npm run build:frontend
 
-# Backend TypeScript compilation
-COPY tsconfig.json ./
-COPY src/ src/
-RUN npm run build
-RUN npm prune --omit=dev
+# Build backend
+COPY backend/tsconfig.json backend/
+COPY backend/src/ backend/src/
+RUN npm run build:backend
+RUN npm prune --omit=dev --workspace=backend
 
 # ── Production stage: minimal runtime ──────────────────────────────────────
 FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy only production dependencies and built artifacts
+# Copy production dependencies and built artifacts
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/backend/package.json ./backend/package.json
+COPY --from=builder /app/backend/dist ./backend/dist
 COPY --from=builder /app/frontend/dist ./frontend/dist
 
 # Install runtime dependencies (ffmpeg/ffprobe for frame extraction, python3 for yt-dlp, ttf-dejavu for text-drawing fonts)
@@ -45,4 +46,4 @@ EXPOSE 3000
 
 ENV NODE_ENV=production
 
-CMD ["node", "dist/src/index.js"]
+CMD ["node", "backend/dist/index.js"]
