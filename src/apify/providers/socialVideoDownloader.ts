@@ -1,4 +1,5 @@
 import type { ApifySocialProvider, ApifySocialScrapeResult } from '../types.js';
+import { config } from '../../config.js';
 
 /** Placeholder until the actor is pushed; override with APIFY_SOCIAL_ACTOR_ID. */
 const DEFAULT_ACTOR_ID = 'YOUR_APIFY_USERNAME/social-video-downloader';
@@ -7,10 +8,12 @@ const DEFAULT_ACTOR_ID = 'YOUR_APIFY_USERNAME/social-video-downloader';
  * Primary provider: our own first-party Apify actor, maintained in a separate
  * sibling repo (`../apify-actor`, next to this one).
  *
- * Wraps yt-dlp behind Apify residential proxies and returns caption + thumbnail +
- * author plus a merged MP4 stored in the Apify key-value store — a public,
- * directly-fetchable `videoUrl`. This restores the caption + cover image that the
- * third-party rover-omniscraper actor did not provide.
+ * Wraps yt-dlp with the actor's own direct-to-residential proxy escalation
+ * (see apify-actor/src/main.ts) and returns caption + thumbnail + author plus
+ * a merged MP4 stored in the Apify key-value store — a `videoUrl` fetchable
+ * with the same `APIFY_TOKEN` (the key-value store is not public). This
+ * restores the caption + cover image that the third-party rover-omniscraper
+ * actor did not provide.
  *
  * Set `APIFY_SOCIAL_ACTOR_ID` to your pushed actor id
  * (`<username>/social-video-downloader`) after `apify push`. Until then the call
@@ -23,10 +26,13 @@ export const socialVideoDownloader: ApifySocialProvider = {
   actorId: process.env.APIFY_SOCIAL_ACTOR_ID || DEFAULT_ACTOR_ID,
 
   buildInput(videoUrl) {
+    // No proxyConfiguration here: the actor escalates direct -> datacenter ->
+    // residential on its own, only paying for residential bandwidth when the
+    // cheaper tiers actually fail. Passing one here would force residential
+    // (and its steep per-GB cost) on every call, bypassing that escalation.
     return {
       url: videoUrl,
       quality: '720',
-      proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['RESIDENTIAL'] },
     };
   },
 
@@ -42,11 +48,25 @@ export const socialVideoDownloader: ApifySocialProvider = {
       throw new Error('social-video-downloader returned no dataset items.');
     }
 
-    const videoUrl = (item.videoUrl || '') as string;
-    if (!videoUrl) {
+    const rawVideoUrl = (item.videoUrl || '') as string;
+    const rawAudioUrl = (item.audioUrl || rawVideoUrl) as string;
+
+    if (!rawVideoUrl) {
       const reason = item.error ? `: ${item.error}` : '';
       throw new Error(`social-video-downloader produced no video URL${reason}.`);
     }
+
+    // Append ?token=<APIFY_TOKEN> for Apify KV store records to authenticate download requests
+    const token = config.APIFY_TOKEN;
+    const appendToken = (url: string) => {
+      if (url.includes('api.apify.com')) {
+        return url.includes('?') ? `${url}&token=${token}` : `${url}?token=${token}`;
+      }
+      return url;
+    };
+
+    const videoUrl = appendToken(rawVideoUrl);
+    const audioUrl = appendToken(rawAudioUrl);
 
     let authorHandle = (item.authorHandle || '') as string;
     if (authorHandle && !authorHandle.startsWith('@')) authorHandle = `@${authorHandle}`;
@@ -54,7 +74,7 @@ export const socialVideoDownloader: ApifySocialProvider = {
     const result: ApifySocialScrapeResult = {
       caption: (item.caption || '') as string,
       videoUrl,
-      audioUrl: (item.audioUrl || videoUrl) as string,
+      audioUrl,
       imageUrl: (item.imageUrl || '') as string,
       authorHandle: authorHandle || undefined,
     };
