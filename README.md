@@ -65,6 +65,38 @@ npm run dev
 
 ---
 
+## 🐳 Running with Docker (Recommended)
+
+A Docker Compose configuration is provided to build and run the services in isolated containers. Make sure Docker Desktop is installed and running.
+
+### 1. Build and Start the Stack
+Builds the docker images and runs the main application and `apk-host` containers in the background:
+```powershell
+npm run docker:up
+```
+* **Main Application UI & API:** Accessible at [http://localhost:3000](http://localhost:3000)
+* **APK Host Server:** Accessible at [http://localhost:8080](http://localhost:8080)
+
+### 2. View Logs
+View real-time logs from both containers:
+```powershell
+npm run docker:logs
+```
+
+### 3. Rebuild the Images
+If you modify dependencies or the Dockerfiles, rebuild the containers using:
+```powershell
+npm run docker:build
+```
+
+### 4. Stop the Containers
+Stop and remove all running containers for this project:
+```powershell
+npm run docker:down
+```
+
+---
+
 ## 📡 API Reference
 
 ### 1. Submit Recipe Extraction Job
