@@ -9,7 +9,7 @@ const youtubedl: any = (yt as any).default || yt;
  * Consolidates social media scraping for supported video platforms
  * (Instagram, Facebook, YouTube, TikTok).
  */
-export async function scrapeSocial(url: string): Promise<ScrapingResult> {
+export async function scrapeSocial(url: string, jobId?: string): Promise<ScrapingResult> {
   const urlObj = new URL(url);
   const hostname = urlObj.hostname.toLowerCase();
   const isInstagram = hostname.includes('instagram.com');
@@ -23,7 +23,7 @@ export async function scrapeSocial(url: string): Promise<ScrapingResult> {
 
   // Try the Apify social provider chain first (see src/apify/)
   try {
-    const res = await scrapeSocialMediaVideo(url);
+    const res = await scrapeSocialMediaVideo(url, jobId);
     return {
       caption: res.caption,
       audioUrl: res.audioUrl,

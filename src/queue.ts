@@ -158,7 +158,7 @@ async function processJob(job: Job): Promise<void> {
 
     // 2. Perform scraping via the appropriate scraper
     const scraper = getScraperForUrl(url);
-    const scrapeResult = await scraper.scrape(url);
+    const scrapeResult = await scraper.scrape(url, jobId);
     console.log(`[Job ${jobId}] Scraped successfully. Caption/Title length: ${scrapeResult.caption.length}`);
 
     // 3. Mark job as processing

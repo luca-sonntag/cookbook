@@ -14,7 +14,7 @@ export interface ScrapingResult {
 }
 
 export interface Scraper {
-  scrape(url: string): Promise<ScrapingResult>;
+  scrape(url: string, jobId?: string): Promise<ScrapingResult>;
 }
 
 export function getScraperForUrl(url: string): Scraper {
