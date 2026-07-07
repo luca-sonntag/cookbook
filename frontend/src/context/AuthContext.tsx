@@ -28,6 +28,7 @@ interface AuthState {
   signOut: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
   updateUserMetadata: (metadata: Record<string, any>) => Promise<{ error?: string }>;
+  deleteAccount: () => Promise<{ error?: string }>;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -134,8 +135,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return {};
   }, []);
 
+  const deleteAccount = useCallback(async () => {
+    try {
+      const token = await getAccessToken();
+      if (!token) return { error: 'Not authenticated' };
+
+      const response = await fetch('/api/users/me', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        return { error: data.error || 'Failed to delete account' };
+      }
+
+      await signOut();
+      return {};
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : 'Unknown error' };
+    }
+  }, [getAccessToken, signOut]);
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

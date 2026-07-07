@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Button, Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
 import { usePwaInstall } from '../hooks/usePwaInstall';
+import { useDialog } from '../context/DialogContext';
 
 function SettingInfo({ text }: { text: string }) {
   return (
@@ -31,7 +32,8 @@ function SettingInfo({ text }: { text: string }) {
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
-  const { signOut, user, updateUserMetadata } = useAuth();
+  const { signOut, user, updateUserMetadata, deleteAccount } = useAuth();
+  const dialog = useDialog();
   const [theme, setTheme] = useTheme();
   const { isInstallable, handleInstallClick } = usePwaInstall();
   const [isSaving, setIsSaving] = useState(false);
@@ -39,6 +41,7 @@ export default function SettingsView() {
 
   const preferredTempUnit = user?.user_metadata?.preferred_temperature_unit || 'Celsius';
   const preferredUnitSystem = user?.user_metadata?.preferred_unit_system || 'metric';
+  const isPremium = user?.app_metadata?.tier === 'premium';
 
   const handleUpdateSetting = async (key: string, value: string) => {
     setIsSaving(true);
@@ -53,6 +56,53 @@ export default function SettingsView() {
     }
   };
 
+  const handleUpgradePremium = async () => {
+    setIsSaving(true);
+    try {
+      const { buyPremium } = await import('../utils/purchase');
+      const success = await buyPremium();
+      if (success) {
+        dialog.alert({
+          title: 'Premium Activated!',
+          message: 'Thank you for upgrading to CookBuddy Premium! Your limits have been updated.',
+          status: 'success',
+        });
+      }
+    } catch (err: any) {
+      dialog.alert({
+        title: 'Upgrade Failed',
+        message: err.message || 'An error occurred during the upgrade process.',
+        status: 'danger',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = await dialog.confirm({
+      title: t('app.dialog.deleteAccount.title') || 'Delete Account?',
+      message: t('app.dialog.deleteAccount.message') || 'Are you sure you want to delete your account?',
+      confirmLabel: t('app.dialog.deleteAccount.confirm') || 'Delete',
+      cancelLabel: t('app.dialog.deleteAccount.cancel') || 'Cancel',
+      status: 'danger',
+    });
+
+    if (!confirmed) return;
+
+    setIsSaving(true);
+    setSaveMessage(null);
+    const { error } = await deleteAccount();
+    setIsSaving(false);
+    if (error) {
+      dialog.alert({
+        title: t('app.dialog.deleteAccountError.title') || 'Error',
+        message: error || t('app.dialog.deleteAccountError.message') || 'Could not delete account.',
+        status: 'danger',
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
       <div className="px-2">
@@ -63,7 +113,7 @@ export default function SettingsView() {
           <span className="text-sm text-gray-500 dark:text-gray-400">
             {user?.email}
           </span>
-          {user?.app_metadata?.tier === 'premium' ? (
+          {isPremium ? (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
               Premium
             </span>
@@ -81,6 +131,27 @@ export default function SettingsView() {
           : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
           }`}>
           {saveMessage}
+        </div>
+      )}
+
+      {!isPremium && (
+        <div className="mx-2 p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-lg text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-300 fill-amber-300 animate-pulse" />
+              CookBuddy Premium
+            </h3>
+            <p className="text-xs text-emerald-100/90 mt-1 max-w-md">
+              Unlock unlimited recipe extractions, advanced remix capabilities, and priority processing.
+            </p>
+          </div>
+          <Button
+            className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs h-10 px-6 rounded-xl shadow-md active:scale-95 transition-all self-start sm:self-auto cursor-pointer"
+            onPress={handleUpgradePremium}
+            isDisabled={isSaving}
+          >
+            {t('app.settings.upgradePremium') || 'Upgrade to Premium'}
+          </Button>
         </div>
       )}
 
@@ -266,7 +337,7 @@ export default function SettingsView() {
         )}
 
         {/* Logout Option */}
-        <div className="p-4 flex items-center justify-between">
+        <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
               <LogOut className="w-5 h-5" />
@@ -283,6 +354,28 @@ export default function SettingsView() {
             onPress={() => signOut()}
           >
             {t('auth.signOut') || 'Sign Out'}
+          </Button>
+        </div>
+
+        {/* Delete Account Option */}
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400 rounded-xl">
+              <UserMinus className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-950 dark:text-white text-sm">
+                {t('app.settings.deleteAccount') || 'Delete Account'}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="danger-soft"
+            className="font-bold text-xs h-10 px-5 rounded-xl active:scale-95 transition-all text-red-600 hover:text-red-500 cursor-pointer"
+            onPress={handleDeleteAccount}
+            isDisabled={isSaving}
+          >
+            {t('app.settings.deleteAccount') || 'Delete Account'}
           </Button>
         </div>
       </div>

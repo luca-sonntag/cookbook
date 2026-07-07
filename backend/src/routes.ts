@@ -389,3 +389,42 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
   }
 });
 
+/**
+ * Endpoint to delete the current user's account.
+ * DELETE /api/users/me
+ */
+apiRouter.delete('/users/me', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        error: 'Unauthorized. Missing user ID.',
+      });
+      return;
+    }
+
+    // Call Supabase Admin API to delete the user
+    const { error } = await getClient().auth.admin.deleteUser(userId);
+    if (error) {
+      console.error('Supabase admin deleteUser error:', error);
+      res.status(500).json({
+        success: false,
+        error: `Failed to delete user account: ${error.message}`,
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Account deleted successfully.',
+    });
+  } catch (error: any) {
+    console.error('Error deleting user account:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error while deleting account.',
+    });
+  }
+});
+

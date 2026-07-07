@@ -183,8 +183,20 @@ export const uiTranslations = {
         settingInfoTooltip: 'Diese Einstellung wirkt sich nur auf neu extrahierte Rezepte aus.',
         saving: 'Speichern...',
         saved: 'Einstellungen gespeichert!',
+        deleteAccount: 'Konto löschen',
+        upgradePremium: 'Auf Premium upgraden',
       },
       dialog: {
+        deleteAccount: {
+          title: 'Konto löschen?',
+          message: 'Möchtest du dein Konto wirklich unwiderruflich löschen? Alle deine gespeicherten Rezepte und Einkaufslisten gehen dauerhaft verloren.',
+          confirm: 'Konto löschen',
+          cancel: 'Abbrechen',
+        },
+        deleteAccountError: {
+          title: 'Fehler beim Löschen',
+          message: 'Dein Konto konnte nicht gelöscht werden. Bitte versuche es später noch einmal.',
+        },
         deleteRecipe: {
           title: 'Rezept löschen?',
           message: 'Möchtest du dieses Rezept wirklich aus den gespeicherten Rezepten löschen?',
@@ -479,8 +491,20 @@ export const uiTranslations = {
         settingInfoTooltip: 'This setting only affects newly extracted recipes.',
         saving: 'Saving...',
         saved: 'Settings saved!',
+        deleteAccount: 'Delete Account',
+        upgradePremium: 'Upgrade to Premium',
       },
       dialog: {
+        deleteAccount: {
+          title: 'Delete Account?',
+          message: 'Are you sure you want to permanently delete your account? All your saved recipes and shopping lists will be permanently lost.',
+          confirm: 'Delete Account',
+          cancel: 'Cancel',
+        },
+        deleteAccountError: {
+          title: 'Error Deleting Account',
+          message: 'Your account could not be deleted. Please try again later.',
+        },
         deleteRecipe: {
           title: 'Delete Recipe?',
           message: 'Are you sure you want to delete this recipe from your saved recipes?',
