@@ -1,4 +1,4 @@
-import { createImageGrid } from './src/frameExtractor.js';
+import { createImageGrid } from '../src/frameExtractor.js';
 import fs from 'fs/promises';
 import path from 'path';
 

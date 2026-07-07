@@ -1,4 +1,4 @@
-import { Job } from './src/types.js';
+import { Job } from '../src/types.js';
 import dotenv from 'dotenv';
 
 // Load .env file

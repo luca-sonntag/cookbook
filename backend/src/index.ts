@@ -89,7 +89,7 @@ async function bootstrap() {
 
     app.use(express.json({ limit: '1mb' }));
 
-    const frontendDistPath = path.resolve(process.cwd(), 'frontend', 'dist');
+    const frontendDistPath = path.resolve(__dirname, '..', '..', 'frontend', 'dist');
     app.use(express.static(frontendDistPath));
 
     // Image proxy to bypass Instagram CORP blocks (before apiRouter to skip API key check)
