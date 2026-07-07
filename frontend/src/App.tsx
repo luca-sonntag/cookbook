@@ -72,15 +72,22 @@ export default function App() {
   // effect doesn't clear its subPath before the history state catches up.
   const newlyExtractedJobIdRef = useRef<string | null>(null);
 
-  // Fetch recipe extraction history (using JWT)
+  // Fetch recipe extraction history (using JWT).
+  // Bounded with a timeout: on a cold app start the access token may be
+  // expired, so getAccessToken() can trigger a network refresh before the
+  // request even goes out. Without a cap, a stalled connection at launch
+  // left the catalog spinning forever instead of failing visibly.
   const fetchHistory = useCallback(async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
     try {
       const token = await getAccessToken();
       if (!token) return;
       const response = await fetch(apiUrl('/api/jobs'), {
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        signal: controller.signal
       });
       const data = await response.json();
       if (response.ok && data.success) {
@@ -89,6 +96,7 @@ export default function App() {
     } catch (err) {
       console.error('Failed to fetch history:', err);
     } finally {
+      clearTimeout(timeout);
       setHistoryLoaded(true);
     }
   }, [getAccessToken]);
@@ -122,13 +130,20 @@ export default function App() {
     navigate('extract');
   });
 
-  // Fetch history on load
+  // Fetch history on load. Waits for AuthContext's own initial getSession()
+  // to settle first (authLoading) instead of firing immediately on mount —
+  // otherwise this call and AuthContext's race to refresh the access token
+  // concurrently on a cold start, doubling up on network work exactly when
+  // connectivity is least reliable. If there's no user, skip the request
+  // entirely rather than letting fetchHistory resolve a null token.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchHistory();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [fetchHistory]);
+    if (authLoading) return;
+    if (!user) {
+      setHistoryLoaded(true);
+      return;
+    }
+    fetchHistory();
+  }, [authLoading, user, fetchHistory]);
 
   // Fetch rate limit status when entering the extract tab
   useEffect(() => {
