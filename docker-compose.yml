@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SUPABASE_URL: ${SUPABASE_URL}
+        SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY}
+    image: recipe-extractor:latest
+    container_name: recipe-extractor-app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  apk-host:
+    build:
+      context: ./apk-host
+      dockerfile: Dockerfile
+    image: recipe-extractor-apk-host:latest
+    container_name: recipe-extractor-apk-host
+    ports:
+      - "8080:80"
+    environment:
+      - HTPASSWD_CONTENT=${HTPASSWD_CONTENT:-}
+    restart: unless-stopped
