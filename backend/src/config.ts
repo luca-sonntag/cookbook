@@ -33,6 +33,7 @@ export interface Config {
   PREMIUM_MAX_EXTRACTIONS_PER_WINDOW: number;
   YTDLP_COOKIES_FILE?: string;
   YTDLP_COOKIES_FROM_BROWSER?: string;
+  REVENUECAT_SECRET_KEY?: string;
 }
 
 // Validation helper
@@ -69,6 +70,7 @@ export const config: Config = {
   PREMIUM_MAX_EXTRACTIONS_PER_WINDOW: parseInt(getEnv('PREMIUM_MAX_EXTRACTIONS_PER_WINDOW', '50'), 10),
   YTDLP_COOKIES_FILE: process.env.YTDLP_COOKIES_FILE,
   YTDLP_COOKIES_FROM_BROWSER: process.env.YTDLP_COOKIES_FROM_BROWSER,
+  REVENUECAT_SECRET_KEY: process.env.REVENUECAT_SECRET_KEY,
 };
 
 /**

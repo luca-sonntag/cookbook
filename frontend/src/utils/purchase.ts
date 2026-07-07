@@ -23,8 +23,47 @@ export async function initBilling(userId: string): Promise<void> {
     });
     isRCInitialized = true;
     console.log('RevenueCat configured successfully for user:', userId);
+
+    // Initial status sync on app launch to verify actual entitlements
+    try {
+      const { customerInfo } = await Purchases.getCustomerInfo();
+      const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+      await syncBillingStatus(isPremium);
+    } catch (syncErr) {
+      console.warn('Initial billing status sync failed:', syncErr);
+    }
   } catch (err) {
     console.error('Failed to configure RevenueCat:', err);
+  }
+}
+
+async function syncBillingStatus(isPremium: boolean): Promise<void> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const response = await fetch('/api/billing/sync', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ tier: isPremium ? 'premium' : 'free' }),
+    });
+
+    if (response.ok) {
+      // Refresh local session to obtain the updated JWT containing the app_metadata.tier
+      const { error } = await supabase.auth.refreshSession();
+      if (error) {
+        console.warn('Failed to refresh local Supabase session:', error.message);
+      } else {
+        console.log('Billing status synced successfully with backend. Tier:', isPremium ? 'premium' : 'free');
+      }
+    } else {
+      console.error('Failed to sync billing status with backend:', await response.text());
+    }
+  } catch (err) {
+    console.error('Error syncing billing status:', err);
   }
 }
 
@@ -65,17 +104,11 @@ export async function buyPremium(): Promise<boolean> {
     const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
 
     if (isPremium) {
-      // Opt-in: Update Supabase metadata locally as a fallback,
-      // although the source of truth should be updated via RevenueCat webhooks to our backend.
-      const { error } = await supabase.auth.updateUser({
-        data: { tier: 'premium' }
-      });
-      if (error) {
-        console.warn('Failed to update local user metadata:', error.message);
-      }
+      await syncBillingStatus(true);
       return true;
     }
 
+    await syncBillingStatus(false);
     const activeList = activeEntitlements.length > 0 ? activeEntitlements.join(', ') : 'none';
     throw new Error(`Purchase was successful, but the 'premium' entitlement is not active (Active: [${activeList}]). Please verify that you have configured an entitlement with ID 'premium' in the RevenueCat dashboard and linked it to this product.`);
   } catch (err: any) {

@@ -32,7 +32,7 @@ function resolveUserRateLimit(user: any): number {
   }
 
   // 2. Subscription tier check
-  if (meta.tier === 'premium' || user?.user_metadata?.tier === 'premium') {
+  if (meta.tier === 'premium') {
     return config.PREMIUM_MAX_EXTRACTIONS_PER_WINDOW;
   }
 
@@ -348,7 +348,7 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
       const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
       if (!authError && user) {
         limit = resolveUserRateLimit(user);
-        tier = (user.app_metadata?.tier === 'premium' || user.user_metadata?.tier === 'premium') ? 'premium' : 'free';
+        tier = user.app_metadata?.tier === 'premium' ? 'premium' : 'free';
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for rate limit status:`, err);
@@ -386,6 +386,87 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
       success: false,
       error: 'Internal server error while fetching rate limit status.',
     });
+  }
+});
+
+/**
+ * Endpoint to sync a user's subscription status from RevenueCat.
+ * POST /api/billing/sync
+ */
+apiRouter.post('/billing/sync', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized.' });
+      return;
+    }
+
+    const secretKey = config.REVENUECAT_SECRET_KEY;
+    if (!secretKey) {
+      console.warn('REVENUECAT_SECRET_KEY is not configured in backend. Trusting client tier update (fallback mode).');
+      // For local testing without a secret API key, we let the client tell us their status.
+      // This preserves our local fallback but makes it highly secure in production.
+      const clientTier = req.body.tier;
+      if (clientTier === 'premium' || clientTier === 'free') {
+        const { error } = await getClient().auth.admin.updateUserById(userId, {
+          app_metadata: { tier: clientTier },
+        });
+        if (error) throw error;
+        res.status(200).json({ success: true, tier: clientTier, fallback: true });
+        return;
+      }
+      res.status(200).json({ success: true, tier: 'free', fallback: true });
+      return;
+    }
+
+    // Call RevenueCat API to securely fetch subscriber entitlements
+    const response = await fetch(`https://api.revenuecat.com/v1/subscribers/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${secretKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('RevenueCat API error:', errorText);
+      res.status(500).json({ success: false, error: 'Failed to fetch status from RevenueCat.' });
+      return;
+    }
+
+    const rcData = await response.json();
+    const entitlements = rcData.subscriber?.entitlements || {};
+    const premiumEntitlement = entitlements.premium;
+
+    let isPremium = false;
+    if (premiumEntitlement) {
+      const expiresDate = premiumEntitlement.expires_date;
+      if (!expiresDate) {
+        // Lifetime subscription
+        isPremium = true;
+      } else {
+        // Subscription check
+        isPremium = new Date(expiresDate).getTime() > Date.now();
+      }
+    }
+
+    const newTier = isPremium ? 'premium' : 'free';
+
+    // Update Supabase app_metadata
+    const { error } = await getClient().auth.admin.updateUserById(userId, {
+      app_metadata: { tier: newTier },
+    });
+
+    if (error) {
+      console.error('Failed to update Supabase user tier:', error.message);
+      res.status(500).json({ success: false, error: 'Failed to update user profile.' });
+      return;
+    }
+
+    res.status(200).json({ success: true, tier: newTier });
+  } catch (error: any) {
+    console.error('Error syncing billing status:', error);
+    res.status(500).json({ success: false, error: 'Internal server error during sync.' });
   }
 });
 
