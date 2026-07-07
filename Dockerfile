@@ -9,7 +9,7 @@ COPY backend/package*.json backend/
 COPY frontend/package*.json frontend/
 
 # Install dependencies for the workspaces
-RUN npm ci
+RUN YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm ci
 
 # Build frontend
 COPY frontend/ frontend/
@@ -17,12 +17,12 @@ ARG SUPABASE_URL
 ARG SUPABASE_PUBLISHABLE_KEY
 ENV VITE_SUPABASE_URL=$SUPABASE_URL
 ENV VITE_SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY
-RUN npm run build:frontend
+RUN npm run build -w frontend
 
 # Build backend
 COPY backend/tsconfig.json backend/
 COPY backend/src/ backend/src/
-RUN npm run build:backend
+RUN npm run build -w backend
 RUN npm prune --omit=dev --workspace=backend
 
 # ── Production stage: minimal runtime ──────────────────────────────────────
