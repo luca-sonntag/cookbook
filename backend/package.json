@@ -10,9 +10,7 @@
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "preview": "node dist/index.js",
     "test-client": "tsx scripts/test-client.ts",
-    "test-grid": "tsx scripts/test-grid.ts",
-    "tunnel": "ngrok start recipe-api",
-    "tunnel:server": "node ngrok-quickstart/server.cjs"
+    "test-grid": "tsx scripts/test-grid.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.11.0",

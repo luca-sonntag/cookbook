@@ -14,10 +14,7 @@
     "preview": "npm run preview -w backend",
     "test-client": "npm run test-client -w backend",
     "test-grid": "npm run test-grid -w backend",
-    "tunnel": "npm run tunnel -w backend",
-    "tunnel:server": "npm run tunnel:server -w backend",
-    "kill-server": "powershell -Command \"$conn = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($conn) { Stop-Process -Id $conn.OwningProcess -Force }; exit 0\"",
-    "kill-tunnel": "powershell -Command \"Stop-Process -Name ngrok -ErrorAction SilentlyContinue; exit 0\""
+    "kill-server": "powershell -Command \"$conn = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($conn) { Stop-Process -Id $conn.OwningProcess -Force }; exit 0\""
   },
   "devDependencies": {
     "concurrently": "^10.0.3"

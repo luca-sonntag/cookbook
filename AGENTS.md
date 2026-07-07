@@ -215,12 +215,11 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 ## 🐳 Deployment & Containerization
 
 * **Multi-Stage Dockerfile:** Zwei-Stufen-Build für minimale Image-Größe. Builder-Stage kompiliert TypeScript (`tsc`) und baut das React-Frontend (`vite build`). Production-Stage kopiert nur `node_modules`, `dist/` und `frontend/dist/` und startet via `node dist/index.js` mit `NODE_ENV=production`.
-* **`.dockerignore`:** Schließt `node_modules`, `dist`, `logs`, `temp-downloads`, `.env`, `.git`, `*.md` und `ngrok-quickstart` vom Build-Kontext aus, um Image-Größe und Build-Zeit zu minimieren.
-* **Build-Skripte (`package.json`):**
-  * `npm run build:frontend` — Baut ausschließlich das React-Frontend.
-  * `npm run build:all` — Baut Frontend und Backend in einem Schritt.
-  * `npm start` — Produktionsstart mit `cross-env NODE_ENV=production`.
-  * `npm run start:dev` — Lokaler Start ohne Production-Flags.
+* **`.dockerignore`:** Schließt `node_modules`, `dist`, `logs`, `temp-downloads`, `.env`, `.git` und `*.md` vom Build-Kontext aus, um Image-Größe und Build-Zeit zu minimieren.
+* **Build- & Dev-Skripte (`package.json`):**
+  * `npm run dev` — Startet den Express-Server und das React-Frontend parallel im Entwicklungsmodus.
+  * `npm run build` — Baut das Frontend und das Backend nacheinander.
+  * `npm start` — Startet die Anwendung im Produktionsmodus.
 * **Umgebungsvariablen (`.env.example`):**
   * `SUPABASE_SECRET_KEY` ersetzt die alte `API_KEY` für den Service-Role-Zugriff im Backend.
   * `CORS_ORIGIN` (Production) konfiguriert erlaubte Origins für CORS.
