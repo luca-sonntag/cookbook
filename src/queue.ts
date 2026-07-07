@@ -162,7 +162,7 @@ async function processJob(job: Job): Promise<void> {
     console.log(`[Job ${jobId}] Scraped successfully. Caption/Title length: ${scrapeResult.caption.length}`);
 
     // 3. Mark job as processing
-    await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 35, stage: 'downloading_media' } as any });
+    await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 50, stage: 'downloading_media' } as any });
 
     // 4. Ensure run directory exists
     await fs.mkdir(runDir, { recursive: true });

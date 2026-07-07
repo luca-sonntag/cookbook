@@ -49,8 +49,8 @@ async function runProvider(provider: ApifySocialProvider, videoUrl: string, jobI
             const ytDlpPercent = parseFloat(matches[matches.length - 1][1]);
             if (ytDlpPercent > lastPercent) {
               lastPercent = ytDlpPercent;
-              // Scale to 15% - 30%
-              const scaledPercent = Math.round(15 + (ytDlpPercent / 100) * 15);
+              // Scale to 15% - 50%
+              const scaledPercent = Math.round(15 + (ytDlpPercent / 100) * 35);
               console.log(`[Job ${jobId}] Parsed actor download progress: ${ytDlpPercent}% (scaled: ${scaledPercent}%)`);
               await updateJob(jobId, {
                 status: 'scraping',
