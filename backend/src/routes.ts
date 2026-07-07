@@ -434,7 +434,7 @@ apiRouter.post('/billing/sync', async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    const rcData = await response.json();
+    const rcData = (await response.json()) as any;
     const entitlements = rcData.subscriber?.entitlements || {};
     const premiumEntitlement = entitlements.premium;
 
