@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Job, Ingredient, Recipe } from '../../types';
 import RecipeDetails from '../RecipeDetails';
 import { useMobileNavigationBack } from '../../hooks/useMobileNavigationBack';
 import { useI18n } from '../../context/I18nContext';
 import { useSavedCatalog } from '../../hooks/useSavedCatalog';
+import { useAuth } from '../../context/AuthContext';
+import PremiumModal from '../PremiumModal';
+import { Crown } from 'lucide-react';
 
 import RecipeCard from './RecipeCard';
 import RecipeListItem from './RecipeListItem';
@@ -42,6 +45,10 @@ export default function SavedCatalog({
   onSelectModeChange
 }: SavedCatalogProps) {
   const { language } = useI18n();
+  const { isPremium } = useAuth();
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+
+  const FREE_RECIPE_LIMIT = 5;
 
   // Custom hook for swipe-to-go-back and mobile back button handling
   // Swipe-back / browser back: navigate to the history list URL so App.tsx
@@ -114,6 +121,25 @@ export default function SavedCatalog({
       ) : (
         /* LIST VIEW OF SAVED RECIPES */
         <div className="flex flex-col gap-4">
+          {/* Free plan catalog limit banner */}
+          {!isPremium && completedJobs.length >= FREE_RECIPE_LIMIT - 1 && (
+            <div
+              onClick={() => setIsPremiumModalOpen(true)}
+              className="cursor-pointer flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-gradient-to-r from-amber-500/10 to-emerald-500/10 border border-amber-500/20 dark:border-amber-500/10 hover:from-amber-500/15 hover:to-emerald-500/15 transition-colors"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Crown className="w-4 h-4 text-amber-500 shrink-0" />
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 truncate">
+                  {completedJobs.length >= FREE_RECIPE_LIMIT
+                    ? (language === 'de' ? `Kochbuch voll (${completedJobs.length}/${FREE_RECIPE_LIMIT}) – Lösche ein Rezept oder upgrade.` : `Cookbook full (${completedJobs.length}/${FREE_RECIPE_LIMIT}) – Delete a recipe or upgrade.`)
+                    : (language === 'de' ? `Kochbuch fast voll (${completedJobs.length}/${FREE_RECIPE_LIMIT})` : `Cookbook almost full (${completedJobs.length}/${FREE_RECIPE_LIMIT})`)}
+                </span>
+              </div>
+              <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 shrink-0 hover:text-amber-500">
+                {language === 'de' ? 'Upgrade' : 'Upgrade'}
+              </span>
+            </div>
+          )}
           {completedJobs.length === 0 ? (
             !historyLoaded ? (
               <CatalogLoadingState />
@@ -205,6 +231,9 @@ export default function SavedCatalog({
           onBulkDelete={handleBulkDelete}
         />
       )}
+
+      {/* Premium Modal */}
+      <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
     </div>
   );
 }

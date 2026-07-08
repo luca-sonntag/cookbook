@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Button, Card } from '@heroui/react';
-import { Crown, Check, X, Zap, ChefHat, Sparkles, ShoppingBag, Eye, Calendar, BookOpen } from 'lucide-react';
+import { Card } from '@heroui/react';
+import { Crown, Check, X, Zap, ChefHat, Sparkles, ShoppingBag, Eye, BookOpen, Loader2 } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { buyPremium } from '../utils/purchase';
 import { useAuth } from '../context/AuthContext';
@@ -165,19 +165,19 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
         {/* Action Button */}
         <div className="mt-1 z-10">
           {isPremium ? (
-            <Button
-              className="w-full h-12 text-sm font-extrabold rounded-2xl bg-emerald-500 text-white shadow-lg border border-emerald-400/20 shrink-0 cursor-default"
+            <button
+              className="w-full h-12 text-sm font-extrabold rounded-2xl bg-emerald-500 text-white shadow-lg border border-emerald-400/20 shrink-0 cursor-default flex items-center justify-center gap-2"
             >
               <Check className="w-5 h-5" /> Du hast Premium
-            </Button>
+            </button>
           ) : (
-            <Button
+            <button
               onClick={handleUpgrade}
-              isLoading={loading}
-              className="w-full h-12 text-sm font-extrabold rounded-2xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:opacity-90 active:scale-98 text-white shadow-lg shadow-emerald-500/25 border border-emerald-400/20 shrink-0 transition-all duration-200"
+              disabled={loading}
+              className="w-full h-12 text-sm font-extrabold rounded-2xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:opacity-90 active:scale-[0.98] text-white shadow-lg shadow-emerald-500/25 border border-emerald-400/20 shrink-0 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70"
             >
-              {loading ? t('premium.modal.loading') : t('premium.modal.cta')}
-            </Button>
+              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('premium.modal.loading')}</> : t('premium.modal.cta')}
+            </button>
           )}
         </div>
       </Card>

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Button, Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 import { useDialog } from '../context/DialogContext';
+import PremiumModal from './PremiumModal';
 
 function SettingInfo({ text }: { text: string }) {
   return (
@@ -32,16 +33,17 @@ function SettingInfo({ text }: { text: string }) {
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
-  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount } = useAuth();
+  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, setIsPremiumOverride } = useAuth();
   const dialog = useDialog();
   const [theme, setTheme] = useTheme();
   const { isInstallable, handleInstallClick } = usePwaInstall();
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const isDev = import.meta.env.DEV;
 
   const preferredTempUnit = user?.user_metadata?.preferred_temperature_unit || 'Celsius';
   const preferredUnitSystem = user?.user_metadata?.preferred_unit_system || 'metric';
-  const isPremium = user?.app_metadata?.tier === 'premium';
 
   const handleUpdateSetting = async (key: string, value: string) => {
     setIsSaving(true);
@@ -56,28 +58,6 @@ export default function SettingsView() {
     }
   };
 
-  const handleUpgradePremium = async () => {
-    setIsSaving(true);
-    try {
-      const { buyPremium } = await import('../utils/purchase');
-      const success = await buyPremium();
-      if (success) {
-        dialog.alert({
-          title: 'Premium Activated!',
-          message: 'Thank you for upgrading to Snagbite Premium! Your limits have been updated.',
-          status: 'success',
-        });
-      }
-    } catch (err: any) {
-      dialog.alert({
-        title: 'Upgrade Failed',
-        message: err.message || 'An error occurred during the upgrade process.',
-        status: 'danger',
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const handleDeleteAccount = async () => {
     const confirmed = await dialog.confirm({
@@ -135,7 +115,10 @@ export default function SettingsView() {
       )}
 
       {!isPremium && (
-        <div className="mx-2 p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-lg text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div
+          onClick={() => setIsPremiumModalOpen(true)}
+          className="mx-2 cursor-pointer p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-lg text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:opacity-95 active:scale-[0.98] transition-all"
+        >
           <div>
             <h3 className="text-lg font-bold flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-300 fill-amber-300 animate-pulse" />
@@ -145,13 +128,26 @@ export default function SettingsView() {
               Unlock unlimited recipe extractions, advanced remix capabilities, and priority processing.
             </p>
           </div>
-          <Button
-            className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs h-10 px-6 rounded-xl shadow-md active:scale-95 transition-all self-start sm:self-auto cursor-pointer"
-            onPress={handleUpgradePremium}
-            isDisabled={isSaving}
+          <div
+            className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs h-10 px-6 rounded-xl shadow-md active:scale-95 transition-all self-start sm:self-auto flex items-center gap-1.5 shrink-0"
           >
+            <Crown className="w-4 h-4" />
             {t('app.settings.upgradePremium') || 'Upgrade to Premium'}
-          </Button>
+          </div>
+        </div>
+      )}
+
+      {isPremium && (
+        <div className="mx-2 p-5 bg-gradient-to-r from-amber-500/10 to-emerald-500/10 rounded-3xl border border-amber-500/20 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-emerald-500 p-0.5 shadow-lg shadow-emerald-500/20 shrink-0">
+            <div className="w-full h-full bg-white dark:bg-gray-900 rounded-[14px] flex items-center justify-center">
+              <Crown className="w-6 h-6 text-amber-500" />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-extrabold text-gray-900 dark:text-white">Snagbite Premium</h3>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">Aktiv ✓</p>
+          </div>
         </div>
       )}
 
@@ -383,11 +379,41 @@ export default function SettingsView() {
         </div>
       </div>
 
+      {/* Simulate Premium - Dev Only */}
+      {isDev && (
+        <div className="mx-2 p-4 rounded-2xl border border-dashed border-violet-400/40 dark:border-violet-500/30 bg-violet-500/5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <FlaskConical className="w-4 h-4 text-violet-500 shrink-0" />
+            <div>
+              <p className="text-xs font-bold text-violet-700 dark:text-violet-300">Simulate Premium</p>
+              <p className="text-[10px] text-violet-500/70 dark:text-violet-400/60">Dev-only toggle</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsPremiumOverride(!isPremium)}
+            className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none border-2 shrink-0 ${
+              isPremium
+                ? 'bg-violet-500 border-violet-500'
+                : 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600'
+            }`}
+            aria-label="Toggle simulate premium"
+          >
+            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+              isPremium ? 'translate-x-6' : 'translate-x-0'
+            }`} />
+          </button>
+        </div>
+      )}
+
       <div className="flex justify-center mt-4 mb-8">
         <p className="text-xs text-gray-400 dark:text-gray-600 font-medium">
           Snagbite v1.0.0
         </p>
       </div>
+
+      {/* Premium Modal */}
+      <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
     </div>
   );
 }

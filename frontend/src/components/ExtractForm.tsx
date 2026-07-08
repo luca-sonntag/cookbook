@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, TextField, Label, Input, Button, FieldError, Spinner, Accordion } from '@heroui/react';
-import { BookOpen, Clipboard, Globe, HelpCircle } from 'lucide-react';
+import { BookOpen, Clipboard, Globe, HelpCircle, Crown } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
+import { useAuth } from '../context/AuthContext';
+import PremiumModal from './PremiumModal';
 
 // Custom SVG component for Instagram icon
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -204,6 +206,8 @@ export default function ExtractForm({
   limitStatus
 }: ExtractFormProps) {
   const { t } = useI18n();
+  const { isPremium } = useAuth();
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
 
   useEffect(() => {
@@ -329,16 +333,31 @@ export default function ExtractForm({
           </Button>
 
           {limitStatus && limitStatus.limit >= 0 && (
-            <p className="text-center text-xs text-gray-500 dark:text-gray-400 -mt-1 font-medium transition-colors">
-              {t('form.remainingExtractions', {
-                remaining: limitStatus.remaining,
-                limit: limitStatus.limit,
-                days: limitStatus.windowDays === 1
-                  ? t('form.remainingExtractionsToday')
-                  : t('form.remainingExtractionsDays', { days: limitStatus.windowDays })
-              })}
-            </p>
+            <div className="flex flex-col items-center gap-1.5 -mt-1">
+              <p className="text-center text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors">
+                {t('form.remainingExtractions', {
+                  remaining: limitStatus.remaining,
+                  limit: limitStatus.limit,
+                  days: limitStatus.windowDays === 1
+                    ? t('form.remainingExtractionsToday')
+                    : t('form.remainingExtractionsDays', { days: limitStatus.windowDays })
+                })}
+              </p>
+              {!isPremium && (
+                <button
+                  type="button"
+                  onClick={() => setIsPremiumModalOpen(true)}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 dark:hover:text-amber-300 transition-colors"
+                >
+                  <Crown className="w-3 h-3" />
+                  <span>Premium: Unbegrenzt freischalten</span>
+                </button>
+              )}
+            </div>
           )}
+
+          {/* Premium Modal */}
+          <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
 
           {/* Supported Platforms */}
           <div className="flex flex-col gap-2">
