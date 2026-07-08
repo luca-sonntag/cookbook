@@ -101,7 +101,7 @@ export default function RecipeNutrition({
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/[0.01] dark:bg-white/[0.01] rounded-xl z-10">
             <div className="flex items-center gap-1.5 bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-500 dark:hover:bg-emerald-400 text-white text-[10px] font-extrabold px-3.5 py-1.5 rounded-full shadow-md border border-emerald-400/20 active:scale-95 transition-all">
               <Lock className="w-3 h-3" />
-              <span>Nährwerte freischalten</span>
+              <span>{t('premium.hint.unlockNutrition')}</span>
             </div>
           </div>
         )}

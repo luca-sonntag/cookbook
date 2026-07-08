@@ -253,11 +253,13 @@ Die App unterscheidet zwischen **Free**- und **Premium**-Nutzern. Premium-Status
 * **`POST /api/jobs/:id/remix`:** Prüft den Premium-Status des Nutzers via Supabase Admin API (`auth.admin.getUserById`). Gibt `403 Forbidden` zurück, wenn `tier !== 'premium'`.
 
 ### UI-Komponenten
-* **`PremiumModal.tsx`:** Glassmorphischer Upsell-Dialog. Listet alle Premium-Features auf, löst beim Klick auf CTA `buyPremium()` aus (RevenueCat). Zeigt "Du hast Premium"-State wenn bereits aktiv.
+* **`PremiumModal.tsx`:** Glassmorphischer Upsell-Dialog. Wird über `createPortal(document.body)` gerendert, damit `fixed inset-0` immer gegen den Viewport (Vollbild) auflöst und nicht gegen einen Vorfahren mit `transform`/`filter` (z. B. animierte Cards) geclippt wird. Listet alle Premium-Features auf, löst beim Klick auf CTA `buyPremium()` aus (RevenueCat). Zeigt "Du hast Premium"-State wenn bereits aktiv.
 * **`PremiumModal`** wird in folgenden Komponenten verwendet: `ExtractForm.tsx`, `SavedCatalog/index.tsx`, `SettingsView.tsx`, `RecipeDetails/index.tsx`, `RecipeDetails/RecipeNutrition.tsx`.
+* **`PremiumHint.tsx`:** Zentrale, wiederverwendbare Upsell-Hint-Komponente und **Single Source of Truth** für den einheitlichen Premium-Hint-Stil ("goldene Crown auf Emerald-Fläche", passend zu `PremiumModal` und der Settings-Upgrade-Karte). Zwei Varianten: `banner` (volle Breite, Emerald-Tint-Fläche + goldener Crown-Chip + optionaler `cta`) und `inline` (kompakter Crown-Text-Link). Die Hint-Texte liegen unter `premium.hint.*` in `i18n.ts` (DE/EN). Genutzt in `SavedCatalog/index.tsx` (banner) und `ExtractForm.tsx` (inline).
 
 ### Upsell-Touchpoints
-* **ExtractForm:** Unter dem Extraktionszähler erscheint für Free-User ein goldener "Crown"-Link zur PremiumModal.
-* **SavedCatalog:** Amber-Banner erscheint ab dem 4. Rezept (fast voll) und ab dem 5. (voll) mit Upgrade-Aufforderung.
+* **ExtractForm:** Unter dem Extraktionszähler erscheint für Free-User ein `PremiumHint` (inline) zur PremiumModal.
+* **SavedCatalog:** `PremiumHint` (banner) erscheint ab dem 4. Rezept (fast voll) und ab dem 5. (voll) mit Upgrade-Aufforderung.
+* **RecipeNutrition:** Blur-Overlay über der Nährwert-Card mit einer Emerald-Lock-Pille ("Nährwerte freischalten"); öffnet die PremiumModal.
 * **SettingsView:** Free-User sehen eine anklickbare Upgrade-Karte (Emerald-Gradient); Premium-User sehen stattdessen eine goldene Status-Card ("Aktiv ✓").
 

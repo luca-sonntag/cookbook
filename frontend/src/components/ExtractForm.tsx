@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, TextField, Label, Input, Button, FieldError, Spinner, Accordion } from '@heroui/react';
-import { BookOpen, Clipboard, Globe, HelpCircle, Crown } from 'lucide-react';
+import { BookOpen, Clipboard, Globe, HelpCircle } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import PremiumModal from './PremiumModal';
+import PremiumHint from './PremiumHint';
 
 // Custom SVG component for Instagram icon
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -344,14 +345,11 @@ export default function ExtractForm({
                 })}
               </p>
               {!isPremium && (
-                <button
-                  type="button"
+                <PremiumHint
+                  variant="inline"
                   onClick={() => setIsPremiumModalOpen(true)}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 dark:hover:text-amber-300 transition-colors"
-                >
-                  <Crown className="w-3 h-3" />
-                  <span>Premium: Unbegrenzt freischalten</span>
-                </button>
+                  label={t('premium.hint.extractUnlimited')}
+                />
               )}
             </div>
           )}

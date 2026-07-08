@@ -504,6 +504,13 @@ export const uiTranslations = {
       shoppingListLimit: {
         title: 'Premium-Funktion',
         message: 'Du hast bereits Zutaten von einem anderen Rezept auf deiner Einkaufsliste. Hol dir Premium, um Zutaten aus beliebig vielen Rezepten zu kombinieren!'
+      },
+      hint: {
+        extractUnlimited: 'Premium: Unbegrenzt freischalten',
+        catalogFull: 'Kochbuch voll ({count}/{limit}) – Lösche ein Rezept oder upgrade.',
+        catalogAlmostFull: 'Kochbuch fast voll ({count}/{limit})',
+        unlockNutrition: 'Nährwerte freischalten',
+        upgrade: 'Upgrade'
       }
     }
   },
@@ -851,6 +858,13 @@ export const uiTranslations = {
       shoppingListLimit: {
         title: 'Premium Feature',
         message: 'You already have ingredients from another recipe on your shopping list. Get Premium to combine ingredients from multiple recipes!'
+      },
+      hint: {
+        extractUnlimited: 'Premium: Unlock unlimited',
+        catalogFull: 'Cookbook full ({count}/{limit}) – Delete a recipe or upgrade.',
+        catalogAlmostFull: 'Cookbook almost full ({count}/{limit})',
+        unlockNutrition: 'Unlock nutrition',
+        upgrade: 'Upgrade'
       }
     }
   }
