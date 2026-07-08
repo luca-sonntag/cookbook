@@ -121,19 +121,6 @@ export default function SavedCatalog({
       ) : (
         /* LIST VIEW OF SAVED RECIPES */
         <div className="flex flex-col gap-4">
-          {/* Free plan catalog limit banner */}
-          {!isPremium && completedJobs.length >= FREE_RECIPE_LIMIT - 1 && (
-            <PremiumHint
-              variant="banner"
-              onClick={() => setIsPremiumModalOpen(true)}
-              label={
-                completedJobs.length >= FREE_RECIPE_LIMIT
-                  ? t('premium.hint.catalogFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
-                  : t('premium.hint.catalogAlmostFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
-              }
-              cta={t('premium.hint.upgrade')}
-            />
-          )}
           {completedJobs.length === 0 ? (
             !historyLoaded ? (
               <CatalogLoadingState />
@@ -159,6 +146,20 @@ export default function SavedCatalog({
                   }
                 }}
               />
+
+              {/* Free plan catalog limit banner */}
+              {!isPremium && completedJobs.length >= FREE_RECIPE_LIMIT - 1 && (
+                <PremiumHint
+                  variant="banner"
+                  onClick={() => setIsPremiumModalOpen(true)}
+                  label={
+                    completedJobs.length >= FREE_RECIPE_LIMIT
+                      ? t('premium.hint.catalogFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
+                      : t('premium.hint.catalogAlmostFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
+                  }
+                  cta={t('premium.hint.upgrade')}
+                />
+              )}
 
               {/* RECIPES DISPLAY GRID/LIST */}
               {filteredJobs.length === 0 ? (
