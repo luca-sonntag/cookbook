@@ -18,6 +18,8 @@ import RecipeInstructions from './RecipeInstructions';
 import RecipeActionDock from './RecipeActionDock';
 import CookingMode from '../CookingMode';
 import RemixModal from '../RemixModal';
+import { useAuth } from '../../context/AuthContext';
+import PremiumModal from '../PremiumModal';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
@@ -68,6 +70,8 @@ export default function RecipeDetails({
 
   // Local UI states
   const [isCopied, setIsCopied] = useState(false);
+  const { isPremium } = useAuth();
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [isRemixModalOpen, setIsRemixModalOpen] = useState(false);
   const [isCookingMode, setIsCookingMode] = useState(false);
@@ -470,9 +474,21 @@ export default function RecipeDetails({
           totalStepsCount={totalStepsCount}
           onAddToCart={onAddIngredients ? handleAddToShoppingList : undefined}
           isAdded={isAdded}
-          onStartCooking={() => setIsCookingMode(true)}
+          onStartCooking={() => {
+            if (isPremium) {
+              setIsCookingMode(true);
+            } else {
+              setIsPremiumModalOpen(true);
+            }
+          }}
           recipeId={recipe.id}
-          onRemixClick={() => setIsRemixModalOpen(true)}
+          onRemixClick={() => {
+            if (isPremium) {
+              setIsRemixModalOpen(true);
+            } else {
+              setIsPremiumModalOpen(true);
+            }
+          }}
         />
       )}
 
@@ -500,6 +516,12 @@ export default function RecipeDetails({
           onRemixSuccess={onRemixSuccess}
         />
       )}
+
+      {/* Premium Upgrade Modal */}
+      <PremiumModal 
+        isOpen={isPremiumModalOpen} 
+        onOpenChange={setIsPremiumModalOpen} 
+      />
     </article>
   );
 }
