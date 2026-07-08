@@ -29,13 +29,15 @@ function ensureSocialLoginInitialized() {
 // documented as Android-only). Any failure (no account, ambiguous accounts,
 // user dismissal) is expected and swallowed: the caller falls back to the
 // normal AuthForm with no visible error.
-async function attemptSilentGoogleSignIn(): Promise<boolean> {
-  if (Capacitor.getPlatform() !== 'android') return false;
-  if (!GOOGLE_WEB_CLIENT_ID) return false;
-  if (localStorage.getItem(AUTO_SIGNIN_DISABLED_KEY)) return false;
+async function attemptSilentGoogleSignIn(): Promise<{ success: boolean; error?: string }> {
+  if (Capacitor.getPlatform() !== 'android') return { success: false };
+  if (!GOOGLE_WEB_CLIENT_ID) return { success: false };
+  if (localStorage.getItem(AUTO_SIGNIN_DISABLED_KEY)) return { success: false };
 
   try {
+    console.log('attemptSilentGoogleSignIn: Initializing social login');
     await ensureSocialLoginInitialized();
+    console.log('attemptSilentGoogleSignIn: Calling SocialLogin.login');
     const { result } = await SocialLogin.login({
       provider: 'google',
       options: {
@@ -44,15 +46,29 @@ async function attemptSilentGoogleSignIn(): Promise<boolean> {
         autoSelectEnabled: true,
       },
     });
+    console.log('attemptSilentGoogleSignIn: SocialLogin.login completed', result);
     const idToken = 'idToken' in result ? result.idToken : null;
-    if (!idToken) return false;
+    if (!idToken) {
+      console.warn('attemptSilentGoogleSignIn: No ID token returned from Google login');
+      return { success: false, error: 'Google sign-in did not return an ID token.' };
+    }
 
+    console.log('attemptSilentGoogleSignIn: Signing in to Supabase with ID token');
     const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken });
-    return !error;
-  } catch {
-    // No account available / user dismissed the prompt / anything else —
-    // silently fall back to the manual login form.
-    return false;
+    if (error) {
+      console.error('attemptSilentGoogleSignIn: Supabase sign-in failed', error);
+      return { success: false, error: error.message };
+    }
+    console.log('attemptSilentGoogleSignIn: Supabase sign-in successful');
+    return { success: true };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.error('attemptSilentGoogleSignIn: Error caught during silent login', message, e);
+    // User dismissing the account picker / no account is not an error worth surfacing.
+    if (/cancel/i.test(message)) {
+      return { success: false };
+    }
+    return { success: false, error: message };
   }
 }
 
@@ -65,6 +81,7 @@ interface AuthState {
   // button — the user never chose to log in, and signing out would just get
   // undone by the next silent sign-in.
   autoSignedIn: boolean;
+  authError: string | null;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   signInWithGoogle: () => Promise<{ error?: string }>;
@@ -81,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [autoSignedIn, setAutoSignedIn] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     // Get initial session
@@ -91,10 +109,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // On success, the onAuthStateChange listener below already applied
         // the new session — don't overwrite it with the stale `session`
         // (still null here) captured before the silent attempt ran.
-        const signedIn = await attemptSilentGoogleSignIn();
-        if (signedIn) {
+        const res = await attemptSilentGoogleSignIn();
+        if (res.success) {
           setAutoSignedIn(true);
+          setAuthError(null);
           return;
+        } else if (res.error) {
+          setAuthError(res.error);
         }
       }
       setSession(session);
@@ -113,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
+    setAuthError(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
@@ -121,6 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
+    setAuthError(null);
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error: error.message };
     // If user is immediately confirmed (no email confirmation), session is available
@@ -133,6 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
+    setAuthError(null);
     // Native (Capacitor): use the OS account-picker dialog to get a Google ID
     // token, then exchange it for a Supabase session — no browser redirect.
     if (Capacitor.isNativePlatform()) {
@@ -231,7 +255,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [getAccessToken, signOut]);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount }}>
+    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
