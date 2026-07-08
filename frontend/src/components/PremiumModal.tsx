@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Crown, Check, X, Loader2, Sparkles } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { buyPremium } from '../utils/purchase';
@@ -64,7 +65,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
     { title: t('premium.modal.features.catalog.title'),      desc: t('premium.modal.features.catalog.desc') },
   ];
 
-  return (
+  const modal = (
     <div className="fixed inset-0 z-[200] flex flex-col" role="dialog" aria-modal="true">
 
       {/* Same gradient as the settings card — expanded to fullscreen */}
@@ -175,4 +176,6 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
