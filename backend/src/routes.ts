@@ -209,6 +209,28 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
       return;
     }
 
+    // Enforce premium access for remixing
+    let isPremium = false;
+    try {
+      const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
+      if (!authError && user) {
+        const meta = user.app_metadata || {};
+        isPremium = meta.tier === 'premium' ||
+                    meta.custom_extraction_limit === -1 ||
+                    meta.max_extractions_per_window === -1;
+      }
+    } catch (err) {
+      console.warn(`Failed to fetch user metadata for remix premium check:`, err);
+    }
+
+    if (!isPremium) {
+      res.status(403).json({
+        success: false,
+        error: 'Recipe Remix is a premium feature. Please upgrade to Premium to customize recipes.',
+      });
+      return;
+    }
+
     // Create a new remix job
     const job = await createRemixJob(parentJob.id, parentJob.url, prompt, req.userId!);
 
