@@ -30,12 +30,11 @@ export default function AuthForm() {
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-emerald-500/10 dark:bg-emerald-500/5 blur-3xl rounded-full pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-80 h-80 bg-teal-500/10 dark:bg-teal-500/5 blur-3xl rounded-full pointer-events-none" />
 
-      <Card className="w-full max-w-sm p-8 rounded-3xl backdrop-blur-md bg-white/85 dark:bg-gray-900/85 border border-black/5 dark:border-white/10 shadow-xl relative z-10">
+      <Card className="w-full max-w-sm p-8 rounded-3xl backdrop-blur-md bg-white/85 dark:bg-gray-900/85 shadow-xl relative z-10">
         <div className="flex flex-col items-center gap-4 text-center">
-          {/* Logo Frame with Pulse Effect */}
+          {/* Logo Frame */}
           <div className="relative w-20 h-20 mb-2">
             <img src="/logo-login.png" className="w-full h-full object-contain rounded-2xl shadow-md" alt="SnagBite Logo" />
-            <div className="absolute inset-0 rounded-2xl border border-emerald-500/20 animate-ping opacity-60 pointer-events-none" />
           </div>
 
           <div className="space-y-1.5 mb-2">
@@ -52,7 +51,7 @@ export default function AuthForm() {
               type="button"
               isDisabled={submitting}
               onPress={handleGoogleSignIn}
-              className="w-full h-12 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700/80 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 flex items-center justify-center gap-3 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm"
+              className="w-full h-12 bg-black/5 dark:bg-white/5 text-gray-800 dark:text-gray-100 font-bold rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm"
             >
               {submitting ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-emerald-500 border-t-transparent" />
