@@ -13,7 +13,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [url, setUrl] = useState('');
   const [urlError, setUrlError] = useState('');
-  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'premium' } | null>(null);
+  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'premium'; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null>(null);
 
   const fetchLimitStatus = useCallback(async () => {
     try {
@@ -31,7 +31,10 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           used: data.used,
           remaining: data.remaining,
           windowDays: data.windowDays,
-          tier: data.tier
+          tier: data.tier,
+          savedRecipes: data.savedRecipes ?? 0,
+          maxSavedRecipes: data.maxSavedRecipes ?? -1,
+          cookbookFull: data.cookbookFull ?? false
         });
       }
     } catch (err) {

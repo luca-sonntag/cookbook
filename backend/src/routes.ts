@@ -394,9 +394,11 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
   try {
     let limit = config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
     let tier: 'free' | 'premium' = 'free';
+    let user: any = null;
     try {
-      const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError && user) {
+      const { data, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
+      if (!authError && data.user) {
+        user = data.user;
         limit = resolveUserRateLimit(user);
         tier = user.app_metadata?.tier === 'premium' ? 'premium' : 'free';
       }
@@ -406,6 +408,13 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
 
     const windowDays = config.EXTRACTION_LIMIT_WINDOW_DAYS;
 
+    // Cookbook cap status (mirrors the POST /extract-recipe enforcement) so the
+    // extract screen can proactively show a "cookbook full" state.
+    const premium = isPremiumUser(user);
+    const savedRecipes = await countCompletedRecipesForUser(req.userId!);
+    const maxSavedRecipes = premium ? -1 : config.FREE_MAX_SAVED_RECIPES;
+    const cookbookFull = maxSavedRecipes >= 0 && savedRecipes >= maxSavedRecipes;
+
     if (limit < 0) {
       res.status(200).json({
         success: true,
@@ -413,7 +422,10 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
         limit: -1,
         used: 0,
         remaining: -1,
-        windowDays
+        windowDays,
+        savedRecipes,
+        maxSavedRecipes,
+        cookbookFull
       });
       return;
     }
@@ -428,7 +440,10 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
       limit,
       used,
       remaining,
-      windowDays
+      windowDays,
+      savedRecipes,
+      maxSavedRecipes,
+      cookbookFull
     });
   } catch (error) {
     console.error('Error fetching rate limit status:', error);
