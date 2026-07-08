@@ -1,4 +1,4 @@
-package com.kochbuddy.app;
+package com.snagbite.app;
 
 import android.content.Intent;
 import com.getcapacitor.BridgeActivity;

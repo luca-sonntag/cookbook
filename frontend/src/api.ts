@@ -6,7 +6,7 @@
 // In native builds (Capacitor) the webview is served from capacitor://localhost
 // (iOS) or http://localhost (Android), so relative paths would hit the local
 // bundle instead of the backend. Set VITE_API_BASE_URL to your production
-// backend origin (e.g. https://api.kochbuddy.app) for native builds.
+// backend origin (e.g. https://api.snagbite.app) for native builds.
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 
 /**
