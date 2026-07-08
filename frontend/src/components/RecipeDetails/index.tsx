@@ -4,6 +4,7 @@ import type { Recipe, Ingredient } from '../../types';
 import { useRecipeScaling } from '../../hooks/useRecipeScaling';
 import { useRecipeProgress } from '../../hooks/useRecipeProgress';
 import { useRecipeNutrition } from '../../hooks/useRecipeNutrition';
+import { useSwipeableTabs } from '../../hooks/useSwipeableTabs';
 import { categoryOrder, legacyCategoryMap } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
@@ -77,6 +78,11 @@ export default function RecipeDetails({
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
   const { pendingNavigation, setPendingNavigation } = useTimerManager();
+
+  // Swipe-to-switch between the ingredients and steps tabs (with slide animation)
+  const { tabsProps, containerProps, panelProps } = useSwipeableTabs({
+    tabs: ['ingredients', 'steps'] as const,
+  });
 
   // Listen to state-based pending navigation (handles timing/mount delays)
   useEffect(() => {
@@ -438,7 +444,7 @@ export default function RecipeDetails({
       </Card>
 
       {/* Tabbed view for recipe items */}
-      <Tabs defaultSelectedKey="ingredients" className="w-full">
+      <Tabs {...tabsProps} className="w-full">
         <Tabs.ListContainer className="w-full">
           <Tabs.List className="flex !bg-transparent !p-0 !rounded-none border-b border-black/10 dark:border-white/10 w-full mb-4 overflow-x-auto scrollbar-none">
             <Tabs.Tab id="ingredients" className="flex-1 flex-shrink-0 px-3 text-center py-2 text-sm font-medium border-b-2 border-transparent data-[selected=true]:border-emerald-600 dark:data-[selected=true]:border-emerald-500 !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white transition-all cursor-pointer !bg-transparent !shadow-none !rounded-none whitespace-nowrap">
@@ -450,38 +456,44 @@ export default function RecipeDetails({
           </Tabs.List>
         </Tabs.ListContainer>
 
-        {/* Ingredients tab */}
-        <Tabs.Panel id="ingredients">
-          <RecipeIngredients
-            recipe={recipe}
-            sortedIngredients={sortedIngredients}
-            checkedIngredients={checkedIngredients}
-            toggleIngredient={toggleIngredient}
-            showIngredientNutrition={isPremium && showIngredientNutrition}
-            onToggleIngredientNutrition={handleToggleIngredientNutrition}
-            hasIngredientNutrition={hasIngredientNutrition}
-            isPremium={isPremium}
-            scaleFactor={scaleFactor}
-            formatAmount={formatAmount}
-            onAddIngredients={onAddIngredients ? handleAddToShoppingList : undefined}
-            isAdded={isAdded}
-          />
-        </Tabs.Panel>
+        {/* Swipeable panel area: the visible panel follows the finger and the
+            neighbouring tab slides in once the swipe passes the threshold. */}
+        <div {...containerProps}>
+          <div {...panelProps}>
+            {/* Ingredients tab */}
+            <Tabs.Panel id="ingredients">
+              <RecipeIngredients
+                recipe={recipe}
+                sortedIngredients={sortedIngredients}
+                checkedIngredients={checkedIngredients}
+                toggleIngredient={toggleIngredient}
+                showIngredientNutrition={isPremium && showIngredientNutrition}
+                onToggleIngredientNutrition={handleToggleIngredientNutrition}
+                hasIngredientNutrition={hasIngredientNutrition}
+                isPremium={isPremium}
+                scaleFactor={scaleFactor}
+                formatAmount={formatAmount}
+                onAddIngredients={onAddIngredients ? handleAddToShoppingList : undefined}
+                isAdded={isAdded}
+              />
+            </Tabs.Panel>
 
-        {/* Instructions tab */}
-        <Tabs.Panel id="steps">
-          <RecipeInstructions
-            recipe={recipe}
-            checkedSteps={checkedSteps}
-            toggleStep={toggleStep}
-            activeStepNum={activeStepNum}
-            completedStepsCount={completedStepsCount}
-            totalStepsCount={totalStepsCount}
-            progressPercent={progressPercent}
-            onStartCooking={handleStartCooking}
-            formatAmount={formatAmount}
-          />
-        </Tabs.Panel>
+            {/* Instructions tab */}
+            <Tabs.Panel id="steps">
+              <RecipeInstructions
+                recipe={recipe}
+                checkedSteps={checkedSteps}
+                toggleStep={toggleStep}
+                activeStepNum={activeStepNum}
+                completedStepsCount={completedStepsCount}
+                totalStepsCount={totalStepsCount}
+                progressPercent={progressPercent}
+                onStartCooking={handleStartCooking}
+                formatAmount={formatAmount}
+              />
+            </Tabs.Panel>
+          </div>
+        </div>
       </Tabs>
 
       {/* Unified Floating Action Dock (Bottom-Center) */}
