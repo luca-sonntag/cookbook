@@ -45,7 +45,7 @@ export default function PremiumHint({
     >
       <span className="flex items-center gap-2.5 min-w-0">
         <Crown className="w-4 h-4 text-amber-300 fill-amber-300 shrink-0" />
-        <span className="text-xs font-semibold text-white truncate">
+        <span className="text-xs font-semibold text-white leading-snug">
           {label}
         </span>
       </span>
