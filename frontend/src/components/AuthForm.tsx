@@ -33,9 +33,9 @@ export default function AuthForm() {
       <Card className="w-full max-w-sm p-8 rounded-3xl backdrop-blur-md bg-white/85 dark:bg-gray-900/85 border border-black/5 dark:border-white/10 shadow-xl relative z-10">
         <div className="flex flex-col items-center gap-4 text-center">
           {/* Logo Frame with Pulse Effect */}
-          <div className="relative flex items-center justify-center w-24 h-24 rounded-3xl bg-white dark:bg-gray-950 border border-black/5 dark:border-white/5 shadow-md mb-2 p-4">
-            <img src="/logo-login.png" className="w-full h-full object-contain" alt="SnagBite Logo" />
-            <div className="absolute inset-0 rounded-3xl border border-emerald-500/10 animate-ping opacity-60 pointer-events-none" />
+          <div className="relative w-20 h-20 mb-2">
+            <img src="/logo-login.png" className="w-full h-full object-contain rounded-2xl shadow-md" alt="SnagBite Logo" />
+            <div className="absolute inset-0 rounded-2xl border border-emerald-500/20 animate-ping opacity-60 pointer-events-none" />
           </div>
 
           <div className="space-y-1.5 mb-2">
