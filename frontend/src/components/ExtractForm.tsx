@@ -153,9 +153,9 @@ const ShareStep3Mockup = () => (
 
         <div className="flex-1 min-w-0 flex flex-col items-center gap-1">
           <div className="relative">
-            <div className="absolute inset-0 rounded-md bg-emerald-500 animate-ping opacity-75 duration-1000" />
-            <div className="relative w-6 h-6 rounded-md bg-white dark:bg-gray-800 flex items-center justify-center shadow-lg shadow-emerald-500/40 border border-emerald-500 overflow-hidden p-0.5">
-              <img src="/icon-192.png" alt="Snagbite Logo" className="w-full h-full object-contain rounded-sm" />
+            <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75 duration-1000" />
+            <div className="relative w-6 h-6 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-lg shadow-emerald-500/40 border border-emerald-500 overflow-hidden p-0.5">
+              <img src="/icon-192.png" alt="Snagbite Logo" className="w-full h-full object-contain rounded-full" />
             </div>
           </div>
           <span className="text-[7px] leading-none font-bold text-emerald-600 dark:text-emerald-400 truncate w-full text-center">Snagbite</span>
@@ -179,7 +179,7 @@ interface ExtractFormProps {
   validateUrl: (url: string) => boolean;
   isPending: boolean;
   handleFormSubmit: (e: React.FormEvent) => void;
-  limitStatus?: { limit: number; used: number; remaining: number; windowDays: number } | null;
+  limitStatus?: { limit: number; used: number; remaining: number; windowDays: number; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null;
 }
 
 export default function ExtractForm({
@@ -195,6 +195,9 @@ export default function ExtractForm({
   const { isPremium } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
+
+  // Free cookbook is full → block new extractions and steer to upgrade.
+  const cookbookFull = !isPremium && !!limitStatus?.cookbookFull;
 
   useEffect(() => {
     if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.readText === 'function') {
@@ -216,6 +219,7 @@ export default function ExtractForm({
 
   const handleDemoClick = (demoUrl: string) => {
     if (isPending) return;
+    if (cookbookFull) { setIsPremiumModalOpen(true); return; }
     setUrl(demoUrl);
     validateUrl(demoUrl);
 
@@ -247,7 +251,13 @@ export default function ExtractForm({
     <div className="flex flex-col gap-6 w-full">
       {/* Input Card */}
       <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
-        <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
+        <form
+          onSubmit={(e) => {
+            if (cookbookFull) { e.preventDefault(); setIsPremiumModalOpen(true); return; }
+            handleFormSubmit(e);
+          }}
+          className="flex flex-col gap-4"
+        >
           <TextField
             fullWidth
             name="url"
@@ -296,9 +306,12 @@ export default function ExtractForm({
             type="submit"
             fullWidth
             isPending={isPending}
-            className={`py-3.5 h-12 text-sm rounded-xl font-semibold shadow-lg text-white ${isPending
-              ? 'bg-emerald-800'
-              : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all'
+            isDisabled={cookbookFull}
+            className={`py-3.5 h-12 text-sm rounded-xl font-semibold shadow-lg text-white ${cookbookFull
+              ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-70'
+              : isPending
+                ? 'bg-emerald-800'
+                : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all'
               }`}
           >
             {({ isPending }) => (
@@ -318,7 +331,19 @@ export default function ExtractForm({
             )}
           </Button>
 
-          {limitStatus && limitStatus.limit >= 0 && (
+          {cookbookFull ? (
+            <div className="flex flex-col gap-1.5 -mt-1">
+              <PremiumHint
+                variant="banner"
+                onClick={() => setIsPremiumModalOpen(true)}
+                label={t('premium.hint.catalogFull', {
+                  count: limitStatus?.savedRecipes ?? 0,
+                  limit: limitStatus?.maxSavedRecipes ?? 5
+                })}
+                cta={t('premium.hint.upgrade')}
+              />
+            </div>
+          ) : limitStatus && limitStatus.limit >= 0 ? (
             <div className="flex flex-col items-center gap-1.5 -mt-1">
               <p className="text-center text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors">
                 {t('form.remainingExtractions', {
@@ -337,7 +362,7 @@ export default function ExtractForm({
                 />
               )}
             </div>
-          )}
+          ) : null}
 
           {/* Premium Modal */}
           <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
