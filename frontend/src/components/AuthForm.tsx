@@ -33,8 +33,8 @@ export default function AuthForm() {
       <Card className="w-full max-w-sm p-8 rounded-3xl backdrop-blur-md bg-white/85 dark:bg-gray-900/85 border border-black/5 dark:border-white/10 shadow-xl relative z-10">
         <div className="flex flex-col items-center gap-4 text-center">
           {/* Logo */}
-          <div className="relative w-20 h-20 mb-2">
-            <img src="/logo-login.png" className="w-full h-full object-contain rounded-2xl shadow-md" alt="SnagBite Logo" />
+          <div className="w-20 h-20 mb-2">
+            <img src="/logo-login.png" className="w-full h-full object-contain" alt="SnagBite Logo" />
           </div>
 
           <div className="space-y-1.5 mb-2">
