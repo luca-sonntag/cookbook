@@ -82,6 +82,8 @@ interface AuthState {
   // undone by the next silent sign-in.
   autoSignedIn: boolean;
   authError: string | null;
+  isPremium: boolean;
+  setIsPremiumOverride: (value: boolean) => void;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   signInWithGoogle: () => Promise<{ error?: string }>;
@@ -99,6 +101,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [autoSignedIn, setAutoSignedIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  // Development-only Premium simulator state
+  const [isPremiumOverride, setIsPremiumOverrideState] = useState<boolean>(() => {
+    if (import.meta.env.DEV) {
+      return localStorage.getItem('kb_simulate_premium') === 'true';
+    }
+    return false;
+  });
+
+  const setIsPremiumOverride = useCallback((value: boolean) => {
+    if (import.meta.env.DEV) {
+      if (value) {
+        localStorage.setItem('kb_simulate_premium', 'true');
+      } else {
+        localStorage.removeItem('kb_simulate_premium');
+      }
+      setIsPremiumOverrideState(value);
+    }
+  }, []);
+
+  const isPremium = isPremiumOverride || user?.app_metadata?.tier === 'premium';
 
   useEffect(() => {
     // Get initial session
@@ -264,7 +287,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [getAccessToken, signOut]);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount }}>
+    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, setIsPremiumOverride, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
