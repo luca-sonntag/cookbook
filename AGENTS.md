@@ -251,7 +251,7 @@ Die App unterscheidet zwischen **Free**- und **Premium**-Nutzern. Premium-Status
 | In-App Koch-Timer (Zeit-Badges) | Klick auf ein Zeit-Badge öffnet PremiumModal statt des Timer-Sheets | Aktiviert |
 | Rezept-Remix | Lock-Badge (Frontend) + 403 (Backend) | Aktiviert |
 
-> **Einheitliche Lock-Hint-Optik:** Gated Buttons zeigen ein kleines Schloss-Icon `Lock className="w-3 h-3 text-amber-500"` (Nährwerte-pro-Zutat-Toggle, Kochmodus-Startbuttons, Remix-Icon — letzteres als reines Amber-Icon ohne Hintergrund-Badge).
+> **Einheitliche Premium-Marker-Optik (Crown = Premium):** Gated Buttons zeigen den `PremiumCrownBadge` — ein kleines gefülltes Amber-Crown-Siegel (weißer Kreis) oben rechts in der Ecke (Kochmodus-Startbuttons im Action-Dock **und** Instructions-Tab, Remix-Icon; Parent muss `relative` sein). Der Nährwerte-pro-Zutat-Toggle nutzt dieselbe Sprache inline (`Crown className="w-3 h-3 text-amber-500 fill-amber-500"`). Das Schloss-Icon wurde bewusst durch die Crown ersetzt, um mit dem restlichen Premium-Branding (PremiumModal, Settings-Karte, PremiumHint) konsistent zu sein.
 
 ### Backend-Gating
 * **`POST /api/jobs/:id/remix`:** Prüft den Premium-Status des Nutzers via Supabase Admin API (`auth.admin.getUserById`). Gibt `403 Forbidden` zurück, wenn `tier !== 'premium'`.
@@ -262,6 +262,7 @@ Die App unterscheidet zwischen **Free**- und **Premium**-Nutzern. Premium-Status
 * **`PremiumModal.tsx`:** Glassmorphischer Upsell-Dialog. Wird über `createPortal(document.body)` gerendert, damit `fixed inset-0` immer gegen den Viewport (Vollbild) auflöst und nicht gegen einen Vorfahren mit `transform`/`filter` (z. B. animierte Cards) geclippt wird. Listet alle Premium-Features auf, löst beim Klick auf CTA `buyPremium()` aus (RevenueCat). Zeigt "Du hast Premium"-State wenn bereits aktiv.
 * **`PremiumModal`** wird in folgenden Komponenten verwendet: `ExtractForm.tsx`, `SavedCatalog/index.tsx`, `SettingsView.tsx`, `RecipeDetails/index.tsx`, `RecipeDetails/RecipeNutrition.tsx`.
 * **`PremiumHint.tsx`:** Zentrale, wiederverwendbare Upsell-Hint-Komponente und **Single Source of Truth** für den einheitlichen Premium-Hint-Stil ("goldene Crown auf Emerald-Fläche", passend zu `PremiumModal` und der Settings-Upgrade-Karte). Zwei Varianten: `banner` (volle Breite, Emerald-Tint-Fläche + goldener Crown-Chip + optionaler `cta`) und `inline` (kompakter Crown-Text-Link). Die Hint-Texte liegen unter `premium.hint.*` in `i18n.ts` (DE/EN). Genutzt in `SavedCatalog/index.tsx` (banner) und `ExtractForm.tsx` (inline).
+* **`PremiumCrownBadge.tsx`:** Kleines Amber-Crown-Siegel (Corner-Badge) als **Single Source of Truth** für den Premium-Marker auf gated Buttons/Icons (Kochmodus-Startbuttons, Remix). Absolut positioniert → Parent muss `relative` sein.
 
 ### Upsell-Touchpoints
 * **ExtractForm:** Unter dem Extraktionszähler erscheint für Free-User ein `PremiumHint` (inline) zur PremiumModal. Ist das Kochbuch voll (`limitStatus.cookbookFull`), wird stattdessen ein `PremiumHint` (banner) angezeigt und der Extrahieren-Button deaktiviert.

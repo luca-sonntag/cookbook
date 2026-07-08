@@ -1,8 +1,9 @@
 import { Button } from '@heroui/react';
-import { ShoppingCart, ShoppingBag, Play, Sparkles, Lock } from 'lucide-react';
+import { ShoppingCart, ShoppingBag, Play, Sparkles } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import FloatingActionBar, { FloatingDivider } from '../FloatingActionBar';
+import PremiumCrownBadge from '../PremiumCrownBadge';
 
 interface RecipeActionDockProps {
   totalStepsCount: number;
@@ -38,12 +39,12 @@ export default function RecipeActionDock({
       {/* Start Cooking Button */}
       {showStart && (
         <Button
-          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold pl-4.5 pr-5 h-11 rounded-full flex items-center gap-2 active:scale-95 transition-all text-sm border border-emerald-500/10 shadow-sm"
+          className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold pl-4.5 pr-5 h-11 rounded-full flex items-center gap-2 active:scale-95 transition-all text-sm border border-emerald-500/10 shadow-sm"
           onPress={onStartCooking}
         >
           <Play className="w-4 h-4 fill-white" />
           <span>{t('recipe.startCooking')}</span>
-          {!isPremium && <Lock className="w-3 h-3 text-amber-500 ml-0.5" />}
+          {!isPremium && <PremiumCrownBadge />}
         </Button>
       )}
 
@@ -57,7 +58,7 @@ export default function RecipeActionDock({
             title="Recipe Remix"
           >
             <Sparkles className="w-5.5 h-5.5 group-hover:animate-pulse" />
-            {!isPremium && <Lock className="absolute -top-1 -right-1 w-3 h-3 text-amber-500" />}
+            {!isPremium && <PremiumCrownBadge />}
           </button>
         </>
       )}
