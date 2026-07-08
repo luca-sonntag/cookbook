@@ -164,28 +164,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: 'Google sign-in is not configured (missing VITE_GOOGLE_WEB_CLIENT_ID).' };
       }
       try {
+        console.log('signInWithGoogle: Initializing social login');
         await ensureSocialLoginInitialized();
-        // Don't pass `scopes`: the plugin already requests email/profile/openid
-        // by default, and supplying a custom scopes array switches Android into
-        // an extended-authorization flow that requires modifying MainActivity.
+        console.log('signInWithGoogle: Calling SocialLogin.login');
         const { result } = await SocialLogin.login({
           provider: 'google',
           options: {},
         });
+        console.log('signInWithGoogle: SocialLogin.login completed', result);
         // Online-mode Google response carries the OpenID Connect ID token.
         const idToken = 'idToken' in result ? result.idToken : null;
-        if (!idToken) return { error: 'Google sign-in did not return an ID token.' };
+        if (!idToken) {
+          console.warn('signInWithGoogle: No ID token returned from Google login');
+          return { error: 'Google sign-in did not return an ID token.' };
+        }
 
+        console.log('signInWithGoogle: Signing in to Supabase with ID token');
         const { error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
           token: idToken,
         });
-        if (error) return { error: error.message };
+        if (error) {
+          console.error('signInWithGoogle: Supabase sign-in failed', error);
+          return { error: error.message };
+        }
+        console.log('signInWithGoogle: Supabase sign-in successful');
         localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
         setAutoSignedIn(false);
         return {};
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
+        console.error('signInWithGoogle: Error caught during manual login', message, e);
         // User dismissing the account picker is not an error worth surfacing.
         if (/cancel/i.test(message)) return {};
         return { error: message };
