@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { Check, Plus, Sparkles } from 'lucide-react';
+import { Check, Plus, Sparkles, Lock } from 'lucide-react';
 import type { Ingredient, Recipe } from '../../types';
 import AiNotice from '../AiNotice';
 import { useI18n } from '../../context/I18nContext';
@@ -12,6 +12,7 @@ interface RecipeIngredientsProps {
   showIngredientNutrition: boolean;
   onToggleIngredientNutrition: () => void;
   hasIngredientNutrition: boolean;
+  isPremium: boolean;
   scaleFactor: number;
   formatAmount: (amount: number | undefined, unit: string | undefined) => string;
   onAddIngredients?: () => void;
@@ -26,6 +27,7 @@ export default function RecipeIngredients({
   showIngredientNutrition,
   onToggleIngredientNutrition,
   hasIngredientNutrition,
+  isPremium,
   scaleFactor,
   formatAmount,
   onAddIngredients,
@@ -57,6 +59,7 @@ export default function RecipeIngredients({
               >
                 <Sparkles className={`w-3.5 h-3.5 ${showIngredientNutrition ? 'text-emerald-500 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`} />
                 <span>{t('recipe.showNutritionPerIngredient')}</span>
+                {!isPremium && <Lock className="w-3 h-3 text-amber-500 ml-0.5" />}
               </button>
               <AiNotice type="badge" tooltipText={t('recipe.aiIngredientsEstimateTooltip')} />
             </div>

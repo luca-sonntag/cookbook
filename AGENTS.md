@@ -246,7 +246,8 @@ Die App unterscheidet zwischen **Free**- und **Premium**-Nutzern. Premium-Status
 | Kochbuch (History) | max. 5 Rezepte — Banner ab 4 | Unbegrenzt |
 | Einkaufsliste | max. 1 Rezept gleichzeitig | Unbegrenzt |
 | Nährwerte-Detail-Card | Blur-Overlay + Lock | Vollständig sichtbar |
-| Kochmodus (Cooking Mode) | Lock-Badge, öffnet PremiumModal | Aktiviert |
+| Nährwerte pro Zutat (Toggle) | Lock-Badge, öffnet PremiumModal | Aktiviert |
+| Kochmodus (Cooking Mode) | Lock-Badge an **beiden** Startbuttons (Action-Dock **und** Instructions-Tab), öffnet PremiumModal | Aktiviert |
 | Rezept-Remix | Lock-Badge (Frontend) + 403 (Backend) | Aktiviert |
 
 ### Backend-Gating

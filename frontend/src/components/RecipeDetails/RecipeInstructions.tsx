@@ -1,8 +1,9 @@
 import { Card, Button } from '@heroui/react';
-import { ChevronRight, Play, Sparkles, Check, ChefHat } from 'lucide-react';
+import { ChevronRight, Play, Sparkles, Check, ChefHat, Lock } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeInstructionText from '../RecipeInstructionText';
 import { useI18n } from '../../context/I18nContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface RecipeInstructionsProps {
   recipe: Recipe;
@@ -28,6 +29,7 @@ export default function RecipeInstructions({
   formatAmount
 }: RecipeInstructionsProps) {
   const { t } = useI18n();
+  const { isPremium } = useAuth();
 
   return (
     <div className="flex flex-col gap-4">
@@ -67,7 +69,7 @@ export default function RecipeInstructions({
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all flex-shrink-0 self-start sm:self-center"
             onPress={onStartCooking}
           >
-            <Play className="w-4 h-4 fill-white" />
+            {isPremium ? <Play className="w-4 h-4 fill-white" /> : <Lock className="w-3.5 h-3.5" />}
             <span>{t('recipe.startCooking')}</span>
           </Button>
         </div>

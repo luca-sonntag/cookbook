@@ -187,7 +187,22 @@ export default function RecipeDetails({
     }
   };
 
+  // Cooking mode is premium-gated: free users are steered to the upsell modal.
+  const handleStartCooking = () => {
+    if (isPremium) {
+      setIsCookingMode(true);
+    } else {
+      setIsPremiumModalOpen(true);
+    }
+  };
+
   const handleToggleIngredientNutrition = () => {
+    // Per-ingredient nutrition is a premium feature (advertised alongside the
+    // nutrition card). Free users get the upsell instead of toggling it on.
+    if (!isPremium) {
+      setIsPremiumModalOpen(true);
+      return;
+    }
     setShowIngredientNutrition(prev => {
       const next = !prev;
       try {
@@ -442,9 +457,10 @@ export default function RecipeDetails({
             sortedIngredients={sortedIngredients}
             checkedIngredients={checkedIngredients}
             toggleIngredient={toggleIngredient}
-            showIngredientNutrition={showIngredientNutrition}
+            showIngredientNutrition={isPremium && showIngredientNutrition}
             onToggleIngredientNutrition={handleToggleIngredientNutrition}
             hasIngredientNutrition={hasIngredientNutrition}
+            isPremium={isPremium}
             scaleFactor={scaleFactor}
             formatAmount={formatAmount}
             onAddIngredients={onAddIngredients ? handleAddToShoppingList : undefined}
@@ -462,7 +478,7 @@ export default function RecipeDetails({
             completedStepsCount={completedStepsCount}
             totalStepsCount={totalStepsCount}
             progressPercent={progressPercent}
-            onStartCooking={() => setIsCookingMode(true)}
+            onStartCooking={handleStartCooking}
             formatAmount={formatAmount}
           />
         </Tabs.Panel>
@@ -474,13 +490,7 @@ export default function RecipeDetails({
           totalStepsCount={totalStepsCount}
           onAddToCart={onAddIngredients ? handleAddToShoppingList : undefined}
           isAdded={isAdded}
-          onStartCooking={() => {
-            if (isPremium) {
-              setIsCookingMode(true);
-            } else {
-              setIsPremiumModalOpen(true);
-            }
-          }}
+          onStartCooking={handleStartCooking}
           recipeId={recipe.id}
           onRemixClick={() => {
             if (isPremium) {
