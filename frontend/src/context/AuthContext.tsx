@@ -60,6 +60,11 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  // True when the current session was established by the silent on-device
+  // Google sign-in (not an explicit user action). Used to hide the logout
+  // button — the user never chose to log in, and signing out would just get
+  // undone by the next silent sign-in.
+  autoSignedIn: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   signInWithGoogle: () => Promise<{ error?: string }>;
@@ -75,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [autoSignedIn, setAutoSignedIn] = useState(false);
 
   useEffect(() => {
     // Get initial session
@@ -86,7 +92,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // the new session — don't overwrite it with the stale `session`
         // (still null here) captured before the silent attempt ran.
         const signedIn = await attemptSilentGoogleSignIn();
-        if (signedIn) return;
+        if (signedIn) {
+          setAutoSignedIn(true);
+          return;
+        }
       }
       setSession(session);
       setUser(session?.user ?? null);
@@ -107,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
+    setAutoSignedIn(false);
     return {};
   }, []);
 
@@ -116,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // If user is immediately confirmed (no email confirmation), session is available
     if (data.session) {
       localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
+      setAutoSignedIn(false);
       return {};
     }
     return { needsConfirmation: true };
@@ -147,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         if (error) return { error: error.message };
         localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
+        setAutoSignedIn(false);
         return {};
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -177,6 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await SocialLogin.logout({ provider: 'google' }).catch(() => {});
     }
     await supabase.auth.signOut();
+    setAutoSignedIn(false);
   }, []);
 
   const getAccessToken = useCallback(async (): Promise<string | null> => {
@@ -218,7 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [getAccessToken, signOut]);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount }}>
+    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

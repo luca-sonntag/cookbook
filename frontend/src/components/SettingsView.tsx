@@ -32,7 +32,7 @@ function SettingInfo({ text }: { text: string }) {
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
-  const { signOut, user, updateUserMetadata, deleteAccount } = useAuth();
+  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount } = useAuth();
   const dialog = useDialog();
   const [theme, setTheme] = useTheme();
   const { isInstallable, handleInstallClick } = usePwaInstall();
@@ -336,26 +336,29 @@ export default function SettingsView() {
           </div>
         )}
 
-        {/* Logout Option */}
-        <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
-              <LogOut className="w-5 h-5" />
+        {/* Logout Option — hidden when the session came from silent auto
+            sign-in, since signing out would just be undone on next launch. */}
+        {!autoSignedIn && (
+          <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
+                <LogOut className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                  {t('auth.signOut') || 'Sign Out'}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                {t('auth.signOut') || 'Sign Out'}
-              </p>
-            </div>
+            <Button
+              variant="danger-soft"
+              className="font-bold text-xs h-10 px-5 rounded-xl active:scale-95 transition-all"
+              onPress={() => signOut()}
+            >
+              {t('auth.signOut') || 'Sign Out'}
+            </Button>
           </div>
-          <Button
-            variant="danger-soft"
-            className="font-bold text-xs h-10 px-5 rounded-xl active:scale-95 transition-all"
-            onPress={() => signOut()}
-          >
-            {t('auth.signOut') || 'Sign Out'}
-          </Button>
-        </div>
+        )}
 
         {/* Delete Account Option */}
         <div className="p-4 flex items-center justify-between">
