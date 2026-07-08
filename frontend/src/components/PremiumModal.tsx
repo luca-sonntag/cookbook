@@ -99,7 +99,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
         {loading && <div className="h-11 shrink-0" />}
 
         {/* Header — matches card header style */}
-        <div className="flex flex-col items-center text-center gap-3 pb-8 shrink-0">
+        <div className="flex flex-col items-center text-center gap-2.5 pb-5 shrink-0">
           <div className="flex items-center justify-center gap-2.5">
             <Sparkles className="w-7 h-7 text-amber-300 fill-amber-300 animate-pulse" />
             <h2 className="text-3xl font-extrabold text-white tracking-tight drop-shadow">
@@ -112,12 +112,12 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
         </div>
 
         {/* Feature list — white/translucent rows, same card feel */}
-        <div className="flex-1 flex flex-col justify-center">
+        <div className="flex-1 flex flex-col">
           <div className="flex flex-col rounded-3xl overflow-hidden bg-black/10 border border-white/10">
             {featureItems.map((item, idx) => (
               <div
                 key={idx}
-                className={`flex items-start gap-4 px-5 py-4 ${idx < featureItems.length - 1 ? 'border-b border-white/8' : ''}`}
+                className={`flex items-start gap-4 px-5 py-3 ${idx < featureItems.length - 1 ? 'border-b border-white/8' : ''}`}
               >
                 {/* Amber check — matching the card's button color */}
                 <div className="mt-0.5 w-6 h-6 rounded-full bg-amber-400/90 flex items-center justify-center shrink-0 shadow-sm shadow-amber-400/30">
