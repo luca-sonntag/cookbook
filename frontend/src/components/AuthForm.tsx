@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
 import { Card, Button, Input, TextField, Label } from '@heroui/react';
-import { ChefHat } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 
@@ -60,8 +59,8 @@ export default function AuthForm() {
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       <Card className="w-full max-w-sm p-6 rounded-2xl">
         <div className="flex flex-col items-center gap-3 mb-6">
-          <div className="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 text-emerald-400">
-            <ChefHat className="w-8 h-8" />
+          <div className="p-1 mb-1">
+            <img src="/logo-login.png" className="w-20 h-20 object-contain" alt="SnagBite Logo" />
           </div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('app.title')}</h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
