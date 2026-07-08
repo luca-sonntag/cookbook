@@ -29,10 +29,10 @@ function ensureSocialLoginInitialized() {
 // documented as Android-only). Any failure (no account, ambiguous accounts,
 // user dismissal) is expected and swallowed: the caller falls back to the
 // normal AuthForm with no visible error.
-async function attemptSilentGoogleSignIn(): Promise<void> {
-  if (Capacitor.getPlatform() !== 'android') return;
-  if (!GOOGLE_WEB_CLIENT_ID) return;
-  if (localStorage.getItem(AUTO_SIGNIN_DISABLED_KEY)) return;
+async function attemptSilentGoogleSignIn(): Promise<boolean> {
+  if (Capacitor.getPlatform() !== 'android') return false;
+  if (!GOOGLE_WEB_CLIENT_ID) return false;
+  if (localStorage.getItem(AUTO_SIGNIN_DISABLED_KEY)) return false;
 
   try {
     await ensureSocialLoginInitialized();
@@ -45,12 +45,14 @@ async function attemptSilentGoogleSignIn(): Promise<void> {
       },
     });
     const idToken = 'idToken' in result ? result.idToken : null;
-    if (!idToken) return;
+    if (!idToken) return false;
 
-    await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken });
+    const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken });
+    return !error;
   } catch {
     // No account available / user dismissed the prompt / anything else —
     // silently fall back to the manual login form.
+    return false;
   }
 }
 
@@ -80,7 +82,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!session) {
         // No active session on cold start: try to sign in silently with an
         // on-device Google account before falling back to the login form.
-        await attemptSilentGoogleSignIn();
+        // On success, the onAuthStateChange listener below already applied
+        // the new session — don't overwrite it with the stale `session`
+        // (still null here) captured before the silent attempt ran.
+        const signedIn = await attemptSilentGoogleSignIn();
+        if (signedIn) return;
       }
       setSession(session);
       setUser(session?.user ?? null);
