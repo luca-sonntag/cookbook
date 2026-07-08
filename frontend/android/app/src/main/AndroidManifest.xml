@@ -19,7 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Receive shared links (e.g. an Instagram reel shared to KochBuddy) -->
+            <!-- Receive shared links (e.g. an Instagram reel shared to Snagbite) -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

@@ -64,7 +64,7 @@ export default function SettingsView() {
       if (success) {
         dialog.alert({
           title: 'Premium Activated!',
-          message: 'Thank you for upgrading to CookBuddy Premium! Your limits have been updated.',
+          message: 'Thank you for upgrading to Snagbite Premium! Your limits have been updated.',
           status: 'success',
         });
       }
@@ -139,7 +139,7 @@ export default function SettingsView() {
           <div>
             <h3 className="text-lg font-bold flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-300 fill-amber-300 animate-pulse" />
-              CookBuddy Premium
+              Snagbite Premium
             </h3>
             <p className="text-xs text-emerald-100/90 mt-1 max-w-md">
               Unlock unlimited recipe extractions, advanced remix capabilities, and priority processing.
@@ -385,7 +385,7 @@ export default function SettingsView() {
 
       <div className="flex justify-center mt-4 mb-8">
         <p className="text-xs text-gray-400 dark:text-gray-600 font-medium">
-          CookBuddy v1.0.0
+          Snagbite v1.0.0
         </p>
       </div>
     </div>

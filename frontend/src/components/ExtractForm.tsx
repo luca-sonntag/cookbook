@@ -167,10 +167,10 @@ const ShareStep3Mockup = () => (
           <div className="relative">
             <div className="absolute inset-0 rounded-md bg-emerald-500 animate-ping opacity-75 duration-1000" />
             <div className="relative w-5 h-5 rounded-md bg-white dark:bg-gray-800 flex items-center justify-center shadow-lg shadow-emerald-500/40 border border-emerald-500 overflow-hidden p-0.5">
-              <img src="/icon-192.png" alt="CookBuddy Logo" className="w-full h-full object-contain rounded-sm" />
+              <img src="/icon-192.png" alt="Snagbite Logo" className="w-full h-full object-contain rounded-sm" />
             </div>
           </div>
-          <span className="text-[5px] font-bold text-emerald-600 dark:text-emerald-400 truncate w-full text-center">CookBuddy</span>
+          <span className="text-[5px] font-bold text-emerald-600 dark:text-emerald-400 truncate w-full text-center">Snagbite</span>
         </div>
         
         <div className="flex flex-col items-center gap-0.5 opacity-40">

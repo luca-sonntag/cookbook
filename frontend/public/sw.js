@@ -1,4 +1,4 @@
-// Custom service worker for KochBuddy PWA
+// Custom service worker for Snagbite PWA
 // Handles notification clicks for cooking timers
 
 // The precache manifest will be injected here by vite-plugin-pwa
@@ -61,7 +61,7 @@ self.addEventListener('push', (event) => {
     try {
       const payload = event.data.json();
       event.waitUntil(
-        self.registration.showNotification(payload.title || 'KochBuddy', {
+        self.registration.showNotification(payload.title || 'Snagbite', {
           body: payload.body || '',
           icon: '/icon-512.png',
           badge: '/icon-192.png',

@@ -30,8 +30,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
       },
       manifest: {
-        name: 'KochBuddy - Dein Reel-Rezeptbuch',
-        short_name: 'KochBuddy',
+        name: 'Snagbite - Dein Reel-Rezeptbuch',
+        short_name: 'Snagbite',
         description: 'Verwandle Instagram Reels in interaktive Kochrezepte',
         theme_color: '#064e3b',
         background_color: '#064e3b',

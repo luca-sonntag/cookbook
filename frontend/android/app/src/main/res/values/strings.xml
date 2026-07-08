@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">KochBuddy</string>
-    <string name="title_activity_main">KochBuddy</string>
+    <string name="app_name">Snagbite</string>
+    <string name="title_activity_main">Snagbite</string>
     <string name="package_name">com.kochbuddy.app</string>
     <string name="custom_url_scheme">com.kochbuddy.app</string>
 </resources>
