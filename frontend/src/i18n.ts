@@ -964,6 +964,16 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
       : `You already have ${count} active job(s). Please wait for them to finish.`;
   }
 
+  if (lowerMsg.includes('cookbook full')) {
+    const m = errorMsg.match(/\((\d+)\/(\d+)\)/);
+    const count = m ? m[1] : '';
+    const limit = m ? m[2] : '5';
+    const countStr = count ? `${count}/${limit}` : `${limit}`;
+    return lang === 'de'
+      ? `Kochbuch voll (${countStr}). Lösche ein Rezept oder hol dir Premium, um weitere Rezepte zu extrahieren.`
+      : `Cookbook full (${countStr}). Delete a recipe or upgrade to Premium to extract more.`;
+  }
+
   if (lowerMsg.includes('youtube shorts')) {
     return lang === 'de'
       ? 'Nur YouTube Shorts werden unterstützt, keine regulären YouTube-Videos.'

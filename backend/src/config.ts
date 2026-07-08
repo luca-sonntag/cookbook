@@ -31,6 +31,8 @@ export interface Config {
   EXTRACTION_LIMIT_WINDOW_DAYS: number;
   FREE_MAX_EXTRACTIONS_PER_WINDOW: number;
   PREMIUM_MAX_EXTRACTIONS_PER_WINDOW: number;
+  /** Max number of saved recipes (cookbook entries) a free account may keep. Premium is unlimited. */
+  FREE_MAX_SAVED_RECIPES: number;
   YTDLP_COOKIES_FILE?: string;
   YTDLP_COOKIES_FROM_BROWSER?: string;
   REVENUECAT_SECRET_KEY?: string;
@@ -68,6 +70,7 @@ export const config: Config = {
   EXTRACTION_LIMIT_WINDOW_DAYS: parseInt(getEnv('EXTRACTION_LIMIT_WINDOW_DAYS', '1'), 10),
   FREE_MAX_EXTRACTIONS_PER_WINDOW: parseInt(getEnv('FREE_MAX_EXTRACTIONS_PER_WINDOW', '3'), 10),
   PREMIUM_MAX_EXTRACTIONS_PER_WINDOW: parseInt(getEnv('PREMIUM_MAX_EXTRACTIONS_PER_WINDOW', '50'), 10),
+  FREE_MAX_SAVED_RECIPES: parseInt(getEnv('FREE_MAX_SAVED_RECIPES', '5'), 10),
   YTDLP_COOKIES_FILE: process.env.YTDLP_COOKIES_FILE,
   YTDLP_COOKIES_FROM_BROWSER: process.env.YTDLP_COOKIES_FROM_BROWSER,
   REVENUECAT_SECRET_KEY: process.env.REVENUECAT_SECRET_KEY,

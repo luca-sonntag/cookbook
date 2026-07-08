@@ -327,6 +327,19 @@ export async function countActiveJobsForUser(userId: string): Promise<number> {
   return count ?? 0;
 }
 
+/** Count a user's saved recipes (completed cookbook entries, including remixes). */
+export async function countCompletedRecipesForUser(userId: string): Promise<number> {
+  const { count, error } = await getClient()
+    .from('jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .not('recipe', 'is', null);
+
+  if (error) throw wrapError('Failed to count completed recipes', error);
+  return count ?? 0;
+}
+
 /** Get all extraction jobs created by a user in the last N days (excluding remixes). */
 export async function getExtractionsForUserInTimeframe(userId: string, days: number): Promise<Job[]> {
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();

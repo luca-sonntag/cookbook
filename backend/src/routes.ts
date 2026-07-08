@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe } from './db.js';
+import { createJob, createRemixJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser } from './db.js';
 import { config } from './config.js';
 import { requireAuth } from './auth.js';
 
@@ -38,6 +38,17 @@ function resolveUserRateLimit(user: any): number {
 
   // 3. Fallback to free tier
   return config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
+}
+
+/**
+ * Determines whether a user has unlimited access — either the premium tier or
+ * an explicit unlimited (-1) override in app_metadata.
+ */
+function isPremiumUser(user: any): boolean {
+  const meta = user?.app_metadata || {};
+  return meta.tier === 'premium' ||
+    meta.custom_extraction_limit === -1 ||
+    meta.max_extractions_per_window === -1;
 }
 
 /**
@@ -113,16 +124,33 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // Enforce rolling rate limit per user (with custom override in app_metadata)
-    let limit = config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
+    // Fetch the user once for tier-based gating (cookbook cap + rolling rate limit).
+    let user: any = null;
     try {
-      const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError && user) {
-        limit = resolveUserRateLimit(user);
-      }
+      const { data, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
+      if (!authError) user = data.user;
     } catch (err) {
-      console.warn(`Failed to fetch user metadata for rate limit check:`, err);
+      console.warn(`Failed to fetch user metadata for gating checks:`, err);
     }
+    const premium = isPremiumUser(user);
+
+    // Enforce the cookbook cap: free accounts may only keep a limited number of
+    // saved recipes. Existing recipes stay accessible — the user must delete one
+    // or upgrade to Premium before extracting more.
+    if (!premium) {
+      const savedCount = await countCompletedRecipesForUser(req.userId!);
+      if (savedCount >= config.FREE_MAX_SAVED_RECIPES) {
+        res.status(403).json({
+          success: false,
+          code: 'COOKBOOK_FULL',
+          error: `Cookbook full (${savedCount}/${config.FREE_MAX_SAVED_RECIPES}). Delete a recipe or upgrade to Premium to extract more.`,
+        });
+        return;
+      }
+    }
+
+    // Enforce rolling rate limit per user (with custom override in app_metadata)
+    const limit = user ? resolveUserRateLimit(user) : config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
 
     // If limit is non-negative (not -1 for unlimited)
     if (limit >= 0) {
