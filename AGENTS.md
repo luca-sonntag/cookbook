@@ -227,3 +227,37 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * `CORS_ORIGIN` (Production) konfiguriert erlaubte Origins für CORS.
   * `NODE_ENV=production` aktiviert CSP via `helmet` und restriktive CORS-Regeln.
 
+---
+
+## 💎 Freemium Gating System
+
+Die App unterscheidet zwischen **Free**- und **Premium**-Nutzern. Premium-Status wird aus `user.app_metadata.tier === 'premium'` abgeleitet und ist in `AuthContext` als `isPremium` boolean verfügbar.
+
+### Tier-Erkennung & Dev-Override
+* **`AuthContext.tsx`:** Stellt `isPremium` (computed) und `setIsPremiumOverride(value: boolean)` bereit.
+* **Dev-Override:** Nur wenn `import.meta.env.DEV === true` wird ein `localStorage`-Key (`kb_simulate_premium`) gelesen/geschrieben, um den Premium-Status zu simulieren. In Production hat dies keine Wirkung.
+* **SettingsView:** Zeigt einen violetten "Simulate Premium"-Toggle (dashed border, Kolben-Icon) ausschließlich im Dev-Modus.
+
+### Gating-Punkte
+
+| Feature | Free | Premium |
+|---|---|---|
+| Rezept-Extraktionen | 3/Tag (konfigurierbar via `.env`) | 50/Tag (konfigurierbar via `.env`) |
+| Kochbuch (History) | max. 5 Rezepte — Banner ab 4 | Unbegrenzt |
+| Einkaufsliste | max. 1 Rezept gleichzeitig | Unbegrenzt |
+| Nährwerte-Detail-Card | Blur-Overlay + Lock | Vollständig sichtbar |
+| Kochmodus (Cooking Mode) | Lock-Badge, öffnet PremiumModal | Aktiviert |
+| Rezept-Remix | Lock-Badge (Frontend) + 403 (Backend) | Aktiviert |
+
+### Backend-Gating
+* **`POST /api/jobs/:id/remix`:** Prüft den Premium-Status des Nutzers via Supabase Admin API (`auth.admin.getUserById`). Gibt `403 Forbidden` zurück, wenn `tier !== 'premium'`.
+
+### UI-Komponenten
+* **`PremiumModal.tsx`:** Glassmorphischer Upsell-Dialog. Listet alle Premium-Features auf, löst beim Klick auf CTA `buyPremium()` aus (RevenueCat). Zeigt "Du hast Premium"-State wenn bereits aktiv.
+* **`PremiumModal`** wird in folgenden Komponenten verwendet: `ExtractForm.tsx`, `SavedCatalog/index.tsx`, `SettingsView.tsx`, `RecipeDetails/index.tsx`, `RecipeDetails/RecipeNutrition.tsx`.
+
+### Upsell-Touchpoints
+* **ExtractForm:** Unter dem Extraktionszähler erscheint für Free-User ein goldener "Crown"-Link zur PremiumModal.
+* **SavedCatalog:** Amber-Banner erscheint ab dem 4. Rezept (fast voll) und ab dem 5. (voll) mit Upgrade-Aufforderung.
+* **SettingsView:** Free-User sehen eine anklickbare Upgrade-Karte (Emerald-Gradient); Premium-User sehen stattdessen eine goldene Status-Card ("Aktiv ✓").
+
