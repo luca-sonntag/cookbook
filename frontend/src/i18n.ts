@@ -500,6 +500,10 @@ export const uiTranslations = {
             desc: 'Speichere unendlich viele Rezepte (statt maximal 5).'
           }
         }
+      },
+      shoppingListLimit: {
+        title: 'Premium-Funktion',
+        message: 'Du hast bereits Zutaten von einem anderen Rezept auf deiner Einkaufsliste. Hol dir Premium, um Zutaten aus beliebig vielen Rezepten zu kombinieren!'
       }
     }
   },
@@ -843,6 +847,10 @@ export const uiTranslations = {
             desc: 'Save unlimited recipes (instead of a maximum of 5).'
           }
         }
+      },
+      shoppingListLimit: {
+        title: 'Premium Feature',
+        message: 'You already have ingredients from another recipe on your shopping list. Get Premium to combine ingredients from multiple recipes!'
       }
     }
   }

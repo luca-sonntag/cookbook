@@ -1,7 +1,14 @@
 import { useState, useMemo } from 'react';
 import type { Ingredient, ShoppingListItem, AggregatedShoppingItem } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { useDialog } from '../context/DialogContext';
+import { useI18n } from '../context/I18nContext';
 
 export function useShoppingList() {
+  const { isPremium } = useAuth();
+  const dialog = useDialog();
+  const { t } = useI18n();
+
   const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>(() => {
     try {
       const saved = localStorage.getItem('recipe_shopping_list');
@@ -25,6 +32,19 @@ export function useShoppingList() {
 
   // Add scaled, unchecked ingredients from a recipe
   const addRecipeIngredients = (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => {
+    if (!isPremium) {
+      const otherRecipes = shoppingList.filter(item => item.recipeId && item.recipeId !== recipeId);
+      if (otherRecipes.length > 0) {
+        dialog.alert({
+          title: t('premium.shoppingListLimit.title'),
+          message: t('premium.shoppingListLimit.message'),
+          status: 'warning',
+          confirmLabel: 'OK'
+        });
+        return;
+      }
+    }
+
     saveList(prevList => {
       // Remove previous items from this recipe to prevent duplicates on portion adjustments
       const filteredList = prevList.filter(item => item.recipeId !== recipeId);
