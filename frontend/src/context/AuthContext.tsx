@@ -7,6 +7,11 @@ import { apiUrl } from '../api';
 
 const GOOGLE_WEB_CLIENT_ID = import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID as string | undefined;
 
+// Set after an explicit sign-out so the app doesn't immediately silent-sign-in
+// again with the same on-device Google account on the next cold start.
+// Cleared again once the user signs in (any method) of their own accord.
+const AUTO_SIGNIN_DISABLED_KEY = 'kb_auto_signin_disabled';
+
 // Lazily initialize the native Google Sign-In plugin exactly once. Safe to call
 // repeatedly; only the first call hits the plugin.
 let socialLoginInitialized: Promise<void> | null = null;
@@ -17,6 +22,36 @@ function ensureSocialLoginInitialized() {
     });
   }
   return socialLoginInitialized;
+}
+
+// Best-effort silent sign-in with an on-device Google account (Android only —
+// this app has no iOS platform, and the plugin's silent-selection options are
+// documented as Android-only). Any failure (no account, ambiguous accounts,
+// user dismissal) is expected and swallowed: the caller falls back to the
+// normal AuthForm with no visible error.
+async function attemptSilentGoogleSignIn(): Promise<void> {
+  if (Capacitor.getPlatform() !== 'android') return;
+  if (!GOOGLE_WEB_CLIENT_ID) return;
+  if (localStorage.getItem(AUTO_SIGNIN_DISABLED_KEY)) return;
+
+  try {
+    await ensureSocialLoginInitialized();
+    const { result } = await SocialLogin.login({
+      provider: 'google',
+      options: {
+        style: 'bottom',
+        filterByAuthorizedAccounts: false,
+        autoSelectEnabled: true,
+      },
+    });
+    const idToken = 'idToken' in result ? result.idToken : null;
+    if (!idToken) return;
+
+    await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken });
+  } catch {
+    // No account available / user dismissed the prompt / anything else —
+    // silently fall back to the manual login form.
+  }
 }
 
 interface AuthState {
@@ -41,7 +76,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) {
+        // No active session on cold start: try to sign in silently with an
+        // on-device Google account before falling back to the login form.
+        await attemptSilentGoogleSignIn();
+      }
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -60,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
+    localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
     return {};
   }, []);
 
@@ -68,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) return { error: error.message };
     // If user is immediately confirmed (no email confirmation), session is available
     if (data.session) {
+      localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
       return {};
     }
     return { needsConfirmation: true };
@@ -98,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           token: idToken,
         });
         if (error) return { error: error.message };
+        localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
         return {};
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -119,6 +162,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    // Set before signing out so a cold restart won't silently sign the user
+    // right back in with the same on-device Google account.
+    localStorage.setItem(AUTO_SIGNIN_DISABLED_KEY, '1');
+    if (Capacitor.getPlatform() === 'android') {
+      // Best effort: clears Credential Manager's cached state. Harmlessly
+      // rejects if the user never signed in via Google.
+      await SocialLogin.logout({ provider: 'google' }).catch(() => {});
+    }
     await supabase.auth.signOut();
   }, []);
 
