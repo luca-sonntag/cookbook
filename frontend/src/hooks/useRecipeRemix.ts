@@ -1,12 +1,9 @@
 import { useState, useCallback } from 'react';
 import type { Recipe, Job } from '../types';
-import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
-import { translateApiError } from '../i18n';
 import { apiUrl } from '../api';
 
 export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
-  const { t, language } = useI18n();
   const { getAccessToken } = useAuth();
   
   const [isPending, setIsPending] = useState(false);
@@ -20,7 +17,7 @@ export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
         if (!token) {
           clearInterval(interval);
           setJobStatus('failed');
-          setJobError(t('form.validation.unauthorized'));
+          setJobError('form.validation.unauthorized');
           setIsPending(false);
           return;
         }
@@ -35,18 +32,15 @@ export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
         } catch {
           clearInterval(interval);
           setJobStatus('failed');
-          const errMsg = response.status === 429
-            ? translateApiError('too many requests', language)
-            : t('form.validation.serverError');
-          setJobError(errMsg);
+          setJobError(response.status === 429 ? 'too many requests' : 'form.validation.serverError');
           setIsPending(false);
           return;
         }
-        
+
         if (!response.ok || !data.success) {
           clearInterval(interval);
           setJobStatus('failed');
-          setJobError(translateApiError(data.error, language) || t('form.validation.failedCheck'));
+          setJobError(data.error || 'form.validation.failedCheck');
           setIsPending(false);
           return;
         }
@@ -60,18 +54,17 @@ export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
           onRemixSuccess(job.recipe);
         } else if (job.status === 'failed') {
           clearInterval(interval);
-          setJobError(translateApiError(job.error, language) || t('form.validation.failedExtraction'));
+          setJobError(job.error || 'form.validation.failedExtraction');
           setIsPending(false);
         }
       } catch (err: unknown) {
         clearInterval(interval);
         setJobStatus('failed');
-        const errMsg = err instanceof Error ? translateApiError(err.message, language) : t('form.validation.lostConnection');
-        setJobError(errMsg);
+        setJobError(err instanceof Error ? err.message : 'form.validation.lostConnection');
         setIsPending(false);
       }
     }, 2000);
-  }, [getAccessToken, onRemixSuccess, t, language]);
+  }, [getAccessToken, onRemixSuccess]);
 
   const triggerRemix = useCallback(async (parentJobId: string, prompt: string) => {
     if (!prompt.trim()) return;
@@ -83,9 +76,9 @@ export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
     try {
       const token = await getAccessToken();
       if (!token) {
-        throw new Error(t('form.validation.unauthorized'));
+        throw new Error('form.validation.unauthorized');
       }
-      
+
       const response = await fetch(apiUrl(`/api/jobs/${parentJobId}/remix`), {
         method: 'POST',
         headers: {
@@ -99,29 +92,25 @@ export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
       try {
         data = await response.json();
       } catch {
-        if (response.status === 429) {
-          throw new Error(translateApiError('too many requests', language));
-        }
-        throw new Error(t('form.validation.serverError'));
+        throw new Error(response.status === 429 ? 'too many requests' : 'form.validation.serverError');
       }
-      
+
       if (response.status === 401) {
-        throw new Error(t('form.validation.unauthorized'));
+        throw new Error('form.validation.unauthorized');
       }
 
       if (!response.ok || !data.success) {
-        throw new Error(translateApiError(data.error, language) || t('form.validation.submitFailed'));
+        throw new Error(data.error || 'form.validation.submitFailed');
       }
 
       setJobStatus(data.status);
       startPolling(data.jobId);
     } catch (err: unknown) {
       setJobStatus('failed');
-      const errorMessage = err instanceof Error ? translateApiError(err.message, language) : t('form.validation.submissionError');
-      setJobError(errorMessage);
+      setJobError(err instanceof Error ? err.message : 'form.validation.submissionError');
       setIsPending(false);
     }
-  }, [getAccessToken, startPolling, t, language]);
+  }, [getAccessToken, startPolling]);
 
 
   return {

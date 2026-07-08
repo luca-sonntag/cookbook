@@ -21,6 +21,7 @@ import { useRecipeExtraction } from './hooks/useRecipeExtraction';
 import { useShoppingList } from './hooks/useShoppingList';
 import { useDialog } from './context/DialogContext';
 import { useI18n } from './context/I18nContext';
+import { resolveJobError } from './i18n';
 import { useAuth } from './context/AuthContext';
 import { useHashRouter } from './hooks/useHashRouter';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
@@ -29,7 +30,7 @@ import { useTimerManager } from './hooks/useTimerManager';
 
 export default function App() {
   const dialog = useDialog();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { user, loading: authLoading, getAccessToken } = useAuth();
 
   // ── URL-based routing ────────────────────────────────────────────────────
@@ -355,7 +356,7 @@ export default function App() {
       case 'completed':
         return { text: t('job.status.completed.text'), sub: t('job.status.completed.sub') };
       case 'failed':
-        return { text: t('job.status.failed.text'), sub: jobError || t('job.status.failed.sub') };
+        return { text: t('job.status.failed.text'), sub: resolveJobError(jobError, language) || t('job.status.failed.sub') };
       default:
         return null;
     }

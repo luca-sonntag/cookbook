@@ -1051,4 +1051,18 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
   return errorMsg;
 }
 
+/**
+ * Resolves a *stored* job error into localized display text using the CURRENT
+ * language. Hooks keep the raw error in state — a backend/worker message, a
+ * synthetic code like `too many requests`, or a `form.validation.*` i18n key —
+ * instead of pre-translated text. Translating here (at render) means the message
+ * re-localizes when the user switches language, rather than freezing in whatever
+ * language happened to be active when the job failed.
+ */
+export function resolveJobError(err: string | null | undefined, lang: SupportedLanguage): string {
+  if (!err) return '';
+  if (err.startsWith('form.validation.')) return getTranslation(err, lang);
+  return translateApiError(err, lang);
+}
+
 

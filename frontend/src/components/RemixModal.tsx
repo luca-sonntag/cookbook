@@ -3,6 +3,7 @@ import { Button, Card } from '@heroui/react';
 import { Sparkles, Wand2, X } from 'lucide-react';
 import { useRecipeRemix } from '../hooks/useRecipeRemix';
 import { useI18n } from '../context/I18nContext';
+import { resolveJobError } from '../i18n';
 import type { Recipe } from '../types';
 
 interface RemixModalProps {
@@ -13,7 +14,7 @@ interface RemixModalProps {
 }
 
 export default function RemixModal({ isOpen, onOpenChange, recipeId, onRemixSuccess }: RemixModalProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [prompt, setPrompt] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -160,7 +161,7 @@ export default function RemixModal({ isOpen, onOpenChange, recipeId, onRemixSucc
           {jobError && (
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-center">
               <p className="text-sm font-semibold text-red-600 dark:text-red-400">
-                {jobError}
+                {resolveJobError(jobError, language)}
               </p>
             </div>
           )}

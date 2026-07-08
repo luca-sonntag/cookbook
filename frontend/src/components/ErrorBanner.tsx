@@ -1,6 +1,7 @@
 import { Card, Button } from '@heroui/react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
+import { resolveJobError } from '../i18n';
 
 interface ErrorBannerProps {
   isPending: boolean;
@@ -17,24 +18,28 @@ export default function ErrorBanner({
   triggerExtraction,
   url
 }: ErrorBannerProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   if (isPending || jobStatus !== 'failed') return null;
 
   return (
-    <Card className="glass-panel p-5 rounded-2xl border border-red-500/20 bg-red-500/5 dark:bg-red-950/10">
-      <div className="flex items-start gap-3 text-red-500">
-        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-        <div>
+    <Card className="glass-panel p-4 rounded-2xl border border-red-500/15 bg-red-50/70 dark:bg-red-950/20">
+      <div className="flex items-start gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-500 dark:text-red-400">
+          <AlertCircle className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('error.title')}</h3>
-          <p className="text-xs text-red-600 dark:text-red-300 mt-1">{jobError || t('error.default')}</p>
-          <Button 
-            size="sm" 
-            variant="tertiary" 
-            className="mt-3 text-xs text-gray-800 dark:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" 
+          <p className="mt-0.5 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
+            {resolveJobError(jobError, language) || t('error.default')}
+          </p>
+          <Button
+            size="sm"
+            variant="tertiary"
             onPress={() => triggerExtraction(url)}
+            className="mt-3 h-8 gap-1.5 rounded-lg border border-red-500/20 bg-red-500/5 px-3 text-xs font-semibold text-red-600 hover:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/15"
           >
-            <RefreshCw className="w-3 h-3 mr-1" /> {t('error.retry')}
+            <RefreshCw className="h-3.5 w-3.5" /> {t('error.retry')}
           </Button>
         </div>
       </div>
