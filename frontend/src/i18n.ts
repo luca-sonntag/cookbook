@@ -464,8 +464,43 @@ export const uiTranslations = {
       minutes: '{count} Min.',
       seconds: '{count} Sek.',
       minutesShort: 'm',
-      secondsShort: 's',
       notificationBody: 'Dein Koch-Timer ist abgelaufen.',
+    },
+    premium: {
+      modal: {
+        title: 'Snagbite Premium',
+        subtitle: 'Koche wie ein Profi, ohne Limits!',
+        cta: 'Jetzt Premium freischalten',
+        loading: 'Zahlung wird verarbeitet...',
+        success: 'Erfolgreich freigeschaltet!',
+        error: 'Fehler bei der Zahlung. Bitte versuche es erneut.',
+        features: {
+          extractions: {
+            title: 'Unbegrenzte Extraktionen',
+            desc: 'Extrahiere so viele Rezepte aus Reels wie du möchtest (statt 3 pro Tag).'
+          },
+          remix: {
+            title: 'Recipe Remix AI',
+            desc: 'Passe Rezepte per Knopfdruck an (z. B. vegan, low-carb, kalorienarm).'
+          },
+          nutrition: {
+            title: 'Nährwerte & Makros',
+            desc: 'Detaillierte Nährwertangaben pro Portion und Zutat auf einen Blick.'
+          },
+          shoppingList: {
+            title: 'Smarte Kombi-Einkaufsliste',
+            desc: 'Führe Zutaten aus beliebig vielen Rezepten automatisch zusammen.'
+          },
+          cookingMode: {
+            title: 'Koch-Timer & Modus',
+            desc: 'Schritt-für-Schritt-Anleitungen mit direkt klickbaren In-App-Timern.'
+          },
+          catalog: {
+            title: 'Unbegrenztes Kochbuch',
+            desc: 'Speichere unendlich viele Rezepte (statt maximal 5).'
+          }
+        }
+      }
     }
   },
   en: {
@@ -772,8 +807,43 @@ export const uiTranslations = {
       minutes: '{count} min.',
       seconds: '{count} sec.',
       minutesShort: 'm',
-      secondsShort: 's',
       notificationBody: 'Your cooking timer has finished.',
+    },
+    premium: {
+      modal: {
+        title: 'Snagbite Premium',
+        subtitle: 'Cook like a pro, without limits!',
+        cta: 'Unlock Premium Now',
+        loading: 'Processing payment...',
+        success: 'Successfully unlocked!',
+        error: 'Payment failed. Please try again.',
+        features: {
+          extractions: {
+            title: 'Unlimited Extractions',
+            desc: 'Extract as many recipes from Reels as you want (instead of 3 per day).'
+          },
+          remix: {
+            title: 'Recipe Remix AI',
+            desc: 'Adapt recipes with one click (e.g. vegan, low-carb, low-calorie).'
+          },
+          nutrition: {
+            title: 'Nutrition & Macros',
+            desc: 'Detailed nutritional facts per portion and ingredient at a glance.'
+          },
+          shoppingList: {
+            title: 'Smart Combined Shopping List',
+            desc: 'Automatically combine ingredients from as many recipes as you want.'
+          },
+          cookingMode: {
+            title: 'Cooking Timers & Mode',
+            desc: 'Step-by-step instructions with clickable in-app timers.'
+          },
+          catalog: {
+            title: 'Unlimited Cookbook',
+            desc: 'Save unlimited recipes (instead of a maximum of 5).'
+          }
+        }
+      }
     }
   }
 } as const;
