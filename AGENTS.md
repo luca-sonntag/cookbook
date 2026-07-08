@@ -160,7 +160,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
   * Bietet interaktive Checklisten zum Abhaken von Zutaten und Zubereitungsschritten während des Kochens.
   * **Interaktive Text-Hervorhebungen:** Hebt Temperaturen (z. B. "200°C", "180 Grad") und Zeitspannen (z. B. "20-22 Minuten", "5 Min.") in den Zubereitungsschritten und Kochtipps automatisch hervor und rendert sie als stilvolle, farblich codierte Badges mit passenden Icons (Thermometer & Uhr). Unterstützt vollautomatisch mehrere Sprachen (DE, EN, ES, FR, IT, PT, NL, TR, PL) samt deren gängigen Abkürzungen und Deklinationen. Zutaten und Kochutensilien werden in diesen Texten ebenfalls interaktiv verlinkt.
   * **In-App Koch-Timer (`TimerContext`, `TimerBanner`, `TimerConfirmSheet`):**
-    * Blaue Zeit-Badges (z.B. „15 Minuten") in `RecipeInstructionText` sind klickbar (unterstrichen, `cursor-pointer`).
+    * Blaue Zeit-Badges (z.B. „15 Minuten") in `RecipeInstructionText` sind klickbar (unterstrichen, `cursor-pointer`). **Premium-Gate:** Für Free-User öffnet ein Klick die `PremiumModal` statt des `TimerConfirmSheet` (In-App-Timer sind Teil des „Koch-Timer & Modus"-Premium-Features). Da der Kochmodus selbst premium-gated ist, funktionieren Timer für Premium-User sowohl im Instructions-Tab als auch im Kochmodus.
     * **Confirm-Sheet:** Tippt der Nutzer auf einen Zeit-Badge, öffnet sich ein Bottom-Sheet (`TimerConfirmSheet.tsx`) mit dem erkannten Label, einem Schieberegler zur Feineinstellung (±50% der Originalzeit, Schritt 15s/1min/5min je nach Dauer) und einem „Timer starten"-Button.
     * **Globaler Zustand (`TimerContext.tsx`, `frontend/src/context/`):** Verwaltet alle aktiven Timer als `TimerEntry[]`. Ein globales `setInterval` (500ms) aktualisiert den Countdown. Mehrere parallele Timer sind unterstützt. State überlebt Tab-Navigation.
     * **Alarm:** Bei Ablauf: 3× synthetischer Beep-Ton via Web Audio API (880 Hz, 150ms) + `navigator.vibrate()` + `Notification`-Push (falls Permission erteilt).
@@ -248,7 +248,10 @@ Die App unterscheidet zwischen **Free**- und **Premium**-Nutzern. Premium-Status
 | Nährwerte-Detail-Card | Blur-Overlay + Lock | Vollständig sichtbar |
 | Nährwerte pro Zutat (Toggle) | Lock-Badge, öffnet PremiumModal | Aktiviert |
 | Kochmodus (Cooking Mode) | Lock-Badge an **beiden** Startbuttons (Action-Dock **und** Instructions-Tab), öffnet PremiumModal | Aktiviert |
+| In-App Koch-Timer (Zeit-Badges) | Klick auf ein Zeit-Badge öffnet PremiumModal statt des Timer-Sheets | Aktiviert |
 | Rezept-Remix | Lock-Badge (Frontend) + 403 (Backend) | Aktiviert |
+
+> **Einheitliche Lock-Hint-Optik:** Gated Buttons zeigen ein kleines Schloss-Icon `Lock className="w-3 h-3 text-amber-500"` (Nährwerte-pro-Zutat-Toggle, Kochmodus-Startbuttons, Remix-Icon — letzteres als reines Amber-Icon ohne Hintergrund-Badge).
 
 ### Backend-Gating
 * **`POST /api/jobs/:id/remix`:** Prüft den Premium-Status des Nutzers via Supabase Admin API (`auth.admin.getUserById`). Gibt `403 Forbidden` zurück, wenn `tier !== 'premium'`.

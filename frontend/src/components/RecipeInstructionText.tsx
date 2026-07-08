@@ -3,7 +3,9 @@ import { Popover } from '@heroui/react';
 import { Thermometer, Clock } from 'lucide-react';
 import type { Recipe } from '../types';
 import { useI18n } from '../context/I18nContext';
+import { useAuth } from '../context/AuthContext';
 import TimerConfirmSheet from './TimerConfirmSheet';
+import PremiumModal from './PremiumModal';
 
 interface RecipeInstructionTextProps {
   text: string;
@@ -43,6 +45,7 @@ function parseTimeToSeconds(timeStr: string): number {
 
 export default function RecipeInstructionText({ text, recipe, formatAmount, stepNum }: RecipeInstructionTextProps) {
   const { t } = useI18n();
+  const { isPremium } = useAuth();
 
   // Timer confirm sheet state
   const [timerSheet, setTimerSheet] = useState<{ isOpen: boolean; seconds: number; label: string }>({
@@ -50,6 +53,9 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
     seconds: 0,
     label: '',
   });
+
+  // In-app timers are a premium feature — free users get the upsell instead.
+  const [premiumOpen, setPremiumOpen] = useState(false);
 
   // Flat list of ingredients
   const allIngredients = useMemo(() => {
@@ -170,6 +176,10 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                 key={index}
                 onClick={canTimer ? (e) => {
                   e.stopPropagation();
+                  if (!isPremium) {
+                    setPremiumOpen(true);
+                    return;
+                  }
                   setTimerSheet({ isOpen: true, seconds, label: text });
                 } : undefined}
                 className={`inline mx-0.5 font-semibold text-blue-600 dark:text-blue-400 transition-colors ${
@@ -248,7 +258,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
         })}
       </>
     );
-  }, [text, recipe.ingredients, recipe.equipment, allIngredients, formatAmount, t]);
+  }, [text, recipe.ingredients, recipe.equipment, allIngredients, formatAmount, t, isPremium]);
 
   return (
     <>
@@ -261,6 +271,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
         stepNum={stepNum}
         onClose={() => setTimerSheet(s => ({ ...s, isOpen: false }))}
       />
+      <PremiumModal isOpen={premiumOpen} onOpenChange={setPremiumOpen} />
     </>
   );
 }
