@@ -58,24 +58,24 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 const ShareStep1Mockup = () => (
-  <div className="relative w-[110px] h-[82px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-between">
+  <div className="relative w-[132px] h-[104px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-between">
     <div className="flex-1 rounded-lg bg-gray-200 dark:bg-gray-700/50 flex items-center justify-center relative overflow-hidden">
-      <InstagramIcon className="w-8 h-8 text-black/10 dark:text-white/10" />
-      <div className="absolute bottom-1.5 left-1.5 flex flex-col gap-0.5 w-2/3">
+      <InstagramIcon className="w-9 h-9 text-black/10 dark:text-white/10" />
+      <div className="absolute bottom-2 left-2 flex flex-col gap-1 w-2/3">
         <div className="h-1.5 w-10 rounded bg-black/20 dark:bg-white/20" />
         <div className="h-1 w-full rounded bg-black/10 dark:bg-white/10" />
       </div>
-      <div className="absolute bottom-1.5 right-1.5 flex flex-col items-center gap-1.5">
-        <div className="w-5 h-5 rounded-full bg-black/25 flex items-center justify-center">
-          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+      <div className="absolute bottom-2 right-2 flex flex-col items-center gap-2">
+        <div className="w-6 h-6 rounded-full bg-black/25 flex items-center justify-center">
+          <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
         </div>
-        <div className="w-5 h-5 rounded-full bg-black/25 flex items-center justify-center">
-          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <div className="w-6 h-6 rounded-full bg-black/25 flex items-center justify-center">
+          <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
         </div>
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75 duration-1000" />
-          <div className="relative w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-            <svg className="w-2.5 h-2.5 text-white translate-x-[0.5px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="relative w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <svg className="w-3 h-3 text-white translate-x-[0.5px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" y1="2" x2="11" y2="13" />
               <polygon points="22 2 15 22 11 13 2 9 22 2" />
             </svg>
@@ -87,100 +87,85 @@ const ShareStep1Mockup = () => (
 );
 
 const ShareStep2Mockup = () => (
-  <div className="relative w-[110px] h-[82px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-end">
+  <div className="relative w-[132px] h-[104px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-end">
     <div className="flex-1 flex flex-col gap-2 opacity-25 px-1 pt-1">
       <div className="h-2 w-full rounded bg-black/20 dark:bg-white/20" />
       <div className="grid grid-cols-4 gap-2">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="flex flex-col items-center gap-0.5">
+          <div key={i} className="flex flex-col items-center gap-1">
             <div className="w-4 h-4 rounded-full bg-black/30 dark:bg-white/30" />
             <div className="w-4 h-1 rounded bg-black/20 dark:bg-white/20" />
           </div>
         ))}
       </div>
     </div>
-    
-    <div className="bg-white dark:bg-gray-900 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-md flex justify-around items-center">
-      <div className="flex flex-col items-center gap-0.5 opacity-40">
-        <div className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-black/5 dark:border-white/5">
-          <svg className="w-2.5 h-2.5 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+
+    <div className="bg-white dark:bg-gray-900 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-md flex items-start gap-1">
+      <div className="flex-1 min-w-0 flex flex-col items-center gap-1 opacity-40">
+        <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-black/5 dark:border-white/5">
+          <svg className="w-3 h-3 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
         </div>
-        <span className="text-[5px] text-gray-500 dark:text-gray-400">Story</span>
+        <span className="text-[7px] leading-none text-gray-500 dark:text-gray-400 truncate w-full text-center">Story</span>
       </div>
 
-      <div className="flex flex-col items-center gap-0.5 opacity-40">
-        <div className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-black/5 dark:border-white/5">
-          <svg className="w-2.5 h-2.5 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <div className="flex-1 min-w-0 flex flex-col items-center gap-1 opacity-40">
+        <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-black/5 dark:border-white/5">
+          <svg className="w-3 h-3 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </div>
-        <span className="text-[5px] text-gray-500 dark:text-gray-400">Kopieren</span>
+        <span className="text-[7px] leading-none text-gray-500 dark:text-gray-400 truncate w-full text-center">Kopieren</span>
       </div>
 
-      <div className="flex flex-col items-center gap-0.5">
+      <div className="flex-1 min-w-0 flex flex-col items-center gap-1">
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75 duration-1000" />
-          <div className="relative w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center border border-emerald-400 shadow-md shadow-emerald-500/20 text-white">
-            <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="relative w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center border border-emerald-400 shadow-md shadow-emerald-500/20 text-white">
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
               <polyline points="16 6 12 2 8 6" />
               <line x1="12" y1="2" x2="12" y2="15" />
             </svg>
           </div>
         </div>
-        <span className="text-[5px] font-bold text-emerald-600 dark:text-emerald-400">Teilen</span>
-      </div>
-
-      <div className="flex flex-col items-center gap-0.5 opacity-40">
-        <div className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-black/5 dark:border-white/5">
-          <svg className="w-2.5 h-2.5 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </div>
-        <span className="text-[5px] text-gray-500 dark:text-gray-400">SMS</span>
+        <span className="text-[7px] leading-none font-bold text-emerald-600 dark:text-emerald-400 truncate w-full text-center">Teilen</span>
       </div>
     </div>
   </div>
 );
 
 const ShareStep3Mockup = () => (
-  <div className="relative w-[110px] h-[82px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-end">
+  <div className="relative w-[132px] h-[104px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/40 p-2 overflow-hidden shadow-inner flex flex-col justify-end">
     <div className="flex-1 flex flex-col gap-1 opacity-25 px-0.5 pt-0.5">
       <div className="h-2 w-1/3 rounded bg-black/40 dark:bg-white/40" />
       <div className="h-1.5 w-full rounded bg-black/20 dark:bg-white/20" />
       <div className="h-1.5 w-2/3 rounded bg-black/20 dark:bg-white/20" />
     </div>
-    
-    <div className="bg-white dark:bg-gray-900 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-md flex flex-col gap-1">
+
+    <div className="bg-white dark:bg-gray-900 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-md flex flex-col gap-1.5">
       <div className="w-6 h-0.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-auto" />
-      <div className="h-1 w-10 rounded bg-gray-200 dark:bg-gray-800 mx-auto" />
-      
-      <div className="grid grid-cols-4 gap-1 pt-1">
-        <div className="flex flex-col items-center gap-0.5 opacity-40">
-          <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.739-1.446L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.858.002-2.634-1.02-5.11-2.884-6.974C16.592 1.89 14.12 1.865 11.99 1.865c-5.43 0-9.854 4.417-9.858 9.853-.002 1.773.465 3.5 1.353 5.03L2.43 21.65l5.06-1.33.157.08z"/></svg>
+
+      <div className="flex items-start gap-1 pt-0.5">
+        <div className="flex-1 min-w-0 flex flex-col items-center gap-1 opacity-40">
+          <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+            <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.739-1.446L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.858.002-2.634-1.02-5.11-2.884-6.974C16.592 1.89 14.12 1.865 11.99 1.865c-5.43 0-9.854 4.417-9.858 9.853-.002 1.773.465 3.5 1.353 5.03L2.43 21.65l5.06-1.33.157.08z"/></svg>
           </div>
-          <span className="text-[5px] text-gray-500 dark:text-gray-400 truncate w-full text-center">WhatsApp</span>
+          <span className="text-[7px] leading-none text-gray-500 dark:text-gray-400 truncate w-full text-center">WhatsApp</span>
         </div>
-        
-        <div className="flex flex-col items-center gap-0.5 opacity-40">
-          <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.14 2 11.25c0 2.91 1.46 5.51 3.75 7.15.2.14.31.38.31.62l-.08 1.9c-.03.58.52 1.02 1.05.77l2.12-1a.76.76 0 0 1 .63-.03c.69.2 1.42.31 2.22.31 5.52 0 10-4.14 10-9.25S17.52 2 12 2z"/></svg>
-          </div>
-          <span className="text-[5px] text-gray-500 dark:text-gray-400 truncate w-full text-center">Chats</span>
-        </div>
-        
-        <div className="flex flex-col items-center gap-0.5">
+
+        <div className="flex-1 min-w-0 flex flex-col items-center gap-1">
           <div className="relative">
             <div className="absolute inset-0 rounded-md bg-emerald-500 animate-ping opacity-75 duration-1000" />
-            <div className="relative w-5 h-5 rounded-md bg-white dark:bg-gray-800 flex items-center justify-center shadow-lg shadow-emerald-500/40 border border-emerald-500 overflow-hidden p-0.5">
+            <div className="relative w-6 h-6 rounded-md bg-white dark:bg-gray-800 flex items-center justify-center shadow-lg shadow-emerald-500/40 border border-emerald-500 overflow-hidden p-0.5">
               <img src="/icon-192.png" alt="Snagbite Logo" className="w-full h-full object-contain rounded-sm" />
             </div>
           </div>
-          <span className="text-[5px] font-bold text-emerald-600 dark:text-emerald-400 truncate w-full text-center">Snagbite</span>
+          <span className="text-[7px] leading-none font-bold text-emerald-600 dark:text-emerald-400 truncate w-full text-center">Snagbite</span>
         </div>
-        
-        <div className="flex flex-col items-center gap-0.5 opacity-40">
-          <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
-            <svg className="w-2.5 h-2.5 text-gray-600 dark:text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+
+        <div className="flex-1 min-w-0 flex flex-col items-center gap-1 opacity-40">
+          <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+            <svg className="w-3 h-3 text-gray-600 dark:text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
           </div>
-          <span className="text-[5px] text-gray-500 dark:text-gray-400 truncate w-full text-center">Mehr</span>
+          <span className="text-[7px] leading-none text-gray-500 dark:text-gray-400 truncate w-full text-center">Mehr</span>
         </div>
       </div>
     </div>
