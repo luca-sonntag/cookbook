@@ -80,10 +80,21 @@ async function bootstrap() {
     // limiting to the load balancer or replace with a shared store (Redis).
     const apiLimiter = rateLimit({
       windowMs: 15 * 60 * 1000,
-      max: 100,
+      max: 500,
       standardHeaders: true,
       legacyHeaders: false,
       message: { success: false, error: 'Too many requests, please try again later.' },
+      // Don't count cheap, chatty endpoints against the limit: the image proxy
+      // (static, long-cached images) and job-status polling (fires ~every 2s
+      // during an extraction). Real actions like /extract-recipe still count,
+      // and per-user extraction quotas are enforced separately in routes.ts.
+      // NOTE: req.path is relative to the '/api' mount point here (e.g.
+      // '/image', '/jobs/123'), since the limiter is mounted at '/api'.
+      skip: (req) => {
+        if (req.path.startsWith('/image')) return true;
+        if (req.method === 'GET' && /^\/jobs(\/|$)/.test(req.path)) return true;
+        return false;
+      },
     });
     app.use('/api', apiLimiter);
 
