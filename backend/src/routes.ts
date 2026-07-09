@@ -132,6 +132,14 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     } catch (err) {
       console.warn(`Failed to fetch user metadata for gating checks:`, err);
     }
+
+    // Dev-override: allow simulating premium in development environments
+    if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
+      if (!user) user = { id: req.userId, app_metadata: {} };
+      if (!user.app_metadata) user.app_metadata = {};
+      user.app_metadata.tier = 'premium';
+    }
+
     const premium = isPremiumUser(user);
 
     // Enforce the cookbook cap: free accounts may only keep a limited number of
@@ -240,8 +248,20 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
     // Enforce premium access for remixing
     let isPremium = false;
     try {
-      const { data: { user }, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError && user) {
+      let user: any = null;
+      const { data, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
+      if (!authError && data?.user) {
+        user = data.user;
+      }
+
+      // Dev-override: allow simulating premium in development environments
+      if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
+        if (!user) user = { id: req.userId, app_metadata: {} };
+        if (!user.app_metadata) user.app_metadata = {};
+        user.app_metadata.tier = 'premium';
+      }
+
+      if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
                     meta.custom_extraction_limit === -1 ||
@@ -249,6 +269,9 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for remix premium check:`, err);
+      if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
+        isPremium = true;
+      }
     }
 
     if (!isPremium) {
@@ -399,11 +422,21 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
       const { data, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
       if (!authError && data.user) {
         user = data.user;
-        limit = resolveUserRateLimit(user);
-        tier = user.app_metadata?.tier === 'premium' ? 'premium' : 'free';
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for rate limit status:`, err);
+    }
+
+    // Dev-override: allow simulating premium in development environments
+    if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
+      if (!user) user = { id: req.userId, app_metadata: {} };
+      if (!user.app_metadata) user.app_metadata = {};
+      user.app_metadata.tier = 'premium';
+    }
+
+    if (user) {
+      limit = resolveUserRateLimit(user);
+      tier = user.app_metadata?.tier === 'premium' ? 'premium' : 'free';
     }
 
     const windowDays = config.EXTRACTION_LIMIT_WINDOW_DAYS;
