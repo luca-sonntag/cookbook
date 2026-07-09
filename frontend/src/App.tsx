@@ -391,8 +391,8 @@ export default function App() {
       {/* Sticky top region: header + banners share one sticky container so the
           status-bar safe-area inset is applied once and they stack without a gap
           or overlapping each other when pinned. */}
-      <div className="sticky top-0 z-40 w-full pt-[env(safe-area-inset-top)]">
-        <header className="w-full bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
+      <div className="sticky top-0 z-40 w-full">
+        <header className="w-full pt-[env(safe-area-inset-top)] bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
           <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
             <div className="flex items-center gap-2">
               <div className="flex-shrink-0">
