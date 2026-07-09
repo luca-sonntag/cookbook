@@ -226,7 +226,7 @@ export default function ExtractForm({
       }
     } catch (err) {
       console.error('Failed to read clipboard:', err);
-      setUrlError(t('form.pasteFailed'));
+      setUrlError?.(t('form.pasteFailed'));
     }
   };
 
