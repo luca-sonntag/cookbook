@@ -61,3 +61,11 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
+task reversePorts(type: Exec) {
+    def adb = android.getAdbExe().toString()
+    commandLine adb, 'reverse', 'tcp:5173', 'tcp:5173'
+    ignoreExitValue true
+}
+
+preBuild.dependsOn reversePorts
