@@ -116,7 +116,7 @@ export default function CatalogEmptyState() {
       {/* Interactive Step-by-Step Guide with Mockups */}
       <div className="flex flex-col gap-4">
         {/* Step 1 */}
-        <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
+        <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between hover:bg-black/[0.04] dark:hover:bg-white/[0.04] hover:border-black/10 dark:hover:border-white/10 transition-all duration-300 cursor-default">
           <div className="flex-1 flex flex-col gap-1">
             <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
               {t('catalog.emptyState.step1Title')}
@@ -129,7 +129,7 @@ export default function CatalogEmptyState() {
         </div>
 
         {/* Step 2 */}
-        <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
+        <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between hover:bg-black/[0.04] dark:hover:bg-white/[0.04] hover:border-black/10 dark:hover:border-white/10 transition-all duration-300 cursor-default">
           <div className="flex-1 flex flex-col gap-1">
             <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
               {t('catalog.emptyState.step2Title')}
@@ -142,7 +142,7 @@ export default function CatalogEmptyState() {
         </div>
 
         {/* Step 3 */}
-        <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
+        <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between hover:bg-black/[0.04] dark:hover:bg-white/[0.04] hover:border-black/10 dark:hover:border-white/10 transition-all duration-300 cursor-default">
           <div className="flex-1 flex flex-col gap-1">
             <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
               {t('catalog.emptyState.step3Title')}
