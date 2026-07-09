@@ -83,6 +83,7 @@ interface AuthState {
   autoSignedIn: boolean;
   authError: string | null;
   isPremium: boolean;
+  isPremiumOverride: boolean;
   setIsPremiumOverride: (value: boolean) => void;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
@@ -287,7 +288,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [getAccessToken, signOut]);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, setIsPremiumOverride, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount }}>
+    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, isPremiumOverride, setIsPremiumOverride, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

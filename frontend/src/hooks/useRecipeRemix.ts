@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
 
 export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
-  const { getAccessToken } = useAuth();
+  const { getAccessToken, isPremiumOverride } = useAuth();
   
   const [isPending, setIsPending] = useState(false);
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
@@ -79,12 +79,17 @@ export function useRecipeRemix(onRemixSuccess: (newRecipe: Recipe) => void) {
         throw new Error('form.validation.unauthorized');
       }
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+      if (isPremiumOverride) {
+        headers['X-Simulate-Premium'] = 'true';
+      }
+
       const response = await fetch(apiUrl(`/api/jobs/${parentJobId}/remix`), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers,
         body: JSON.stringify({ prompt: prompt.trim() })
       });
 

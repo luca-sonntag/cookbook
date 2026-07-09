@@ -35,7 +35,7 @@ let isWebShareProcessed = false;
 export default function App() {
   const dialog = useDialog();
   const { t, language } = useI18n();
-  const { user, loading: authLoading, getAccessToken } = useAuth();
+  const { user, loading: authLoading, getAccessToken, isPremiumOverride } = useAuth();
 
   // ── URL-based routing ────────────────────────────────────────────────────
   const { tab: activeView, subPath, navigate, replace } = useHashRouter();
@@ -126,7 +126,7 @@ export default function App() {
     triggerExtraction,
     limitStatus,
     fetchLimitStatus
-  } = useRecipeExtraction(getAccessToken, handleExtractionSuccess);
+  } = useRecipeExtraction(getAccessToken, handleExtractionSuccess, isPremiumOverride);
 
   // Mobile back button & swipe gestures for newly extracted recipe details
   useMobileNavigationBack(activeView === 'extract' && !!recipe, () => {
@@ -160,7 +160,7 @@ export default function App() {
     if (activeView === 'extract' && user) {
       fetchLimitStatus();
     }
-  }, [activeView, user, fetchLimitStatus]);
+  }, [activeView, user, isPremiumOverride, fetchLimitStatus]);
 
   // After history loads, check if current URL references a valid jobId and keep it,
   // or clear the subPath if the jobId no longer exists.

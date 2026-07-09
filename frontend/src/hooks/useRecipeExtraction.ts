@@ -3,7 +3,7 @@ import type { Recipe, Job, ProgressData } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { apiUrl } from '../api';
 
-export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void) {
+export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void, isPremiumOverride?: boolean) {
   const { t } = useI18n();
   const [isPending, setIsPending] = useState(false);
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
@@ -18,10 +18,16 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     try {
       const token = await getAccessToken();
       if (!token) return;
+
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${token}`
+      };
+      if (isPremiumOverride) {
+        headers['X-Simulate-Premium'] = 'true';
+      }
+
       const response = await fetch(apiUrl('/api/extractions/limit'), {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers
       });
       const data = await response.json();
       if (response.ok && data.success) {
@@ -39,7 +45,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     } catch (err) {
       console.warn('Failed to fetch rate limit status:', err);
     }
-  }, [getAccessToken]);
+  }, [getAccessToken, isPremiumOverride]);
 
   const validateUrl = useCallback((testUrl: string): boolean => {
     const trimmed = testUrl.trim();
@@ -152,12 +158,18 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       if (!token) {
         throw new Error('form.validation.unauthorized');
       }
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+      if (isPremiumOverride) {
+        headers['X-Simulate-Premium'] = 'true';
+      }
+
       const response = await fetch(apiUrl('/api/extract-recipe'), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers,
         body: JSON.stringify({ url: cleanUrl })
       });
 
