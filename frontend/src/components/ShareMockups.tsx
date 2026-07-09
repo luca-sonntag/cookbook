@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChefHat } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 
 // Custom SVG component for Instagram icon
@@ -22,27 +23,50 @@ export const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export const ShareStep1Mockup = () => (
-  <div className="relative w-[132px] h-[104px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 p-2 overflow-hidden shadow-inner flex flex-col justify-between select-none">
-    <div className="flex-1 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center relative overflow-hidden">
-      <InstagramIcon className="w-9 h-9 text-black/10 dark:text-white/10" />
-      <div className="absolute bottom-2 left-2 flex flex-col gap-1 w-2/3">
-        <div className="h-1.5 w-10 rounded bg-black/20 dark:bg-white/20" />
-        <div className="h-1 w-full rounded bg-black/10 dark:bg-white/10" />
+  <div className="relative w-[132px] h-[104px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 p-1 flex items-center justify-center overflow-hidden shadow-inner select-none">
+    {/* Vertical Phone Screen Mockup representing a Reel */}
+    <div className="w-[54px] h-[88px] rounded-lg bg-white dark:bg-gray-800 relative border border-black/10 dark:border-white/10 overflow-hidden shadow-sm flex flex-col justify-between p-1">
+      {/* Video Content representation (cook gradient background) */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 dark:from-emerald-500/15 dark:to-teal-500/5 flex items-center justify-center">
+        <ChefHat className="w-6 h-6 text-emerald-600/20 dark:text-emerald-400/15" />
       </div>
-      <div className="absolute bottom-2 right-2 flex flex-col items-center gap-2">
-        <div className="w-6 h-6 rounded-full bg-black/25 flex items-center justify-center">
-          <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+
+      {/* Top Status Bar mock */}
+      <div className="absolute top-1 left-0 right-0 px-1.5 flex justify-between items-center z-10 opacity-50">
+        <div className="w-1 h-1 rounded-full bg-black/35 dark:bg-white/35" />
+        <div className="flex gap-0.5">
+          <div className="w-1 h-0.5 bg-black/35 dark:bg-white/35 rounded-xs" />
+          <div className="w-2 h-0.5 bg-black/35 dark:bg-white/35 rounded-xs" />
         </div>
-        <div className="w-6 h-6 rounded-full bg-black/25 flex items-center justify-center">
-          <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      </div>
+
+      {/* Bottom overlay: user profile and caption */}
+      <div className="absolute bottom-1 left-1 flex flex-col gap-0.5 z-10 w-[24px]">
+        {/* User avatar + handle */}
+        <div className="flex items-center gap-0.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-black/20 dark:bg-white/20 border border-black/10 dark:border-white/10 shrink-0" />
+          <div className="h-0.5 w-3 rounded bg-black/15 dark:bg-white/15" />
         </div>
+        {/* Caption lines */}
+        <div className="h-0.5 w-full rounded bg-black/10 dark:bg-white/10" />
+        <div className="h-0.5 w-2/3 rounded bg-black/10 dark:bg-white/10" />
+      </div>
+
+      {/* Right side overlays: Action icons stack */}
+      <div className="absolute right-1 bottom-1 flex flex-col items-center gap-1 z-10">
+        {/* Like (Heart) */}
+        <div className="w-2.5 h-2.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center justify-center">
+          <svg className="w-1.5 h-1.5 text-black/50 dark:text-white/50" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+        {/* Comment */}
+        <div className="w-2.5 h-2.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center justify-center">
+          <svg className="w-1.5 h-1.5 text-black/50 dark:text-white/50" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        {/* Share (Paper Airplane) with active highlight */}
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75 duration-1000" />
-          <div className="relative w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-            <svg className="w-3 h-3 text-white translate-x-[0.5px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
+          <div className="relative w-3.5 h-3.5 rounded-full bg-emerald-500 flex items-center justify-center text-white border border-emerald-400 shadow-md shadow-emerald-500/30">
+            <svg className="w-2 h-2 translate-x-[0.3px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
           </div>
         </div>
       </div>
