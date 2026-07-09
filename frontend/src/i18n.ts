@@ -384,7 +384,7 @@ export const uiTranslations = {
       emptyTitle: 'Keine gespeicherten Rezepte',
       emptyDesc: 'Extrahiere Rezepte im "Neues Rezept" Tab, um sie hier zu speichern!',
       emptyState: {
-        welcomeTitle: 'Dein Kochbuch wartet auf Rezepte! 🧑‍🍳',
+        welcomeTitle: 'Dein Kochbuch wartet auf Rezepte!',
         welcomeDesc: 'Snagbite verwandelt Kochvideos von Instagram, TikTok oder YouTube in strukturierte Rezepte mit Einkaufslisten und Nährwertangaben.',
         ctaButton: 'Rezept hinzufügen',
         step1Title: '1. Entdecken',
@@ -755,7 +755,7 @@ export const uiTranslations = {
       emptyTitle: 'No Saved Recipes',
       emptyDesc: 'Extract recipes in the "Extract New" tab to save them here!',
       emptyState: {
-        welcomeTitle: 'Your Cookbook is Waiting for Recipes! 🧑‍🍳',
+        welcomeTitle: 'Your Cookbook is Waiting for Recipes!',
         welcomeDesc: 'Snagbite turns cooking videos from Instagram, TikTok, or YouTube into structured recipes with shopping lists and nutritional values.',
         ctaButton: 'Add First Recipe',
         step1Title: '1. Discover',
