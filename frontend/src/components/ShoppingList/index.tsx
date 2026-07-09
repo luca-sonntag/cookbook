@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { ShoppingCart, Plus, Trash2, X, MoreHorizontal, Check, Sparkles } from 'lucide-react';
+import { Plus, Trash2, X, MoreHorizontal, Check } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
@@ -11,6 +11,7 @@ import FloatingActionBar from '../FloatingActionBar';
 import CustomItemForm from './CustomItemForm';
 import ShoppingListGroup from './ShoppingListGroup';
 import ShoppingCheckedDrawer from './ShoppingCheckedDrawer';
+import ShoppingEmptyState from './ShoppingEmptyState';
 
 interface ShoppingListProps {
   aggregatedList: {
@@ -225,22 +226,7 @@ export default function ShoppingList({
       )}
 
       {totalCount === 0 ? (
-        <div className="text-center py-10 flex flex-col items-center justify-center">
-          <div className="relative mb-4">
-            <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full animate-pulse-slow" />
-            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/30 flex items-center justify-center">
-              <ShoppingCart className="w-8 h-8 text-emerald-500" />
-            </div>
-          </div>
-          <h4 className="text-base font-bold text-gray-900 dark:text-white">{t('shopping.emptyTitle')}</h4>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-xs leading-relaxed">
-            {t('shopping.emptyDesc')}
-          </p>
-          <div className="mt-4 flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 font-semibold">
-            <Sparkles className="w-3 h-3" />
-            <span>{t('shopping.emptyHint', { defaultValue: 'Tipp: Öffne ein Rezept und tippe auf den Einkaufswagen' })}</span>
-          </div>
-        </div>
+        <ShoppingEmptyState />
       ) : (
         <div className="flex flex-col gap-3">
           {activeGroups.length > 0 ? (
