@@ -122,6 +122,7 @@ export default function App() {
     url,
     setUrl,
     urlError,
+    setUrlError,
     validateUrl,
     triggerExtraction,
     limitStatus,
@@ -454,6 +455,7 @@ export default function App() {
                 url={url}
                 setUrl={setUrl}
                 urlError={urlError}
+                setUrlError={setUrlError}
                 validateUrl={validateUrl}
                 isPending={isPending}
                 handleFormSubmit={handleFormSubmit}

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, TextField, Label, Input, Button, FieldError, Spinner, Accordion } from '@heroui/react';
 import { BookOpen, Clipboard, Globe, HelpCircle } from 'lucide-react';
+import { Clipboard as CapClipboard } from '@capacitor/clipboard';
+import { Capacitor } from '@capacitor/core';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import PremiumModal from './PremiumModal';
@@ -176,6 +178,7 @@ interface ExtractFormProps {
   url: string;
   setUrl: (url: string) => void;
   urlError: string;
+  setUrlError?: (error: string) => void;
   validateUrl: (url: string) => boolean;
   isPending: boolean;
   handleFormSubmit: (e: React.FormEvent) => void;
@@ -186,6 +189,7 @@ export default function ExtractForm({
   url,
   setUrl,
   urlError,
+  setUrlError,
   validateUrl,
   isPending,
   handleFormSubmit,
@@ -200,20 +204,29 @@ export default function ExtractForm({
   const cookbookFull = !isPremium && !!limitStatus?.cookbookFull;
 
   useEffect(() => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.readText === 'function') {
+    if (Capacitor.isNativePlatform()) {
+      setCanPaste(true);
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.readText === 'function') {
       setCanPaste(true);
     }
   }, []);
 
   const handlePaste = async () => {
     try {
-      const text = await navigator.clipboard.readText();
+      let text = '';
+      if (Capacitor.isNativePlatform()) {
+        const result = await CapClipboard.read();
+        text = result.value;
+      } else {
+        text = await navigator.clipboard.readText();
+      }
       if (text) {
         setUrl(text);
-        if (urlError) validateUrl(text);
+        validateUrl(text);
       }
     } catch (err) {
       console.error('Failed to read clipboard:', err);
+      setUrlError(t('form.pasteFailed'));
     }
   };
 
