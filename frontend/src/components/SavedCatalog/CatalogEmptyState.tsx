@@ -102,9 +102,6 @@ export default function CatalogEmptyState() {
 
       {/* Header Section */}
       <div className="text-center flex flex-col items-center justify-center pt-2">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 dark:from-emerald-500/30 dark:to-teal-500/20 flex items-center justify-center mb-4 shadow-inner border border-emerald-500/10 group hover:scale-105 transition-transform duration-300">
-          <ChefHat className="w-8 h-8 text-emerald-600 dark:text-emerald-400 animate-pulse-slow" />
-        </div>
         <h3 className="text-lg font-bold text-gray-950 dark:text-white leading-snug">
           {t('catalog.emptyState.welcomeTitle')}
         </h3>
