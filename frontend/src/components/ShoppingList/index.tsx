@@ -1,15 +1,16 @@
 import { useState, useMemo, useRef } from 'react';
-import { Card } from '@heroui/react';
-import { ShoppingCart, Plus, Trash2, X, ListChecks, Sparkles } from 'lucide-react';
+import { Popover, Button } from '@heroui/react';
+import { ShoppingCart, Plus, Trash2, X, MoreHorizontal, Check, Sparkles } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
-import FloatingActionBar, { FloatingDivider } from '../FloatingActionBar';
+import FloatingActionBar from '../FloatingActionBar';
 
 // Import subcomponents
 import CustomItemForm from './CustomItemForm';
 import ShoppingListGroup from './ShoppingListGroup';
+import ShoppingCheckedDrawer from './ShoppingCheckedDrawer';
 
 interface ShoppingListProps {
   aggregatedList: {
@@ -36,11 +37,17 @@ export default function ShoppingList({
 
   // Local UI states
   const [showAddForm, setShowAddForm] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const addFormRef = useRef<HTMLDivElement>(null);
   const [collapsingKeys, setCollapsingKeys] = useState<Set<string>>(new Set());
 
   const getItemKey = (item: AggregatedShoppingItem) =>
     `${item.baseName || item.name}|${(item.modifier || '').toLowerCase().trim()}|${item.unit}`.toLowerCase();
+
+  const categoryIndex = (cat: string) => {
+    const idx = (categoryOrder as readonly string[]).indexOf(cat.toUpperCase());
+    return idx === -1 ? 999 : idx;
+  };
 
   const triggerCollapseAndAction = (keys: string[], action: () => void) => {
     setCollapsingKeys((prev) => {
@@ -63,21 +70,13 @@ export default function ShoppingList({
     const displayKey = `${item.checked ? 'checked' : 'unchecked'}-${key}`;
     const keysToCollapse = [displayKey];
 
-    const cat = item.category || 'OTHER';
-    const categoryItems = allAggregatedItems.filter((i) => (i.category || 'OTHER') === cat);
-    if (categoryItems.length > 0) {
-      if (!item.checked) {
-        // Checking: will it complete the category?
-        const otherItemsChecked = categoryItems.filter((i) => getItemKey(i) !== key).every((i) => i.checked);
-        if (otherItemsChecked) {
-          keysToCollapse.push(`group-${cat}`);
-        }
-      } else {
-        // Unchecking: was the category previously fully checked?
-        const allItemsChecked = categoryItems.every((i) => i.checked);
-        if (allItemsChecked) {
-          keysToCollapse.push(`group-${cat}`);
-        }
+    // Checking an item off: if it's the last open item in its aisle, collapse the
+    // whole aisle so it disappears cleanly as the item moves to the "Erledigt" drawer.
+    if (!item.checked) {
+      const cat = item.category || 'OTHER';
+      const openInCat = aggregatedList.unchecked.filter((i) => (i.category || 'OTHER') === cat);
+      if (openInCat.length === 1) {
+        keysToCollapse.push(`group-${cat}`);
       }
     }
 
@@ -86,26 +85,14 @@ export default function ShoppingList({
     });
   };
 
+  // Check off every item in an aisle at once (aisle groups only ever hold open items).
   const handleGroupHeaderClick = (items: AggregatedShoppingItem[]) => {
-    const allChecked = items.every((item) => item.checked);
-    const keysToCollapse = items
-      .filter((item) => item.checked === allChecked)
-      .map((item) => {
-        const key = getItemKey(item);
-        return `${item.checked ? 'checked' : 'unchecked'}-${key}`;
-      });
-
-    if (items.length > 0) {
-      const cat = items[0].category || 'OTHER';
-      keysToCollapse.push(`group-${cat}`);
-    }
+    if (items.length === 0) return;
+    const keysToCollapse = items.map((i) => `unchecked-${getItemKey(i)}`);
+    keysToCollapse.push(`group-${items[0].category || 'OTHER'}`);
 
     triggerCollapseAndAction(keysToCollapse, () => {
-      items.forEach((item) => {
-        if (item.checked === allChecked) {
-          toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, !allChecked);
-        }
-      });
+      items.forEach((i) => toggleItemGroup(i.baseName || i.name, i.modifier, i.unit, true));
     });
   };
 
@@ -117,6 +104,7 @@ export default function ShoppingList({
   };
 
   const handleClearAll = async () => {
+    setIsMenuOpen(false);
     const confirmed = await dialog.confirm({
       title: t('shopping.dialogClear.title'),
       message: t('shopping.dialogClear.message'),
@@ -129,10 +117,14 @@ export default function ShoppingList({
     }
   };
 
+  const handleClearChecked = () => {
+    setIsMenuOpen(false);
+    clearChecked();
+  };
+
   const toggleAddForm = () => {
     const willOpen = !showAddForm;
     setShowAddForm(willOpen);
-    // Scroll to top of page when opening the form
     if (willOpen) {
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -140,189 +132,161 @@ export default function ShoppingList({
     }
   };
 
-  const totalCount = aggregatedList.unchecked.length + aggregatedList.checked.length;
+  const checkedCount = aggregatedList.checked.length;
+  const totalCount = aggregatedList.unchecked.length + checkedCount;
+  const progress = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
 
-  // Combine checked and unchecked aggregated items
-  const allAggregatedItems = useMemo(() => {
-    return [...aggregatedList.unchecked, ...aggregatedList.checked];
-  }, [aggregatedList.unchecked, aggregatedList.checked]);
-
-  // Group all items by category
-  const groupedCategories = useMemo(() => {
+  // Active aisles (still to buy), ordered by supermarket layout.
+  const activeGroups = useMemo(() => {
     const groups: Record<string, AggregatedShoppingItem[]> = {};
-
-    allAggregatedItems.forEach((item) => {
+    aggregatedList.unchecked.forEach((item) => {
       const cat = item.category || 'OTHER';
-      if (!groups[cat]) {
-        groups[cat] = [];
-      }
+      if (!groups[cat]) groups[cat] = [];
       groups[cat].push(item);
     });
+    return Object.keys(groups)
+      .map((category) => ({ category, items: groups[category] }))
+      .sort((a, b) => categoryIndex(a.category) - categoryIndex(b.category));
+  }, [aggregatedList.unchecked]);
 
-    // Map to category groups and pre-calculate checked state
-    const mappedGroups = Object.keys(groups).map((cat) => {
-      const items = groups[cat];
-      const allChecked = items.every((item) => item.checked);
-      return {
-        category: cat,
-        items,
-        allChecked,
-      };
-    });
-
-    // Sort: uncompleted first, completed last. Within each, sort by categoryOrder.
-    return mappedGroups.sort((a, b) => {
-      if (a.allChecked !== b.allChecked) {
-        return a.allChecked ? 1 : -1;
-      }
-      const idxA = categoryOrder.indexOf(a.category.toUpperCase() as any);
-      const idxB = categoryOrder.indexOf(b.category.toUpperCase() as any);
-      const valA = idxA === -1 ? 999 : idxA;
-      const valB = idxB === -1 ? 999 : idxB;
-      return valA - valB;
-    });
-  }, [allAggregatedItems]);
+  // Checked items for the drawer — flat list, ordered by the same supermarket layout.
+  const checkedSorted = useMemo(() => {
+    return [...aggregatedList.checked].sort(
+      (a, b) => categoryIndex(a.category || 'OTHER') - categoryIndex(b.category || 'OTHER')
+    );
+  }, [aggregatedList.checked]);
 
   return (
-    <div className="flex flex-col gap-6 relative">
-      {/* Main Shopping List Content */}
-      <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5">
-        {/* Progress Stats Bar */}
-        {totalCount > 0 && (
-          <div className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                  <ListChecks className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">
-                    {t('shopping.progressLabel', { defaultValue: 'Fortschritt' })}
-                  </div>
-                  <div className="text-sm font-bold text-gray-900 dark:text-white">
-                    {aggregatedList.checked.length} / {totalCount}
-                  </div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
-                  {Math.round((aggregatedList.checked.length / totalCount) * 100)}%
-                </div>
-                <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">
-                  {t('shopping.done', { defaultValue: 'Erledigt' })}
-                </div>
-              </div>
+    <div className="flex flex-col gap-4 relative">
+      {/* Sticky overview toolbar: title, progress, and the overflow (clear) menu */}
+      {totalCount > 0 && (
+        <div className="sticky top-[52px] z-30 -mx-4 px-4 pt-2 pb-3 bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-baseline gap-2 min-w-0">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight truncate">
+                {t('shopping.title')}
+              </h2>
+              <span className="text-sm font-semibold text-gray-400 dark:text-gray-500 tabular-nums flex-shrink-0">
+                {checkedCount} / {totalCount}
+              </span>
             </div>
-            <div className="h-2 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500 ease-out shadow-sm"
-                style={{ width: `${(aggregatedList.checked.length / totalCount) * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
 
-        {/* Add Custom Item Form — sits between progress bar and "TO BUY" label */}
-        {showAddForm && (
-          <div className="mb-4">
-            <CustomItemForm
-              addCustomItem={addCustomItem}
-              addFormRef={addFormRef}
+            <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <Popover.Trigger>
+                <Button
+                  isIconOnly
+                  variant="outline"
+                  aria-label={t('shopping.moreActions')}
+                  className="w-9 h-9 min-w-[36px] flex-shrink-0 flex items-center justify-center rounded-xl border-none bg-transparent shadow-none text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              </Popover.Trigger>
+              <Popover.Content
+                placement="bottom end"
+                className="p-1.5 min-w-[190px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg"
+              >
+                <div className="flex flex-col w-full">
+                  {checkedCount > 0 && (
+                    <button
+                      onClick={handleClearChecked}
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                    >
+                      <X className="w-4 h-4 text-emerald-500" />
+                      <span>{t('shopping.clearChecked')}</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={handleClearAll}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>{t('shopping.clearAll')}</span>
+                  </button>
+                </div>
+              </Popover.Content>
+            </Popover>
+          </div>
+
+          <div className="h-1.5 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress}%` }}
             />
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Inline Add Item action — sits between progress bar and "TO BUY" label,
-            visible in both empty and populated states. Mirrors the floating bar's
-            add action so the user can add items without reaching for the dock. */}
-        {totalCount > 0 && (
-          <div className="mb-4 flex items-center justify-between gap-2">
-            <h4 className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-1">
-              {t('shopping.toBuy', { count: aggregatedList.unchecked.length })}
-            </h4>
-            <button
-              type="button"
-              onClick={toggleAddForm}
-              aria-label={showAddForm ? t('shopping.btnCancelInline') : t('shopping.addTitle')}
-              className="inline-flex items-center gap-1.5 pl-2.5 pr-3 h-7 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all cursor-pointer active:scale-95"
-            >
-              <Plus className={`w-3 h-3 transition-transform duration-200 ${showAddForm ? 'rotate-45' : ''}`} />
-              <span>{showAddForm ? t('shopping.btnCancelInline') : t('shopping.btnAdd')}</span>
-            </button>
+      {/* Inline add-item form */}
+      {showAddForm && (
+        <div>
+          <CustomItemForm addCustomItem={addCustomItem} addFormRef={addFormRef} />
+        </div>
+      )}
+
+      {totalCount === 0 ? (
+        <div className="text-center py-10 flex flex-col items-center justify-center">
+          <div className="relative mb-4">
+            <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full animate-pulse-slow" />
+            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/30 flex items-center justify-center">
+              <ShoppingCart className="w-8 h-8 text-emerald-500" />
+            </div>
           </div>
-        )}
-
-        {totalCount === 0 ? (
-          <div className="text-center py-10 flex flex-col items-center justify-center">
-            <div className="relative mb-4">
-              <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full animate-pulse-slow" />
-              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/30 flex items-center justify-center">
-                <ShoppingCart className="w-8 h-8 text-emerald-500" />
+          <h4 className="text-base font-bold text-gray-900 dark:text-white">{t('shopping.emptyTitle')}</h4>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-xs leading-relaxed">
+            {t('shopping.emptyDesc')}
+          </p>
+          <div className="mt-4 flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 font-semibold">
+            <Sparkles className="w-3 h-3" />
+            <span>{t('shopping.emptyHint', { defaultValue: 'Tipp: Öffne ein Rezept und tippe auf den Einkaufswagen' })}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {activeGroups.length > 0 ? (
+            <ShoppingListGroup
+              groupedCategories={activeGroups}
+              getItemKey={getItemKey}
+              onItemToggle={handleItemToggle}
+              onGroupHeaderClick={handleGroupHeaderClick}
+              onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
+              formatItemAmount={formatItemAmount}
+              collapsingKeys={collapsingKeys}
+            />
+          ) : (
+            <div className="text-center py-8 flex flex-col items-center justify-center">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 flex items-center justify-center mb-3">
+                <Check className="w-7 h-7 text-emerald-500 stroke-[3px]" />
               </div>
+              <h4 className="text-base font-bold text-gray-900 dark:text-white">{t('shopping.allDoneTitle')}</h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 max-w-xs leading-relaxed">
+                {t('shopping.allDoneDesc')}
+              </p>
             </div>
-            <h4 className="text-base font-bold text-gray-900 dark:text-white">{t('shopping.emptyTitle')}</h4>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-xs leading-relaxed">
-              {t('shopping.emptyDesc')}
-            </p>
-            <div className="mt-4 flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 font-semibold">
-              <Sparkles className="w-3 h-3" />
-              <span>{t('shopping.emptyHint', { defaultValue: 'Tipp: Öffne ein Rezept und tippe auf den Einkaufswagen' })}</span>
-            </div>
-          </div>
-        ) : (
-          <ShoppingListGroup
-            groupedCategories={groupedCategories}
+          )}
+
+          <ShoppingCheckedDrawer
+            items={checkedSorted}
             getItemKey={getItemKey}
             onItemToggle={handleItemToggle}
-            onGroupHeaderClick={handleGroupHeaderClick}
             onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
             formatItemAmount={formatItemAmount}
             collapsingKeys={collapsingKeys}
           />
-        )}
-      </Card>
+        </div>
+      )}
 
-      {/* Floating Action Bar (Add + optional clear actions) */}
+      {/* Floating Add button — single entry point for adding a manual item */}
       <FloatingActionBar className="bottom-32">
-        {/* Add Item — primary action, always visible */}
         <button
           type="button"
           onClick={toggleAddForm}
           aria-label={t('shopping.addTitle')}
-          className="inline-flex items-center gap-1.5 pl-3 pr-3.5 h-9 rounded-full text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/10 shadow-sm active:scale-95 transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 pl-3 pr-4 h-10 rounded-full text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/10 shadow-sm active:scale-95 transition-all cursor-pointer"
         >
-          <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${showAddForm ? 'rotate-45' : ''}`} />
-          <span>{t('shopping.btnAdd')}</span>
+          <Plus className={`w-4 h-4 transition-transform duration-200 ${showAddForm ? 'rotate-45' : ''}`} />
+          <span>{showAddForm ? t('shopping.btnCancelInline') : t('shopping.btnAdd')}</span>
         </button>
-
-        {totalCount > 0 && <FloatingDivider />}
-
-        {/* Clear checked items — only shown when there's something to clear */}
-        {aggregatedList.checked.length > 0 && (
-          <>
-            <button
-              type="button"
-              onClick={clearChecked}
-              className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all cursor-pointer active:scale-95"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>{t('shopping.clearChecked')}</span>
-            </button>
-            <FloatingDivider />
-          </>
-        )}
-
-        {/* Clear all items — only shown when list is non-empty */}
-        {totalCount > 0 && (
-          <button
-            type="button"
-            onClick={handleClearAll}
-            className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-all cursor-pointer active:scale-95"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>{t('shopping.clearAll')}</span>
-          </button>
-        )}
       </FloatingActionBar>
     </div>
   );
