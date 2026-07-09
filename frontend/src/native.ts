@@ -168,6 +168,12 @@ export function registerShareIntent(onUrl: (url: string) => void): () => void {
       const payload = (result as { url?: string; title?: string })?.url
         ?? (result as { title?: string })?.title;
       if (!payload) return;
+
+      // Consume/Finish the intent so future checks don't retrieve it again.
+      // This is crucial to prevent re-processing the same intent if the listener
+      // is re-registered (e.g., when the user object changes on settings update).
+      SendIntent.finish();
+
       const decoded = decodeURIComponent(payload);
       const url = parseSharedUrl(decoded);
       if (url) onUrl(url);

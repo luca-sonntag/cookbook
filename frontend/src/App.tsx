@@ -28,6 +28,10 @@ import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
 import { useTimerManager } from './hooks/useTimerManager';
 
+// Module-level flag to ensure the Web Share Target is only processed once per page load.
+// This prevents re-triggering the interceptor when the user's auth state or metadata updates.
+let isWebShareProcessed = false;
+
 export default function App() {
   const dialog = useDialog();
   const { t, language } = useI18n();
@@ -311,6 +315,8 @@ export default function App() {
   // Web Share Target Interceptor
   useEffect(() => {
     if (authLoading || !user) return;
+    if (isWebShareProcessed) return;
+    isWebShareProcessed = true;
 
     const params = new URLSearchParams(window.location.search);
     const text = params.get('text');
@@ -325,9 +331,12 @@ export default function App() {
         replace('extract');
         setUrl(extractedUrl);
         triggerExtraction(extractedUrl);
+      } else {
+        // Clear query parameters anyway so they don't linger in the browser address bar
+        replace(activeView);
       }
     }
-  }, [authLoading, user, replace, setUrl, triggerExtraction]);
+  }, [authLoading, user, replace, setUrl, triggerExtraction, activeView]);
 
   // Native (Capacitor) share intent: route a shared Instagram link into the
   // same extraction flow as the Web Share Target above.
