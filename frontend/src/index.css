@@ -18,6 +18,13 @@
 :root {
   font-family: 'Outfit', system-ui, -apple-system, sans-serif;
   color-scheme: light dark;
+
+  /* Bottom safe-area inset. On iOS/web this resolves via env(); on Android the
+     native layer (MainActivity) overrides it with the real system-bar inset,
+     because Android WebViews report env(safe-area-inset-bottom) as 0 even under
+     edge-to-edge. Every bottom-anchored element reads this variable so the
+     clearance is fixed in one place. */
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 body {

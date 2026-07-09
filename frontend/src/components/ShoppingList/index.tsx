@@ -263,7 +263,7 @@ export default function ShoppingList({
       )}
 
       {/* Floating Add button — single entry point for adding a manual item */}
-      <FloatingActionBar className="bottom-32">
+      <FloatingActionBar className="bottom-[calc(8rem_+_var(--safe-area-inset-bottom))]">
         <button
           type="button"
           onClick={toggleAddForm}

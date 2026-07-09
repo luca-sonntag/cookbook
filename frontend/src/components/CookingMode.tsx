@@ -116,7 +116,7 @@ export default function CookingMode({
 
   return (
     <div
-      className="fixed inset-0 z-[90] bg-white dark:bg-gray-950 flex flex-col justify-between p-4 md:p-8 pt-[calc(1rem_+_env(safe-area-inset-top))] pb-[calc(1rem_+_env(safe-area-inset-bottom))] select-none"
+      className="fixed inset-0 z-[90] bg-white dark:bg-gray-950 flex flex-col justify-between p-4 md:p-8 pt-[calc(1rem_+_env(safe-area-inset-top))] pb-[calc(1rem_+_var(--safe-area-inset-bottom))] select-none"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >

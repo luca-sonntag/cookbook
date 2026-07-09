@@ -416,8 +416,8 @@ export default function App() {
       {/* Main content body */}
       <main className={`w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 ${
         selectedJob || (activeView === 'extract' && recipe) || activeView === 'shopping-list' || (activeView === 'history' && isCatalogSelectMode)
-          ? 'pb-48'
-          : 'pb-24'
+          ? 'pb-[calc(12rem_+_var(--safe-area-inset-bottom))]'
+          : 'pb-[calc(6rem_+_var(--safe-area-inset-bottom))]'
       }`}>
 
         {/* CONDITIONAL RENDERING OF VIEWS */}
@@ -523,7 +523,7 @@ export default function App() {
 
         return (
           <div className={bottomBarClasses}>
-            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-[max(1.75rem,calc(env(safe-area-inset-bottom)_+_1.25rem))] px-3">
+            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-[max(1.75rem,calc(var(--safe-area-inset-bottom)_+_1.25rem))] px-3">
               {/* Extract / New Recipe Tab */}
               <button
                 onClick={() => navigate('extract')}
