@@ -518,12 +518,12 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar */}
       {(() => {
         const isBottomBarHidden = activeView === 'history' && isCatalogSelectMode;
-        const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out pb-safe ${isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+        const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out ${isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
           }`;
 
         return (
           <div className={bottomBarClasses}>
-            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] px-3">
+            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-[max(1.75rem,calc(env(safe-area-inset-bottom)_+_1.25rem))] px-3">
               {/* Extract / New Recipe Tab */}
               <button
                 onClick={() => navigate('extract')}
