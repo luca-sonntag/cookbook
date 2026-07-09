@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { ChefHat, ShoppingCart, Heart, Bookmark } from 'lucide-react';
+import { ChefHat, ShoppingCart, Play, Sparkles, Clock, Utensils } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 
 /* Step 1 — a mini saved-recipe card being tapped */
@@ -9,21 +9,27 @@ const RecipeCardMockup = () => {
     <div className="relative w-[132px] h-[104px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 p-2 overflow-hidden shadow-inner flex items-center justify-center select-none">
       {/* Recipe card */}
       <div className="relative w-[74px] rounded-lg bg-white dark:bg-gray-800 border border-black/10 dark:border-white/10 overflow-hidden shadow-sm">
-        {/* Image area */}
+        {/* Image area with creator badge */}
         <div className="relative h-[42px] bg-gray-50 dark:bg-gray-700/60 flex items-center justify-center">
           <ChefHat className="w-5 h-5 text-black/10 dark:text-white/10" />
-          {/* Saved bookmark chip */}
-          <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-white/80 dark:bg-gray-900/80 flex items-center justify-center shadow-sm">
-            <Bookmark className="w-1.5 h-1.5 text-emerald-500" fill="currentColor" />
+          <div className="absolute bottom-1 left-1 h-2.5 px-1 rounded bg-black/50 flex items-center gap-0.5">
+            <span className="w-1 h-1 rounded-full bg-pink-400" />
+            <span className="h-0.5 w-2.5 rounded bg-white/70" />
           </div>
         </div>
-        {/* Text lines */}
+        {/* Title + stat footer */}
         <div className="p-1.5 flex flex-col gap-1">
           <div className="h-1 w-full rounded bg-black/15 dark:bg-white/15" />
           <div className="h-1 w-2/3 rounded bg-black/10 dark:bg-white/10" />
-          <div className="flex items-center gap-1 pt-0.5">
-            <Heart className="w-1.5 h-1.5 text-black/20 dark:text-white/20" />
-            <div className="h-0.5 w-4 rounded bg-black/10 dark:bg-white/10" />
+          <div className="flex items-center gap-1.5 pt-0.5">
+            <span className="flex items-center gap-0.5">
+              <Clock className="w-1.5 h-1.5 text-emerald-500" />
+              <span className="h-0.5 w-2 rounded bg-black/15 dark:bg-white/15" />
+            </span>
+            <span className="flex items-center gap-0.5">
+              <Utensils className="w-1.5 h-1.5 text-emerald-500" />
+              <span className="h-0.5 w-2 rounded bg-black/15 dark:bg-white/15" />
+            </span>
           </div>
         </div>
       </div>
@@ -56,26 +62,25 @@ const AddToCartMockup = () => {
         <div className="h-1.5 w-2/3 rounded bg-black/20 dark:bg-white/20" />
       </div>
 
-      {/* Floating action dock */}
-      <div className="bg-gray-50 dark:bg-gray-800 border border-black/10 dark:border-white/10 rounded-full px-2 py-1.5 shadow-md flex items-center justify-center gap-2">
-        {/* Muted action */}
+      {/* Floating action dock: Start cooking · Remix · Add to cart */}
+      <div className="bg-gray-50 dark:bg-gray-800 border border-black/10 dark:border-white/10 rounded-full px-1.5 py-1.5 shadow-md flex items-center justify-center gap-1.5">
+        {/* Start cooking pill (muted) */}
+        <div className="h-5 px-1.5 rounded-full bg-emerald-500/40 flex items-center gap-0.5 opacity-70">
+          <Play className="w-2 h-2 text-white" fill="currentColor" />
+          <span className="h-0.5 w-3 rounded bg-white/70" />
+        </div>
+
+        {/* Remix (muted) */}
         <div className="w-5 h-5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center justify-center opacity-50">
-          <Heart className="w-2.5 h-2.5 text-gray-500 dark:text-gray-400" />
+          <Sparkles className="w-2.5 h-2.5 text-gray-500 dark:text-gray-400" />
         </div>
 
         {/* Highlighted cart action */}
-        <div className="flex flex-col items-center gap-0.5">
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75 duration-1000" />
-            <div className="relative w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center border border-emerald-400 shadow-md shadow-emerald-500/20 text-white">
-              <ShoppingCart className="w-3 h-3" />
-            </div>
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75 duration-1000" />
+          <div className="relative w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center border border-emerald-400 shadow-md shadow-emerald-500/20 text-white">
+            <ShoppingCart className="w-3 h-3" />
           </div>
-        </div>
-
-        {/* Muted action */}
-        <div className="w-5 h-5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center justify-center opacity-50">
-          <Bookmark className="w-2.5 h-2.5 text-gray-500 dark:text-gray-400" />
         </div>
       </div>
 
