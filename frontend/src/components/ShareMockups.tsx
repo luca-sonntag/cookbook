@@ -106,37 +106,39 @@ export const ShareStep2Mockup = () => {
 export const ShareStep3Mockup = () => {
   return (
     <div className="relative w-[132px] h-[104px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 p-2 overflow-hidden shadow-inner flex flex-col justify-end select-none">
+      {/* Background share options sheet representation */}
       <div className="flex-1 flex flex-col gap-1 opacity-25 px-0.5 pt-0.5">
         <div className="h-2 w-1/3 rounded bg-black/40 dark:bg-white/40" />
         <div className="h-1.5 w-full rounded bg-black/20 dark:bg-white/20" />
         <div className="h-1.5 w-2/3 rounded bg-black/20 dark:bg-white/20" />
       </div>
 
-      <div className="bg-gray-50 dark:bg-gray-800 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-md flex items-start gap-1 pt-0.5">
-        <div className="flex-1 min-w-0 flex flex-col items-center gap-1 opacity-40">
-          <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-            <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.739-1.446L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.858.002-2.634-1.02-5.11-2.884-6.974C16.592 1.89 14.12 1.865 11.99 1.865c-5.43 0-9.854 4.417-9.858 9.853-.002 1.773.465 3.5 1.353 5.03L2.43 21.65l5.06-1.33.157.08z"/></svg>
+      <div className="bg-gray-50 dark:bg-gray-800 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-md flex items-center gap-2">
+        <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5 opacity-40">
+          <div className="w-5 h-5 rounded bg-green-500 flex items-center justify-center">
+            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.739-1.446L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.858.002-2.634-1.02-5.11-2.884-6.974C16.592 1.89 14.12 1.865 11.99 1.865c-5.43 0-9.854 4.417-9.858 9.853-.002 1.773.465 3.5 1.353 5.03L2.43 21.65l5.06-1.33.157.08z"/></svg>
           </div>
-          <span className="text-[7px] leading-none text-gray-500 dark:text-gray-400 truncate w-full text-center">WhatsApp</span>
+          <span className="text-[5px] text-gray-500 truncate">WhatsApp</span>
         </div>
 
-        <div className="flex-1 min-w-0 flex flex-col items-center gap-1">
+        {/* Snagbite App Option highlighted */}
+        <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75 duration-1000" />
-            <div className="relative w-6 h-6 rounded-full bg-white dark:bg-gray-850 flex items-center justify-center shadow-lg shadow-emerald-500/40 border border-emerald-500 overflow-hidden p-0.5">
-              <img src="/icon-192.png" alt="Snagbite Logo" className="w-full h-full object-contain rounded-full" />
+            <div className="relative w-5 h-5 rounded-full bg-emerald-500 border border-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/40 p-0.5">
+              <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>
+              </svg>
             </div>
           </div>
-          <span className="text-[7px] leading-none font-bold text-emerald-600 dark:text-emerald-400 truncate w-full text-center">Snagbite</span>
+          <span className="text-[5px] font-bold text-emerald-600 dark:text-emerald-400 truncate">Snagbite</span>
         </div>
 
-        <div className="flex-1 min-w-0 flex flex-col items-center gap-1 opacity-40">
-          <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-            <svg className="w-3 h-3 text-gray-600 dark:text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5 opacity-40">
+          <div className="w-5 h-5 rounded bg-blue-500 flex items-center justify-center">
+            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.8z"/></svg>
           </div>
-          <span className="text-[7px] leading-none text-gray-500 dark:text-gray-400 truncate w-full text-center">
-            {useI18n().language === 'de' ? 'Mehr' : 'More'}
-          </span>
+          <span className="text-[5px] text-gray-500 truncate">LinkedIn</span>
         </div>
       </div>
     </div>
