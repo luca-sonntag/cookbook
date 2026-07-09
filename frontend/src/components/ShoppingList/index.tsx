@@ -5,7 +5,6 @@ import type { AggregatedShoppingItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
-import FloatingActionBar from '../FloatingActionBar';
 
 // Import subcomponents
 import CustomItemForm from './CustomItemForm';
@@ -262,18 +261,17 @@ export default function ShoppingList({
         </div>
       )}
 
-      {/* Floating Add button — single entry point for adding a manual item */}
-      <FloatingActionBar className="bottom-[calc(8rem_+_var(--safe-area-inset-bottom))]">
-        <button
-          type="button"
-          onClick={toggleAddForm}
-          aria-label={t('shopping.addTitle')}
-          className="inline-flex items-center gap-1.5 pl-3 pr-4 h-10 rounded-full text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/10 shadow-sm active:scale-95 transition-all cursor-pointer"
-        >
-          <Plus className={`w-4 h-4 transition-transform duration-200 ${showAddForm ? 'rotate-45' : ''}`} />
-          <span>{showAddForm ? t('shopping.btnCancelInline') : t('shopping.btnAdd')}</span>
-        </button>
-      </FloatingActionBar>
+      {/* Floating Add FAB — bottom-right corner so it never sits over centered
+          content (e.g. the empty-state CTA). Sits just above the nav bar and
+          respects the device safe-area inset. */}
+      <button
+        type="button"
+        onClick={toggleAddForm}
+        aria-label={t('shopping.addTitle')}
+        className="fixed right-4 bottom-[calc(6.5rem_+_var(--safe-area-inset-bottom))] z-40 w-14 h-14 rounded-full flex items-center justify-center text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/20 shadow-xl shadow-emerald-500/25 active:scale-95 transition-all cursor-pointer animate-fade-in-up"
+      >
+        <Plus className={`w-6 h-6 transition-transform duration-200 ${showAddForm ? 'rotate-45' : ''}`} />
+      </button>
     </div>
   );
 }
