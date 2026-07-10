@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { Plus, Trash2, X, MoreHorizontal, Check } from 'lucide-react';
+import { Plus, Trash2, X, MoreHorizontal } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
@@ -11,6 +11,7 @@ import CustomItemForm from './CustomItemForm';
 import ShoppingListGroup from './ShoppingListGroup';
 import ShoppingCheckedDrawer from './ShoppingCheckedDrawer';
 import ShoppingEmptyState from './ShoppingEmptyState';
+import ShoppingAllDoneState from './ShoppingAllDoneState';
 
 interface ShoppingListProps {
   aggregatedList: {
@@ -239,15 +240,7 @@ export default function ShoppingList({
               collapsingKeys={collapsingKeys}
             />
           ) : (
-            <div className="text-center py-8 flex flex-col items-center justify-center">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 flex items-center justify-center mb-3">
-                <Check className="w-7 h-7 text-emerald-500 stroke-[3px]" />
-              </div>
-              <h4 className="text-base font-bold text-gray-900 dark:text-white">{t('shopping.allDoneTitle')}</h4>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 max-w-xs leading-relaxed">
-                {t('shopping.allDoneDesc')}
-              </p>
-            </div>
+            <ShoppingAllDoneState />
           )}
 
           <ShoppingCheckedDrawer
