@@ -161,76 +161,143 @@ export default function ShoppingAllDoneState() {
           
           {/* 1. Baguette / Bread (Left) */}
           <g className="anim-bread">
-            <rect
-              x="62"
-              y="45"
-              width="24"
-              height="80"
-              rx="12"
+            {/* Baguette Main Body */}
+            <path
+              d="M 60 115 C 60 85, 62 48, 72 40 C 82 32, 88 75, 88 115 Z"
               fill="url(#breadGrad)"
-              stroke="#b45309"
+              stroke="#92400e"
               strokeWidth="2"
+              strokeLinejoin="round"
             />
-            {/* Diagonal cuts */}
-            <line x1="68" y1="62" x2="80" y2="56" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" />
-            <line x1="69" y1="77" x2="81" y2="71" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" />
-            <line x1="70" y1="92" x2="82" y2="86" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" />
+            {/* Floury Cuts with lighter inside */}
+            <path
+              d="M 63 60 C 66 56, 75 51, 77 54 C 77 56, 68 64, 65 64 C 64 64, 63 62, 63 60 Z"
+              fill="#fef3c7"
+              stroke="#b45309"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M 66 75 C 69 71, 78 66, 80 69 C 80 71, 71 79, 68 79 C 67 79, 66 77, 66 75 Z"
+              fill="#fef3c7"
+              stroke="#b45309"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M 69 90 C 72 86, 81 81, 83 84 C 83 86, 74 94, 71 94 C 70 94, 69 92, 69 90 Z"
+              fill="#fef3c7"
+              stroke="#b45309"
+              strokeWidth="1.5"
+            />
+            {/* Texture shading lines */}
+            <path d="M 61 100 Q 64 102 67 101 M 62 85 Q 65 87 68 86" stroke="#b45309" strokeWidth="1" opacity="0.3" />
           </g>
 
           {/* 2. Leafy greens / Salad (Center-Left) */}
           <g className="anim-greens">
+            {/* Back dark leaf */}
             <path
-              d="M 82 85 C 76 78, 76 68, 83 62 C 90 56, 100 56, 105 63 C 111 70, 109 80, 103 85 Z"
-              fill="url(#greensGrad)"
-              stroke="#15803d"
+              d="M 76 85 C 70 75, 73 63, 83 62 C 89 62, 93 72, 93 85 Z"
+              fill="#15803d"
+              stroke="#14532d"
               strokeWidth="1.5"
             />
-            {/* Salad veins */}
-            <path d="M 91 80 Q 94 70 93 63 M 87 74 Q 92 73 93 70 M 97 76 Q 94 74 93 72" stroke="#166534" strokeWidth="1.5" strokeLinecap="round" />
+            {/* Back right leaf */}
+            <path
+              d="M 95 85 C 95 72, 99 63, 104 63 C 111 63, 113 75, 107 85 Z"
+              fill="#166534"
+              stroke="#14532d"
+              strokeWidth="1.5"
+            />
+            {/* Main center leaf (gradient) */}
+            <path
+              d="M 82 85 C 78 70, 86 64, 94 64 C 102 64, 106 70, 102 85 Z"
+              fill="url(#greensGrad)"
+              stroke="#15803d"
+              strokeWidth="1.75"
+            />
+            {/* Front small leaf overlay */}
+            <path
+              d="M 87 85 C 85 76, 91 72, 94 76 C 97 80, 96 85, 94 85 Z"
+              fill="#86efac"
+              stroke="#22c55e"
+              strokeWidth="1.25"
+            />
+            {/* Salad texture lines/veins */}
+            <path d="M 91 80 Q 93 72 92 67" stroke="#166534" strokeWidth="1.25" strokeLinecap="round" opacity="0.7" />
           </g>
 
           {/* 3. Carrot (Center-Right) */}
           <g className="anim-carrot">
             {/* Carrot Leaves (swaying) */}
             <g className="anim-carrot-leaves">
-              <path d="M 111 70 C 108 55, 102 50, 102 43 M 111 70 C 112 52, 115 45, 115 38 M 111 70 C 117 55, 123 50, 123 43" stroke="url(#leavesGrad)" strokeWidth="3" strokeLinecap="round" fill="none" />
+              {/* Branch 1 */}
+              <path d="M 111 70 Q 107 54 99 44" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+              <circle cx="99" cy="44" r="3.5" fill="#22c55e" stroke="#16a34a" strokeWidth="1" />
+              <circle cx="103" cy="51" r="2.5" fill="#4ade80" />
+              {/* Branch 2 (center) */}
+              <path d="M 111 70 Q 112 50 112 36" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+              <circle cx="112" cy="36" r="3.5" fill="#4ade80" stroke="#22c55e" strokeWidth="1" />
+              <circle cx="110" cy="45" r="2.5" fill="#22c55e" />
+              {/* Branch 3 */}
+              <path d="M 111 70 Q 117 54 123 44" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+              <circle cx="123" cy="44" r="3.5" fill="#16a34a" stroke="#15803d" strokeWidth="1" />
+              <circle cx="119" cy="51" r="2.5" fill="#22c55e" />
             </g>
-            {/* Carrot Body */}
+            {/* Carrot Body (more organic shape) */}
             <path
-              d="M 104 70 Q 112 68 118 73 L 112 108 L 104 70 Z"
+              d="M 103 70 Q 111 67 118 71 C 119 75, 116 88, 114 98 C 113 103, 112 108, 111 110 C 110 108, 108 103, 107 98 C 105 88, 103 75, 103 70 Z"
               fill="url(#carrotGrad)"
               stroke="#c2410c"
               strokeWidth="2"
               strokeLinejoin="round"
             />
-            {/* Carrot texture lines */}
-            <path d="M 106 82 H 112 M 109 92 H 113 M 107 100 H 110" stroke="#ea580c" strokeWidth="1.5" strokeLinecap="round" />
+            {/* Carrot ridges */}
+            <path d="M 105 78 Q 109 80 114 79 M 106 87 Q 110 89 115 88 M 108 96 Q 110 97 112 96" stroke="#ea580c" strokeWidth="1.5" strokeLinecap="round" fill="none" />
           </g>
 
           {/* 4. Tomato (Right) */}
           <g className="anim-tomato">
+            {/* Tomato Body */}
             <circle
-              cx="128"
+              cx="129"
               cy="92"
               r="17"
               fill="url(#tomatoGrad)"
               stroke="#b91c1c"
               strokeWidth="2"
             />
+            {/* Calyx (green leaf star on top) */}
+            <path
+              d="M 129 77 C 127 75, 126 73, 124 73 C 126 75, 127 76, 128 77 C 127 78, 125 80, 122 80 C 125 80, 127 79, 129 78 C 130 79, 132 81, 134 82 C 132 80, 130 79, 129 78 C 131 77, 133 76, 135 74 C 132 75, 130 76, 129 77 Z"
+              fill="#16a34a"
+              stroke="#15803d"
+              strokeWidth="0.75"
+              strokeLinejoin="round"
+            />
             {/* Stem */}
             <path
-              d="M 128 75 C 127 72, 129 70, 129 67 M 128 75 L 123 73 M 128 75 L 133 73 M 128 75 L 125 78 M 128 75 L 131 78"
-              stroke="#16a34a"
-              strokeWidth="2"
+              d="M 129 76 Q 130 68 134 65"
+              stroke="#15803d"
+              strokeWidth="2.5"
               strokeLinecap="round"
+              fill="none"
             />
             {/* Tomato highlight gloss */}
-            <path
-              d="M 137 84 A 9 9 0 0 0 128 77"
-              stroke="#ffffff"
-              strokeWidth="2"
-              strokeLinecap="round"
-              opacity="0.3"
+            <ellipse
+              cx="122"
+              cy="84"
+              rx="4"
+              ry="2"
+              transform="rotate(-30 122 84)"
+              fill="#ffffff"
+              opacity="0.5"
+            />
+            <circle
+              cx="118"
+              cy="88"
+              r="1.25"
+              fill="#ffffff"
+              opacity="0.4"
             />
           </g>
 
