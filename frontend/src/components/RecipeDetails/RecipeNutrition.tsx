@@ -39,7 +39,7 @@ export default function RecipeNutrition({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3.5">
           <div className="flex items-center gap-1.5">
             <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{t('recipe.nutritionTitle')}</h4>
-            {isAiEstimated && <AiNotice type="badge" />}
+            {isAiEstimated && isPremium && <AiNotice type="badge" />}
           </div>
           
           {/* Portion / Gesamt Switcher */}

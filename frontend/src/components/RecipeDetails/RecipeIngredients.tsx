@@ -61,7 +61,7 @@ export default function RecipeIngredients({
                 <span>{t('recipe.showNutritionPerIngredient')}</span>
                 {!isPremium && <Crown className="w-3 h-3 text-amber-500 fill-amber-500 ml-0.5" />}
               </button>
-              <AiNotice type="badge" tooltipText={t('recipe.aiIngredientsEstimateTooltip')} />
+              {isPremium && <AiNotice type="badge" tooltipText={t('recipe.aiIngredientsEstimateTooltip')} />}
             </div>
           )}
         </div>
