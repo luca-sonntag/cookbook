@@ -128,7 +128,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
         * `ShoppingListItem.tsx`: Einzelne Zeile eines Einkaufsartikels inklusive Checkboxen, Rezeptquellennachweis und Lösch-Buttons.
         * `ShoppingCheckedDrawer.tsx`: Einklappbarer Bereich für bereits abgehakte/erledigte Einkäufe.
         * `ShoppingEmptyState.tsx`: Ausführlicher Willkommens- und Erklärungsbildschirm für leere Einkaufslisten mit bebilderten Anleitungen.
-        * `ShoppingAllDoneState.tsx`: Premium-Erfolgsbildschirm bei vollständig abgehakter Einkaufsliste mit einer interaktiven, animierten SVG-Illustration (Tüte mit organischen Gemüsemotiven) und flüssigen CSS-Micro-Animations.
+        * `ShoppingAllDoneState.tsx`: Premium-Erfolgsbildschirm bei vollständig abgehakter Einkaufsliste mit einer interaktiven, animierten SVG-Umrisszeichnung einer edlen Servierglocke (Cloche) auf einem Teller und flüssigen CSS-Dampf- und Häkchen-Animationen.
       * **`CachedImage.tsx`:** Drop-in-Ersatz für native `<img>`-Tags mit automatischem clientseitigen Image-Caching. Nutzt `useCachedImage`, zeigt während des Ladens einen animierten Spinner und rendert das komprimierte Base64-Bild. Akzeptiert alle nativen `<img>`-Attribute sowie ein optionales `fallbackComponent`-Prop.
     * **Clientseitige Utilities (`frontend/src/utils/`):**
       * **`imageStore.ts`:** Leichtgewichtiger IndexedDB-Wrapper für den Rezeptbild-Cache. Datenbank `recipe-image-cache` v1 mit Object Store `images`, indiziert nach Original-URL. Bietet `getCachedImage(url)`, `setCachedImage(url, base64Data)`, `deleteCachedImage(url)` und `clearImageCache()`.
