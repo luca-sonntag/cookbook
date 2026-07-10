@@ -35,7 +35,7 @@ export default function RecipeActionDock({
   const showShoppingDivider = showShopping && (showStart || showRemix);
 
   return (
-    <FloatingActionBar className="bottom-[calc(7rem_+_var(--safe-area-inset-bottom))]">
+    <FloatingActionBar className="bottom-28">
       {/* Start Cooking Button */}
       {showStart && (
         <Button

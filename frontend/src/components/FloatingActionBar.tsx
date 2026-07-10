@@ -23,7 +23,7 @@ interface FloatingActionBarProps {
  */
 export default function FloatingActionBar({ children, className = '' }: FloatingActionBarProps) {
   const hasBottomClass = className.split(' ').some(c => c.startsWith('bottom-') || c.includes(':bottom-'));
-  const defaultBottom = hasBottomClass ? '' : 'bottom-[calc(1.5rem_+_var(--safe-area-inset-bottom))]';
+  const defaultBottom = hasBottomClass ? '' : 'bottom-6';
 
   return (
     <div
