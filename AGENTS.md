@@ -113,7 +113,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **`ErrorBanner.tsx`:** Zeigt detaillierte Fehler und ermöglicht erneutes Ausführen.
       * **`AiNotice.tsx`:** Eine wiederverwendbare Badge- oder Inline-Komponente, die geschätzte Nährwertangaben visualisiert und über ein Smartphone-freundliches HeroUI-Popover (klickbar) nähere Details anzeigt.
       * **`RecipeDetails/`:** Ein modularisiertes Verzeichnis für die Rezept-Interaktionsansichten:
-        * `index.tsx`: Haupt-Orchestrator, der Hooks, Berechnungen und Zustände verwaltet.
+        * `index.tsx`: Haupt-Orchestrator, der Hooks, Berechnungen und Zustände verwaltet. Verwendet die native HeroUI `secondary` (Underline) Tabs-Variante mit dem animierten `<Tabs.Indicator />` für flüssige Übergänge, passend zur Wischgeste (`useSwipeableTabs`).
         * `RecipeHeader.tsx`: Rendert die Kopfzeile, die Bildgalerie und das Popover-Optionsmenü.
         * `RecipeStats.tsx`: Rendert Vorbereitungszeit, Kochzeit und Portions-Skalierer.
         * `RecipeNutrition.tsx`: Rendert die Nährwerttabelle mit Umschaltung zwischen portionierter und totaler Ansicht.
