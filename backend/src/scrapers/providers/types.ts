@@ -17,35 +17,6 @@ export function detectPlatform(url: string): SocialPlatform | null {
   return null;
 }
 
-/** Extracts a technical username/handle from a social URL if embedded in the path (e.g. /username/reel/...). */
-export function extractUsernameFromUrl(url: string): string | null {
-  try {
-    const urlObj = new URL(url);
-    const host = urlObj.hostname.toLowerCase();
-    const parts = urlObj.pathname.split('/').filter(Boolean);
-
-    if (host.includes('instagram.com')) {
-      // Formats: /username/reel/shortcode/ or /username/p/shortcode/
-      if (parts.length >= 3 && (parts[1] === 'reel' || parts[1] === 'p')) {
-        return parts[0];
-      }
-    } else if (host.includes('tiktok.com')) {
-      // Format: /@username/video/id
-      if (parts[0] && parts[0].startsWith('@')) {
-        return parts[0].substring(1);
-      }
-    } else if (host.includes('youtube.com') || host.includes('youtu.be')) {
-      // Format: /@username/shorts/id or /@username
-      if (parts[0] && parts[0].startsWith('@')) {
-        return parts[0].substring(1);
-      }
-    }
-  } catch {
-    // ignore
-  }
-  return null;
-}
-
 /** Context passed to every provider for a single scrape attempt. */
 export interface SocialScrapeContext {
   /** Job id for progress reporting (optional). */
