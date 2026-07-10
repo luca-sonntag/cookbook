@@ -1,7 +1,7 @@
 import { config } from '../../config.js';
 import type { ScrapingResult } from '../index.js';
 import { fetchMetadata } from '../youtubeDescription.js';
-import { extractUsernameFromUrl, type SocialScrapeContext, type SocialScrapeProvider } from './types.js';
+import type { SocialScrapeContext, SocialScrapeProvider } from './types.js';
 
 /**
  * Primary provider: the "Social Download All In One" RapidAPI.
@@ -35,6 +35,9 @@ interface RapidResponse {
   duration?: number;
   medias?: RapidMedia[];
   error?: boolean | string;
+  owner?: {
+    username?: string;
+  } | null;
 }
 
 /** Max video resolution we bother downloading (keeps file size + Gemini cost down). */
@@ -128,14 +131,7 @@ export const rapidApiProvider: SocialScrapeProvider = {
     const audio = pickAudio(medias);
 
     let caption = (data.title ?? '').toString();
-    let authorHandle = (data.author ?? '').toString();
-
-    // Check if the URL contains a technical username, which is more accurate than the display name
-    const extractedHandle = extractUsernameFromUrl(url);
-    if (extractedHandle) {
-      authorHandle = extractedHandle;
-    }
-
+    let authorHandle = (data.owner?.username ?? data.author ?? '').toString();
     if (authorHandle && !authorHandle.startsWith('@')) authorHandle = `@${authorHandle}`;
 
     // RapidAPI's caption is the full post text for IG/TikTok, but only the *title* for

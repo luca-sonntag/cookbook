@@ -167,51 +167,18 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
         const platform = reelUrl ? detectPlatform(reelUrl) : 'instagram';
         const iconColor = platformIconColor(platform);
 
-        // Build author profile URL based on platform
+        // Build author profile URL based on platform. If it's a display name (contains spaces/invalid chars), link to the Reel itself instead.
         const handle = recipe.instagramHandle?.replace('@', '').trim() || '';
-        const isValidUsername = (h: string) => /^[a-zA-Z0-9._-]{1,30}$/.test(h);
-
-        let finalHandle = handle;
-        let useDirectProfileLink = isValidUsername(handle);
-
-        // If the handle is not a valid technical username, try to extract it from the URL
-        if (!useDirectProfileLink && reelUrl) {
-          try {
-            const urlObj = new URL(reelUrl);
-            const host = urlObj.hostname.toLowerCase();
-            const parts = urlObj.pathname.split('/').filter(Boolean);
-
-            if (host.includes('instagram.com')) {
-              // Formats: /username/reel/shortcode/ or /username/p/shortcode/
-              if (parts.length >= 3 && (parts[1] === 'reel' || parts[1] === 'p')) {
-                finalHandle = parts[0];
-                useDirectProfileLink = isValidUsername(finalHandle);
-              }
-            } else if (host.includes('tiktok.com')) {
-              if (parts[0] && parts[0].startsWith('@')) {
-                finalHandle = parts[0].substring(1);
-                useDirectProfileLink = isValidUsername(finalHandle);
-              }
-            } else if (host.includes('youtube.com') || host.includes('youtu.be')) {
-              if (parts[0] && parts[0].startsWith('@')) {
-                finalHandle = parts[0].substring(1);
-                useDirectProfileLink = isValidUsername(finalHandle);
-              }
-            }
-          } catch {
-            // ignore
-          }
-        }
-
-        const authorHref = useDirectProfileLink
-          ? platform === 'instagram'
-            ? `https://instagram.com/${finalHandle}`
+        const isValidUsername = /^[a-zA-Z0-9._-]+$/.test(handle);
+        const authorHref = isValidUsername
+          ? (platform === 'instagram'
+            ? `https://instagram.com/${handle}`
             : platform === 'tiktok'
-            ? `https://tiktok.com/@${finalHandle}`
+            ? `https://tiktok.com/@${handle}`
             : platform === 'youtube'
-            ? `https://youtube.com/@${finalHandle}`
-            : reelUrl || '#'
-          : reelUrl || '#';
+            ? `https://youtube.com/@${handle}`
+            : reelUrl || '#')
+          : (reelUrl || '#');
 
         return (
           <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
