@@ -153,6 +153,8 @@ export function registerNotificationTap(
   };
 }
 
+let lastProcessedPayload: string | null = null;
+
 /**
  * Register a handler for Android share intents (ACTION_SEND). Invokes `onUrl`
  * with the first URL found in the shared text. Handles both cold starts and
@@ -161,7 +163,7 @@ export function registerNotificationTap(
 export function registerShareIntent(onUrl: (url: string) => void): () => void {
   if (!isNative()) return () => {};
 
-  const handle = async () => {
+  const handle = async (isNewIntentEvent: boolean) => {
     try {
       const result = await SendIntent.checkSendIntentReceived();
       // Shared plain text arrives in `title`; `url` is set for shared links.
@@ -169,10 +171,11 @@ export function registerShareIntent(onUrl: (url: string) => void): () => void {
         ?? (result as { title?: string })?.title;
       if (!payload) return;
 
-      // Consume/Finish the intent so future checks don't retrieve it again.
-      // This is crucial to prevent re-processing the same intent if the listener
-      // is re-registered (e.g., when the user object changes on settings update).
-      SendIntent.finish();
+      // If this is not a new intent event, and the payload is the same as the last one, ignore.
+      if (!isNewIntentEvent && payload === lastProcessedPayload) {
+        return;
+      }
+      lastProcessedPayload = payload;
 
       const decoded = decodeURIComponent(payload);
       const url = parseSharedUrl(decoded);
@@ -182,8 +185,11 @@ export function registerShareIntent(onUrl: (url: string) => void): () => void {
     }
   };
 
-  // Cold start (app launched via share) and warm shares (app already open).
-  handle();
-  window.addEventListener('sendIntentReceived', handle);
-  return () => window.removeEventListener('sendIntentReceived', handle);
+  // Cold start (app launched via share)
+  handle(false);
+
+  // Warm shares (app already open, event triggered by onNewIntent)
+  const eventHandler = () => handle(true);
+  window.addEventListener('sendIntentReceived', eventHandler);
+  return () => window.removeEventListener('sendIntentReceived', eventHandler);
 }
