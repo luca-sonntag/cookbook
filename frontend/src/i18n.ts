@@ -452,8 +452,9 @@ export const uiTranslations = {
       recipeCount: '{count} Rezepte',
       doneCount: 'Erledigt ({count})',
       moreActions: 'Weitere Aktionen',
-      allDoneTitle: 'Alles erledigt! 🎉',
+      allDoneTitle: 'Alles erledigt!',
       allDoneDesc: 'Du hast alle Zutaten im Korb. Guten Appetit!',
+      finishShopping: 'Einkauf beenden',
       restoreItem: 'Wieder aufnehmen',
     },
     dialog: {
@@ -831,8 +832,9 @@ export const uiTranslations = {
       recipeCount: '{count} recipes',
       doneCount: 'Done ({count})',
       moreActions: 'More actions',
-      allDoneTitle: 'All done! 🎉',
+      allDoneTitle: 'All done!',
       allDoneDesc: 'Everything is in your cart. Enjoy your meal!',
+      finishShopping: 'Finish Shopping',
       restoreItem: 'Restore item',
     },
     dialog: {

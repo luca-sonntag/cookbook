@@ -240,7 +240,7 @@ export default function ShoppingList({
               collapsingKeys={collapsingKeys}
             />
           ) : (
-            <ShoppingAllDoneState />
+            <ShoppingAllDoneState onClear={handleClearChecked} />
           )}
 
           <ShoppingCheckedDrawer

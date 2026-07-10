@@ -1,6 +1,11 @@
 import { useI18n } from '../../context/I18nContext';
+import { Trash2 } from 'lucide-react';
 
-export default function ShoppingAllDoneState() {
+interface ShoppingAllDoneStateProps {
+  onClear: () => void;
+}
+
+export default function ShoppingAllDoneState({ onClear }: ShoppingAllDoneStateProps) {
   const { t } = useI18n();
 
   return (
@@ -234,6 +239,16 @@ export default function ShoppingAllDoneState() {
       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-[240px] leading-relaxed">
         {t('shopping.allDoneDesc')}
       </p>
+
+      {/* Finish shopping action button */}
+      <button
+        onClick={onClear}
+        type="button"
+        className="mt-6 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all cursor-pointer border border-emerald-500/10 flex items-center gap-2 duration-150"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+        <span>{t('shopping.finishShopping')}</span>
+      </button>
     </div>
   );
 }
