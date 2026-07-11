@@ -393,7 +393,10 @@ export default function App() {
           status-bar safe-area inset is applied once and they stack without a gap
           or overlapping each other when pinned. */}
       <div className="sticky top-0 z-40 w-full">
-        <header className="w-full pt-[env(safe-area-inset-top)] bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
+        {/* Status bar background filler for devices with safe-area-inset-top (e.g. Android 15 Edge-to-Edge) */}
+        <div className="w-full h-[env(safe-area-inset-top)] bg-[#064e3b]" />
+
+        <header className="w-full bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300">
           <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
             <div className="flex items-center gap-2">
               <div className="flex-shrink-0">
@@ -437,6 +440,10 @@ export default function App() {
               onNavigateToShoppingList={() => navigate('shopping-list')}
               shoppingListCount={aggregatedList.unchecked.length}
               onRemixSuccess={(newRecipe) => setRecipe(newRecipe)}
+              onReplaceCurrent={(newRecipe) => {
+                setRecipe(newRecipe);
+                fetchHistory();
+              }}
               isParentAvailable={recipe?.parentJobId ? history.some(j => j.id === recipe?.parentJobId) : false}
               parentRecipeTitle={recipe?.parentRecipeTitle || (recipe?.parentJobId ? history.find(j => j.id === recipe.parentJobId)?.recipe?.title : null)}
               onNavigateToRecipe={(recipeId) => {
@@ -490,12 +497,19 @@ export default function App() {
               navigate('shopping-list');
             }}
             shoppingListCount={aggregatedList.unchecked.length}
-            onRemixSuccess={(newRecipe) => {
+            onRemixSuccess={async (newRecipe, newJobId) => {
+              await fetchHistory();
+              if (newJobId) {
+                navigate('history', newJobId);
+              } else {
+                // To immediately show the new recipe, we can switch to extraction view
+                setRecipe(newRecipe);
+                setUrl('');
+                navigate('extract');
+              }
+            }}
+            onReplaceCurrent={(newRecipe: any) => {
               fetchHistory();
-              // To immediately show the new recipe, we can switch to extraction view
-              setRecipe(newRecipe);
-              setUrl('');
-              navigate('extract');
             }}
             onSelectModeChange={setIsCatalogSelectMode}
           />

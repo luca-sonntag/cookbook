@@ -26,7 +26,8 @@ interface SavedCatalogProps {
   getAccessToken?: () => Promise<string | null>;
   onNavigateToShoppingList?: () => void;
   shoppingListCount?: number;
-  onRemixSuccess?: (newRecipe: Recipe) => void;
+  onRemixSuccess?: (newRecipe: Recipe, newJobId?: string) => void;
+  onReplaceCurrent?: (newRecipe: Recipe) => void;
   onSelectModeChange?: (active: boolean) => void;
 }
 
@@ -42,6 +43,7 @@ export default function SavedCatalog({
   onNavigateToShoppingList,
   shoppingListCount,
   onRemixSuccess,
+  onReplaceCurrent,
   onSelectModeChange
 }: SavedCatalogProps) {
   const { language, t } = useI18n();
@@ -107,6 +109,10 @@ export default function SavedCatalog({
               onNavigateToShoppingList={onNavigateToShoppingList}
               shoppingListCount={shoppingListCount}
               onRemixSuccess={onRemixSuccess}
+              onReplaceCurrent={(newRecipe) => {
+                // Just refresh history — the job recipe was updated in-place in the DB
+                fetchHistory?.();
+              }}
               isParentAvailable={selectedJob.recipe?.parentJobId ? history.some(j => j.id === selectedJob.recipe?.parentJobId) : false}
               parentRecipeTitle={selectedJob.recipe?.parentRecipeTitle || (selectedJob.recipe?.parentJobId ? history.find(j => j.id === selectedJob.recipe?.parentJobId)?.recipe?.title : null)}
               onNavigateToRecipe={(recipeId) => {

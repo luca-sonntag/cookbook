@@ -32,6 +32,7 @@ interface RecipeDetailsProps {
   onNavigateToShoppingList?: () => void;
   shoppingListCount?: number;
   onRemixSuccess?: (newRecipe: Recipe, newJobId: string) => void;
+  onReplaceCurrent?: (newRecipe: Recipe) => void;
   isParentAvailable?: boolean;
   onNavigateToRecipe?: (recipeId: string) => void;
   parentRecipeTitle?: string | null;
@@ -46,6 +47,7 @@ export default function RecipeDetails({
   onBack,
   onNavigateToShoppingList,
   onRemixSuccess,
+  onReplaceCurrent,
   isParentAvailable,
   onNavigateToRecipe,
   parentRecipeTitle
@@ -538,6 +540,7 @@ export default function RecipeDetails({
           onClose={() => setIsCopilotOpen(false)} 
           recipe={recipe}
           onRemixSuccess={onRemixSuccess}
+          onReplaceCurrent={onReplaceCurrent!}
         />
       )}
 

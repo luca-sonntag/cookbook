@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { ShoppingCart, ShoppingBag, Play, Sparkles } from 'lucide-react';
+import { ShoppingCart, ShoppingBag, Play, MessageCircle } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import FloatingActionBar, { FloatingDivider } from '../FloatingActionBar';
@@ -57,7 +57,7 @@ export default function RecipeActionDock({
             className="relative p-3 text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none border-none group"
             title="Recipe Remix"
           >
-            <Sparkles className="w-5.5 h-5.5 group-hover:animate-pulse" />
+            <MessageCircle className="w-5.5 h-5.5 group-hover:animate-pulse" />
             {!isPremium && <PremiumCrownBadge />}
           </button>
         </>
