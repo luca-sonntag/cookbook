@@ -156,6 +156,41 @@ export async function createRemixJob(parentJobId: string, url: string, prompt: s
   return rowToJob(data);
 }
 
+/** Save a completed recipe remix directly. */
+export async function saveCompletedRemix(parentJobId: string, url: string, recipe: Recipe, prompt: string, userId: string): Promise<Job> {
+  const now = new Date().toISOString();
+  const id = randomUUID();
+
+  const finalRecipe = {
+    ...recipe,
+    id,
+    parentJobId,
+    remixPrompt: prompt
+  };
+
+  const { data, error } = await getClient()
+    .from('jobs')
+    .insert({
+      id,
+      url,
+      url_normalized: normalizeUrl(url),
+      status: 'completed',
+      error: null,
+      recipe: finalRecipe as any,
+      user_id: userId,
+      parent_job_id: parentJobId,
+      prompt,
+      created_at: now,
+      updated_at: now
+    })
+    .select()
+    .returns<JobRow>()
+    .single();
+
+  if (error) throw wrapError('Failed to save completed remix job', error);
+  return rowToJob(data);
+}
+
 /** Update an existing job by ID. */
 export async function updateJob(id: string, updates: Partial<Job>): Promise<void> {
   const now = new Date().toISOString();
