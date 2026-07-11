@@ -18,7 +18,7 @@ import RecipeIngredients from './RecipeIngredients';
 import RecipeInstructions from './RecipeInstructions';
 import RecipeActionDock from './RecipeActionDock';
 import CookingMode from '../CookingMode';
-import RemixModal from '../RemixModal';
+import RecipeCopilot from './RecipeCopilot';
 import { useAuth } from '../../context/AuthContext';
 import PremiumModal from '../PremiumModal';
 
@@ -31,7 +31,7 @@ interface RecipeDetailsProps {
   onBack?: () => void;
   onNavigateToShoppingList?: () => void;
   shoppingListCount?: number;
-  onRemixSuccess?: (newRecipe: Recipe) => void;
+  onRemixSuccess?: (newRecipe: Recipe, newJobId: string) => void;
   isParentAvailable?: boolean;
   onNavigateToRecipe?: (recipeId: string) => void;
   parentRecipeTitle?: string | null;
@@ -74,7 +74,7 @@ export default function RecipeDetails({
   const { isPremium } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
-  const [isRemixModalOpen, setIsRemixModalOpen] = useState(false);
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
   const { pendingNavigation, setPendingNavigation } = useTimerManager();
@@ -508,7 +508,7 @@ export default function RecipeDetails({
           recipeId={recipe.id}
           onRemixClick={() => {
             if (isPremium) {
-              setIsRemixModalOpen(true);
+              setIsCopilotOpen(true);
             } else {
               setIsPremiumModalOpen(true);
             }
@@ -531,12 +531,12 @@ export default function RecipeDetails({
         />
       )}
 
-      {/* Remix Modal */}
+      {/* Recipe Copilot Chatbot */}
       {recipe.id && onRemixSuccess && (
-        <RemixModal 
-          isOpen={isRemixModalOpen} 
-          onOpenChange={setIsRemixModalOpen} 
-          recipeId={recipe.id}
+        <RecipeCopilot 
+          isOpen={isCopilotOpen} 
+          onClose={() => setIsCopilotOpen(false)} 
+          recipe={recipe}
           onRemixSuccess={onRemixSuccess}
         />
       )}
