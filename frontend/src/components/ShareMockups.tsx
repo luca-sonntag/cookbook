@@ -25,9 +25,9 @@ export const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export const ShareStep1Mockup = () => (
   <div className="relative w-[132px] h-[104px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 p-1 flex items-center justify-center overflow-hidden shadow-inner select-none">
     {/* Vertical Phone Screen Mockup representing a Reel */}
-    <div className="w-[54px] h-[88px] rounded-lg bg-white dark:bg-gray-800 relative border border-black/10 dark:border-white/10 overflow-hidden shadow-sm flex flex-col justify-between p-1">
+    <div className="w-[54px] h-[88px] rounded-lg bg-black/[0.03] dark:bg-white/[0.03] relative border border-black/10 dark:border-white/10 overflow-hidden shadow-sm flex flex-col justify-between p-1">
       {/* Video Content representation (light background) */}
-      <div className="absolute inset-0 bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+      <div className="absolute inset-0 bg-transparent flex items-center justify-center">
         <ChefHat className="w-6 h-6 text-black/10 dark:text-white/10" />
       </div>
 
