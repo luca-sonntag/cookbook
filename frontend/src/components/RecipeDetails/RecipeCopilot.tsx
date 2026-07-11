@@ -180,29 +180,24 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 z-50 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all outline-none border-none cursor-pointer flex items-center justify-center"
+              className="absolute top-2.5 right-3.5 z-50 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all outline-none border-none cursor-pointer flex items-center justify-center"
               aria-label={t('dialog.closeAria')}
             >
               <X className="w-5 h-5" />
             </button>
 
-            {/* Header */}
-            <Drawer.Header className="border-b border-black/5 dark:border-white/5 py-4 px-5 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0 shadow-sm border border-emerald-500/10">
-                <Bot className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            {/* Compact Header */}
+            <Drawer.Header className="border-b border-black/5 dark:border-white/5 py-2.5 px-4 flex items-center gap-2 flex-shrink-0">
+              <div className="w-6.5 h-6.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0 border border-emerald-500/10">
+                <Bot className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <div className="flex flex-col pr-8">
-                <Drawer.Heading className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-1.5 leading-none">
-                  {t('copilot.title')}
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                </Drawer.Heading>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 font-normal">
-                  {t('copilot.subtitle')}
-                </p>
-              </div>
+              <Drawer.Heading className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 leading-none pr-8">
+                {t('copilot.title')}
+                <span className="flex h-1.5 w-1.5 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+              </Drawer.Heading>
             </Drawer.Header>
 
             {/* Body (Messages) */}
