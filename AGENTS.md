@@ -284,5 +284,5 @@ Die App unterscheidet zwischen **Free**- und **Premium**-Nutzern. Premium-Status
 * **ExtractForm:** Unter dem Extraktionszähler erscheint für Free-User ein `PremiumHint` (inline) zur PremiumModal. Ist das Kochbuch voll (`limitStatus.cookbookFull`), wird stattdessen ein `PremiumHint` (banner) angezeigt und der Extrahieren-Button deaktiviert.
 * **SavedCatalog:** `PremiumHint` (banner) erscheint ab dem 4. Rezept (fast voll) und ab dem 5. (voll) mit Upgrade-Aufforderung.
 * **RecipeNutrition:** Blur-Overlay über der Nährwert-Card mit einer Emerald-Lock-Pille ("Nährwerte freischalten"); öffnet die PremiumModal.
-* **SettingsView:** Free-User sehen eine anklickbare Upgrade-Karte (Emerald-Gradient); Premium-User sehen stattdessen eine goldene Status-Card ("Aktiv ✓").
+* **SettingsView:** Free-User sehen eine anklickbare Upgrade-Karte (Emerald-Gradient); Premium-User sehen stattdessen eine farblich und stilistisch angepasste, minimalistischere Status-Card mit Crown-Icon und einem "Aktiv ✓" Status-Badge.
 
