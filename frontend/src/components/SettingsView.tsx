@@ -138,19 +138,17 @@ export default function SettingsView() {
       )}
 
       {isPremium && (
-        <div className="mx-2 p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-lg text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              <Crown className="w-5 h-5 text-amber-300 fill-amber-300" />
-              Snagbite Premium
-            </h3>
-            <p className="text-xs text-emerald-100/90 mt-1 max-w-md">
-              {t('app.settings.premiumActiveDesc') || 'You have unlimited access to all premium features.'}
-            </p>
-          </div>
-          <div className="bg-white/10 border border-white/20 text-white font-bold text-xs h-10 px-6 rounded-xl flex items-center justify-center gap-1.5 shrink-0 self-start sm:self-auto select-none">
-            {t('app.settings.premiumActive') || 'Active'} ✓
-          </div>
+        <div className="mx-2 p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-lg text-white flex flex-col gap-1.5">
+          <h3 className="text-lg font-bold flex items-center gap-2 flex-wrap">
+            <Crown className="w-5 h-5 text-amber-300 fill-amber-300" />
+            <span>Snagbite Premium</span>
+            <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-100 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15 select-none ml-1">
+              {t('app.settings.premiumActive') || 'Active'}
+            </span>
+          </h3>
+          <p className="text-xs text-emerald-100/90 max-w-md">
+            {t('app.settings.premiumActiveDesc') || 'You have unlimited access to all premium features.'}
+          </p>
         </div>
       )}
 
