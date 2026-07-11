@@ -778,7 +778,7 @@ export async function chatAboutRecipe(
 
     const model = genAI.getGenerativeModel({
       model: config.GEMINI_MODEL,
-      tools: chatbotTools,
+      tools: chatbotTools as any,
       generationConfig: {
         temperature: config.GEMINI_TEMPERATURE,
       } as any
