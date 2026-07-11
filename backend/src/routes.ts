@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob } from './db.js';
 import { config } from './config.js';
 import { requireAuth } from './auth.js';
-import { chatAboutRecipe } from './gemini.js';
+import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
 
 export const apiRouter = Router();
 
@@ -609,6 +609,107 @@ apiRouter.delete('/users/me', async (req: Request, res: Response): Promise<void>
 });
 
 /**
+ * Endpoint to get LLM-generated quick-action chips for the chat.
+ * GET /api/jobs/:id/chat/chips?lang=de|en
+ */
+apiRouter.get('/jobs/:id/chat/chips', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const lang = (req.query.lang as string) || 'de';
+
+    const job = await getJob(id, req.userId!);
+    if (!job || !job.recipe) {
+      res.status(404).json({ success: false, error: 'Recipe not found.' });
+      return;
+    }
+
+    const chips = await generateChatChips(job.recipe, lang);
+
+    res.status(200).json({ success: true, chips });
+  } catch (error: any) {
+    console.error('Error generating chat chips:', error);
+    res.status(500).json({ success: false, error: 'Failed to generate chat chips.' });
+  }
+});
+
+/**
+ * Endpoint to confirm a pending remix and execute it.
+ * POST /api/jobs/:id/chat/confirm
+ * Body: { modificationRequest: string }
+ */
+apiRouter.post('/jobs/:id/chat/confirm', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { modificationRequest, replaceCurrent } = req.body;
+
+    if (!modificationRequest || typeof modificationRequest !== 'string') {
+      res.status(400).json({ success: false, error: 'Missing required field: "modificationRequest".' });
+      return;
+    }
+
+    const job = await getJob(id, req.userId!);
+    if (!job || !job.recipe) {
+      res.status(404).json({ success: false, error: 'Recipe not found.' });
+      return;
+    }
+
+    // Resolve user preferences
+    let userPrefs: any;
+    try {
+      const { data, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
+      if (!authError && data?.user?.user_metadata) {
+        const meta = data.user.user_metadata;
+        const languageMap: Record<string, string> = {
+          'de': 'German', 'en': 'English', 'german': 'German', 'english': 'English'
+        };
+        userPrefs = {
+          recipeLanguage: meta.language ? languageMap[meta.language.toLowerCase()] : undefined,
+          preferredTemperatureUnit: meta.preferred_temperature_unit,
+          preferredUnitSystem: meta.preferred_unit_system,
+        };
+      }
+    } catch {}
+
+    const remixedRecipe = await remixRecipe(job.recipe, modificationRequest, undefined, userPrefs);
+
+    if (replaceCurrent) {
+      // Preserve images from the original recipe (Gemini doesn't know about them)
+      const mergedRecipe = {
+        ...remixedRecipe,
+        imageUrl: job.recipe?.imageUrl ?? null,
+        imageUrls: job.recipe?.imageUrls ?? (job.recipe?.imageUrl ? [job.recipe.imageUrl] : []),
+        id,
+        parentJobId: job.parentJobId,
+        remixPrompt: modificationRequest,
+      };
+
+      await updateJob(id, {
+        recipe: mergedRecipe as any,
+        status: 'completed',
+      });
+
+      const updatedJob = await getJob(id, req.userId!);
+      res.status(200).json({
+        success: true,
+        replaced: true,
+        updatedRecipeJson: updatedJob?.recipe,
+      });
+    } else {
+      // Save as a new remix job
+      const savedJob = await saveCompletedRemix(id, job.url, remixedRecipe, modificationRequest, req.userId!);
+      res.status(200).json({
+        success: true,
+        newJobId: savedJob.id,
+        updatedRecipeJson: savedJob.recipe,
+      });
+    }
+  } catch (error: any) {
+    console.error('Error confirming remix:', error);
+    res.status(500).json({ success: false, error: 'Failed to confirm remix.' });
+  }
+});
+
+/**
  * Endpoint to chat about a recipe.
  * POST /api/jobs/:id/chat
  * Body: { message: string, history: Array<{role: 'user'|'model', text: string}> }
@@ -727,10 +828,13 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       chatMessage: result.chatMessage,
       toolCalled: result.toolCalled,
       toolArgs: result.toolArgs,
-      recipeWasModified: result.recipeWasModified
+      recipeWasModified: result.recipeWasModified,
+      pendingRemix: result.pendingRemix,
+      modificationRequest: result.modificationRequest,
     };
 
-    // If recipe was modified, save the completed remix in Supabase to persist it
+    // If recipe was modified AND not pending confirmation, save immediately
+    // (pending remixes are saved later via /confirm endpoint)
     if (result.recipeWasModified && result.newRecipe) {
       const remixPrompt = result.toolArgs?.modification_request || 'AI Copilot modification';
       console.log(`[chat route] Saving completed recipe remix for parent job ${id}`);

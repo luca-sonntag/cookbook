@@ -721,6 +721,8 @@ export async function chatAboutRecipe(
   toolCalled: string | null;
   toolArgs: any;
   recipeWasModified: boolean;
+  pendingRemix?: boolean;
+  modificationRequest?: string;
   newRecipe?: Recipe;
 }> {
   const startTime = Date.now();
@@ -844,12 +846,14 @@ Rules:
 
       if (call.name === 'modify_current_recipe') {
         const modReq = (call.args as any).modification_request;
-        console.log(`[chatAboutRecipe] Executing remixRecipe synchronously for request: "${modReq}"`);
-        remixedRecipe = await remixRecipe(recipe, modReq, undefined, userPrefs);
+        console.log(`[chatAboutRecipe] Remix requested: "${modReq}". Deferring execution until user confirms.`);
         recipeWasModified = true;
+        // Don't execute remixRecipe yet — store the prompt and let user confirm first
         toolResponseData = {
           success: true,
-          message: `Recipe successfully modified. New title: "${remixedRecipe.title}".`
+          message: `Remix prompt stored: "${modReq}". Waiting for user confirmation.`,
+          pendingRemix: true,
+          modificationRequest: modReq,
         };
       } else if (call.name === 'add_missing_ingredients_to_shopping_list') {
         const ingredients = (call.args as any).ingredients;
@@ -914,11 +918,15 @@ Rules:
         parsedOutput: { toolCalled: call.name, toolArgs: call.args, recipeWasModified }
       });
 
+      const isPendingRemix = (call?.name === 'modify_current_recipe') && !!toolResponseData.pendingRemix;
+
       return {
         chatMessage,
         toolCalled: call.name,
         toolArgs: call.args,
         recipeWasModified,
+        pendingRemix: isPendingRemix || undefined,
+        modificationRequest: isPendingRemix ? toolResponseData.modificationRequest : undefined,
         newRecipe: remixedRecipe
       };
     } else {
@@ -957,5 +965,104 @@ Rules:
       rawOutput
     });
     throw err;
+  }
+}
+
+export async function generateChatChips(
+  recipe: Recipe,
+  language: string = 'de'
+): Promise<{ label: string; prompt: string }[]> {
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: config.GEMINI_MODEL,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            chips: {
+              type: FunctionDeclarationSchemaType.ARRAY,
+              description: '5-6 quick-action suggestion chips for a recipe chat assistant.',
+              items: {
+                type: FunctionDeclarationSchemaType.OBJECT,
+                properties: {
+                  label: {
+                    type: FunctionDeclarationSchemaType.STRING,
+                    description: 'Short button text shown to the user in their UI language.',
+                  },
+                  prompt: {
+                    type: FunctionDeclarationSchemaType.STRING,
+                    description: 'The full message that will be sent to the AI backend when the chip is tapped. MUST be in the user\'s UI language.',
+                  },
+                  category: {
+                    type: FunctionDeclarationSchemaType.STRING,
+                    description: 'Display grouping category for this chip.',
+                    enum: ['remix', 'help', 'substitute', 'shopping', 'timer'],
+                  },
+                },
+                required: ['label', 'prompt', 'category'],
+              },
+            },
+          },
+          required: ['chips'],
+        },
+        temperature: 0.4,
+      } as any,
+    });
+
+    const langName = language === 'en' ? 'English' : 'German';
+    const prompt = `You are helping a user cook a recipe.
+
+Generate 5-6 quick-action suggestion chips for a recipe chat assistant. Each chip has a "label" (shown as a button) and a "prompt" (the text that will be sent to the AI when the chip is tapped).
+
+Chips should include:
+- 2-3 substitution suggestions for key ingredients (e.g., "Substitute for chicken?")
+- 2-3 preparation help suggestions specific to this recipe (e.g., "Can I prep ahead?", "Freeze leftovers?", "Oven timing tips?")
+- 1-2 recipe modification suggestions (e.g., "Make it vegan", "Make it lighter", "Scale to 2 portions")
+- 1 shopping list suggestion (e.g., "Add missing ingredients to shopping list")
+- 1 timer suggestion if there is a timed step (e.g., "Set timer for 15 min")
+- Vary chips based on the recipe content — don't use generic ones.
+
+Recipe JSON:
+${JSON.stringify(recipe)}
+
+Each chip must include a "category": one of "remix" (recipe modifications like vegan, lighter, scale portions), "help" (preparation tips, freezing, oven timing), "substitute" (ingredient replacements), "shopping" (add to shopping list), or "timer" (set cooking timer).
+
+IMPORTANT:
+- Both "label" and "prompt" MUST be in ${langName}.
+
+Respond in JSON only: {"chips":[{"category":"remix","label":"…","prompt":"…"}]}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const parsed = JSON.parse(text);
+    const chips: { label: string; prompt: string }[] = parsed.chips || [];
+
+    await writeGeminiLog({
+      timestamp,
+      requestType: 'chat_chips',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: true,
+      input: { recipeId: recipe.id, recipeTitle: recipe.title },
+      rawOutput: text,
+    });
+
+    return chips;
+  } catch (err: any) {
+    console.error('[generateChatChips] Error:', err);
+    await writeGeminiLog({
+      timestamp,
+      requestType: 'chat_chips',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: false,
+      error: err?.message ?? String(err),
+      input: { recipeId: recipe.id, recipeTitle: recipe.title },
+    });
+    return [];
   }
 }
