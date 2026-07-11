@@ -508,7 +508,7 @@ export default function App() {
                 navigate('extract');
               }
             }}
-            onReplaceCurrent={(newRecipe: any) => {
+            onReplaceCurrent={() => {
               fetchHistory();
             }}
             onSelectModeChange={setIsCatalogSelectMode}

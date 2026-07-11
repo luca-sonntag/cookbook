@@ -109,7 +109,7 @@ export default function SavedCatalog({
               onNavigateToShoppingList={onNavigateToShoppingList}
               shoppingListCount={shoppingListCount}
               onRemixSuccess={onRemixSuccess}
-              onReplaceCurrent={(newRecipe) => {
+              onReplaceCurrent={() => {
                 // Just refresh history — the job recipe was updated in-place in the DB
                 fetchHistory?.();
               }}
