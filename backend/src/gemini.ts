@@ -709,3 +709,249 @@ ${JSON.stringify(parentRecipe, null, 2)}`;
     throw err;
   }
 }
+
+export async function chatAboutRecipe(
+  recipe: Recipe,
+  message: string,
+  history: { role: 'user' | 'model'; text: string }[],
+  userId: string,
+  userPrefs?: UserPreferences
+): Promise<{
+  chatMessage: string;
+  toolCalled: string | null;
+  toolArgs: any;
+  recipeWasModified: boolean;
+  newRecipe?: Recipe;
+}> {
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+  let rawOutput: string | undefined;
+
+  try {
+    const chatbotTools = [
+      {
+        functionDeclarations: [
+          {
+            name: 'modify_current_recipe',
+            description: 'Passt das aktuelle Rezept basierend auf den Änderungswünschen des Nutzers (z.B. vegan machen, laktosefrei, Portionen skalieren, Zutaten ersetzen) an.',
+            parameters: {
+              type: FunctionDeclarationSchemaType.OBJECT,
+              properties: {
+                modification_request: {
+                  type: FunctionDeclarationSchemaType.STRING,
+                  description: 'Der konkrete Wunsch des Nutzers für die Anpassung des Rezepts, z.B. "Mach es vegan" oder "Ersetze Blätterteig durch Pizzateig" oder "Menge verdoppeln".'
+                }
+              },
+              required: ['modification_request']
+            }
+          },
+          {
+            name: 'add_missing_ingredients_to_shopping_list',
+            description: 'Setzt fehlende Zutaten direkt auf die Einkaufsliste des Nutzers.',
+            parameters: {
+              type: FunctionDeclarationSchemaType.OBJECT,
+              properties: {
+                ingredients: {
+                  type: FunctionDeclarationSchemaType.ARRAY,
+                  items: { type: FunctionDeclarationSchemaType.STRING },
+                  description: 'Liste der Zutaten, die hinzugefügt werden sollen, z.B. ["Limette", "Koriander"]'
+                }
+              },
+              required: ['ingredients']
+            }
+          },
+          {
+            name: 'set_cooking_timer',
+            description: 'Erstellt einen Koch-Timer für eine bestimmte Dauer in Minuten mit einem optionalen Label.',
+            parameters: {
+              type: FunctionDeclarationSchemaType.OBJECT,
+              properties: {
+                duration_minutes: { type: FunctionDeclarationSchemaType.NUMBER, description: 'Dauer in Minuten' },
+                label: { type: FunctionDeclarationSchemaType.STRING, description: 'Beschreibung des Timers, wofür er ist, z.B. "Nudeln kochen" oder "Teig ruhen lassen"' }
+              },
+              required: ['duration_minutes']
+            }
+          }
+        ]
+      }
+    ];
+
+    const model = genAI.getGenerativeModel({
+      model: config.GEMINI_MODEL,
+      tools: chatbotTools,
+      generationConfig: {
+        temperature: config.GEMINI_TEMPERATURE,
+      } as any
+    });
+
+    const targetLanguage = userPrefs?.recipeLanguage || config.RECIPE_LANGUAGE;
+
+    const systemInstruction = `You are "KochBuddy AI", a friendly, helpful, and professional sous-chef in the kitchen.
+You are helping the user with the following recipe:
+
+Title: ${recipe.title}
+Description: ${recipe.description}
+Servings: ${recipe.servings}
+Ingredients:
+${recipe.ingredients.map(g => `- ${g.name}:\n${g.items.map(i => `  * ${i.amount} ${i.unit} ${i.name} ${i.modifier ? `(${i.modifier})` : ''}`).join('\n')}`).join('\n')}
+
+Instructions:
+${recipe.instructions.map(step => `${step.step}. ${step.description}`).join('\n')}
+
+Tips:
+${recipe.tips?.map(t => `- ${t}`).join('\n') || 'None'}
+
+Tools at your disposal:
+1. modify_current_recipe: Call this when the user wants to adapt, scale, remix, or otherwise modify the recipe details (e.g. make it vegan, gluten-free, low-carb, scale to a different number of servings, swap or add ingredients). Do not try to write modified recipe JSON or instructions in your text reply; always call this tool to perform the modification.
+2. add_missing_ingredients_to_shopping_list: Call this when the user asks to add specific items to their shopping list or says they are missing ingredients.
+3. set_cooking_timer: Call this when the user asks to set a timer for a step.
+
+Rules:
+- Keep your conversational answers very short and concise (max 2-3 sentences). In the kitchen, speed is key!
+- When you call a tool, the system will execute it and return the result to you. You should then write a short, friendly message explaining what was done.
+- Respond in the language requested by the user. If not specified, default to ${targetLanguage}.
+`;
+
+    // Map history & new message to Gemini Content format
+    const contents: any[] = [];
+    for (const msg of history) {
+      contents.push({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+      });
+    }
+    contents.push({
+      role: 'user',
+      parts: [{ text: message }]
+    });
+
+    console.log(`[chatAboutRecipe] Sending chat request to Gemini. Message: "${message}"...`);
+    const result = await model.generateContent({
+      contents,
+      systemInstruction
+    });
+
+    const response = result.response;
+    rawOutput = response.text();
+    const functionCalls = response.functionCalls ? response.functionCalls() : undefined;
+    const call = functionCalls?.[0];
+
+    if (call) {
+      console.log(`[chatAboutRecipe] Gemini triggered tool call: ${call.name}`, call.args);
+      let toolResponseData: any = { success: true };
+      let remixedRecipe: Recipe | undefined;
+      let recipeWasModified = false;
+
+      if (call.name === 'modify_current_recipe') {
+        const modReq = (call.args as any).modification_request;
+        console.log(`[chatAboutRecipe] Executing remixRecipe synchronously for request: "${modReq}"`);
+        remixedRecipe = await remixRecipe(recipe, modReq, undefined, userPrefs);
+        recipeWasModified = true;
+        toolResponseData = {
+          success: true,
+          message: `Recipe successfully modified. New title: "${remixedRecipe.title}".`
+        };
+      } else if (call.name === 'add_missing_ingredients_to_shopping_list') {
+        const ingredients = (call.args as any).ingredients;
+        toolResponseData = {
+          success: true,
+          message: `Successfully added to shopping list: ${JSON.stringify(ingredients)}`
+        };
+      } else if (call.name === 'set_cooking_timer') {
+        const duration = (call.args as any).duration_minutes;
+        const label = (call.args as any).label || '';
+        toolResponseData = {
+          success: true,
+          message: `Cooking timer set for ${duration} minutes with label "${label}"`
+        };
+      }
+
+      // Add the model's functionCall turn to contents
+      contents.push({
+        role: 'model',
+        parts: [{
+          functionCall: {
+            name: call.name,
+            args: call.args
+          }
+        }]
+      });
+
+      // Add the functionResponse turn to contents
+      contents.push({
+        role: 'function',
+        parts: [{
+          functionResponse: {
+            name: call.name,
+            response: toolResponseData
+          }
+        }]
+      });
+
+      // Invoke Gemini again to generate the final conversational text explanation
+      console.log(`[chatAboutRecipe] Requesting final text response from Gemini after tool call...`);
+      const followUpResult = await model.generateContent({
+        contents,
+        systemInstruction
+      });
+
+      const finalResponse = followUpResult.response;
+      const chatMessage = finalResponse.text() || `Führe Aktion aus: ${call.name}`;
+
+      // Log the chat call
+      await writeGeminiLog({
+        timestamp,
+        requestType: 'chat_recipe',
+        model: config.GEMINI_MODEL,
+        durationMs: Date.now() - startTime,
+        success: true,
+        input: { recipeId: recipe.id, message, historyLength: history.length, toolCall: call.name },
+        rawOutput: chatMessage,
+        parsedOutput: { toolCalled: call.name, toolArgs: call.args, recipeWasModified }
+      });
+
+      return {
+        chatMessage,
+        toolCalled: call.name,
+        toolArgs: call.args,
+        recipeWasModified,
+        newRecipe: remixedRecipe
+      };
+    } else {
+      // Direct text response
+      const chatMessage = rawOutput || 'Ich kann dir dabei leider nicht helfen.';
+
+      // Log the chat call
+      await writeGeminiLog({
+        timestamp,
+        requestType: 'chat_recipe',
+        model: config.GEMINI_MODEL,
+        durationMs: Date.now() - startTime,
+        success: true,
+        input: { recipeId: recipe.id, message, historyLength: history.length, toolCall: null },
+        rawOutput: chatMessage,
+        parsedOutput: { toolCalled: null, toolArgs: null, recipeWasModified: false }
+      });
+
+      return {
+        chatMessage,
+        toolCalled: null,
+        toolArgs: null,
+        recipeWasModified: false
+      };
+    }
+  } catch (err: any) {
+    console.error(`[chatAboutRecipe] Error in Gemini chat:`, err);
+    await writeGeminiLog({
+      timestamp,
+      requestType: 'chat_recipe',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: false,
+      error: err?.message ?? String(err),
+      input: { recipeId: recipe.id, message, historyLength: history.length },
+      rawOutput
+    });
+    throw err;
+  }
+}
