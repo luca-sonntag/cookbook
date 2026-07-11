@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser } from './db.js';
 import { config } from './config.js';
 import { requireAuth } from './auth.js';
+import { chatAboutRecipe } from './gemini.js';
 
 export const apiRouter = Router();
 
@@ -603,6 +604,153 @@ apiRouter.delete('/users/me', async (req: Request, res: Response): Promise<void>
     res.status(500).json({
       success: false,
       error: 'Internal server error while deleting account.',
+    });
+  }
+});
+
+/**
+ * Endpoint to chat about a recipe.
+ * POST /api/jobs/:id/chat
+ * Body: { message: string, history: Array<{role: 'user'|'model', text: string}> }
+ */
+apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { message, history } = req.body;
+
+    if (!message || typeof message !== 'string') {
+      res.status(400).json({
+        success: false,
+        error: 'Missing required field: "message" must be a string.',
+      });
+      return;
+    }
+
+    if (!Array.isArray(history)) {
+      res.status(400).json({
+        success: false,
+        error: 'Missing or invalid field: "history" must be an array.',
+      });
+      return;
+    }
+
+    // Get the recipe job
+    const job = await getJob(id, req.userId!);
+    if (!job || !job.recipe) {
+      res.status(404).json({
+        success: false,
+        error: 'Recipe not found.',
+      });
+      return;
+    }
+
+    // Enforce premium access for chat
+    let isPremium = false;
+    let user: any = null;
+    try {
+      const { data, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
+      if (!authError && data?.user) {
+        user = data.user;
+      }
+
+      // Dev-override: allow simulating premium in development environments
+      if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
+        if (!user) user = { id: req.userId, app_metadata: {} };
+        if (!user.app_metadata) user.app_metadata = {};
+        user.app_metadata.tier = 'premium';
+      }
+
+      if (user) {
+        const meta = user.app_metadata || {};
+        isPremium = meta.tier === 'premium' ||
+                    meta.custom_extraction_limit === -1 ||
+                    meta.max_extractions_per_window === -1;
+      }
+    } catch (err) {
+      console.warn(`Failed to fetch user metadata for chat premium check:`, err);
+      if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
+        isPremium = true;
+      }
+    }
+
+    if (!isPremium) {
+      res.status(403).json({
+        success: false,
+        code: 'PREMIUM_REQUIRED',
+        error: 'AI Kitchen Chef Chat is a premium feature. Please upgrade to Premium to chat with KochBuddy.',
+      });
+      return;
+    }
+
+    // Resolve user preferences for recipe language and unit system formatting
+    let userPrefs: {
+      recipeLanguage?: string;
+      preferredTemperatureUnit?: string;
+      preferredUnitSystem?: string;
+    } | undefined;
+
+    if (user?.user_metadata) {
+      const meta = user.user_metadata;
+      const languageMap: Record<string, string> = {
+        'de': 'German',
+        'en': 'English',
+        'german': 'German',
+        'english': 'English'
+      };
+      
+      let recipeLanguage: string | undefined;
+      if (meta.language) {
+        recipeLanguage = languageMap[meta.language.toLowerCase()];
+      }
+      if (!recipeLanguage && meta.recipe_language) {
+        recipeLanguage = languageMap[meta.recipe_language.toLowerCase()] || meta.recipe_language;
+      }
+
+      userPrefs = {
+        recipeLanguage,
+        preferredTemperatureUnit: meta.preferred_temperature_unit,
+        preferredUnitSystem: meta.preferred_unit_system,
+      };
+    }
+
+    // Process chat request with Gemini
+    const result = await chatAboutRecipe(
+      job.recipe,
+      message,
+      history,
+      req.userId!,
+      userPrefs
+    );
+
+    let responsePayload: any = {
+      success: true,
+      chatMessage: result.chatMessage,
+      toolCalled: result.toolCalled,
+      toolArgs: result.toolArgs,
+      recipeWasModified: result.recipeWasModified
+    };
+
+    // If recipe was modified, save the completed remix in Supabase to persist it
+    if (result.recipeWasModified && result.newRecipe) {
+      const remixPrompt = result.toolArgs?.modification_request || 'AI Copilot modification';
+      console.log(`[chat route] Saving completed recipe remix for parent job ${id}`);
+      const savedJob = await saveCompletedRemix(
+        id,
+        job.url,
+        result.newRecipe,
+        remixPrompt,
+        req.userId!
+      );
+      responsePayload.newJobId = savedJob.id;
+      responsePayload.updatedRecipeJson = savedJob.recipe;
+    }
+
+    res.status(200).json(responsePayload);
+  } catch (error: any) {
+    console.error('Error in recipe chat handler:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error during recipe chat.',
     });
   }
 });
