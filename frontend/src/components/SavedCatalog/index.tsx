@@ -43,7 +43,6 @@ export default function SavedCatalog({
   onNavigateToShoppingList,
   shoppingListCount,
   onRemixSuccess,
-  onReplaceCurrent,
   onSelectModeChange
 }: SavedCatalogProps) {
   const { language, t } = useI18n();
