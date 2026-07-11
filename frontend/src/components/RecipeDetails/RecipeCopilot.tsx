@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button, Drawer, Card } from '@heroui/react';
-import { Send, Sparkles, Bot, User, Loader2, RefreshCw, X } from 'lucide-react';
+import { Send, Sparkles, Bot, User, Loader2, RefreshCw, X, Plus } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTimerManager } from '../../hooks/useTimerManager';
@@ -11,6 +11,8 @@ interface Message {
   role: 'user' | 'model';
   text: string;
   isRemixReady?: boolean;
+  pendingRemix?: boolean;
+  modificationRequest?: string;
   newJobId?: string;
   newRecipe?: Recipe;
 }
@@ -20,9 +22,10 @@ interface RecipeCopilotProps {
   onClose: () => void;
   recipe: Recipe;
   onRemixSuccess: (newRecipe: Recipe, newJobId: string) => void;
+  onReplaceCurrent: (newRecipe: Recipe) => void;
 }
 
-export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess }: RecipeCopilotProps) {
+export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess, onReplaceCurrent }: RecipeCopilotProps) {
   const { t, language } = useI18n();
   const { getAccessToken } = useAuth();
   const { addTimer } = useTimerManager();
@@ -33,6 +36,9 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
   const [isPending, setIsPending] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showChips, setShowChips] = useState(true);
+  const [chips, setChips] = useState<{ label: string; prompt: string; category: string }[]>([]);
+  const [chipsLoading, setChipsLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLInputElement>(null);
@@ -42,34 +48,44 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Auto scroll when history changes
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
-      // Auto focus input
+    }
+  }, [isOpen, history]);
+
+  // Auto focus input only on first open, reset chips visibility & fetch from LLM
+  useEffect(() => {
+    if (isOpen) {
+      setShowChips(true);
+      setChips([]);
+      setChipsLoading(true);
+
+      // Fetch LLM-generated chips
+      (async () => {
+        try {
+          const token = await getAccessToken();
+          const res = await fetch(`/api/jobs/${recipe.id}/chat/chips?lang=${language}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setChips(data.chips || []);
+          }
+        } catch {
+          // Silently fail — chips are optional
+        } finally {
+          setChipsLoading(false);
+        }
+      })();
+
       setTimeout(() => {
         textareaRef.current?.focus();
       }, 100);
     }
-  }, [isOpen, history]);
-
-  // Extract first 3 ingredients from the recipe to generate dynamic substitution chips
-  const displayIngredients = recipe.ingredients
-    .flatMap(g => g.items)
-    .slice(0, 3)
-    .map(i => i.name);
-
-  // Quick Chips categories
-  const remixChips = [
-    { label: t('remix.chips.vegan.label'), prompt: language === 'de' ? 'Mache es vegan' : 'Make it vegan' },
-    { label: t('remix.chips.highProtein.label'), prompt: language === 'de' ? 'Mache es eiweißreich' : 'Make it high protein' },
-    { label: t('copilot.chipPortions'), prompt: language === 'de' ? 'Portionen anpassen' : 'Adjust portions' }
-  ];
-
-  const helpChips = [
-    { label: t('copilot.chipAirfryer'), prompt: t('copilot.chipAirfryer') },
-    { label: t('copilot.chipRoux'), prompt: t('copilot.chipRoux') },
-    { label: t('copilot.chipFreeze'), prompt: t('copilot.chipFreeze') }
-  ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const handleSend = async (textToSend: string) => {
     if (!textToSend.trim() || isPending) return;
@@ -77,6 +93,10 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
     setError(null);
     setIsPending(true);
     setMessage('');
+    setShowChips(false);
+
+    // Dismiss mobile keyboard after sending
+    (document.activeElement as HTMLElement)?.blur();
 
     // Add user message to history
     const userMsg: Message = { role: 'user', text: textToSend };
@@ -147,7 +167,9 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
       const modelMsg: Message = {
         role: 'model',
         text: data.chatMessage,
-        isRemixReady: data.recipeWasModified,
+        isRemixReady: data.recipeWasModified && !data.pendingRemix,
+        pendingRemix: data.pendingRemix,
+        modificationRequest: data.modificationRequest,
         newJobId: data.newJobId,
         newRecipe: data.updatedRecipeJson
       };
@@ -167,7 +189,44 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
 
   const handleLoadNewRecipe = (newRecipe: Recipe, newJobId: string) => {
     onRemixSuccess(newRecipe, newJobId);
-    onClose();
+    setTimeout(() => onClose(), 50);
+  };
+
+  const handleConfirmRemix = async (_msgIdx: number, modificationRequest: string, replaceCurrent: boolean) => {
+    setIsPending(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`/api/jobs/${recipe.id}/chat/confirm`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ modificationRequest, replaceCurrent }),
+      });
+
+      if (!res.ok) throw new Error('Failed to confirm remix.');
+      const data = await res.json();
+
+      const successMsg: Message = {
+        role: 'model',
+        text: t('copilot.remixCreated', { title: data.updatedRecipeJson?.title || '' }),
+        isRemixReady: !replaceCurrent,
+        newJobId: data.newJobId,
+        newRecipe: data.updatedRecipeJson,
+      };
+      setHistory(prev => [...prev, successMsg]);
+
+      // If replacing current recipe, immediately load it
+      if (replaceCurrent && data.updatedRecipeJson) {
+        onReplaceCurrent(data.updatedRecipeJson);
+        setTimeout(() => onClose(), 50);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to confirm remix.');
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
@@ -267,6 +326,41 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
                           </Button>
                         </Card>
                       )}
+
+                      {/* Pending remix confirm card */}
+                      {isAI && msg.pendingRemix && msg.modificationRequest && (
+                        <Card className="p-4 border border-amber-500/20 bg-amber-500/5 flex flex-col gap-3 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="w-4.5 h-4.5 text-amber-500 animate-spin-slow" />
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                              {t('copilot.remixConfirmTitle')}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-300 leading-normal">
+                            {t('copilot.remixConfirmBody', { request: msg.modificationRequest })}
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs"
+                              onPress={() => handleConfirmRemix(idx, msg.modificationRequest!, true)}
+                              isDisabled={isPending}
+                            >
+                              <RefreshCw className="w-3.5 h-3.5" />
+                              {t('copilot.remixReplaceBtn')}
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="bg-white dark:bg-gray-700 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-medium rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs hover:bg-amber-50 dark:hover:bg-amber-500/10"
+                              onPress={() => handleConfirmRemix(idx, msg.modificationRequest!, false)}
+                              isDisabled={isPending}
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              {t('copilot.remixNewBtn')}
+                            </Button>
+                          </div>
+                        </Card>
+                      )}
                     </div>
                   </div>
                 );
@@ -301,64 +395,51 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
             <div className="border-t border-black/5 dark:border-white/5 p-4 flex flex-col gap-3.5 bg-white dark:bg-gray-900 flex-shrink-0">
               
               {/* Quick Chips Scroll Container */}
-              {history.length < 5 && (
+              {showChips && (
                 <div className="flex flex-col gap-2">
-                  {/* Category 1: Remix */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
-                    <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500 whitespace-nowrap flex-shrink-0 mr-1">
-                      {t('copilot.chipsHeaderRemix')}:
-                    </span>
-                    {remixChips.map((chip, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSend(chip.prompt)}
-                        disabled={isPending}
-                        className="px-3 py-1.5 text-xs font-semibold rounded-full border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-400 active:scale-95 transition-all whitespace-nowrap flex-shrink-0 cursor-pointer disabled:opacity-50"
-                      >
-                        {chip.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Category 2: Preparation Help */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
-                    <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500 whitespace-nowrap flex-shrink-0 mr-1">
-                      {t('copilot.chipsHeaderHelp')}:
-                    </span>
-                    {helpChips.map((chip, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSend(chip.prompt)}
-                        disabled={isPending}
-                        className="px-3 py-1.5 text-xs font-semibold rounded-full border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-400 active:scale-95 transition-all whitespace-nowrap flex-shrink-0 cursor-pointer disabled:opacity-50"
-                      >
-                        {chip.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Category 3: Substitutions */}
-                  {displayIngredients.length > 0 && (
-                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
-                      <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500 whitespace-nowrap flex-shrink-0 mr-1">
-                        {t('copilot.chipsHeaderSubs')}:
-                      </span>
-                      {displayIngredients.map((ing, idx) => {
-                        const promptText = language === 'de' 
-                          ? `Ich habe kein/e ${ing} mehr - was kann ich als Alternative nehmen?` 
-                          : `I don't have any ${ing} left - what can I use as a substitute?`;
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => handleSend(promptText)}
-                            disabled={isPending}
-                            className="px-3 py-1.5 text-xs font-semibold rounded-full border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-400 active:scale-95 transition-all whitespace-nowrap flex-shrink-0 cursor-pointer disabled:opacity-50"
-                          >
-                            Alternative für {ing}?
-                          </button>
-                        );
-                      })}
+                  {chipsLoading ? (
+                    <div className="flex items-center justify-center py-1">
+                      <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
                     </div>
+                  ) : chips.length === 0 ? null : (
+                    (() => {
+                      const groups: Record<string, { label: string; prompt: string }[]> = {};
+                      for (const c of chips) {
+                        (groups[c.category] ||= []).push({ label: c.label, prompt: c.prompt });
+                      }
+
+                      const categoryLabels: Record<string, string> = {
+                        remix: t('copilot.chipsHeaderRemix'),
+                        help: t('copilot.chipsHeaderHelp'),
+                        substitute: t('copilot.chipsHeaderSubs'),
+                        shopping: t('copilot.chipsHeaderShopping'),
+                        timer: t('copilot.chipsHeaderTimer'),
+                      };
+
+                      const categoryOrder = ['remix', 'help', 'substitute', 'shopping', 'timer'];
+
+                      return categoryOrder.map(cat => {
+                        const group = groups[cat];
+                        if (!group || group.length === 0) return null;
+                        return (
+                          <div key={cat} className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5 touch-pan-x">
+                            <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500 whitespace-nowrap flex-shrink-0 mr-1">
+                              {categoryLabels[cat]}:
+                            </span>
+                            {group.map((chip, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => handleSend(chip.prompt)}
+                                disabled={isPending}
+                                className="px-3 py-1.5 text-xs font-semibold rounded-full border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-400 active:scale-95 transition-all whitespace-nowrap flex-shrink-0 cursor-pointer disabled:opacity-50"
+                              >
+                                {chip.label}
+                              </button>
+                            ))}
+                          </div>
+                        );
+                      });
+                    })()
                   )}
                 </div>
               )}
@@ -371,6 +452,17 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
                 }}
                 className="flex items-center gap-2 w-full"
               >
+                {/* Show chips toggle button */}
+                {!showChips && (
+                  <button
+                    type="button"
+                    onClick={() => setShowChips(true)}
+                    className="flex-shrink-0 h-11 w-10 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 hover:bg-emerald-500/10 hover:border-emerald-500/20 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+                    aria-label={t('copilot.showSuggestionsAria')}
+                  >
+                    <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  </button>
+                )}
                 <div className="relative flex-1 flex items-center bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl focus-within:ring-2 focus-within:ring-emerald-500 pr-1 h-11">
                   <input
                     ref={textareaRef}
