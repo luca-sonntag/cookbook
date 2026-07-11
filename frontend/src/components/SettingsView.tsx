@@ -138,15 +138,18 @@ export default function SettingsView() {
       )}
 
       {isPremium && (
-        <div className="mx-2 p-5 bg-gradient-to-r from-amber-500/10 to-emerald-500/10 rounded-3xl border border-amber-500/20 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-emerald-500 p-0.5 shadow-lg shadow-emerald-500/20 shrink-0">
-            <div className="w-full h-full bg-white dark:bg-gray-900 rounded-[14px] flex items-center justify-center">
-              <Crown className="w-6 h-6 text-amber-500" />
-            </div>
-          </div>
+        <div className="mx-2 p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-lg text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h3 className="text-sm font-extrabold text-gray-900 dark:text-white">Snagbite Premium</h3>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">Aktiv ✓</p>
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Crown className="w-5 h-5 text-amber-300 fill-amber-300" />
+              Snagbite Premium
+            </h3>
+            <p className="text-xs text-emerald-100/90 mt-1 max-w-md">
+              {t('app.settings.premiumActiveDesc') || 'You have unlimited access to all premium features.'}
+            </p>
+          </div>
+          <div className="bg-white/10 border border-white/20 text-white font-bold text-xs h-10 px-6 rounded-xl flex items-center justify-center gap-1.5 shrink-0 self-start sm:self-auto select-none">
+            {t('app.settings.premiumActive') || 'Active'} ✓
           </div>
         </div>
       )}
