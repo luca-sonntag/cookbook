@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Button, Drawer, Input, Card } from '@heroui/react';
+import { Button, Drawer, Card } from '@heroui/react';
 import { Send, Sparkles, Bot, User, Loader2, RefreshCw, X } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
@@ -370,7 +370,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
                 className="flex items-center gap-2 w-full"
               >
                 <div className="relative flex-1 flex items-center bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl focus-within:ring-2 focus-within:ring-emerald-500 pr-1 h-11">
-                  <Input
+                  <input
                     ref={textareaRef}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
