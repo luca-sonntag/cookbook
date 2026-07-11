@@ -185,6 +185,8 @@ export const uiTranslations = {
         saved: 'Einstellungen gespeichert!',
         deleteAccount: 'Konto löschen',
         upgradePremium: 'Auf Premium upgraden',
+        premiumActive: 'Aktiv',
+        premiumActiveDesc: 'Du hast unbegrenzten Zugriff auf alle Premium-Features.',
       },
       dialog: {
         deleteAccount: {
@@ -599,6 +601,8 @@ export const uiTranslations = {
         saved: 'Settings saved!',
         deleteAccount: 'Delete Account',
         upgradePremium: 'Upgrade to Premium',
+        premiumActive: 'Active',
+        premiumActiveDesc: 'You have unlimited access to all premium features.',
       },
       dialog: {
         deleteAccount: {
