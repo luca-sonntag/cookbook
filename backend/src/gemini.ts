@@ -866,16 +866,20 @@ Rules:
         };
       }
 
-      // Add the model's functionCall turn to contents
-      contents.push({
-        role: 'model',
-        parts: [{
-          functionCall: {
-            name: call.name,
-            args: call.args
-          }
-        }]
-      });
+      // Add the model's functionCall turn to contents (preserving original thought signatures if present)
+      if (response.candidates?.[0]?.content) {
+        contents.push(response.candidates[0].content);
+      } else {
+        contents.push({
+          role: 'model',
+          parts: [{
+            functionCall: {
+              name: call.name,
+              args: call.args
+            }
+          }]
+        });
+      }
 
       // Add the functionResponse turn to contents
       contents.push({
