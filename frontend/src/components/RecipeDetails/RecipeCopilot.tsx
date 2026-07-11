@@ -174,36 +174,35 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess 
     <Drawer isOpen={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <Drawer.Backdrop className="!z-[100]">
         <Drawer.Content placement="bottom" className="!z-[100] h-[100dvh] w-full rounded-none md:max-w-2xl md:mx-auto md:h-[85vh] md:rounded-t-3xl">
-          <Drawer.Dialog className="!bg-white dark:!bg-gray-900 flex flex-col h-full overflow-hidden">
+          <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 flex flex-col h-full overflow-hidden">
             
-            {/* Header */}
-            <Drawer.Header className="border-b border-black/5 dark:border-white/5 py-4 px-5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0 shadow-sm border border-emerald-500/10">
-                  <Bot className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div className="flex flex-col">
-                  <Drawer.Heading className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-1.5 leading-none">
-                    {t('copilot.title')}
-                    <span className="flex h-2 w-2 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                  </Drawer.Heading>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 font-normal">
-                    {t('copilot.subtitle')}
-                  </p>
-                </div>
-              </div>
+            {/* Close Button (Top-Right) */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="absolute top-4 right-4 z-50 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all outline-none border-none cursor-pointer flex items-center justify-center"
+              aria-label={t('dialog.closeAria')}
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all outline-none border-none cursor-pointer flex items-center justify-center"
-                aria-label={t('dialog.closeAria')}
-              >
-                <X className="w-5.5 h-5.5" />
-              </button>
+            {/* Header */}
+            <Drawer.Header className="border-b border-black/5 dark:border-white/5 py-4 px-5 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0 shadow-sm border border-emerald-500/10">
+                <Bot className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="flex flex-col pr-8">
+                <Drawer.Heading className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-1.5 leading-none">
+                  {t('copilot.title')}
+                  <span className="flex h-2 w-2 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                </Drawer.Heading>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 font-normal">
+                  {t('copilot.subtitle')}
+                </p>
+              </div>
             </Drawer.Header>
 
             {/* Body (Messages) */}
