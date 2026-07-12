@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
@@ -30,6 +30,11 @@ function SettingInfo({ text }: { text: string }) {
     </Popover>
   );
 }
+
+const getInitials = (email?: string) => {
+  if (!email) return 'U';
+  return email.charAt(0).toUpperCase();
+};
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
@@ -85,298 +90,329 @@ export default function SettingsView() {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
-      <div className="px-2">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-1">
+      {/* Title */}
+      <div className="px-2 flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
           {t('app.nav.settings') || 'Settings'}
         </h2>
-        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {user?.email}
-          </span>
-          {isPremium ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
-              Premium
-            </span>
-          ) : (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-black/5 dark:border-white/5 uppercase tracking-wider">
-              Freemium
-            </span>
-          )}
-        </div>
       </div>
 
+      {/* Save Status / Error Notification */}
       {saveMessage && (
-        <div className={`mx-2 px-4 py-2.5 text-xs text-center rounded-xl font-semibold border ${saveMessage === t('app.settings.saved')
-          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-          }`}>
+        <div className={`mx-2 px-4 py-2.5 text-xs text-center rounded-xl font-semibold border transition-all ${
+          saveMessage === t('app.settings.saved')
+            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+            : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+        }`}>
           {saveMessage}
         </div>
       )}
 
+      {/* Profile Card */}
+      <div className="mx-2 p-5 bg-white dark:bg-gray-900 border border-black/5 dark:border-white/10 rounded-3xl shadow-sm flex flex-col gap-4 relative overflow-hidden">
+        {isPremium && (
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-2xl pointer-events-none -mr-8 -mt-8" />
+        )}
+        <div className="flex items-center gap-4">
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg text-white shadow-md shrink-0 ${
+            isPremium 
+              ? 'bg-gradient-to-tr from-emerald-500 to-teal-500 shadow-emerald-500/20 ring-2 ring-emerald-500/20' 
+              : 'bg-gradient-to-tr from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-black/10'
+          }`}>
+            {getInitials(user?.email)}
+          </div>
+          <div className="flex flex-col min-w-0 font-sans">
+            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+              {language === 'de' ? 'Konto' : 'Account'}
+            </span>
+            <span className="text-base font-bold text-gray-900 dark:text-white truncate mt-0.5">
+              {user?.email}
+            </span>
+            <div className="flex items-center gap-2 mt-1.5">
+              {isPremium ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 uppercase tracking-wider">
+                  <Crown className="w-3 h-3 fill-amber-500 text-amber-500" />
+                  Premium
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-black/5 dark:border-white/5 uppercase tracking-wider">
+                  Free Member
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {isPremium && (
+          <div className="pt-3.5 border-t border-black/5 dark:border-white/5 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <span>
+              {t('app.settings.premiumActiveDesc') || 'You have unlimited access to all premium features.'}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Premium Upgrade Promotion (only for free members) */}
       {!isPremium && (
         <div
           onClick={() => setIsPremiumModalOpen(true)}
-          className="mx-2 cursor-pointer p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-lg text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:opacity-95 active:scale-[0.98] transition-all"
+          className="mx-2 cursor-pointer p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-md text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:brightness-[1.02] active:scale-[0.99] transition-all relative overflow-hidden group"
         >
-          <div>
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-300 fill-amber-300 animate-pulse" />
+          <div className="z-10">
+            <h3 className="text-base font-bold flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
               Snagbite Premium
             </h3>
-            <p className="text-xs text-emerald-100/90 mt-1 max-w-md">
+            <p className="text-xs text-emerald-100/90 mt-1 max-w-sm">
               Unlock unlimited recipe extractions, advanced remix capabilities, and priority processing.
             </p>
           </div>
           <div
-            className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs h-10 px-6 rounded-xl shadow-md active:scale-95 transition-all self-start sm:self-auto flex items-center gap-1.5 shrink-0"
+            className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs h-9 px-4 rounded-xl shadow-md active:scale-95 transition-all self-start sm:self-auto flex items-center gap-1.5 shrink-0 z-10"
           >
-            <Crown className="w-4 h-4" />
+            <Crown className="w-3.5 h-3.5" />
             {t('app.settings.upgradePremium') || 'Upgrade to Premium'}
           </div>
         </div>
       )}
 
-      {isPremium && (
-        <div className="mx-2 p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-lg text-white flex flex-col gap-1.5">
-          <h3 className="text-lg font-bold flex items-center gap-2 flex-wrap">
-            <Crown className="w-5 h-5 text-amber-300 fill-amber-300" />
-            <span>Snagbite Premium</span>
-            <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-100 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15 select-none ml-1">
-              {t('app.settings.premiumActive') || 'Active'}
-            </span>
-          </h3>
-          <p className="text-xs text-emerald-100/90 max-w-md">
-            {t('app.settings.premiumActiveDesc') || 'You have unlimited access to all premium features.'}
-          </p>
-        </div>
-      )}
-
-      <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden">
-        {/* Language Option */}
-        <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
-              <Globe className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                {t('app.settings.language') || 'Language'}
-              </p>
-            </div>
-          </div>
-          <Select
-            variant="secondary"
-            selectedKey={language}
-            onSelectionChange={(key) => setLanguage(key as 'en' | 'de')}
-            className="w-24"
-            aria-label="Language"
-          >
-            <Select.Trigger className="h-10 py-1.5 px-3 flex items-center leading-none rounded-xl">
-              <Select.Value className="text-xs font-semibold" />
-              <Select.Indicator className="size-3.5" />
-            </Select.Trigger>
-            <Select.Popover className="p-1 min-w-[100px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
-              <ListBox>
-                <ListBox.Item id="en" textValue="EN" className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
-                  EN
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="de" textValue="DE" className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
-                  DE
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
-        </div>
-
-        {/* Temperature Unit Option */}
-        <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
-              <Thermometer className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm whitespace-nowrap">
-                {t('app.settings.tempUnit') || 'Temperature Unit'}
-                <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
-              </p>
-            </div>
-          </div>
-          <Select
-            variant="secondary"
-            selectedKey={preferredTempUnit}
-            onSelectionChange={(key) => handleUpdateSetting('preferred_temperature_unit', key as string)}
-            isDisabled={isSaving}
-            className="w-36"
-            aria-label="Temperature Unit"
-          >
-            <Select.Trigger className="h-10 py-1.5 px-3 flex items-center leading-none rounded-xl">
-              <Select.Value className="text-xs font-semibold" />
-              <Select.Indicator className="size-3.5" />
-            </Select.Trigger>
-            <Select.Popover className="p-1 min-w-[150px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
-              <ListBox>
-                <ListBox.Item id="Celsius" textValue={t('app.settings.tempUnitCelsius') || 'Celsius (°C)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
-                  {t('app.settings.tempUnitCelsius') || 'Celsius (°C)'}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="Fahrenheit" textValue={t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
-                  {t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="both" textValue={t('app.settings.tempUnitBoth') || 'Both (°C & °F)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
-                  {t('app.settings.tempUnitBoth') || 'Both (°C & °F)'}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
-        </div>
-
-        {/* Unit System Option */}
-        <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
-              <Scale className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm whitespace-nowrap">
-                {t('app.settings.unitSystem') || 'Unit System'}
-                <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
-              </p>
-            </div>
-          </div>
-          <Select
-            variant="secondary"
-            selectedKey={preferredUnitSystem}
-            onSelectionChange={(key) => handleUpdateSetting('preferred_unit_system', key as string)}
-            isDisabled={isSaving}
-            className="w-40"
-            aria-label="Unit System"
-          >
-            <Select.Trigger className="h-10 py-1.5 px-3 flex items-center leading-none rounded-xl">
-              <Select.Value className="text-xs font-semibold" />
-              <Select.Indicator className="size-3.5" />
-            </Select.Trigger>
-            <Select.Popover className="p-1 min-w-[170px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
-              <ListBox>
-                <ListBox.Item id="metric" textValue={t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
-                  {t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="imperial" textValue={t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
-                  {t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
-        </div>
-
-        {/* Theme Option */}
-        <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
-              {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                {t('app.settings.theme') || 'Appearance'}
-              </p>
-            </div>
-          </div>
-          <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
-            <button
-              onClick={() => setTheme('light')}
-              className={`px-4.5 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-1.5 ${theme === 'light'
-                ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                }`}
-            >
-              <Sun className="w-3.5 h-3.5" />
-              Light
-            </button>
-            <button
-              onClick={() => setTheme('dark')}
-              className={`px-4.5 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-1.5 ${theme === 'dark'
-                ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                }`}
-            >
-              <Moon className="w-3.5 h-3.5" />
-              Dark
-            </button>
-          </div>
-        </div>
-
-        {/* PWA Install Option (If applicable) */}
-        {isInstallable && (
+      {/* Preferences Section */}
+      <div className="flex flex-col gap-2">
+        <h3 className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+          {language === 'de' ? 'Einstellungen' : 'Preferences'}
+        </h3>
+        
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+          {/* Language Option */}
           <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
-                <MonitorSmartphone className="w-5 h-5" />
+              <div className="p-2 bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 rounded-xl">
+                <Globe className="w-5 h-5" />
               </div>
               <div>
                 <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {t('app.installBanner.title') || 'Install App'}
+                  {t('app.settings.language') || 'Language'}
                 </p>
               </div>
             </div>
-            <Button
-              className="bg-blue-600 text-white font-bold text-xs h-10 px-5 rounded-xl shadow-md active:scale-95 transition-all"
-              onPress={handleInstallClick}
+            <Select
+              variant="secondary"
+              selectedKey={language}
+              onSelectionChange={(key) => setLanguage(key as 'en' | 'de')}
+              className="w-24"
+              aria-label="Language"
             >
-              Install
-            </Button>
+              <Select.Trigger className="h-9 py-1.5 px-3 flex items-center leading-none rounded-xl bg-black/5 dark:bg-white/5 border-none shadow-none hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                <Select.Value className="text-xs font-semibold" />
+                <Select.Indicator className="size-3.5" />
+              </Select.Trigger>
+              <Select.Popover className="p-1 min-w-[100px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
+                <ListBox>
+                  <ListBox.Item id="en" textValue="EN" className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
+                    EN
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                  <ListBox.Item id="de" textValue="DE" className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
+                    DE
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                </ListBox>
+              </Select.Popover>
+            </Select>
           </div>
-        )}
 
-        {/* Logout Option — hidden when the session came from silent auto
-            sign-in, since signing out would just be undone on next launch. */}
-        {!autoSignedIn && (
+          {/* Temperature Unit Option */}
           <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-xl">
-                <LogOut className="w-5 h-5" />
+              <div className="p-2 bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400 rounded-xl">
+                <Thermometer className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white text-sm flex items-center">
+                  {t('app.settings.tempUnit') || 'Temperature Unit'}
+                  <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
+                </p>
+              </div>
+            </div>
+            <Select
+              variant="secondary"
+              selectedKey={preferredTempUnit}
+              onSelectionChange={(key) => handleUpdateSetting('preferred_temperature_unit', key as string)}
+              isDisabled={isSaving}
+              className="w-36"
+              aria-label="Temperature Unit"
+            >
+              <Select.Trigger className="h-9 py-1.5 px-3 flex items-center leading-none rounded-xl bg-black/5 dark:bg-white/5 border-none shadow-none hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                <Select.Value className="text-xs font-semibold" />
+                <Select.Indicator className="size-3.5" />
+              </Select.Trigger>
+              <Select.Popover className="p-1 min-w-[150px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
+                <ListBox>
+                  <ListBox.Item id="Celsius" textValue={t('app.settings.tempUnitCelsius') || 'Celsius (°C)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
+                    {t('app.settings.tempUnitCelsius') || 'Celsius (°C)'}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                  <ListBox.Item id="Fahrenheit" textValue={t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
+                    {t('app.settings.tempUnitFahrenheit') || 'Fahrenheit (°F)'}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                  <ListBox.Item id="both" textValue={t('app.settings.tempUnitBoth') || 'Both (°C & °F)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
+                    {t('app.settings.tempUnitBoth') || 'Both (°C & °F)'}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                </ListBox>
+              </Select.Popover>
+            </Select>
+          </div>
+
+          {/* Unit System Option */}
+          <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl">
+                <Scale className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white text-sm flex items-center">
+                  {t('app.settings.unitSystem') || 'Unit System'}
+                  <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
+                </p>
+              </div>
+            </div>
+            <Select
+              variant="secondary"
+              selectedKey={preferredUnitSystem}
+              onSelectionChange={(key) => handleUpdateSetting('preferred_unit_system', key as string)}
+              isDisabled={isSaving}
+              className="w-40"
+              aria-label="Unit System"
+            >
+              <Select.Trigger className="h-9 py-1.5 px-3 flex items-center leading-none rounded-xl bg-black/5 dark:bg-white/5 border-none shadow-none hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                <Select.Value className="text-xs font-semibold" />
+                <Select.Indicator className="size-3.5" />
+              </Select.Trigger>
+              <Select.Popover className="p-1 min-w-[170px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
+                <ListBox>
+                  <ListBox.Item id="metric" textValue={t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
+                    {t('app.settings.unitSystemMetric') || 'Metric (g, ml, kg)'}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                  <ListBox.Item id="imperial" textValue={t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
+                    {t('app.settings.unitSystemImperial') || 'Imperial (oz, cups, lbs)'}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                </ListBox>
+              </Select.Popover>
+            </Select>
+          </div>
+
+          {/* Theme Option */}
+          <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 last:border-b-0">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 rounded-xl">
+                {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </div>
               <div>
                 <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {t('auth.signOut') || 'Sign Out'}
+                  {t('app.settings.theme') || 'Appearance'}
                 </p>
               </div>
             </div>
-            <Button
-              variant="danger-soft"
-              className="font-bold text-xs h-10 px-5 rounded-xl active:scale-95 transition-all"
-              onPress={() => signOut()}
-            >
-              {t('auth.signOut') || 'Sign Out'}
-            </Button>
+            <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+              <button
+                onClick={() => setTheme('light')}
+                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                  theme === 'light'
+                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                <Sun className="w-3.5 h-3.5" />
+                Light
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                <Moon className="w-3.5 h-3.5" />
+                Dark
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* Delete Account Option */}
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400 rounded-xl">
-              <UserMinus className="w-5 h-5" />
+          {/* PWA Install Option (If applicable) */}
+          {isInstallable && (
+            <div className="p-4 flex items-center justify-between border-t border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 rounded-xl">
+                  <MonitorSmartphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                    {t('app.installBanner.title') || 'Install App'}
+                  </p>
+                </div>
+              </div>
+              <Button
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs h-9 px-4 rounded-xl shadow-md active:scale-95 transition-all"
+                onPress={handleInstallClick}
+              >
+                Install
+              </Button>
             </div>
-            <div>
-              <p className="font-semibold text-gray-950 dark:text-white text-sm">
-                {t('app.settings.deleteAccount') || 'Delete Account'}
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="danger-soft"
-            className="font-bold text-xs h-10 px-5 rounded-xl active:scale-95 transition-all text-red-600 hover:text-red-500 cursor-pointer"
-            onPress={handleDeleteAccount}
-            isDisabled={isSaving}
+          )}
+        </div>
+      </div>
+
+      {/* Section: Account Actions */}
+      <div className="flex flex-col gap-2">
+        <h3 className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+          {language === 'de' ? 'Konto-Aktionen' : 'Account Actions'}
+        </h3>
+        
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+          {/* Logout Option */}
+          {!autoSignedIn && (
+            <button
+              onClick={() => signOut()}
+              className="w-full p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gray-500/10 text-gray-500 dark:bg-gray-500/20 dark:text-gray-400 rounded-xl group-hover:scale-105 transition-transform">
+                  <LogOut className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-950 dark:text-white text-sm">
+                    {t('auth.signOut') || 'Sign Out'}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          )}
+
+          {/* Delete Account Option */}
+          <button
+            onClick={handleDeleteAccount}
+            disabled={isSaving}
+            className="w-full p-4 flex items-center justify-between hover:bg-rose-500/5 dark:hover:bg-rose-500/10 transition-all active:scale-[0.99] text-left cursor-pointer group disabled:opacity-50 disabled:pointer-events-none"
           >
-            {t('app.settings.deleteAccount') || 'Delete Account'}
-          </Button>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-rose-500/10 text-rose-500 dark:bg-rose-500/20 dark:text-rose-400 rounded-xl group-hover:scale-105 transition-transform">
+                <UserMinus className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-rose-600 dark:text-rose-400 text-sm">
+                  {t('app.settings.deleteAccount') || 'Delete Account'}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-rose-500/60 dark:text-rose-400/60 group-hover:translate-x-0.5 transition-transform" />
+          </button>
         </div>
       </div>
 
