@@ -34,19 +34,28 @@ function getVideoDuration(videoPath: string): Promise<number> {
 export async function extractFrames(
   videoPath: string,
   outputDir: string,
-  count = 8
+  requestedCount?: number
 ): Promise<string[]> {
   await fs.mkdir(outputDir, { recursive: true });
 
   const duration = await getVideoDuration(videoPath);
   if (duration === 0) throw new Error('Could not determine video duration.');
 
+  let count = requestedCount;
+  if (!count) {
+    // Target: 1 frame every 2 seconds
+    const targetCount = Math.floor(duration / 2);
+    const MIN_FRAMES = 12;
+    const MAX_FRAMES = 36;
+    count = Math.max(MIN_FRAMES, Math.min(targetCount, MAX_FRAMES));
+  }
+
   // Distribute timestamps evenly, skipping first and last 5% to avoid intros/outros
   const start = duration * 0.05;
   const end = duration * 0.95;
   const range = end - start;
   const timestamps: number[] = Array.from({ length: count }, (_, i) =>
-    start + (range / (count - 1)) * i
+    start + (range / Math.max(1, count! - 1)) * i
   );
 
   const framePaths: string[] = [];

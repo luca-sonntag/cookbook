@@ -12,6 +12,7 @@ const workerId = randomUUID();
 let activeJobs = 0;
 let workerInterval: NodeJS.Timeout | null = null;
 let reclaimInterval: NodeJS.Timeout | null = null;
+let cleanupInterval: NodeJS.Timeout | null = null;
 
 /**
  * Processes a single job end-to-end.
@@ -20,7 +21,8 @@ async function processJob(job: Job): Promise<void> {
   const jobId = job.id;
   const url = job.url;
   const safeTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const runDir = path.resolve('logs', `run-${safeTimestamp}_${jobId}`);
+  const userSegment = job.userId ? job.userId : 'unassigned';
+  const runDir = path.resolve('logs', userSegment, `run-${safeTimestamp}_${jobId}`);
   const framesDir = path.join(runDir, 'frames');
   let audioFilePath = '';
   let videoFilePath = '';
@@ -131,7 +133,7 @@ async function processJob(job: Job): Promise<void> {
       try {
         const { extractFrames, createImageGrid } = await import('./frameExtractor.js');
         console.log(`[Job ${jobId}] Extracting frames from video...`);
-        framePaths = await extractFrames(videoFilePath, framesDir, 25);
+        framePaths = await extractFrames(videoFilePath, framesDir);
         
         const localGridPath = path.join(framesDir, 'grid.jpg');
         console.log(`[Job ${jobId}] Creating tiled frame grid at ${localGridPath}...`);
@@ -217,9 +219,9 @@ async function processJob(job: Job): Promise<void> {
     });
   } finally {
     clearInterval(heartbeat);
-    const cleanupPaths = [audioFilePath, videoFilePath].filter(Boolean);
+    const cleanupPaths = [audioFilePath, videoFilePath, ...framePaths].filter(Boolean);
     await Promise.allSettled(cleanupPaths.map((p) => fs.unlink(p).catch(() => { })));
-    console.log(`[Job ${jobId}] Temp files cleaned up. Run folder: ${runDir}`);
+    console.log(`[Job ${jobId}] Temp files (including ${framePaths.length} individual frames) cleaned up. Run folder: ${runDir}`);
   }
 }
 
@@ -244,6 +246,46 @@ async function workerTick(): Promise<void> {
   }
 }
 
+async function cleanupOldRunDirs(days: number): Promise<void> {
+  try {
+    const logsDir = path.resolve('logs');
+    const userDirs = await fs.readdir(logsDir);
+    const now = Date.now();
+    const maxAgeMs = days * 24 * 60 * 60 * 1000;
+    let deletedCount = 0;
+
+    for (const userDir of userDirs) {
+      const userDirPath = path.join(logsDir, userDir);
+      const userStat = await fs.stat(userDirPath);
+      if (!userStat.isDirectory()) continue;
+
+      const files = await fs.readdir(userDirPath);
+      for (const file of files) {
+        if (!file.startsWith('run-')) continue;
+        const filePath = path.join(userDirPath, file);
+        const stats = await fs.stat(filePath);
+        if (stats.isDirectory() && (now - stats.mtimeMs) > maxAgeMs) {
+          await fs.rm(filePath, { recursive: true, force: true });
+          deletedCount++;
+        }
+      }
+
+      // Cleanup empty user directories
+      const remainingFiles = await fs.readdir(userDirPath);
+      if (remainingFiles.length === 0) {
+        await fs.rm(userDirPath, { recursive: true, force: true });
+      }
+    }
+    if (deletedCount > 0) {
+      console.log(`[Cleanup] Deleted ${deletedCount} old run directories (older than ${days} days).`);
+    }
+  } catch (err: any) {
+    if (err.code !== 'ENOENT') {
+      console.error('[Cleanup] Error cleaning up old logs:', err.message);
+    }
+  }
+}
+
 /**
  * Starts the background job queue loop.
  */
@@ -256,6 +298,10 @@ export function startQueue(pollIntervalMs = 2000): void {
     () => reclaimExpiredJobs(config.WORKER_LEASE_TIMEOUT_MINUTES).catch(console.error),
     60_000
   );
+  
+  // Run cleanup once at startup, then every 12 hours
+  cleanupOldRunDirs(30);
+  cleanupInterval = setInterval(() => cleanupOldRunDirs(30), 12 * 60 * 60 * 1000);
 }
 
 /**
@@ -264,5 +310,6 @@ export function startQueue(pollIntervalMs = 2000): void {
 export function stopQueue(): void {
   if (workerInterval) { clearInterval(workerInterval); workerInterval = null; }
   if (reclaimInterval) { clearInterval(reclaimInterval); reclaimInterval = null; }
+  if (cleanupInterval) { clearInterval(cleanupInterval); cleanupInterval = null; }
   console.log('Background job queue worker stopped.');
 }
