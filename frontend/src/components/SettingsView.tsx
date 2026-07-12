@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
@@ -380,6 +380,32 @@ export default function SettingsView() {
         </div>
       </div>
 
+      {/* Section: Help */}
+      <div className="flex flex-col gap-2">
+        <h3 className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+          {language === 'de' ? 'Hilfe' : 'Help'}
+        </h3>
+
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+          <button
+            onClick={() => window.dispatchEvent(new Event('app:replay-onboarding'))}
+            className="w-full p-4 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
+                <HelpCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-950 dark:text-white text-sm">
+                  {t('onboarding.replayLabel')}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+        </div>
+      </div>
+
       {/* Section: Account Actions */}
       <div className="flex flex-col gap-2">
         <h3 className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
@@ -451,6 +477,26 @@ export default function SettingsView() {
             <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
               isPremium ? 'translate-x-6' : 'translate-x-0'
             }`} />
+          </button>
+        </div>
+      )}
+
+      {/* Show Onboarding - Dev Only */}
+      {isDev && (
+        <div className="mx-2 p-4 rounded-2xl border border-dashed border-violet-400/40 dark:border-violet-500/30 bg-violet-500/5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <HelpCircle className="w-4 h-4 text-violet-500 shrink-0" />
+            <div>
+              <p className="text-xs font-bold text-violet-700 dark:text-violet-300">Show Onboarding</p>
+              <p className="text-[10px] text-violet-500/70 dark:text-violet-400/60">Dev-only trigger</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event('app:replay-onboarding'))}
+            className="bg-violet-500 hover:bg-violet-400 text-white font-bold text-xs h-8 px-4 rounded-lg active:scale-95 transition-all shrink-0"
+          >
+            Show
           </button>
         </div>
       )}
