@@ -1,4 +1,4 @@
-package com.snagbite.app;
+package at.snagbite.app;
 
 import android.content.Intent;
 import com.getcapacitor.BridgeActivity;

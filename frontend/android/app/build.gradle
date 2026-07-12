@@ -18,10 +18,10 @@ def appVersionCode = (versionProperties['VERSION_CODE'] ?: '1').toInteger()
 def appVersionName = versionProperties['VERSION_NAME'] ?: '1.0.0'
 
 android {
-    namespace = "com.snagbite.app"
+    namespace = "at.snagbite.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.snagbite.app"
+        applicationId "at.snagbite.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode appVersionCode

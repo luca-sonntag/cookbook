@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.snagbite.app',
+  appId: 'at.snagbite.app',
   appName: 'Snagbite',
   // Vite's build output directory — Capacitor copies this into the native app.
   webDir: 'dist',
