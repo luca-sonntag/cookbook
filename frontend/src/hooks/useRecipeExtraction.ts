@@ -2,9 +2,11 @@ import { useState, useCallback } from 'react';
 import type { Recipe, Job, ProgressData } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { apiUrl } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void, isPremiumOverride?: boolean) {
   const { t } = useI18n();
+  const { user, refreshSession } = useAuth();
   const [isPending, setIsPending] = useState(false);
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
   const [jobError, setJobError] = useState<string | null>(null);
@@ -12,7 +14,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [url, setUrl] = useState('');
   const [urlError, setUrlError] = useState('');
-  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'premium'; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null>(null);
+  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'beta' | 'premium'; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null>(null);
 
   const fetchLimitStatus = useCallback(async () => {
     try {
@@ -41,11 +43,17 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           maxSavedRecipes: data.maxSavedRecipes ?? -1,
           cookbookFull: data.cookbookFull ?? false
         });
+
+        // Auto-refresh auth session on tier mismatch (e.g. after beta auto-assignment)
+        if (user && data.tier && user.app_metadata?.tier !== data.tier) {
+          console.log(`Tier mismatch detected: local is '${user.app_metadata?.tier}', server is '${data.tier}'. Refreshing session...`);
+          refreshSession().catch(err => console.warn('Failed to refresh session on tier change:', err));
+        }
       }
     } catch (err) {
       console.warn('Failed to fetch rate limit status:', err);
     }
-  }, [getAccessToken, isPremiumOverride]);
+  }, [getAccessToken, isPremiumOverride, user, refreshSession]);
 
   const validateUrl = useCallback((testUrl: string): boolean => {
     const trimmed = testUrl.trim();
