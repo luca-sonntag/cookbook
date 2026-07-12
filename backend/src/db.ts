@@ -440,6 +440,22 @@ export async function getBetaMaxSavedRecipes(): Promise<number> {
   return getGlobalSetting('beta_max_saved_recipes', config.BETA_MAX_SAVED_RECIPES);
 }
 
+export async function getFreeMaxExtractions(): Promise<number> {
+  return getGlobalSetting('free_max_extractions_per_window', config.FREE_MAX_EXTRACTIONS_PER_WINDOW);
+}
+
+export async function getFreeMaxSavedRecipes(): Promise<number> {
+  return getGlobalSetting('free_max_saved_recipes', config.FREE_MAX_SAVED_RECIPES);
+}
+
+export async function getPremiumMaxExtractions(): Promise<number> {
+  return getGlobalSetting('premium_max_extractions_per_window', config.PREMIUM_MAX_EXTRACTIONS_PER_WINDOW);
+}
+
+export async function getPremiumMaxSavedRecipes(): Promise<number> {
+  return getGlobalSetting('premium_max_saved_recipes', -1);
+}
+
 
 
 
