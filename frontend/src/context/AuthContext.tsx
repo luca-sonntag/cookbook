@@ -92,6 +92,7 @@ interface AuthState {
   getAccessToken: () => Promise<string | null>;
   updateUserMetadata: (metadata: Record<string, any>) => Promise<{ error?: string }>;
   deleteAccount: () => Promise<{ error?: string }>;
+  refreshSession: () => Promise<{ error?: string }>;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -122,7 +123,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const isPremium = isPremiumOverride || user?.app_metadata?.tier === 'premium';
+  const isPremium = isPremiumOverride || user?.app_metadata?.tier === 'premium' || user?.app_metadata?.tier === 'beta';
+
+  const refreshSession = useCallback(async () => {
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error) {
+      console.error('Error refreshing session:', error.message);
+      return { error: error.message };
+    }
+    if (data.session) {
+      setSession(data.session);
+      setUser(data.session.user ?? null);
+    }
+    return {};
+  }, []);
 
   useEffect(() => {
     // Get initial session
@@ -288,7 +302,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [getAccessToken, signOut]);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, isPremiumOverride, setIsPremiumOverride, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount }}>
+    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, isPremiumOverride, setIsPremiumOverride, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );
