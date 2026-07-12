@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, TextField, Label, Input, Button, FieldError, Spinner, Accordion } from '@heroui/react';
-import { BookOpen, Clipboard, Globe, HelpCircle } from 'lucide-react';
+import { BookOpen, Clipboard, Globe, HelpCircle, Link2 } from 'lucide-react';
 import { Clipboard as CapClipboard } from '@capacitor/clipboard';
 import { Capacitor } from '@capacitor/core';
 import { useI18n } from '../context/I18nContext';
@@ -140,7 +140,7 @@ export default function ExtractForm({
             if (cookbookFull) { e.preventDefault(); setIsPremiumModalOpen(true); return; }
             handleFormSubmit(e);
           }}
-          className="flex flex-col gap-4"
+          className="flex flex-col gap-3"
         >
           <TextField
             fullWidth
@@ -152,18 +152,19 @@ export default function ExtractForm({
             }}
             isInvalid={!!urlError}
           >
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('form.urlLabel')}</Label>
-            <div className="relative mt-2">
+            <Label className="sr-only">{t('form.urlLabel')}</Label>
+            <div className="relative">
+              <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 dark:text-gray-500 pointer-events-none" />
               <Input
-                placeholder={t('form.urlPlaceholder')}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-3 !pr-12 py-3.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                placeholder={t('form.urlPlaceholderShort')}
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl pl-11 !pr-12 py-4 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                 disabled={isPending}
               />
-              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 {url && (
                   <button
                     type="button"
-                    className="text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5"
+                    className="text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                     onClick={() => setUrl('')}
                     disabled={isPending}
                   >
@@ -191,10 +192,10 @@ export default function ExtractForm({
             fullWidth
             isPending={isPending}
             isDisabled={cookbookFull}
-            className={`py-3.5 h-12 text-sm rounded-xl font-semibold shadow-lg text-white ${cookbookFull
-              ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-70'
+            className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${cookbookFull
+              ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-70 shadow-none'
               : isPending
-                ? 'bg-emerald-800'
+                ? 'bg-emerald-800 shadow-none'
                 : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all'
               }`}
           >
@@ -252,31 +253,16 @@ export default function ExtractForm({
           <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
 
           {/* Supported Platforms */}
-          <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          <div className="flex items-center justify-center gap-2 pt-1">
+            <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
               {t('form.platformsTitle')}
             </span>
-            <div className="flex gap-5">
-              <div className="flex flex-col items-center gap-1">
-                <InstagramIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                <span className="text-[10px] text-gray-400 dark:text-gray-500">Instagram</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <TikTokIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                <span className="text-[10px] text-gray-400 dark:text-gray-500">TikTok</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <YoutubeIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                <span className="text-[10px] text-gray-400 dark:text-gray-500 text-center">YouTube Shorts</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <FacebookIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                <span className="text-[10px] text-gray-400 dark:text-gray-500">Facebook</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <Globe className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                <span className="text-[10px] text-gray-400 dark:text-gray-500">Websites</span>
-              </div>
+            <div className="flex items-center gap-3">
+              <InstagramIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+              <TikTokIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+              <YoutubeIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+              <FacebookIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+              <Globe className="w-4 h-4 text-gray-300 dark:text-gray-600" />
             </div>
           </div>
         </form>
