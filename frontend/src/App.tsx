@@ -15,6 +15,7 @@ import ShoppingList from './components/ShoppingList';
 import AuthForm from './components/AuthForm';
 import SettingsView from './components/SettingsView';
 import TimerBanner from './components/TimerBanner';
+import WelcomeGuide from './components/WelcomeGuide';
 
 import { usePwaInstall } from './hooks/usePwaInstall';
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
@@ -27,6 +28,7 @@ import { useHashRouter } from './hooks/useHashRouter';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
 import { useTimerManager } from './hooks/useTimerManager';
+import { useOnboarding } from './hooks/useOnboarding';
 
 // Module-level flag to ensure the Web Share Target is only processed once per page load.
 // This prevents re-triggering the interceptor when the user's auth state or metadata updates.
@@ -45,6 +47,13 @@ export default function App() {
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [isCatalogSelectMode, setIsCatalogSelectMode] = useState(false);
   const { pendingNavigation } = useTimerManager();
+
+  // First-launch onboarding gate (also re-openable from Settings)
+  const {
+    shouldShow: showOnboarding,
+    complete: completeOnboarding,
+    replay: replayOnboarding,
+  } = useOnboarding();
 
   // Derived: which saved job is currently open (from URL sub-path)
   const selectedJob: Job | null =
@@ -255,6 +264,14 @@ export default function App() {
       }
     });
   }, []);
+
+  // Allow Settings to re-open the onboarding guide via a decoupled event,
+  // avoiding threading the hook's state through props into SettingsView.
+  useEffect(() => {
+    const handler = () => replayOnboarding();
+    window.addEventListener('app:replay-onboarding', handler);
+    return () => window.removeEventListener('app:replay-onboarding', handler);
+  }, [replayOnboarding]);
 
   const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -615,6 +632,16 @@ export default function App() {
           </div>
         );
       })()}
+
+      {/* First-launch onboarding overlay (rendered via portal) */}
+      {showOnboarding && (
+        <WelcomeGuide
+          onClose={() => {
+            completeOnboarding();
+            navigate('extract');
+          }}
+        />
+      )}
     </div>
   );
 }
