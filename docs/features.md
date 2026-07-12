@@ -1,1 +1,5 @@
 - Generierte Smart Filter Chips konsistenter machen
+- Werbeanzeigen während extraktion
+- Wenn Timer gestartet soll eine Android Notification erscheinen, die anzeigt das der Timer mit verbleibender Zeit läuft und eine Möglichkeit geben den Timer zu stoppen
+- Automatische Anpassung der Sprache 
+- Favoriten
