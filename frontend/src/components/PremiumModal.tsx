@@ -12,7 +12,7 @@ interface PremiumModalProps {
 
 export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps) {
   const { t } = useI18n();
-  const { isPremium } = useAuth();
+  const { isPremium, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -151,7 +151,11 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
 
         {/* CTA — exact same amber button as the settings card */}
         <div className="shrink-0 mt-5">
-          {isPremium ? (
+          {user?.app_metadata?.tier === 'beta' ? (
+            <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
+              <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.betaOwned') || 'Beta-Zugriff Aktiv'}
+            </button>
+          ) : isPremium ? (
             <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
               <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.owned') || 'Du hast Premium'}
             </button>
