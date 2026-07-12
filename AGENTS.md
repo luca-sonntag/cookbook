@@ -244,6 +244,59 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 
 ---
 
+## 🌐 Cloud-Infrastruktur (Supabase & Railway)
+
+Die Anwendung nutzt eine hochskalierbare Cloud-Infrastruktur, die auf Supabase für die Datenspeicherung und Authentifizierung sowie Railway für das Anwendungs-Hosting basiert.
+
+### 1. Supabase (Backend-as-a-Service)
+
+Supabase dient als primärer Daten- und Authentifizierungs-Layer.
+
+* **Datenbank (PostgreSQL):**
+  * Tabelle `jobs`: Speichert Rezept-Extraktionsjobs und fertige Rezepte.
+    * `id` (`UUID`): Eindeutiger Primärschlüssel des Jobs/Rezepts.
+    * `url` (`text`): Original-URL des Beitrags.
+    * `url_normalized` (`text`): Bereinigte, normalisierte URL zur Erkennung von Dubletten.
+    * `status` (`text`): Job-Status (`pending`, `scraping`, `processing`, `completed`, `failed`).
+    * `error` (`text` | `null`): Fehlermeldung bei Misserfolg.
+    * `recipe` (`jsonb` | `null`): Das strukturierte JSON-Rezept oder Ladefortschritts-Metadaten.
+    * `user_id` (`UUID`): Fremdschlüssel auf `auth.users.id`.
+    * `parent_job_id` (`UUID` | `null`): Verweis auf das Originalrezept bei Remixes.
+    * `prompt` (`text` | `null`): Der vom Nutzer eingegebene Remix-Wunsch.
+    * `created_at` / `updated_at` (`timestamptz`).
+    * `locked_at` (`timestamptz` | `null`): Heartbeat-Zeitstempel zur Sperrung laufender Worker-Jobs.
+    * `locked_by` (`text` | `null`): Identifikator des verarbeitenden Queue-Workers.
+* **Row-Level Security (RLS) & Policies:**
+  * Die Tabelle `jobs` ist durch RLS abgesichert.
+  * Benutzer können nur Zeilen lesen (`SELECT`), einfügen (`INSERT`), aktualisieren (`UPDATE`) oder löschen (`DELETE`), wenn `auth.uid() = user_id` erfüllt ist.
+* **Queue-Steuerung (RPC):**
+  * Die RPC-Funktion `claim_next_job(worker_id text)` läuft mit `SECURITY DEFINER` (umgeht RLS für Queue-Worker) und holt atomar den ältesten ausstehenden Job mittels `FOR UPDATE SKIP LOCKED`.
+* **Storage (Supabase Storage):**
+  * Bucket `recipe-frames`: Speichert extrahierte Video-Frames unter `${jobId}/${index}.jpg`.
+  * Zugriff erfolgt über langlebige signierte URLs (10 Jahre Gültigkeit), um direkte öffentliche Zugriffe zu unterbinden. Bei Löschung eines Rezepts werden alle zugehörigen Frames gelöscht.
+* **Authentifizierung (Supabase Auth):**
+  * Token-Verifikation erfolgt **lokal** im Backend via JWKS (JSON Web Key Set) über die URL `${config.SUPABASE_URL}/auth/v1/.well-known/jwks.json` mithilfe der `jose`-Bibliothek (kein Datenbank-Roundtrip pro Request zur Statusprüfung).
+  * Einstellungen des Benutzers (z. B. Sprache, Maßeinheiten) werden in `user.user_metadata` und das Freemium-Tier in `user.app_metadata.tier` verwaltet.
+
+### 2. Railway (Anwendungs-Hosting)
+
+Railway hostet die containerisierte Express- und React-Anwendung stateless.
+
+* **Containerisierung:**
+  * Basiert auf dem Multi-Stage-`Dockerfile` (`node:22-alpine`).
+  * Installiert systemseitig `ffmpeg` für die Frame-Extraktion, `python3` für `yt-dlp` sowie `ttf-dejavu` für Font-Rendern in Grid-Bildern.
+* **Stateless Scaling (Web vs. Worker):**
+  * Gesteuert über die Umgebungsvariable `ROLE` (`web` | `worker` | `both`).
+  * **`web`**: Liefert die APIs und statische Frontend-Assets aus.
+  * **`worker`**: Führt ausschließlich die asynchrone Queue-Schleife aus (`claimNextJob`, Frame-Extraktion, Gemini-Upload).
+  * **`both`**: Kombinierter Modus für Single-Instance-Umgebungen.
+* **Proxy & Sicherheit:**
+  * Läuft hinter dem Railway-Load-Balancer. `trust proxy` ist im Express-Server auf `1` gesetzt, um Client-IPs für das Rate-Limiting (`express-rate-limit`) korrekt zu erfassen.
+* **Konfiguration & Secrets:**
+  * Alle API-Schlüssel, Supabase-Zugangsdaten und Konfigurationsparameter (z. B. Gemini-Modell, Extraktionslimits, API-Keys) werden als Umgebungsvariablen direkt in Railway verwaltet.
+
+---
+
 ## 💎 Freemium Gating System
 
 Die App unterscheidet zwischen **Free**- und **Premium**-Nutzern. Premium-Status wird aus `user.app_metadata.tier === 'premium'` abgeleitet und ist in `AuthContext` als `isPremium` boolean verfügbar.
