@@ -289,41 +289,39 @@ Railway hostet die containerisierte Express- und React-Anwendung stateless.
   * Gesteuert über die Umgebungsvariable `ROLE` (`web` | `worker` | `both`).
   * **`web`**: Liefert die APIs und statische Frontend-Assets aus.
   * **`worker`**: Führt ausschließlich die asynchrone Queue-Schleife aus (`claimNextJob`, Frame-Extraktion, Gemini-Upload).
-  * **`both`**: Kombinierter Modus für Single-Instance-Umgebungen.
-* **Proxy & Sicherheit:**
-  * Läuft hinter dem Railway-Load-Balancer. `trust proxy` ist im Express-Server auf `1` gesetzt, um Client-IPs für das Rate-Limiting (`express-rate-limit`) korrekt zu erfassen.
-* **Konfiguration & Secrets:**
-  * Alle API-Schlüssel, Supabase-Zugangsdaten und Konfigurationsparameter (z. B. Gemini-Modell, Extraktionslimits, API-Keys) werden als Umgebungsvariablen direkt in Railway verwaltet.
+  *## 💎 Freemium Gating System
 
----
-
-## 💎 Freemium Gating System
-
-Die App unterscheidet zwischen **Free**- und **Premium**-Nutzern. Premium-Status wird aus `user.app_metadata.tier === 'premium'` abgeleitet und ist in `AuthContext` als `isPremium` boolean verfügbar.
+Die App unterscheidet zwischen **Free**-, **Beta**- und **Premium**-Nutzern. Premium-Status wird aus `user.app_metadata.tier === 'premium'` abgeleitet. Der Beta-Status wird aus `user.app_metadata.tier === 'beta'` abgeleitet. Beide Tiers sind in `AuthContext` über `isPremium` als `true` abgebildet, da sie vollen Zugriff auf alle Premium-Features erhalten (Ausnahme: Beta-Nutzer unterliegen voreingestellten Extraktions- und Kochbuch-Limits).
 
 ### Tier-Erkennung & Dev-Override
-* **`AuthContext.tsx`:** Stellt `isPremium` (computed) und `setIsPremiumOverride(value: boolean)` bereit.
+* **`AuthContext.tsx`:** Stellt `isPremium` (computed: `premium` oder `beta`) und `setIsPremiumOverride(value: boolean)` bereit.
 * **Dev-Override:** Nur wenn `import.meta.env.DEV === true` wird ein `localStorage`-Key (`kb_simulate_premium`) gelesen/geschrieben, um den Premium-Status zu simulieren. In Production hat dies keine Wirkung.
 * **SettingsView:** Zeigt einen violetten "Simulate Premium"-Toggle (dashed border, Kolben-Icon) ausschließlich im Dev-Modus.
 
 ### Gating-Punkte
 
-| Feature | Free | Premium |
-|---|---|---|
-| Rezept-Extraktionen | 3/Tag (konfigurierbar via `.env`) | 50/Tag (konfigurierbar via `.env`) |
-| Kochbuch (History) | max. 5 Rezepte — Banner ab 4 | Unbegrenzt |
-| Einkaufsliste | max. 1 Rezept gleichzeitig | Unbegrenzt |
-| Nährwerte-Detail-Card | Blur-Overlay + Lock | Vollständig sichtbar |
-| Nährwerte pro Zutat (Toggle) | Lock-Badge, öffnet PremiumModal | Aktiviert |
-| Kochmodus (Cooking Mode) | Lock-Badge an **beiden** Startbuttons (Action-Dock **und** Instructions-Tab), öffnet PremiumModal | Aktiviert |
-| In-App Koch-Timer (Zeit-Badges) | Klick auf ein Zeit-Badge öffnet PremiumModal statt des Timer-Sheets | Aktiviert |
-| Rezept-KI-Chat & Remix | Lock-Badge + öffnet PremiumModal | Aktiviert |
+| Feature | Free | Beta | Premium |
+|---|---|---|---|
+| Rezept-Extraktionen | 3/Tag (konfigurierbar) | 10/Tag (konfigurierbar) | 50/Tag (konfigurierbar) |
+| Kochbuch (History) | max. 5 Rezepte | max. 20 Rezepte | Unbegrenzt |
+| Einkaufsliste | max. 1 Rezept gleichzeitig | Unbegrenzt | Unbegrenzt |
+| Nährwerte-Detail-Card | Blur-Overlay + Lock | Vollständig sichtbar | Vollständig sichtbar |
+| Nährwerte pro Zutat (Toggle) | Lock-Badge, öffnet PremiumModal | Aktiviert | Aktiviert |
+| Kochmodus (Cooking Mode) | Lock-Badge, öffnet PremiumModal | Aktiviert | Aktiviert |
+| In-App Koch-Timer | Klick öffnet PremiumModal | Aktiviert | Aktiviert |
+| Rezept-KI-Chat & Remix | Lock-Badge + öffnet PremiumModal | Aktiviert | Aktiviert |
 
 > **Einheitliche Premium-Marker-Optik (Crown = Premium):** Gated Buttons zeigen den `PremiumCrownBadge` — ein kleines gefülltes Amber-Crown-Siegel (weißer Kreis) oben rechts in der Ecke (Kochmodus-Startbuttons im Action-Dock **und** Instructions-Tab, Chat-Icon; Parent muss `relative` sein). Der Nährwerte-pro-Zutat-Toggle nutzt dieselbe Sprache inline (`Crown className="w-3 h-3 text-amber-500 fill-amber-500"`). Das Schloss-Icon wurde bewusst durch die Crown ersetzt, um mit dem restlichen Premium-Branding (PremiumModal, Settings-Karte, PremiumHint) konsistent zu sein.
 
+### Datenbank-Gestützte Beta-Steuerung & Auto-Assign
+* **Laufzeit-Toggelbarkeit:** Der Beta-Status wird dynamisch über die Datenbank-Tabelle `global_settings` gesteuert (`beta_active: 'true'/'false'`). Der Wert wird für 60 Sekunden im Arbeitsspeicher des Backends gecached.
+* **Auto-Upgrade (Beta)**: Ist die Beta aktiv, werden Free-User beim ersten API-Aufruf (z.B. limit check) serverseitig in `app_metadata.tier` auf `'beta'` hochgestuft.
+* **Client-Synchronisation**: Falls der Client eine Diskrepanz zwischen seinem lokalen Auth-Token und dem vom Server gemeldeten Limit-Tier erkennt, triggert er automatisch ein `supabase.auth.refreshSession()`, um sein lokales Token lautlos zu aktualisieren.
+* **Fallback**: Fehlt die `global_settings`-Tabelle oder schlagen Abfragen fehl, greift das Backend auf die Umgebungsvariablen (`BETA_ACTIVE`, `BETA_MAX_EXTRACTIONS_PER_WINDOW`, `BETA_MAX_SAVED_RECIPES`) aus der `.env` als Fallback zurück.
+
 ### Backend-Gating
-* **`POST /api/jobs/:id/chat`:** Prüft den Premium-Status des Nutzers via Supabase Admin API (`auth.admin.getUserById`). Gibt `403 Forbidden` mit `code: 'PREMIUM_REQUIRED'` zurück, wenn `tier !== 'premium'`. Chat und Remix/KI-Optionen sind damit nur für Premium-User verfügbar.
-* **`POST /api/extract-recipe` (Kochbuch-Cap):** Free-Accounts dürfen maximal `FREE_MAX_SAVED_RECIPES` (Default `5`, via `.env`) gespeicherte Rezepte im Kochbuch behalten. Vor dem Einreihen eines neuen Jobs zählt das Backend die abgeschlossenen Rezepte des Nutzers (`countCompletedRecipesForUser`, inkl. Remixes) und gibt bei Erreichen des Limits `403 Forbidden` mit `code: 'COOKBOOK_FULL'` und der Meldung `Cookbook full (n/limit) …` zurück. Bestehende Rezepte bleiben erhalten/sichtbar — der Nutzer muss ein Rezept löschen oder upgraden. Premium/Unlimited-Nutzer (`tier === 'premium'` oder `-1`-Override) sind ausgenommen. Das Frontend übersetzt die Meldung in `translateApiError` (DE/EN). Der Premium-Status wird über den Helper `isPremiumUser` ermittelt; der User wird pro Request **einmal** geladen und für Cap **und** rollierendes Extraktionslimit wiederverwendet.
+* **`POST /api/jobs/:id/chat`:** Prüft den Premium-Status des Nutzers via Supabase Admin API (`auth.admin.getUserById`). Gibt `403 Forbidden` mit `code: 'PREMIUM_REQUIRED'` zurück, wenn `tier !== 'premium' && tier !== 'beta'`. Chat und Remix/KI-Optionen sind damit nur für Premium- und Beta-User verfügbar.
+* **`POST /api/extract-recipe` (Kochbuch-Cap):** Free-Accounts dürfen maximal `FREE_MAX_SAVED_RECIPES` (Default `5`, via `.env`) gespeicherte Rezepte im Kochbuch behalten. Beta-User dürfen maximal `BETA_MAX_SAVED_RECIPES` (Default `20`) behalten. Vor dem Einreihen eines neuen Jobs zählt das Backend die abgeschlossenen Rezepte des Nutzers (`countCompletedRecipesForUser`, inkl. Remixes) und gibt bei Erreichen des Limits `403 Forbidden` mit `code: 'COOKBOOK_FULL'` und der entsprechenden Fehlermeldung zurück. Premium/Unlimited-Nutzer (`tier === 'premium'` oder `-1`-Override) sind ausgenommen. Das Frontend übersetzt die Meldung in `translateApiError` (DE/EN). Der Premium-Status wird über den Helper `isPremiumUser` ermittelt; der User wird pro Request **einmal** geladen und für Cap **und** rollierendes Extraktionslimit wiederverwendet.
 * **`GET /api/extractions/limit` (proaktiver Status):** Liefert zusätzlich zum Extraktionslimit die Kochbuch-Cap-Felder `savedRecipes`, `maxSavedRecipes` (`-1` = unbegrenzt für Premium) und `cookbookFull`. `ExtractForm` liest diese über `useRecipeExtraction.limitStatus` und zeigt bei vollem Kochbuch **proaktiv** einen `PremiumHint`-Banner statt des Extraktionszählers und deaktiviert den „Rezept erstellen"-Button (Fallback bleibt das serverseitige `403`). Der Status wird beim Betreten des Extract-Tabs neu geladen.
 
 ### UI-Komponenten
