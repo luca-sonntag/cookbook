@@ -38,7 +38,7 @@ const getInitials = (email?: string) => {
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
-  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, setIsPremiumOverride } = useAuth();
+  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, isPremiumOverride, setIsPremiumOverride } = useAuth();
   const dialog = useDialog();
   const [theme, setTheme] = useTheme();
   const { isInstallable, handleInstallClick } = usePwaInstall();
@@ -129,9 +129,14 @@ export default function SettingsView() {
               {user?.email}
             </span>
             <div className="flex items-center gap-2 mt-1.5">
-              {isPremium ? (
+              {user?.app_metadata?.tier === 'beta' ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 uppercase tracking-wider">
-                  <Crown className="w-3 h-3 fill-amber-500 text-amber-500" />
+                  <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500 animate-pulse" />
+                  {t('app.settings.betaActive') || 'Beta Access'}
+                </span>
+              ) : isPremium ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                  <Crown className="w-3 h-3 fill-emerald-500 text-emerald-500" />
                   Premium
                 </span>
               ) : (
@@ -143,9 +148,16 @@ export default function SettingsView() {
           </div>
         </div>
 
-        {isPremium && (
+        {user?.app_metadata?.tier === 'beta' ? (
           <div className="pt-3.5 border-t border-black/5 dark:border-white/5 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <span>
+              {t('app.settings.betaActiveDesc') || 'You are a beta tester! You have free access to all premium features during the beta. Extraction limits apply.'}
+            </span>
+          </div>
+        ) : isPremium ? (
+          <div className="pt-3.5 border-t border-black/5 dark:border-white/5 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <Crown className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
             <span>
               {t('app.settings.premiumActiveDesc') || 'You have unlimited access to all premium features.'}
             </span>
@@ -153,8 +165,8 @@ export default function SettingsView() {
         )}
       </div>
 
-      {/* Premium Upgrade Promotion (only for free members) */}
-      {!isPremium && (
+      {/* Premium Upgrade Promotion (only for free members and beta testers) */}
+      {!(user?.app_metadata?.tier === 'premium' || isPremiumOverride) && (
         <div
           onClick={() => setIsPremiumModalOpen(true)}
           className="mx-2 cursor-pointer p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-md text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:brightness-[1.02] active:scale-[0.99] transition-all relative overflow-hidden group"
