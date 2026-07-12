@@ -187,7 +187,7 @@ export default function SettingsView() {
           {/* Language Option */}
           <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 rounded-xl">
+              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl">
                 <Globe className="w-5 h-5" />
               </div>
               <div>
@@ -225,7 +225,7 @@ export default function SettingsView() {
           {/* Temperature Unit Option */}
           <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400 rounded-xl">
+              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl">
                 <Thermometer className="w-5 h-5" />
               </div>
               <div>
@@ -309,7 +309,7 @@ export default function SettingsView() {
           {/* Theme Option */}
           <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 last:border-b-0">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 rounded-xl">
+              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl">
                 {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </div>
               <div>
@@ -348,7 +348,7 @@ export default function SettingsView() {
           {isInstallable && (
             <div className="p-4 flex items-center justify-between border-t border-black/5 dark:border-white/5">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 rounded-xl">
+                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl">
                   <MonitorSmartphone className="w-5 h-5" />
                 </div>
                 <div>
@@ -382,7 +382,7 @@ export default function SettingsView() {
               className="w-full p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-500/10 text-gray-500 dark:bg-gray-500/20 dark:text-gray-400 rounded-xl group-hover:scale-105 transition-transform">
+                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
                   <LogOut className="w-5 h-5" />
                 </div>
                 <div>
