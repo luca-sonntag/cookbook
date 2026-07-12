@@ -65,12 +65,14 @@ export default function ExtractForm({
   limitStatus
 }: ExtractFormProps) {
   const { t } = useI18n();
-  const { isPremium } = useAuth();
+  const { isPremium, user, isPremiumOverride } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
 
-  // Free cookbook is full → block new extractions and steer to upgrade.
-  const cookbookFull = !isPremium && !!limitStatus?.cookbookFull;
+  // Cookbook is full → block new extractions and steer to upgrade.
+  // Premium/Unlimited users (including overrides) never get capped.
+  const isRealPremium = user?.app_metadata?.tier === 'premium' || isPremiumOverride;
+  const cookbookFull = !isRealPremium && !!limitStatus?.cookbookFull;
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -236,7 +238,7 @@ export default function ExtractForm({
                     : t('form.remainingExtractionsDays', { days: limitStatus.windowDays })
                 })}
               </p>
-              {!isPremium && (
+              {!isRealPremium && (
                 <PremiumHint
                   variant="inline"
                   onClick={() => setIsPremiumModalOpen(true)}
