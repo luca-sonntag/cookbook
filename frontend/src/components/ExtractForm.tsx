@@ -65,7 +65,7 @@ export default function ExtractForm({
   limitStatus
 }: ExtractFormProps) {
   const { t } = useI18n();
-  const { isPremium, user, isPremiumOverride } = useAuth();
+  const { user, isPremiumOverride } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
 

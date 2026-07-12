@@ -162,7 +162,7 @@ export default function SettingsView() {
               {t('app.settings.premiumActiveDesc') || 'You have unlimited access to all premium features.'}
             </span>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Premium Upgrade Promotion (only for free members and beta testers) */}
