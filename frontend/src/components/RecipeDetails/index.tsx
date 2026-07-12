@@ -21,7 +21,6 @@ import CookingMode from '../CookingMode';
 import RecipeCopilot from './RecipeCopilot';
 import { useAuth } from '../../context/AuthContext';
 import PremiumModal from '../PremiumModal';
-import AiNotice from '../AiNotice';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
@@ -446,13 +445,9 @@ export default function RecipeDetails({
         )}
 
         {/* AI generated content disclaimer */}
-        <div className="mt-4 pt-4 border-t border-black/5 dark:border-white/5">
-          <AiNotice
-            type="inline"
-            label={t('recipe.aiGeneratedNotice')}
-            tooltipText={t('recipe.aiGeneratedDisclaimer')}
-          />
-        </div>
+        <p className="mt-4 text-[10px] text-gray-400 dark:text-gray-500 text-center leading-normal select-none">
+          {t('recipe.aiGeneratedDisclaimer')}
+        </p>
       </Card>
 
       {/* Tabbed view for recipe items */}
