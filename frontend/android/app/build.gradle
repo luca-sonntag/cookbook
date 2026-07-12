@@ -1,5 +1,22 @@
 apply plugin: 'com.android.application'
 
+// --- Load keystore credentials from keystore.properties (gitignored) ---
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+// --- Load version info from version.properties (committed to git) ---
+def versionPropertiesFile = rootProject.file("version.properties")
+def versionProperties = new Properties()
+if (versionPropertiesFile.exists()) {
+    versionProperties.load(new FileInputStream(versionPropertiesFile))
+}
+
+def appVersionCode = (versionProperties['VERSION_CODE'] ?: '1').toInteger()
+def appVersionName = versionProperties['VERSION_NAME'] ?: '1.0.0'
+
 android {
     namespace = "com.snagbite.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +24,8 @@ android {
         applicationId "com.snagbite.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.0.0"
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -18,10 +35,10 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file('release.keystore')
-            storePassword 'kochbuddy123!'
-            keyAlias 'kochbuddy'
-            keyPassword 'kochbuddy123!'
+            storeFile file(keystoreProperties['storeFile'] ?: 'release.keystore')
+            storePassword keystoreProperties['storePassword'] ?: ''
+            keyAlias keystoreProperties['keyAlias'] ?: ''
+            keyPassword keystoreProperties['keyPassword'] ?: ''
         }
     }
     buildTypes {
