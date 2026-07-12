@@ -26,6 +26,7 @@ async function processJob(job: Job): Promise<void> {
   const framesDir = path.join(runDir, 'frames');
   let audioFilePath = '';
   let videoFilePath = '';
+  let framePaths: string[] = [];
 
   const heartbeat = setInterval(() => heartbeatJob(jobId), 30_000);
 
@@ -126,7 +127,7 @@ async function processJob(job: Job): Promise<void> {
 
     // 6. If video is available, extract frames and create grid first
     let gridImagePath: string | undefined;
-    let framePaths: string[] = [];
+    framePaths = [];
 
     if (videoFilePath) {
       await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 55, stage: 'extracting_frames' } as any });
