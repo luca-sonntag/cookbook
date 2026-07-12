@@ -391,6 +391,55 @@ export async function getExtractionsForUserInTimeframe(userId: string, days: num
   return data.map(rowToJob);
 }
 
+// ── Global Settings & Caching ───────────────────────────────────────────────
+
+const settingsCache: Record<string, { value: any; timestamp: number }> = {};
+
+export async function getGlobalSetting<T>(key: string, defaultValue: T): Promise<T> {
+  const now = Date.now();
+  const cached = settingsCache[key];
+  // Cache for 60 seconds
+  if (cached && (now - cached.timestamp < 60000)) {
+    return cached.value;
+  }
+
+  try {
+    const { data, error } = await getClient()
+      .from('global_settings')
+      .select('value')
+      .eq('key', key)
+      .maybeSingle();
+
+    if (!error && data) {
+      let val: any = data.value;
+      if (typeof defaultValue === 'boolean') {
+        val = val === true || val === 'true';
+      } else if (typeof defaultValue === 'number') {
+        val = parseInt(val, 10);
+        if (isNaN(val)) val = defaultValue;
+      }
+      settingsCache[key] = { value: val, timestamp: now };
+      return val as T;
+    }
+  } catch (err) {
+    console.warn(`Error reading global setting ${key}, using default:`, err);
+  }
+
+  return defaultValue;
+}
+
+export async function isBetaActive(): Promise<boolean> {
+  return getGlobalSetting('beta_active', config.BETA_ACTIVE);
+}
+
+export async function getBetaMaxExtractions(): Promise<number> {
+  return getGlobalSetting('beta_max_extractions_per_window', config.BETA_MAX_EXTRACTIONS_PER_WINDOW);
+}
+
+export async function getBetaMaxSavedRecipes(): Promise<number> {
+  return getGlobalSetting('beta_max_saved_recipes', config.BETA_MAX_SAVED_RECIPES);
+}
+
 
 
 
