@@ -187,6 +187,8 @@ export const uiTranslations = {
         upgradePremium: 'Auf Premium upgraden',
         premiumActive: 'Aktiv',
         premiumActiveDesc: 'Du hast unbegrenzten Zugriff auf alle Premium-Features.',
+        betaActive: 'Beta-Zugriff',
+        betaActiveDesc: 'Du bist Beta-Tester! Du hast kostenlosen Zugriff auf alle Premium-Features während der Beta. Extraktionslimits gelten weiterhin.',
       },
       dialog: {
         deleteAccount: {
@@ -538,6 +540,7 @@ export const uiTranslations = {
         error: 'Fehler bei der Zahlung. Bitte versuche es erneut.',
         close: 'Schließen',
         owned: 'Du hast Premium',
+        betaOwned: 'Beta-Zugriff Aktiv',
         footer: 'Jederzeit kündbar · Sicher über Google Play',
         features: {
           extractions: {
@@ -606,6 +609,8 @@ export const uiTranslations = {
         upgradePremium: 'Upgrade to Premium',
         premiumActive: 'Active',
         premiumActiveDesc: 'You have unlimited access to all premium features.',
+        betaActive: 'Beta Access',
+        betaActiveDesc: 'You are a beta tester! You have free access to all premium features during the beta. Extraction limits apply.',
       },
       dialog: {
         deleteAccount: {
@@ -957,6 +962,7 @@ export const uiTranslations = {
         error: 'Payment failed. Please try again.',
         close: 'Close',
         owned: 'You have Premium',
+        betaOwned: 'Beta Access Active',
         footer: 'Cancel anytime · Secure via Google Play',
         features: {
           extractions: {
