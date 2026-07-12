@@ -315,6 +315,7 @@ export const uiTranslations = {
     form: {
       urlLabel: 'Rezept Link',
       urlPlaceholder: 'https://www.instagram.com/reel/...',
+      urlPlaceholderShort: 'Link einfügen…',
       btnPending: 'Rezept wird gelesen...',
       btnSubmit: 'Rezept erstellen',
       pasteTooltip: 'Link aus Zwischenablage einfügen',
@@ -768,6 +769,7 @@ export const uiTranslations = {
     form: {
       urlLabel: 'Recipe Link',
       urlPlaceholder: 'https://www.instagram.com/reel/...',
+      urlPlaceholderShort: 'Paste link…',
       btnPending: 'Reading recipe...',
       btnSubmit: 'Extract Recipe',
       pasteTooltip: 'Paste link from clipboard',
