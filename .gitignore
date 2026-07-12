@@ -13,3 +13,4 @@ temp-downloads/
 .agents
 .claude/
 *.afdesign*
+frontend/releases/

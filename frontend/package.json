@@ -11,7 +11,11 @@
     "cap:sync": "npm run build && cap sync android",
     "cap:open": "cap open android",
     "cap:run": "npm run build && cap sync android && cap run android",
-    "cap:live": "cap run android --live-reload --host localhost --port 5173 --forwardPorts 5173:5173"
+    "cap:live": "cap run android --live-reload --host localhost --port 5173 --forwardPorts 5173:5173",
+    "release": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1",
+    "release:patch": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1 -Bump patch",
+    "release:minor": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1 -Bump minor",
+    "release:major": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1 -Bump major"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
