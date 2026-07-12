@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes } from './db.js';
 import { config } from './config.js';
 import { requireAuth } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -67,14 +67,14 @@ async function resolveUserRateLimit(user: any): Promise<number> {
 
   // 2. Subscription tier check
   if (meta.tier === 'premium') {
-    return config.PREMIUM_MAX_EXTRACTIONS_PER_WINDOW;
+    return await getPremiumMaxExtractions();
   }
   if (meta.tier === 'beta') {
     return await getBetaMaxExtractions();
   }
 
   // 3. Fallback to free tier
-  return config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
+  return await getFreeMaxExtractions();
 }
 
 /**
@@ -184,7 +184,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     if (!premium) {
       const savedCount = await countCompletedRecipesForUser(req.userId!);
       const isBeta = user?.app_metadata?.tier === 'beta';
-      const limit = isBeta ? await getBetaMaxSavedRecipes() : config.FREE_MAX_SAVED_RECIPES;
+      const limit = isBeta ? await getBetaMaxSavedRecipes() : await getFreeMaxSavedRecipes();
       if (limit >= 0 && savedCount >= limit) {
         res.status(403).json({
           success: false,
@@ -196,7 +196,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     }
 
     // Enforce rolling rate limit per user (with custom override in app_metadata)
-    const limit = user ? await resolveUserRateLimit(user) : config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
+    const limit = user ? await resolveUserRateLimit(user) : await getFreeMaxExtractions();
 
     // If limit is non-negative (not -1 for unlimited)
     if (limit >= 0) {
@@ -451,7 +451,7 @@ apiRouter.delete('/jobs/:id', async (req: Request, res: Response): Promise<void>
  */
 apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise<void> => {
   try {
-    let limit = config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
+    let limit = await getFreeMaxExtractions();
     let tier: 'free' | 'beta' | 'premium' = 'free';
     let user: any = null;
     try {
@@ -482,7 +482,7 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
     const savedRecipes = await countCompletedRecipesForUser(req.userId!);
     const maxSavedRecipes = premium 
       ? -1 
-      : (user?.app_metadata?.tier === 'beta' ? await getBetaMaxSavedRecipes() : config.FREE_MAX_SAVED_RECIPES);
+      : (user?.app_metadata?.tier === 'beta' ? await getBetaMaxSavedRecipes() : await getFreeMaxSavedRecipes());
     const cookbookFull = maxSavedRecipes >= 0 && savedRecipes >= maxSavedRecipes;
 
     if (limit < 0) {
