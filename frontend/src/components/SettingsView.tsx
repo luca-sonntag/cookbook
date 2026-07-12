@@ -481,26 +481,6 @@ export default function SettingsView() {
         </div>
       )}
 
-      {/* Show Onboarding - Dev Only */}
-      {isDev && (
-        <div className="mx-2 p-4 rounded-2xl border border-dashed border-violet-400/40 dark:border-violet-500/30 bg-violet-500/5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <HelpCircle className="w-4 h-4 text-violet-500 shrink-0" />
-            <div>
-              <p className="text-xs font-bold text-violet-700 dark:text-violet-300">Show Onboarding</p>
-              <p className="text-[10px] text-violet-500/70 dark:text-violet-400/60">Dev-only trigger</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new Event('app:replay-onboarding'))}
-            className="bg-violet-500 hover:bg-violet-400 text-white font-bold text-xs h-8 px-4 rounded-lg active:scale-95 transition-all shrink-0"
-          >
-            Show
-          </button>
-        </div>
-      )}
-
       <div className="flex justify-center mt-4 mb-8">
         <p className="text-xs text-gray-400 dark:text-gray-600 font-medium">
           Snagbite v1.0.0
