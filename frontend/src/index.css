@@ -4,13 +4,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gray-950: #0d0e12;
-  --color-gray-900: #1b1d24;
-  --color-gray-800: #2b2e3a;
+  /* Warm neutral grays matching the Claude app dark palette */
+  --color-gray-950: #1a1917;
+  --color-gray-900: #262624;
+  --color-gray-800: #363531;
 
-  --color-slate-950: #0d0e12;
-  --color-slate-900: #1b1d24;
-  --color-slate-800: #2b2e3a;
+  --color-slate-950: #1a1917;
+  --color-slate-900: #262624;
+  --color-slate-800: #363531;
 }
 
 @import "@heroui/styles";
@@ -49,7 +50,7 @@ html.dark body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: #1a1917;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-emerald-500); /* Muted sage green accent */
@@ -70,7 +71,7 @@ html.dark body {
 }
 
 html.dark .glass-panel {
-  background: rgba(27, 29, 36, 0.75); /* Muted warm charcoal card background */
+  background: rgba(38, 38, 36, 0.75); /* Warm charcoal card background (Claude gray-900) */
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: none;
 }
