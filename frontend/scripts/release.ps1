@@ -61,7 +61,8 @@ $newName = "$major.$minor.$patch"
 
 # ── 4. Write updated version.properties ──────────────────────────────
 $newContent = "VERSION_CODE=$newCode`nVERSION_NAME=$newName`n"
-Set-Content -Path $versionFile -Value $newContent -NoNewline -Encoding UTF8
+[System.IO.File]::WriteAllText($versionFile, $newContent)
+
 
 Write-Host ""
 Write-Host "  ╔══════════════════════════════════════════╗" -ForegroundColor Cyan

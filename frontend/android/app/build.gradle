@@ -11,11 +11,22 @@ if (keystorePropertiesFile.exists()) {
 def versionPropertiesFile = rootProject.file("version.properties")
 def versionProperties = new Properties()
 if (versionPropertiesFile.exists()) {
-    versionProperties.load(new FileInputStream(versionPropertiesFile))
+    versionPropertiesFile.withInputStream { versionProperties.load(it) }
 }
 
-def appVersionCode = (versionProperties['VERSION_CODE'] ?: '1').toInteger()
-def appVersionName = versionProperties['VERSION_NAME'] ?: '1.0.0'
+// Strip UTF-8 BOM from keys if present
+def cleanVersionProperties = [:]
+versionProperties.each { key, value ->
+    def cleanKey = key.toString().replace("\uFEFF", "").trim()
+    cleanVersionProperties[cleanKey] = value
+}
+
+def appVersionCode = (cleanVersionProperties['VERSION_CODE'] ?: '1').trim().toInteger()
+def appVersionName = (cleanVersionProperties['VERSION_NAME'] ?: '1.0.0').trim()
+
+println "DEBUG: Loaded appVersionCode = ${appVersionCode}"
+println "DEBUG: Loaded appVersionName = ${appVersionName}"
+
 
 android {
     namespace = "at.snagbite.app"
