@@ -8,7 +8,7 @@ export type DialogType = 'alert' | 'confirm';
 
 interface DialogOptions {
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   status?: DialogStatus;
@@ -33,7 +33,7 @@ interface DialogState {
   isOpen: boolean;
   type: DialogType;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel: string;
   cancelLabel: string;
   status: DialogStatus;
@@ -165,15 +165,15 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Body Description */}
-            <div className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed pl-14">
-              {state.message}
+            <div className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed pl-14 whitespace-pre-line">
+              {renderMessage(state.message)}
             </div>
 
             {/* Footer Buttons */}
             <div className="flex justify-end gap-2.5 mt-2 pl-14">
               {state.type === 'confirm' && (
                 <Button 
-                  variant="tertiary"
+                   variant="tertiary"
                   onPress={() => handleClose(false)}
                   className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                 >
@@ -193,3 +193,19 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     </DialogContext.Provider>
   );
 }
+
+const renderMessage = (msg: React.ReactNode) => {
+  if (typeof msg !== 'string') return msg;
+  if (!msg.includes('**')) return msg;
+  const parts = msg.split('**');
+  return parts.map((part, index) => {
+    if (index % 2 === 1) {
+      return (
+        <strong key={index} className="font-bold text-gray-900 dark:text-white">
+          {part}
+        </strong>
+      );
+    }
+    return part;
+  });
+};

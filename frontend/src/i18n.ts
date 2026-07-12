@@ -191,7 +191,7 @@ export const uiTranslations = {
       dialog: {
         deleteAccount: {
           title: 'Konto löschen?',
-          message: 'Möchtest du dein Konto wirklich unwiderruflich löschen? Alle deine gespeicherten Rezepte und Einkaufslisten gehen dauerhaft verloren. Bitte beachte: Falls du ein aktives Premium-Abonnement hast, musst du dieses zusätzlich im Google Play Store kündigen, um weitere Zahlungen zu verhindern.',
+          message: 'Möchtest du dein Konto wirklich unwiderruflich löschen? Alle deine gespeicherten Rezepte und Einkaufslisten gehen dauerhaft verloren. **Bitte beachte:** Falls du ein aktives Premium-Abonnement hast, musst du dieses zusätzlich im Google Play Store kündigen, um weitere Zahlungen zu verhindern.',
           confirm: 'Konto löschen',
           cancel: 'Abbrechen',
         },
@@ -610,7 +610,7 @@ export const uiTranslations = {
       dialog: {
         deleteAccount: {
           title: 'Delete Account?',
-          message: 'Are you sure you want to permanently delete your account? All your saved recipes and shopping lists will be permanently lost. Note: If you have an active Premium subscription, you must also cancel it in the Google Play Store to prevent future charges.',
+          message: 'Are you sure you want to permanently delete your account? All your saved recipes and shopping lists will be permanently lost. **Note:** If you have an active Premium subscription, you must also cancel it in the Google Play Store to prevent future charges.',
           confirm: 'Delete Account',
           cancel: 'Cancel',
         },
