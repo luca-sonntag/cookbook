@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes } from './db.js';
 import { config } from './config.js';
 import { requireAuth } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -13,9 +13,42 @@ apiRouter.use(requireAuth);
 const SUPPORTED_URL_REGEX = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/i;
 
 /**
+ * Helper to fetch a user by ID and automatically assign the beta tier if beta is active
+ * and the user is currently on the free/unassigned tier.
+ */
+async function fetchAndSyncUser(userId: string): Promise<any> {
+  const { data, error } = await getClient().auth.admin.getUserById(userId);
+  if (error || !data?.user) {
+    throw error || new Error('User not found');
+  }
+
+  let user = data.user;
+  const currentTier = user.app_metadata?.tier;
+  const betaActive = await isBetaActive();
+
+  if (betaActive && currentTier !== 'premium' && currentTier !== 'beta') {
+    try {
+      console.log(`Auto-assigning beta tier to user ${userId} (current: ${currentTier})`);
+      const { data: updatedData, error: updateError } = await getClient().auth.admin.updateUserById(userId, {
+        app_metadata: { ...user.app_metadata, tier: 'beta' }
+      });
+      if (updateError) {
+        console.error(`Failed to auto-assign beta tier to user ${userId}:`, updateError.message);
+      } else if (updatedData?.user) {
+        user = updatedData.user;
+      }
+    } catch (err) {
+      console.error(`Error auto-assigning beta tier to user ${userId}:`, err);
+    }
+  }
+
+  return user;
+}
+
+/**
  * Helper to determine a user's rate limit based on their tier and overrides in app_metadata.
  */
-function resolveUserRateLimit(user: any): number {
+async function resolveUserRateLimit(user: any): Promise<number> {
   const meta = user?.app_metadata || {};
 
   // 1. Custom override check
@@ -35,6 +68,9 @@ function resolveUserRateLimit(user: any): number {
   // 2. Subscription tier check
   if (meta.tier === 'premium') {
     return config.PREMIUM_MAX_EXTRACTIONS_PER_WINDOW;
+  }
+  if (meta.tier === 'beta') {
+    return await getBetaMaxExtractions();
   }
 
   // 3. Fallback to free tier
@@ -128,8 +164,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     // Fetch the user once for tier-based gating (cookbook cap + rolling rate limit).
     let user: any = null;
     try {
-      const { data, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError) user = data.user;
+      user = await fetchAndSyncUser(req.userId!);
     } catch (err) {
       console.warn(`Failed to fetch user metadata for gating checks:`, err);
     }
@@ -148,18 +183,20 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     // or upgrade to Premium before extracting more.
     if (!premium) {
       const savedCount = await countCompletedRecipesForUser(req.userId!);
-      if (savedCount >= config.FREE_MAX_SAVED_RECIPES) {
+      const isBeta = user?.app_metadata?.tier === 'beta';
+      const limit = isBeta ? await getBetaMaxSavedRecipes() : config.FREE_MAX_SAVED_RECIPES;
+      if (limit >= 0 && savedCount >= limit) {
         res.status(403).json({
           success: false,
           code: 'COOKBOOK_FULL',
-          error: `Cookbook full (${savedCount}/${config.FREE_MAX_SAVED_RECIPES}). Delete a recipe or upgrade to Premium to extract more.`,
+          error: `Cookbook full (${savedCount}/${limit}). Delete a recipe or upgrade to Premium to extract more.`,
         });
         return;
       }
     }
 
     // Enforce rolling rate limit per user (with custom override in app_metadata)
-    const limit = user ? resolveUserRateLimit(user) : config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
+    const limit = user ? await resolveUserRateLimit(user) : config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
 
     // If limit is non-negative (not -1 for unlimited)
     if (limit >= 0) {
@@ -250,10 +287,7 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
     let isPremium = false;
     try {
       let user: any = null;
-      const { data, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError && data?.user) {
-        user = data.user;
-      }
+      user = await fetchAndSyncUser(req.userId!);
 
       // Dev-override: allow simulating premium in development environments
       if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
@@ -265,6 +299,7 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
       if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
+                    meta.tier === 'beta' ||
                     meta.custom_extraction_limit === -1 ||
                     meta.max_extractions_per_window === -1;
       }
@@ -417,13 +452,10 @@ apiRouter.delete('/jobs/:id', async (req: Request, res: Response): Promise<void>
 apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise<void> => {
   try {
     let limit = config.FREE_MAX_EXTRACTIONS_PER_WINDOW;
-    let tier: 'free' | 'premium' = 'free';
+    let tier: 'free' | 'beta' | 'premium' = 'free';
     let user: any = null;
     try {
-      const { data, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError && data.user) {
-        user = data.user;
-      }
+      user = await fetchAndSyncUser(req.userId!);
     } catch (err) {
       console.warn(`Failed to fetch user metadata for rate limit status:`, err);
     }
@@ -436,8 +468,10 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
     }
 
     if (user) {
-      limit = resolveUserRateLimit(user);
-      tier = user.app_metadata?.tier === 'premium' ? 'premium' : 'free';
+      limit = await resolveUserRateLimit(user);
+      tier = user.app_metadata?.tier === 'premium' 
+        ? 'premium' 
+        : (user.app_metadata?.tier === 'beta' ? 'beta' : 'free');
     }
 
     const windowDays = config.EXTRACTION_LIMIT_WINDOW_DAYS;
@@ -446,7 +480,9 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
     // extract screen can proactively show a "cookbook full" state.
     const premium = isPremiumUser(user);
     const savedRecipes = await countCompletedRecipesForUser(req.userId!);
-    const maxSavedRecipes = premium ? -1 : config.FREE_MAX_SAVED_RECIPES;
+    const maxSavedRecipes = premium 
+      ? -1 
+      : (user?.app_metadata?.tier === 'beta' ? await getBetaMaxSavedRecipes() : config.FREE_MAX_SAVED_RECIPES);
     const cookbookFull = maxSavedRecipes >= 0 && savedRecipes >= maxSavedRecipes;
 
     if (limit < 0) {
@@ -507,14 +543,17 @@ apiRouter.post('/billing/sync', async (req: Request, res: Response): Promise<voi
       // This preserves our local fallback but makes it highly secure in production.
       const clientTier = req.body.tier;
       if (clientTier === 'premium' || clientTier === 'free') {
+        const betaActive = await isBetaActive();
+        const finalTier = clientTier === 'free' && betaActive ? 'beta' : clientTier;
         const { error } = await getClient().auth.admin.updateUserById(userId, {
-          app_metadata: { tier: clientTier },
+          app_metadata: { tier: finalTier },
         });
         if (error) throw error;
-        res.status(200).json({ success: true, tier: clientTier, fallback: true });
+        res.status(200).json({ success: true, tier: finalTier, fallback: true });
         return;
       }
-      res.status(200).json({ success: true, tier: 'free', fallback: true });
+      const betaActive = await isBetaActive();
+      res.status(200).json({ success: true, tier: betaActive ? 'beta' : 'free', fallback: true });
       return;
     }
 
@@ -549,7 +588,8 @@ apiRouter.post('/billing/sync', async (req: Request, res: Response): Promise<voi
       }
     }
 
-    const newTier = isPremium ? 'premium' : 'free';
+    const betaActive = await isBetaActive();
+    const newTier = isPremium ? 'premium' : (betaActive ? 'beta' : 'free');
 
     // Update Supabase app_metadata
     const { error } = await getClient().auth.admin.updateUserById(userId, {
@@ -749,10 +789,7 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
     let isPremium = false;
     let user: any = null;
     try {
-      const { data, error: authError } = await getClient().auth.admin.getUserById(req.userId!);
-      if (!authError && data?.user) {
-        user = data.user;
-      }
+      user = await fetchAndSyncUser(req.userId!);
 
       // Dev-override: allow simulating premium in development environments
       if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
@@ -764,6 +801,7 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
+                    meta.tier === 'beta' ||
                     meta.custom_extraction_limit === -1 ||
                     meta.max_extractions_per_window === -1;
       }
