@@ -161,6 +161,35 @@ export function getCategoryIcon(category: string): string {
 
 export const uiTranslations = {
   de: {
+    onboarding: {
+      skip: 'Überspringen',
+      back: 'Zurück',
+      next: 'Weiter',
+      cta: "Los geht's",
+      replayLabel: 'Einführung erneut ansehen',
+      slides: {
+        welcome: {
+          title: 'Willkommen bei Snagbite',
+          desc: 'Verwandle Koch-Reels aus dem Netz in übersichtliche, interaktive Rezepte – automatisch aufbereitet von KI.',
+        },
+        import: {
+          title: 'Importieren & Teilen',
+          desc: 'Füge einen Link ein oder teile ein Reel direkt aus Instagram, TikTok, YouTube oder Facebook an Snagbite. Wir extrahieren das komplette Rezept für dich.',
+        },
+        cookbook: {
+          title: 'Dein Kochbuch',
+          desc: 'Jedes extrahierte Rezept landet automatisch in deinem Kochbuch – durchsuchbar, filterbar und mit anpassbarer Portionsgröße.',
+        },
+        shopping: {
+          title: 'Smarte Einkaufsliste',
+          desc: 'Übernimm Zutaten mit einem Tipp in die Einkaufsliste. Sie werden automatisch zusammengefasst und nach Supermarkt-Abteilung sortiert.',
+        },
+        cooking: {
+          title: 'Kochen wie ein Profi',
+          desc: 'Schritt-für-Schritt-Kochmodus, integrierte Timer und ein KI-Copilot, der Fragen beantwortet und Rezepte anpasst.',
+        },
+      },
+    },
     app: {
       title: 'Snagbite',
       subtitle: 'Rezept-Assistent',
@@ -585,6 +614,35 @@ export const uiTranslations = {
     }
   },
   en: {
+    onboarding: {
+      skip: 'Skip',
+      back: 'Back',
+      next: 'Next',
+      cta: "Let's go",
+      replayLabel: 'Replay intro',
+      slides: {
+        welcome: {
+          title: 'Welcome to Snagbite',
+          desc: 'Turn cooking reels from across the web into clean, interactive recipes — automatically prepared by AI.',
+        },
+        import: {
+          title: 'Import & Share',
+          desc: 'Paste a link or share a reel straight from Instagram, TikTok, YouTube or Facebook to Snagbite. We extract the full recipe for you.',
+        },
+        cookbook: {
+          title: 'Your Cookbook',
+          desc: 'Every extracted recipe is saved to your cookbook automatically — searchable, filterable and with adjustable serving sizes.',
+        },
+        shopping: {
+          title: 'Smart Shopping List',
+          desc: 'Add ingredients to your shopping list with one tap. They are merged automatically and sorted by grocery aisle.',
+        },
+        cooking: {
+          title: 'Cook Like a Pro',
+          desc: 'Step-by-step cooking mode, built-in timers and an AI copilot that answers questions and adapts recipes.',
+        },
+      },
+    },
     app: {
       title: 'Snagbite',
       subtitle: 'Recipe Assistant',
