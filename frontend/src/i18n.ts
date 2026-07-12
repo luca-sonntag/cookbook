@@ -536,14 +536,17 @@ export const uiTranslations = {
         loading: 'Zahlung wird verarbeitet...',
         success: 'Erfolgreich freigeschaltet!',
         error: 'Fehler bei der Zahlung. Bitte versuche es erneut.',
+        close: 'Schließen',
+        owned: 'Du hast Premium',
+        footer: 'Jederzeit kündbar · Sicher über Google Play',
         features: {
           extractions: {
             title: 'Unbegrenzte Extraktionen',
             desc: 'Extrahiere so viele Rezepte aus Reels wie du möchtest (statt 3 pro Tag).'
           },
           remix: {
-            title: 'Recipe Remix AI',
-            desc: 'Passe Rezepte per Knopfdruck an (z. B. vegan, low-carb, kalorienarm).'
+            title: 'Rezept-KI-Chat',
+            desc: 'Passe Rezepte flexibel per Chat an, frage nach Alternativen, Einkaufslisten-Export & Timern.'
           },
           nutrition: {
             title: 'Nährwerte & Makros',
@@ -952,14 +955,17 @@ export const uiTranslations = {
         loading: 'Processing payment...',
         success: 'Successfully unlocked!',
         error: 'Payment failed. Please try again.',
+        close: 'Close',
+        owned: 'You have Premium',
+        footer: 'Cancel anytime · Secure via Google Play',
         features: {
           extractions: {
             title: 'Unlimited Extractions',
             desc: 'Extract as many recipes from Reels as you want (instead of 3 per day).'
           },
           remix: {
-            title: 'Recipe Remix AI',
-            desc: 'Adapt recipes with one click (e.g. vegan, low-carb, low-calorie).'
+            title: 'Recipe AI Chat',
+            desc: 'Adapt recipes dynamically via chat, ask for alternatives, export to shopping list & set timers.'
           },
           nutrition: {
             title: 'Nutrition & Macros',
