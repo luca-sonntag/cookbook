@@ -8,6 +8,7 @@ import { config } from './config.js';
 import { startQueue, stopQueue } from './queue.js';
 import { apiRouter } from './routes.js';
 import { checkDbHealth } from './db.js';
+import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -101,7 +102,11 @@ async function bootstrap() {
     app.use(express.json({ limit: '1mb' }));
 
     const frontendDistPath = path.resolve(__dirname, '..', '..', 'frontend', 'dist');
-    app.use(express.static(frontendDistPath));
+    const hasFrontend = fs.existsSync(path.join(frontendDistPath, 'index.html'));
+
+    if (hasFrontend) {
+      app.use(express.static(frontendDistPath));
+    }
 
     // Image proxy to bypass Instagram CORP blocks (before apiRouter to skip API key check)
     app.get('/api/image', async (req, res) => {
@@ -147,12 +152,21 @@ async function bootstrap() {
       });
     });
 
-    app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/proxy')) {
-        return next();
-      }
-      res.sendFile(path.resolve(frontendDistPath, 'index.html'));
-    });
+    if (hasFrontend) {
+      app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/proxy')) {
+          return next();
+        }
+        res.sendFile(path.resolve(frontendDistPath, 'index.html'));
+      });
+    } else {
+      app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/proxy')) {
+          return next();
+        }
+        res.status(404).json({ error: 'API only server. Frontend is not deployed on this instance.' });
+      });
+    }
 
     const server = app.listen(config.PORT, () => {
       console.log(`Web server running at http://localhost:${config.PORT} (ROLE=${config.ROLE})`);
