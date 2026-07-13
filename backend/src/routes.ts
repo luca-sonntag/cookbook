@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
+import { getLlmMetrics } from './adminMetrics.js';
 
 export const apiRouter = Router();
 
@@ -1260,5 +1261,44 @@ apiRouter.get('/admin/feedback', requireAdmin, async (req: Request, res: Respons
     res.status(500).json({ success: false, error: 'Internal server error.' });
   }
 });
+
+/**
+ * Retrieve system metrics and LLM cost analytics.
+ * GET /api/admin/metrics
+ * Requires admin privileges.
+ */
+apiRouter.get('/admin/metrics', requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    // 1. Fetch total user count from Supabase Auth Admin API
+    let userCount = 0;
+    try {
+      const { data, error } = await getClient().auth.admin.listUsers({ perPage: 1000 });
+      if (!error && data?.users) {
+        userCount = data.users.length;
+      }
+    } catch (err: any) {
+      console.error('Error fetching users from Supabase Admin:', err.message);
+    }
+
+    // 2. Fetch db jobs metrics
+    const jobsMetrics = await getJobMetrics();
+
+    // 3. Fetch logs LLM metrics
+    const llmMetrics = await getLlmMetrics(30);
+
+    res.json({
+      success: true,
+      users: {
+        total: userCount,
+      },
+      jobs: jobsMetrics,
+      llm: llmMetrics,
+    });
+  } catch (error) {
+    console.error('Error fetching admin metrics:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
 
 

@@ -752,6 +752,59 @@ export async function setRecipeCollections(jobId: string, userId: string, collec
   }
 }
 
+/** Retrieve database job execution and queue metrics. */
+export async function getJobMetrics(): Promise<{
+  total: number;
+  completed: number;
+  failed: number;
+  pending: number;
+  processing: number;
+  dailyStats: { date: string; count: number }[];
+}> {
+  const { data: allJobs, error } = await getClient()
+    .from('jobs')
+    .select('status, created_at');
+
+  if (error) throw wrapError('Failed to fetch jobs for metrics', error);
+
+  let total = 0;
+  let completed = 0;
+  let failed = 0;
+  let pending = 0;
+  let processing = 0;
+  const dailyCounts: Record<string, number> = {};
+
+  if (allJobs) {
+    total = allJobs.length;
+    for (const job of allJobs) {
+      if (job.status === 'completed') completed++;
+      else if (job.status === 'failed') failed++;
+      else if (job.status === 'pending') pending++;
+      else if (job.status === 'processing') processing++;
+
+      if (job.created_at) {
+        const dateStr = job.created_at.split('T')[0];
+        dailyCounts[dateStr] = (dailyCounts[dateStr] || 0) + 1;
+      }
+    }
+  }
+
+  // Generate last 14 days daily stats array
+  const dailyStats: { date: string; count: number }[] = [];
+  const now = new Date();
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    dailyStats.push({
+      date: dateStr,
+      count: dailyCounts[dateStr] || 0,
+    });
+  }
+
+  return { total, completed, failed, pending, processing, dailyStats };
+}
+
 
 
 
