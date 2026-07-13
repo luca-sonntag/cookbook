@@ -273,13 +273,14 @@ export default function CollectionSheet({
                         <button
                           type="button"
                           onClick={() => setSelectedEmoji('')}
-                          className={`px-3 h-11 text-xs font-bold flex items-center justify-center rounded-2xl transition-all active:scale-90 border cursor-pointer ${
+                          className={`w-11 h-11 text-lg flex items-center justify-center rounded-2xl transition-all active:scale-90 border border-dashed cursor-pointer ${
                             !selectedEmoji
-                              ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
-                              : 'bg-black/5 dark:bg-white/5 border-transparent hover:border-black/10 dark:hover:border-white/10 text-gray-500'
+                              ? 'bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold'
+                              : 'bg-black/5 dark:bg-white/5 border-black/20 dark:border-white/20 hover:border-black/35 dark:hover:border-white/35 text-gray-400 dark:text-gray-500'
                           }`}
+                          title={t('dialog.cancelDefault') || 'Keins'}
                         >
-                          {t('dialog.cancelDefault') || 'Keins'}
+                          ∅
                         </button>
                         {EMOJIS.map(emoji => (
                           <button
