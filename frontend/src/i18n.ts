@@ -180,6 +180,10 @@ export const uiTranslations = {
           title: 'Dein Kochbuch',
           desc: 'Jedes extrahierte Rezept landet automatisch in deinem Kochbuch – durchsuchbar, filterbar und mit anpassbarer Portionsgröße.',
         },
+        organize: {
+          title: 'Ordnen & Filtern',
+          desc: 'Lege eigene Sammlungen mit Emoji & Farbe an, markiere Favoriten und vergib Labels. Filtere dein Kochbuch mit einem Tipp nach Sammlung, Favorit, Kochzeit oder Label.',
+        },
         shopping: {
           title: 'Smarte Einkaufsliste',
           desc: 'Übernimm Zutaten mit einem Tipp in die Einkaufsliste. Sie werden automatisch zusammengefasst und nach Supermarkt-Abteilung sortiert.',
@@ -626,6 +630,10 @@ export const uiTranslations = {
           catalog: {
             title: 'Unbegrenztes Kochbuch',
             desc: 'Speichere unendlich viele Rezepte (statt maximal 5).'
+          },
+          organization: {
+            title: 'Sammlungen & Labels',
+            desc: 'Organisiere dein Kochbuch in eigenen Sammlungen und filtere per Label, Favorit & Kochzeit.'
           }
         }
       },
@@ -661,6 +669,10 @@ export const uiTranslations = {
         cookbook: {
           title: 'Your Cookbook',
           desc: 'Every extracted recipe is saved to your cookbook automatically — searchable, filterable and with adjustable serving sizes.',
+        },
+        organize: {
+          title: 'Organize & Filter',
+          desc: 'Create your own collections with emoji & color, mark favorites and add labels. Filter your cookbook with one tap by collection, favorite, cook time or label.',
         },
         shopping: {
           title: 'Smart Shopping List',
@@ -1108,6 +1120,10 @@ export const uiTranslations = {
           catalog: {
             title: 'Unlimited Cookbook',
             desc: 'Save unlimited recipes (instead of a maximum of 5).'
+          },
+          organization: {
+            title: 'Collections & Labels',
+            desc: 'Organize your cookbook into custom collections and filter by label, favorite & cook time.'
           }
         }
       },

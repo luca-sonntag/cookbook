@@ -9,6 +9,9 @@ import {
   Check,
   ChevronRight,
   ArrowLeft,
+  Folder,
+  Star,
+  Tag,
 } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { ShareStep2Mockup, ShareStep3Mockup } from './ShareMockups';
@@ -57,6 +60,28 @@ const CookbookArt = () => (
     ))}
   </div>
 );
+
+const OrganizeArt = () => {
+  const chips = [
+    { icon: Folder, label: 'w-14', tint: 'bg-emerald-500/15 text-emerald-500' },
+    { icon: Star, label: 'w-10', tint: 'bg-amber-500/15 text-amber-500' },
+    { icon: Tag, label: 'w-12', tint: 'bg-teal-500/15 text-teal-500' },
+    { icon: Folder, label: 'w-9', tint: 'bg-purple-500/15 text-purple-500' },
+  ];
+  return (
+    <div className="w-60 flex flex-wrap justify-center gap-2.5">
+      {chips.map(({ icon: Icon, label, tint }, i) => (
+        <div
+          key={i}
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-full border border-black/5 dark:border-white/10 shadow-sm ${tint}`}
+        >
+          <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
+          <div className={`h-2 rounded bg-current opacity-40 ${label}`} />
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const ShoppingArt = () => (
   <div className="w-60 rounded-2xl bg-white dark:bg-gray-900 border border-black/5 dark:border-white/10 shadow-sm p-3.5 flex flex-col gap-3">
@@ -112,6 +137,7 @@ const SLIDES = [
   { key: 'welcome', Art: WelcomeArt },
   { key: 'import', Art: ImportArt },
   { key: 'cookbook', Art: CookbookArt },
+  { key: 'organize', Art: OrganizeArt },
   { key: 'shopping', Art: ShoppingArt },
   { key: 'cooking', Art: CookingArt },
 ] as const;

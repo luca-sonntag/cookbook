@@ -93,6 +93,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
     { title: t('premium.modal.features.shoppingList.title'), desc: t('premium.modal.features.shoppingList.desc') },
     { title: t('premium.modal.features.cookingMode.title'),  desc: t('premium.modal.features.cookingMode.desc') },
     { title: t('premium.modal.features.catalog.title'),      desc: t('premium.modal.features.catalog.desc') },
+    { title: t('premium.modal.features.organization.title'), desc: t('premium.modal.features.organization.desc') },
   ];
 
   const modal = (
