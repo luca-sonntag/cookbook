@@ -92,3 +92,38 @@ CREATE POLICY "Allow users to update their own recipe_collections" ON public.rec
 CREATE POLICY "Allow users to delete their own recipe_collections" ON public.recipe_collections
   FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
+-- --- feedback / bug reports migration ---
+
+-- In-app bug reports & feedback submitted from the Settings/Profile tab.
+CREATE TABLE IF NOT EXISTS public.feedback (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  type text NOT NULL DEFAULT 'bug', -- 'bug' | 'idea'
+  message text NOT NULL,
+  context jsonb,                    -- device/app context + recent console logs
+  screenshot_urls text[],          -- signed URLs into the feedback-screenshots bucket
+  created_at timestamptz DEFAULT now()
+);
+
+-- Migrate any earlier single-screenshot column to the array form.
+ALTER TABLE public.feedback DROP COLUMN IF EXISTS screenshot_url;
+ALTER TABLE public.feedback ADD COLUMN IF NOT EXISTS screenshot_urls text[];
+
+CREATE INDEX IF NOT EXISTS feedback_user_id_idx ON public.feedback(user_id);
+CREATE INDEX IF NOT EXISTS feedback_created_at_idx ON public.feedback(created_at DESC);
+
+-- Enable RLS. The backend writes via the service_role client (bypasses RLS);
+-- these policies are defense-in-depth for any direct authenticated client access.
+ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow users to select their own feedback" ON public.feedback
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+CREATE POLICY "Allow users to insert their own feedback" ON public.feedback
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+-- Private storage bucket for feedback screenshots (backend serves signed URLs).
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('feedback-screenshots', 'feedback-screenshots', false)
+ON CONFLICT (id) DO NOTHING;
+
