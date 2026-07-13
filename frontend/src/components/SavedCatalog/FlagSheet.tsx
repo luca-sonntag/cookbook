@@ -106,7 +106,7 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
                   
                   <div
                     onClick={handleContainerClick}
-                    className="flex flex-wrap items-center gap-1.5 p-3 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 focus-within:bg-transparent transition-all cursor-text min-h-[56px]"
+                    className="flex flex-wrap items-center gap-1.5 p-3 bg-transparent border border-black/10 dark:border-white/10 rounded-2xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all cursor-text min-h-[56px]"
                   >
                     {/* Render active tags */}
                     {tags.map(tag => (
