@@ -3,7 +3,7 @@ import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
 
 import type { Job } from './types';
 import { apiUrl } from './api';
-import { registerShareIntent, registerNotificationTap } from './native';
+import { registerShareIntent, registerNotificationTap, hideSplashScreen } from './native';
 import { parseSharedUrl } from './utils/shareUrl';
 import InstallBanner from './components/InstallBanner';
 import ExtractForm from './components/ExtractForm';
@@ -200,9 +200,7 @@ export default function App() {
   // Hide native splash screen when app is fully ready
   useEffect(() => {
     if (!authLoading && initialSyncDone) {
-      import('./native').then(({ hideSplashScreen }) => {
-        hideSplashScreen();
-      }).catch(err => console.error('Failed to hide splash screen:', err));
+      hideSplashScreen();
     }
   }, [authLoading, initialSyncDone]);
 
