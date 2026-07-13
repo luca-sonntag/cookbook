@@ -29,11 +29,12 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const { getAccessToken } = useAuth();
   const { language } = useI18n();
 
-  const [activeTab, setActiveTab] = useState<'settings' | 'feedback' | 'metrics'>('settings');
+  const [activeTab, setActiveTab] = useState<'settings' | 'feedback' | 'metrics' | 'users'>('settings');
   const [settings, setSettings] = useState<GlobalSetting[]>([]);
   const [localSettings, setLocalSettings] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,6 +109,26 @@ export default function AdminView({ onBack }: AdminViewProps) {
     }
   }, [getAccessToken, isDe]);
 
+  const fetchUsers = useCallback(async () => {
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(apiUrl('/api/admin/users'), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setUsers(data.users);
+      } else {
+        throw new Error(data.error || 'Failed to fetch users');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(isDe ? 'Nutzer konnten nicht geladen werden.' : 'Failed to load users.');
+    }
+  }, [getAccessToken, isDe]);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -117,9 +138,11 @@ export default function AdminView({ onBack }: AdminViewProps) {
       await fetchFeedback();
     } else if (activeTab === 'metrics') {
       await fetchMetrics();
+    } else if (activeTab === 'users') {
+      await fetchUsers();
     }
     setLoading(false);
-  }, [activeTab, fetchSettings, fetchFeedback, fetchMetrics]);
+  }, [activeTab, fetchSettings, fetchFeedback, fetchMetrics, fetchUsers]);
 
   useEffect(() => {
     loadData();
@@ -237,7 +260,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
 
       {/* Tabs Switch */}
       <div className="mx-2">
-        <Tabs selectedKey={activeTab} onSelectionChange={(key) => { setError(null); setActiveTab(key as 'settings' | 'feedback' | 'metrics'); }} className="w-full">
+        <Tabs selectedKey={activeTab} onSelectionChange={(key) => { setError(null); setActiveTab(key as 'settings' | 'feedback' | 'metrics' | 'users'); }} className="w-full">
           <Tabs.ListContainer className="w-full">
             <Tabs.List className="flex w-full mb-4 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-black/5 dark:border-white/5">
               <Tabs.Tab id="settings" className="flex-1 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
@@ -256,6 +279,12 @@ export default function AdminView({ onBack }: AdminViewProps) {
                 <div className="flex items-center justify-center gap-2">
                   <BarChart3 className="w-4 h-4" />
                   <span>{isDe ? 'Metriken' : 'Metrics'}</span>
+                </div>
+              </Tabs.Tab>
+              <Tabs.Tab id="users" className="flex-1 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
+                <div className="flex items-center justify-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <span>{isDe ? 'Nutzer' : 'Users'}</span>
                 </div>
               </Tabs.Tab>
             </Tabs.List>
@@ -692,6 +721,86 @@ export default function AdminView({ onBack }: AdminViewProps) {
             ) : (
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-12">
                 {isDe ? 'Keine Metriken verfügbar.' : 'No metrics available.'}
+              </p>
+            )}
+          </Tabs.Panel>
+
+          {/* === USERS PANEL === */}
+          <Tabs.Panel id="users" className="outline-none">
+            {users.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {/* Header row */}
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 font-mono">
+                    {users.length} {isDe ? 'registrierte Nutzer' : 'registered users'}
+                  </p>
+                </div>
+
+                {/* User cards */}
+                <div className="flex flex-col gap-3">
+                  {users.map((user: any) => {
+                    const tierColor =
+                      user.tier === 'premium'
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                        : user.tier === 'beta'
+                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400';
+
+                    const fmt = (iso: string | null) => {
+                      if (!iso) return '—';
+                      const d = new Date(iso);
+                      return d.toLocaleDateString(isDe ? 'de-DE' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+                    };
+
+                    return (
+                      <Card key={user.id} className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900">
+                        <div className="flex items-start gap-3">
+                          {/* Avatar circle */}
+                          <div className="flex-shrink-0 w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                            <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            {/* Email + tier badge */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                {user.email}
+                              </span>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${tierColor}`}>
+                                {user.tier}
+                              </span>
+                              {user.custom_limit !== null && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+                                  limit: {user.custom_limit === -1 ? '∞' : user.custom_limit}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Dates */}
+                            <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] text-gray-400 dark:text-gray-500">
+                              <span>
+                                <span className="font-semibold text-gray-500 dark:text-gray-400">{isDe ? 'Registriert:' : 'Joined:'}</span>{' '}
+                                {fmt(user.created_at)}
+                              </span>
+                              <span>
+                                <span className="font-semibold text-gray-500 dark:text-gray-400">{isDe ? 'Letzter Login:' : 'Last login:'}</span>{' '}
+                                {fmt(user.last_sign_in_at)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : loading ? (
+              <div className="flex justify-center py-16">
+                <Spinner size="md" />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-12">
+                {isDe ? 'Keine Nutzer gefunden.' : 'No users found.'}
               </p>
             )}
           </Tabs.Panel>
