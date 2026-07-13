@@ -241,10 +241,10 @@ export default function SettingsView() {
                 <Thermometer className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-semibold text-gray-900 dark:text-white text-sm flex items-center">
+                <div className="font-semibold text-gray-900 dark:text-white text-sm flex items-center">
                   {t('app.settings.tempUnit') || 'Temperature Unit'}
                   <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
-                </p>
+                </div>
               </div>
             </div>
             <Select
@@ -285,10 +285,10 @@ export default function SettingsView() {
                 <Scale className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-semibold text-gray-900 dark:text-white text-sm flex items-center">
+                <div className="font-semibold text-gray-900 dark:text-white text-sm flex items-center">
                   {t('app.settings.unitSystem') || 'Unit System'}
                   <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
-                </p>
+                </div>
               </div>
             </div>
             <Select
