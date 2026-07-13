@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Button, Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare, Shield } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 import { useDialog } from '../context/DialogContext';
+import { useHashRouter } from '../hooks/useHashRouter';
 import PremiumModal from './PremiumModal';
 import { FeedbackDrawer } from './FeedbackDrawer';
 import { APP_VERSION_LABEL } from '../version';
@@ -40,8 +41,9 @@ const getInitials = (email?: string) => {
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
-  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, isPremiumOverride, setIsPremiumOverride } = useAuth();
+  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, isPremiumOverride, setIsPremiumOverride, isAdmin } = useAuth();
   const dialog = useDialog();
+  const { navigate } = useHashRouter();
   const [theme, setTheme] = useTheme();
   const { isInstallable, handleInstallClick } = usePwaInstall();
   const [isSaving, setIsSaving] = useState(false);
@@ -382,6 +384,38 @@ export default function SettingsView() {
           )}
         </div>
       </div>
+
+      {/* Section: Admin */}
+      {isAdmin && (
+        <div className="flex flex-col gap-2">
+          <h3 className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1">
+            <Shield className="w-3.5 h-3.5 text-emerald-500" />
+            {language === 'de' ? 'Verwaltung' : 'Administration'}
+          </h3>
+
+          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+            <button
+              onClick={() => navigate('admin')}
+              className="w-full p-4 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-955 dark:text-white text-sm">
+                    {language === 'de' ? 'Admin-Bereich' : 'Admin Panel'}
+                  </p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 font-medium">
+                    {language === 'de' ? 'Globale Einstellungen verwalten & Feedback ansehen' : 'Manage global settings & view feedback'}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Section: Help */}
       <div className="flex flex-col gap-2">
