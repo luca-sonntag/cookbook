@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import type { KeyboardEvent } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button, Drawer } from '@heroui/react';
 import { Tag, X, Plus } from 'lucide-react';
 import type { Job } from '../../types';
@@ -25,6 +24,12 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleContainerClick = () => {
+    inputRef.current?.focus();
+  };
+
   // Sync state with job flags when opened
   useEffect(() => {
     if (isOpen && job) {
@@ -42,13 +47,6 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
       setTags(prev => [...prev, cleaned]);
     }
     setInputValue('');
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      handleAddTag(inputValue);
-    }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
@@ -100,57 +98,53 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
 
               {/* Body */}
               <Drawer.Body className="overflow-y-auto py-4 flex-1 flex flex-col gap-4">
-                {/* Active Tags / Chips list */}
+                {/* Unified Tag Input Box */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-1">
-                    {language === 'de' ? 'Aktive Labels' : 'Active Labels'}
+                    {t('catalog.flagsTitle') || 'Labels / Tags'}
                   </label>
-                  {tags.length === 0 ? (
-                    <div className="text-xs text-gray-400 dark:text-gray-500 italic p-3 bg-black/5 dark:bg-white/5 rounded-2xl text-center">
-                      {language === 'de' ? 'Keine Labels zugewiesen' : 'No labels assigned'}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2 p-2 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                      {tags.map(tag => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2.5 py-1 rounded-xl border border-amber-500/20"
+                  
+                  <div
+                    onClick={handleContainerClick}
+                    className="flex flex-wrap items-center gap-1.5 p-3 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 focus-within:bg-transparent transition-all cursor-text min-h-[56px]"
+                  >
+                    {/* Render active tags */}
+                    {tags.map(tag => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2.5 py-1 rounded-xl border border-amber-500/20 select-none whitespace-nowrap"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveTag(tag);
+                          }}
+                          className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 transition-colors p-0.5 rounded-full hover:bg-black/5 cursor-pointer outline-none border-none"
                         >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTag(tag)}
-                            className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 transition-colors p-0.5 rounded-full hover:bg-black/5"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
 
-                {/* Input Form */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-1">
-                    {t('catalog.addFlag') || 'Neues Label'}
-                  </label>
-                  <div className="flex gap-2">
+                    {/* Inline Input field */}
                     <input
+                      ref={inputRef}
                       type="text"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder={t('catalog.flagPlaceholder') || 'z.B. Ausprobieren'}
-                      className="flex-1 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-4 py-3 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ',') {
+                          e.preventDefault();
+                          handleAddTag(inputValue);
+                        } else if (e.key === 'Backspace' && !inputValue && tags.length > 0) {
+                          handleRemoveTag(tags[tags.length - 1]);
+                        }
+                      }}
+                      placeholder={tags.length === 0 ? (t('catalog.flagPlaceholder') || 'z.B. Ausprobieren') : ''}
+                      className="flex-1 min-w-[80px] bg-transparent border-0 p-0 text-base text-gray-900 dark:text-white focus:outline-none focus:ring-0 leading-none h-6"
                     />
-                    <Button
-                      isIconOnly
-                      onPress={() => handleAddTag(inputValue)}
-                      className="w-12 h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shrink-0 active:scale-95 transition-all shadow-md shadow-emerald-600/10"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </Button>
                   </div>
                 </div>
 
