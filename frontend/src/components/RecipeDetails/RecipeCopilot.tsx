@@ -1,12 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button, Drawer, Card } from '@heroui/react';
-import { Send, Sparkles, Bot, User, Loader2, RefreshCw, X, Plus } from 'lucide-react';
+import { Send, Sparkles, Bot, User, Loader2, RefreshCw, X, Plus, Trash2 } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
+import { useDialog } from '../../context/DialogContext';
 import { useTimerManager } from '../../hooks/useTimerManager';
 import { useShoppingList } from '../../hooks/useShoppingList';
 import { apiUrl } from '../../api';
 import type { Recipe } from '../../types';
+
+type Chip = { label: string; prompt: string; category: string };
+
+// localStorage key helpers — the copilot session (chat + suggested chips) is cached per recipe.
+const chatStorageKey = (recipeId: string) => `recipe_copilot_chat_${recipeId}`;
+// Chips are language-specific, so they are cached per recipe *and* UI language.
+const chipsStorageKey = (recipeId: string, lang: string) => `recipe_copilot_chips_${recipeId}_${lang}`;
 
 interface Message {
   role: 'user' | 'model';
@@ -29,20 +37,106 @@ interface RecipeCopilotProps {
 export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess, onReplaceCurrent }: RecipeCopilotProps) {
   const { t, language } = useI18n();
   const { getAccessToken } = useAuth();
+  const { confirm } = useDialog();
   const { addTimer } = useTimerManager();
   const { addCustomItem } = useShoppingList();
 
   const [message, setMessage] = useState('');
-  const [history, setHistory] = useState<Message[]>([]);
+  // Lazily hydrate the chat from the per-recipe cache so a reopened session resumes where it left off.
+  const [history, setHistory] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem(chatStorageKey(recipe.id));
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [isPending, setIsPending] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showChips, setShowChips] = useState(true);
-  const [chips, setChips] = useState<{ label: string; prompt: string; category: string }[]>([]);
+  const [chips, setChips] = useState<Chip[]>([]);
   const [chipsLoading, setChipsLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLInputElement>(null);
+  // Tracks which recipe the in-memory `history` belongs to, so we never persist a stale
+  // conversation into another recipe's cache key when the `recipe` prop swaps (e.g. after a remix).
+  const loadedRecipeIdRef = useRef(recipe.id);
+
+  const chatKey = chatStorageKey(recipe.id);
+  const chipsKey = chipsStorageKey(recipe.id, language);
+
+  // Persist the chat to the per-recipe cache on every change.
+  useEffect(() => {
+    if (loadedRecipeIdRef.current !== recipe.id) return; // guard against writing before a reload
+    try {
+      if (history.length > 0) {
+        localStorage.setItem(chatKey, JSON.stringify(history));
+      } else {
+        localStorage.removeItem(chatKey);
+      }
+    } catch {
+      // Ignore quota / serialization errors — caching is best-effort.
+    }
+  }, [history, chatKey, recipe.id]);
+
+  // Load suggested chips, preferring the per-recipe/language cache. Pass `force` to bypass it
+  // and regenerate fresh chips (used by the clear/reset action).
+  const loadChips = async (force = false) => {
+    setChipsLoading(true);
+    try {
+      if (!force) {
+        const cached = localStorage.getItem(chipsKey);
+        if (cached) {
+          setChips(JSON.parse(cached));
+          return;
+        }
+      }
+      const token = await getAccessToken();
+      const res = await fetch(apiUrl(`/api/jobs/${recipe.id}/chat/chips?lang=${language}`), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const fetched: Chip[] = data.chips || [];
+        setChips(fetched);
+        try {
+          localStorage.setItem(chipsKey, JSON.stringify(fetched));
+        } catch {
+          // Ignore cache write failures.
+        }
+      }
+    } catch {
+      // Silently fail — chips are optional.
+    } finally {
+      setChipsLoading(false);
+    }
+  };
+
+  // Reset the session: clear the cached chat + chips for this recipe and regenerate fresh suggestions.
+  const handleClearSession = async () => {
+    const ok = await confirm({
+      title: t('copilot.clearConfirmTitle'),
+      message: t('copilot.clearConfirmBody'),
+      confirmLabel: t('copilot.clearConfirmBtn'),
+      status: 'warning',
+    });
+    if (!ok) return;
+
+    setHistory([]);
+    setMessage('');
+    setError(null);
+    try {
+      localStorage.removeItem(chatKey);
+      localStorage.removeItem(chipsKey);
+    } catch {
+      // Ignore.
+    }
+    setShowChips(true);
+    loadChips(true);
+    setTimeout(() => textareaRef.current?.focus(), 100);
+  };
 
   // Auto scroll to bottom
   const scrollToBottom = () => {
@@ -56,35 +150,30 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
     }
   }, [isOpen, history]);
 
-  // Auto focus input only on first open, reset chips visibility & fetch from LLM
+  // On open: hydrate the cached chat for the current recipe, load (cached or fresh) chips, and focus.
   useEffect(() => {
-    if (isOpen) {
-      setShowChips(true);
-      setChips([]);
-      setChipsLoading(true);
+    if (!isOpen) return;
 
-      // Fetch LLM-generated chips
-      (async () => {
-        try {
-          const token = await getAccessToken();
-          const res = await fetch(apiUrl(`/api/jobs/${recipe.id}/chat/chips?lang=${language}`), {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (res.ok) {
-            const data = await res.json();
-            setChips(data.chips || []);
-          }
-        } catch {
-          // Silently fail — chips are optional
-        } finally {
-          setChipsLoading(false);
-        }
-      })();
-
-      setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 100);
+    // Reload the persisted chat for the current recipe (it may have changed while closed, e.g. remix).
+    let stored: Message[] = [];
+    try {
+      const saved = localStorage.getItem(chatKey);
+      stored = saved ? JSON.parse(saved) : [];
+    } catch {
+      stored = [];
     }
+    setHistory(stored);
+    loadedRecipeIdRef.current = recipe.id;
+
+    setError(null);
+    // Hide the suggestion chips when resuming an existing conversation; the Sparkles button re-shows them.
+    setShowChips(stored.length === 0);
+
+    loadChips();
+
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
@@ -236,6 +325,20 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
         <Drawer.Content placement="bottom" className="!z-[100] h-[100dvh] w-full rounded-none md:max-w-2xl md:mx-auto md:h-[85vh] md:rounded-t-3xl">
           <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 flex flex-col h-full overflow-hidden">
             
+            {/* Clear/Reset Session Button (Top-Left) — only when there's a conversation to clear */}
+            {history.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearSession}
+                disabled={isPending}
+                className="absolute top-2.5 left-3.5 z-50 p-1.5 rounded-full text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all outline-none border-none cursor-pointer flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label={t('copilot.clearAria')}
+                title={t('copilot.clearAria')}
+              >
+                <Trash2 className="w-4.5 h-4.5" />
+              </button>
+            )}
+
             {/* Close Button (Top-Right) */}
             <button
               type="button"

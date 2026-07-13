@@ -579,6 +579,10 @@ export const uiTranslations = {
       remixReplaceBtn: 'Aktuelles ersetzen',
       remixNewBtn: 'Als neues Rezept',
       remixCreated: '✅ Das Remix-Rezept „{title}" wurde erstellt!',
+      clearAria: 'Chat zurücksetzen',
+      clearConfirmTitle: 'Chat zurücksetzen?',
+      clearConfirmBody: 'Möchtest du diese Unterhaltung und die Vorschläge für dieses Rezept löschen? Das kann nicht rückgängig gemacht werden.',
+      clearConfirmBtn: 'Zurücksetzen',
     },
     timer: {
       confirmTitle: 'Timer starten?',
@@ -1069,6 +1073,10 @@ export const uiTranslations = {
       remixReplaceBtn: 'Replace current',
       remixNewBtn: 'As new recipe',
       remixCreated: '✅ The remix recipe "{title}" has been created!',
+      clearAria: 'Reset chat',
+      clearConfirmTitle: 'Reset chat?',
+      clearConfirmBody: 'Do you want to clear this conversation and the suggestions for this recipe? This cannot be undone.',
+      clearConfirmBtn: 'Reset',
     },
     timer: {
       confirmTitle: 'Start timer?',
