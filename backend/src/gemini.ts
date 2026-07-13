@@ -906,6 +906,18 @@ Rules:
       const finalResponse = followUpResult.response;
       const chatMessage = finalResponse.text() || `Führe Aktion aus: ${call.name}`;
 
+      // Extract token usage and compute cost
+      const usage1 = result.response.usageMetadata;
+      const usage2 = followUpResult.response.usageMetadata;
+      const tokenUsage: TokenUsage | undefined = (usage1 || usage2)
+        ? {
+          promptTokens: (usage1?.promptTokenCount ?? 0) + (usage2?.promptTokenCount ?? 0),
+          candidateTokens: (usage1?.candidatesTokenCount ?? 0) + (usage2?.candidatesTokenCount ?? 0),
+          totalTokens: (usage1?.totalTokenCount ?? 0) + (usage2?.totalTokenCount ?? 0),
+        }
+        : undefined;
+      const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
+
       // Log the chat call
       await writeGeminiLog({
         timestamp,
@@ -915,7 +927,9 @@ Rules:
         success: true,
         input: { recipeId: recipe.id, message, historyLength: history.length, toolCall: call.name },
         rawOutput: chatMessage,
-        parsedOutput: { toolCalled: call.name, toolArgs: call.args, recipeWasModified }
+        parsedOutput: { toolCalled: call.name, toolArgs: call.args, recipeWasModified },
+        tokenUsage,
+        costEstimate
       });
 
       const isPendingRemix = (call?.name === 'modify_current_recipe') && !!toolResponseData.pendingRemix;
@@ -933,6 +947,17 @@ Rules:
       // Direct text response
       const chatMessage = rawOutput || 'Ich kann dir dabei leider nicht helfen.';
 
+      // Extract token usage and compute cost
+      const usageMeta = result.response.usageMetadata;
+      const tokenUsage: TokenUsage | undefined = usageMeta
+        ? {
+          promptTokens: usageMeta.promptTokenCount ?? 0,
+          candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+          totalTokens: usageMeta.totalTokenCount ?? 0,
+        }
+        : undefined;
+      const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
+
       // Log the chat call
       await writeGeminiLog({
         timestamp,
@@ -942,7 +967,9 @@ Rules:
         success: true,
         input: { recipeId: recipe.id, message, historyLength: history.length, toolCall: null },
         rawOutput: chatMessage,
-        parsedOutput: { toolCalled: null, toolArgs: null, recipeWasModified: false }
+        parsedOutput: { toolCalled: null, toolArgs: null, recipeWasModified: false },
+        tokenUsage,
+        costEstimate
       });
 
       return {
@@ -1041,6 +1068,17 @@ Respond in JSON only: {"chips":[{"category":"remix","label":"…","prompt":"…"
     const parsed = JSON.parse(text);
     const chips: { label: string; prompt: string }[] = parsed.chips || [];
 
+    // Extract token usage and compute cost
+    const usageMeta = result.response.usageMetadata;
+    const tokenUsage: TokenUsage | undefined = usageMeta
+      ? {
+        promptTokens: usageMeta.promptTokenCount ?? 0,
+        candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+        totalTokens: usageMeta.totalTokenCount ?? 0,
+      }
+      : undefined;
+    const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
+
     await writeGeminiLog({
       timestamp,
       requestType: 'chat_chips',
@@ -1049,6 +1087,8 @@ Respond in JSON only: {"chips":[{"category":"remix","label":"…","prompt":"…"
       success: true,
       input: { recipeId: recipe.id, recipeTitle: recipe.title },
       rawOutput: text,
+      tokenUsage,
+      costEstimate
     });
 
     return chips;
