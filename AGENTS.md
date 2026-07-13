@@ -285,6 +285,7 @@ Supabase dient als primärer Daten- und Authentifizierungs-Layer.
     * `created_at` / `updated_at` (`timestamptz`).
     * `locked_at` (`timestamptz` | `null`): Heartbeat-Zeitstempel zur Sperrung laufender Worker-Jobs.
     * `locked_by` (`text` | `null`): Identifikator des verarbeitenden Queue-Workers.
+  * Tabelle `feedback`: Speichert In-App Bug-Reports & Feedback (`id uuid`, `user_id uuid`, `type text` [`bug`|`idea`], `message text`, `context jsonb` [Geräte-/App-Kontext + Console-Logs], `screenshot_urls text[]` [Signed-URLs in den `feedback-screenshots`-Bucket], `created_at timestamptz`). RLS aktiv (`SELECT`/`INSERT` an `auth.uid() = user_id`); das Backend schreibt via Service-Role (umgeht RLS). Siehe Abschnitt „In-App Feedback & Bug-Reports".
 * **Row-Level Security (RLS) & Policies:**
   * Die Tabelle `jobs` ist durch RLS abgesichert.
   * Benutzer können nur Zeilen lesen (`SELECT`), einfügen (`INSERT`), aktualisieren (`UPDATE`) oder löschen (`DELETE`), wenn `auth.uid() = user_id` erfüllt ist.
@@ -292,6 +293,7 @@ Supabase dient als primärer Daten- und Authentifizierungs-Layer.
   * Die RPC-Funktion `claim_next_job(worker_id text)` läuft mit `SECURITY DEFINER` (umgeht RLS für Queue-Worker) und holt atomar den ältesten ausstehenden Job mittels `FOR UPDATE SKIP LOCKED`.
 * **Storage (Supabase Storage):**
   * Bucket `recipe-frames`: Speichert extrahierte Video-Frames unter `${jobId}/${index}.jpg`.
+  * Bucket `feedback-screenshots` (privat): Speichert optionale Bug-Report-Screenshots (bis zu 6 pro Report) unter `${userId}/${feedbackId}/${index}.jpg`; Zugriff über 10-Jahres-Signed-URL.
   * Zugriff erfolgt über langlebige signierte URLs (10 Jahre Gültigkeit), um direkte öffentliche Zugriffe zu unterbinden. Bei Löschung eines Rezepts werden alle zugehörigen Frames gelöscht.
 * **Authentifizierung (Supabase Auth):**
   * Token-Verifikation erfolgt **lokal** im Backend via JWKS (JSON Web Key Set) über die URL `${config.SUPABASE_URL}/auth/v1/.well-known/jwks.json` mithilfe der `jose`-Bibliothek (kein Datenbank-Roundtrip pro Request zur Statusprüfung).
@@ -360,4 +362,16 @@ Die App unterscheidet zwischen **Free**-, **Beta**- und **Premium**-Nutzern. Pre
 * **SavedCatalog:** `PremiumHint` (banner) erscheint ab dem 4. Rezept (fast voll) und ab dem 5. (voll) mit Upgrade-Aufforderung.
 * **RecipeNutrition:** Blur-Overlay über der Nährwert-Card mit einer Emerald-Lock-Pille ("Nährwerte freischalten"); öffnet die PremiumModal.
 * **SettingsView:** Premium-User sehen ihren Status nahtlos in der neuen Profil-Avatar-Karte integriert (inkl. Crown-Badge und Leistungsbeschreibung), wodurch der separate grüne Premium-Status-Banner entfällt. Free-User sehen zusätzlich eine verfeinerte, glänzende Upgrade-Karte (Emerald-Gradient) mit Crown-CTA. Preference-Icons besitzen farblich codierte Hintergründe, und Admin-Aktionen (Logout, Delete Account) sind als vollflächig klickbare Einstellungs-Zeilen mit Chevron-Indikatoren implementiert.
+
+---
+
+## 🐞 In-App Feedback & Bug-Reports
+
+Ein niederschwelliger Kanal, über den **alle** angemeldeten Nutzer (insb. Beta-Tester) direkt aus der App Fehler melden oder Feedback/Ideen senden können. Erreichbar über eine zweite Zeile in der **„Hilfe"-Karte** der `SettingsView` (Icon `MessageSquare`, `t('feedback.rowLabel')`), die den `FeedbackDrawer` öffnet.
+
+* **`FeedbackDrawer.tsx` (`frontend/src/components/`):** HeroUI-`Drawer` (Bottom-Sheet, gleiche Struktur wie `FlagSheet`/`CollectionSheet`). Enthält einen **Bug/Idee-Umschalter** (Segmented Toggle), ein `<textarea>` (max. 4000 Zeichen) und einen optionalen **Multi-Screenshot-Anhang** (versteckter `multiple`-File-Input → Thumbnail-Grid mit je einem Entfernen-Button und einem „Weitere hinzufügen"-Button, **max. 6 Bilder**, `MAX_SCREENSHOTS`). Submit ist deaktiviert bei leerer Nachricht oder während des Sendens. Bei Erfolg wird der Drawer **zuerst geschlossen** und danach ein `useDialog().alert({ status:'success' })` gezeigt (der Focus-Trap des Drawers würde ein darüberliegendes Overlay sonst unklickbar machen — dieselbe Fallstricke wie beim Copilot-Reset).
+* **Automatisch angehängter Kontext (`frontend/src/utils/feedbackContext.ts`):** `collectFeedbackContext(user, language)` sammelt `appVersion`, `platform` (`Capacitor.getPlatform()`), `isNative`, `userAgent`, `language`, aktuelle `route` (Hash), `viewport`, `userId`, `email`, `tier` sowie die letzten Console-Logs. `compressScreenshot(file)` verkleinert jedes ausgewählte Bild per Canvas (max. 800px, JPEG Q75, wie in `useCachedImage`) zu einer Data-URL, damit die Gesamt-Payload unter dem 1-MB-Body-Limit bleibt.
+* **Console-Ring-Buffer (`frontend/src/utils/consoleBuffer.ts`):** `installConsoleBuffer()` wird **ganz oben in `main.tsx`** aufgerufen und patcht `console.log/info/warn/error`, um die letzten ~50 Einträge (je auf ~1000 Zeichen gekürzt) im Speicher zu halten. `getRecentLogs()` liefert den Snapshot für den Report — es gibt keinen zentralen Logger, dies ist die Quelle jüngster Diagnose-Ausgaben.
+* **Submit-Hook (`frontend/src/hooks/useFeedback.ts`):** Authentifizierter `POST /api/feedback` (Header via `getAccessToken`, `apiUrl`, Body u. a. `screenshots: string[]`), Response im `{ success, error? }`-Envelope — analog zu `useCollections`.
+* **Backend (`POST /api/feedback` in `backend/src/routes.ts`):** Automatisch durch `requireAuth` + Rate-Limiter abgedeckt. Validiert `message` (nicht-leer, ≤ 4000), `type` (Whitelist `bug`|`idea`, Default `bug`), optionales `context`-Objekt und optionales `screenshots`-Array (jeweils base64, **max. 6 Bilder**, Gesamtlänge ≤ 1,5 Mio. Zeichen). Persistiert via `createFeedback(userId, …)` (`backend/src/db.ts`): lädt jeden Screenshot in den privaten Bucket `feedback-screenshots` (`${userId}/${feedbackId}/${index}.jpg`) hoch und speichert die 10-Jahres-Signed-URLs als `screenshot_urls text[]`, dann Insert in die `feedback`-Tabelle. Ein fehlgeschlagener Upload eines einzelnen Bildes verwirft den Report **nicht** (Best-Effort pro Bild). Es gibt bewusst **keine** E-Mail/Webhook-Benachrichtigung — Reports werden im Supabase-Dashboard gelesen.
 
