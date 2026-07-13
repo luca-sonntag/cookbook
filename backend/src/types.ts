@@ -83,5 +83,20 @@ export interface Job {
   userId?: string;
   createdAt: string;
   updatedAt: string;
+  isFavorite?: boolean;
+  flags?: string[];
+  collectionIds?: string[];
 }
+
+export interface Collection {
+  id: string;
+  userId: string;
+  name: string;
+  emoji?: string | null;
+  color?: string | null;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
