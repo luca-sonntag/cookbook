@@ -324,6 +324,65 @@ export async function deleteRecipeFrames(jobId: string): Promise<void> {
   await getClient().storage.from('recipe-frames').remove(paths);
 }
 
+// ── Feedback / bug reports ────────────────────────────────────────────────────
+
+export interface FeedbackInput {
+  type: 'bug' | 'idea';
+  message: string;
+  context?: unknown;
+  /** Optional screenshots as data-URL or raw base64 JPEG strings. */
+  screenshotsBase64?: string[];
+}
+
+/**
+ * Persist an in-app bug report / feedback submission. Any attached screenshots
+ * are uploaded to the private `feedback-screenshots` bucket and their long-lived
+ * signed URLs are stored (as an array) alongside the report.
+ */
+export async function createFeedback(userId: string, input: FeedbackInput): Promise<{ id: string }> {
+  const id = randomUUID();
+  const now = new Date().toISOString();
+
+  const screenshotUrls: string[] = [];
+  const shots = input.screenshotsBase64 ?? [];
+  for (let index = 0; index < shots.length; index++) {
+    try {
+      const base64 = shots[index].replace(/^data:image\/\w+;base64,/, '');
+      const buffer = Buffer.from(base64, 'base64');
+      const storagePath = `${userId}/${id}/${index}.jpg`;
+
+      const { error: uploadError } = await getClient().storage
+        .from('feedback-screenshots')
+        .upload(storagePath, buffer, { contentType: 'image/jpeg', upsert: true });
+      if (uploadError) throw new Error(uploadError.message);
+
+      const { data, error: urlError } = await getClient().storage
+        .from('feedback-screenshots')
+        .createSignedUrl(storagePath, 10 * 365 * 24 * 3600); // 10 years
+      if (urlError || !data) throw new Error(urlError?.message || 'No signed URL');
+      screenshotUrls.push(data.signedUrl);
+    } catch (err: any) {
+      // A failed screenshot upload must not lose the report itself.
+      console.error(`Failed to upload feedback screenshot ${index}:`, err?.message || err);
+    }
+  }
+
+  const { error } = await getClient()
+    .from('feedback')
+    .insert({
+      id,
+      user_id: userId,
+      type: input.type,
+      message: input.message,
+      context: input.context ?? null,
+      screenshot_urls: screenshotUrls.length > 0 ? screenshotUrls : null,
+      created_at: now,
+    });
+
+  if (error) throw wrapError('Failed to create feedback', error);
+  return { id };
+}
+
 /** Check whether the Supabase database connection is healthy. */
 export async function checkDbHealth(): Promise<boolean> {
   try {

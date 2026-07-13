@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback } from './db.js';
 import { config } from './config.js';
 import { requireAuth } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -1033,6 +1033,65 @@ apiRouter.post('/collections', async (req: Request, res: Response): Promise<void
     res.status(201).json({ success: true, collection });
   } catch (error: any) {
     console.error('Error creating collection:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Endpoint to submit an in-app bug report / feedback.
+ * POST /api/feedback
+ * Available to all authenticated users. Optional screenshot (compressed
+ * client-side) and diagnostic context are stored alongside the message.
+ */
+apiRouter.post('/feedback', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { message, type, context, screenshots } = req.body;
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      res.status(400).json({ success: false, error: 'Field message must be a non-empty string.' });
+      return;
+    }
+    if (message.length > 4000) {
+      res.status(400).json({ success: false, error: 'Message is too long (max 4000 characters).' });
+      return;
+    }
+
+    const feedbackType: 'bug' | 'idea' = type === 'idea' ? 'idea' : 'bug';
+
+    if (context !== undefined && (typeof context !== 'object' || context === null)) {
+      res.status(400).json({ success: false, error: 'Field context must be an object.' });
+      return;
+    }
+
+    let screenshotsBase64: string[] | undefined;
+    if (screenshots !== undefined) {
+      if (!Array.isArray(screenshots) || !screenshots.every((s) => typeof s === 'string')) {
+        res.status(400).json({ success: false, error: 'Field screenshots must be an array of base64 strings.' });
+        return;
+      }
+      if (screenshots.length > 6) {
+        res.status(400).json({ success: false, error: 'Too many screenshots (max 6).' });
+        return;
+      }
+      // Keep the whole payload under the global 1mb JSON body cap (base64 inflates ~33%).
+      const totalLength = screenshots.reduce((sum: number, s: string) => sum + s.length, 0);
+      if (totalLength > 1_500_000) {
+        res.status(400).json({ success: false, error: 'Screenshots are too large.' });
+        return;
+      }
+      screenshotsBase64 = screenshots.length > 0 ? screenshots : undefined;
+    }
+
+    const { id } = await createFeedback(req.userId!, {
+      type: feedbackType,
+      message: message.trim(),
+      context,
+      screenshotsBase64,
+    });
+
+    res.status(201).json({ success: true, id });
+  } catch (error: any) {
+    console.error('Error creating feedback:', error);
     res.status(500).json({ success: false, error: 'Internal server error.' });
   }
 });
