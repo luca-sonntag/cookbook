@@ -4,6 +4,7 @@ import { Crown, Check, X, Loader2, Sparkles } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { buyPremium } from '../utils/purchase';
 import { useAuth } from '../context/AuthContext';
+import { apiUrl } from '../api';
 
 interface PremiumModalProps {
   isOpen: boolean;
@@ -12,10 +13,11 @@ interface PremiumModalProps {
 
 export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps) {
   const { t } = useI18n();
-  const { isPremium, user } = useAuth();
+  const { isPremium, user, getAccessToken, refreshSession } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -23,11 +25,39 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
       setErrorMsg(null);
       setLoading(false);
       document.body.style.overflow = 'hidden';
+
+      // Verify status with server if currently seen as free user
+      const currentTier = user?.app_metadata?.tier;
+      if (currentTier !== 'premium' && currentTier !== 'beta') {
+        const verifyServerTier = async () => {
+          setIsValidating(true);
+          try {
+            const token = await getAccessToken();
+            if (!token) return;
+            const res = await fetch(apiUrl('/api/extractions/limit'), {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.success && data.tier && data.tier !== currentTier) {
+                console.log(`PremiumModal: Tier mismatch detected (local: ${currentTier}, server: ${data.tier}). Refreshing session...`);
+                await refreshSession();
+              }
+            }
+          } catch (err) {
+            console.warn('PremiumModal: Failed to verify server tier:', err);
+          } finally {
+            setIsValidating(false);
+          }
+        };
+        verifyServerTier();
+      }
     } else {
       document.body.style.overflow = '';
+      setIsValidating(false);
     }
     return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
+  }, [isOpen, user, getAccessToken, refreshSession]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -159,6 +189,10 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
             <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
               <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.owned') || 'Du hast Premium'}
             </button>
+          ) : isValidating ? (
+            <button disabled className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
+              <Loader2 className="w-5 h-5 animate-spin text-amber-300" /> {t('premium.modal.verifying') || 'Verifiziere Status...'}
+            </button>
           ) : (
             <button
               onClick={handleUpgrade}
@@ -170,7 +204,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                 : <><Crown className="w-5 h-5" /> {t('premium.modal.cta')}</>}
             </button>
           )}
-          {!isPremium && !loading && (
+          {!isPremium && !loading && !isValidating && (
             <p className="text-center text-[11px] text-emerald-100/50 mt-2.5 font-medium">
               {t('premium.modal.footer') || 'Jederzeit kündbar · Sicher über Google Play'}
             </p>
