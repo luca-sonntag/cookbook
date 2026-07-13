@@ -17,7 +17,8 @@
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
     "build:apk": "powershell -ExecutionPolicy Bypass -File build-apk.ps1",
-    "deploy": "powershell -ExecutionPolicy Bypass -File deploy.ps1"
+    "deploy": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
+    "deploy:all:internal": "powershell -ExecutionPolicy Bypass -File deploy.ps1 -All -Bump patch -Track internal"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"
