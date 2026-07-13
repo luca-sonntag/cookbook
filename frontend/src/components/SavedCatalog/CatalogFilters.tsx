@@ -11,7 +11,6 @@ interface CatalogFiltersProps {
   setViewMode: (mode: 'card' | 'compact') => void;
   activeFilter: string;
   setActiveFilter: (filter: string) => void;
-  allTags: string[];
   allFlags: string[];
   collections: Collection[];
   isSelectMode: boolean;
@@ -28,7 +27,6 @@ export default function CatalogFilters({
   setViewMode,
   activeFilter,
   setActiveFilter,
-  allTags,
   allFlags,
   collections,
   isSelectMode,
@@ -228,21 +226,6 @@ export default function CatalogFilters({
         >
           {t('catalog.under30')}
         </button>
-
-        {/* Dynamic Tag chips */}
-        {allTags.map((tag: string) => (
-          <button
-            key={tag}
-            onClick={() => setActiveFilter(tag)}
-            className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
-              activeFilter === tag
-                ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
-                : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            {tag}
-          </button>
-        ))}
 
         {/* Custom Flag chips */}
         {allFlags.map((flag: string) => {

@@ -76,7 +76,6 @@ export default function SavedCatalog({
     setSelectedIds,
     addedRecipeIds,
     filteredJobs,
-    allTags,
     formatTimeValue,
     getDurationBadge,
     getRecipeTags,
@@ -212,7 +211,6 @@ export default function SavedCatalog({
                 setViewMode={setViewMode}
                 activeFilter={activeFilter}
                 setActiveFilter={setActiveFilter}
-                allTags={allTags}
                 allFlags={allFlags}
                 collections={collections}
                 isSelectMode={isSelectMode}
