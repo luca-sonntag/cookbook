@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { Collection } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Drawer } from '@heroui/react';
-import { Folder, Plus, Edit2, Trash2, Check, X, Tag } from 'lucide-react';
+import { Folder, Plus, Edit2, Trash2, Check, X } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useCollections } from '../../hooks/useCollections';
 import type { Job, Collection } from '../../types';
@@ -325,7 +325,7 @@ export default function CollectionSheet({
                     <Button
                       className="flex-[2] py-3 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white shadow-md shadow-emerald-500/25 active:scale-[0.98] transition-all"
                       onPress={handleConfirmAssignment}
-                      disabled={collections.length === 0}
+                      isDisabled={collections.length === 0}
                     >
                       {t('recipe.save') || 'Speichern'}
                     </Button>

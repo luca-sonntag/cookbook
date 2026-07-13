@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import type { Job, Ingredient, Collection } from '../types';
+import type { Job, Ingredient } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
 import { useAuth } from '../context/AuthContext';
