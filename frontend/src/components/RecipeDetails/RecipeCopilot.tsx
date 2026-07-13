@@ -3,7 +3,6 @@ import { Button, Drawer, Card } from '@heroui/react';
 import { Send, Sparkles, Bot, User, Loader2, RefreshCw, X, Plus, Trash2 } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
-import { useDialog } from '../../context/DialogContext';
 import { useTimerManager } from '../../hooks/useTimerManager';
 import { useShoppingList } from '../../hooks/useShoppingList';
 import { apiUrl } from '../../api';
@@ -37,7 +36,6 @@ interface RecipeCopilotProps {
 export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess, onReplaceCurrent }: RecipeCopilotProps) {
   const { t, language } = useI18n();
   const { getAccessToken } = useAuth();
-  const { confirm } = useDialog();
   const { addTimer } = useTimerManager();
   const { addCustomItem } = useShoppingList();
 
@@ -57,6 +55,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
   const [showChips, setShowChips] = useState(true);
   const [chips, setChips] = useState<Chip[]>([]);
   const [chipsLoading, setChipsLoading] = useState(false);
+  const [confirmingClear, setConfirmingClear] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLInputElement>(null);
@@ -115,15 +114,10 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
   };
 
   // Reset the session: clear the cached chat + chips for this recipe and regenerate fresh suggestions.
-  const handleClearSession = async () => {
-    const ok = await confirm({
-      title: t('copilot.clearConfirmTitle'),
-      message: t('copilot.clearConfirmBody'),
-      confirmLabel: t('copilot.clearConfirmBtn'),
-      status: 'warning',
-    });
-    if (!ok) return;
-
+  // The confirmation is rendered *inside* the drawer (see below) because the drawer's focus trap
+  // makes the global useDialog() overlay unclickable when opened on top of it.
+  const performClearSession = () => {
+    setConfirmingClear(false);
     setHistory([]);
     setMessage('');
     setError(null);
@@ -329,7 +323,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
             {history.length > 0 && (
               <button
                 type="button"
-                onClick={handleClearSession}
+                onClick={() => setConfirmingClear(true)}
                 disabled={isPending}
                 className="absolute top-2.5 left-3.5 z-50 p-1.5 rounded-full text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all outline-none border-none cursor-pointer flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label={t('copilot.clearAria')}
@@ -590,6 +584,43 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                 </div>
               </form>
             </div>
+
+            {/* Clear/Reset confirmation — rendered inside the drawer so it stays within the
+                drawer's focus trap and remains clickable (a global dialog would sit behind/under it). */}
+            {confirmingClear && (
+              <div className="absolute inset-0 z-[60] flex items-center justify-center p-5 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+                <div className="w-full max-w-xs rounded-2xl border border-black/10 dark:border-white/10 p-5 shadow-2xl bg-white dark:bg-gray-900 flex flex-col gap-4 animate-in zoom-in-95 duration-200">
+                  <div className="flex gap-3 items-start">
+                    <div className="p-2.5 rounded-xl border flex-shrink-0 flex items-center justify-center bg-amber-500/10 border-amber-500/20">
+                      <Trash2 className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <div className="flex flex-col gap-1.5 min-w-0">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white leading-tight">
+                        {t('copilot.clearConfirmTitle')}
+                      </h3>
+                      <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                        {t('copilot.clearConfirmBody')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2.5">
+                    <Button
+                      variant="tertiary"
+                      onPress={() => setConfirmingClear(false)}
+                      className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white font-medium"
+                    >
+                      {t('dialog.cancelDefault')}
+                    </Button>
+                    <Button
+                      onPress={performClearSession}
+                      className="bg-amber-500 hover:bg-amber-400 text-white font-medium shadow-md transition-all"
+                    >
+                      {t('copilot.clearConfirmBtn')}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
           </Drawer.Dialog>
         </Drawer.Content>
