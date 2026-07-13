@@ -104,8 +104,8 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
 
       {/* Subtle radial highlight at top */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-60 bg-emerald-400/20 rounded-full filter blur-3xl pointer-events-none" />
-      {/* Depth shadow at bottom */}
-      <div className="absolute bottom-0 inset-x-0 h-40 bg-black/20 pointer-events-none" />
+      {/* Depth shadow at bottom — soft fade instead of a hard band */}
+      <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-black/25 to-transparent pointer-events-none" />
 
       {/* Content */}
       <div
@@ -144,7 +144,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
         </div>
 
         {/* Feature list — white/translucent rows, same card feel */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col justify-center">
           <div className="flex flex-col rounded-3xl overflow-hidden bg-black/10 border border-white/10">
             {featureItems.map((item, idx) => (
               <div
