@@ -669,7 +669,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                         const pct = (stat.cost / maxCost) * 100;
                         return (
                           <div key={stat.date} className="flex items-center gap-3 text-[11px]">
-                            <span className="w-20 text-gray-400 dark:text-gray-500 font-mono shrink-0">{stat.date}</span>
+                            <span className="w-20 text-gray-400 dark:text-gray-500 font-mono shrink-0">{stat.date.slice(5)}</span>
                             <div className="flex-1 bg-black/5 dark:bg-white/5 h-2.5 rounded-full overflow-hidden">
                               <div
                                 className="bg-amber-500 dark:bg-amber-600 h-full rounded-full transition-all duration-500"
