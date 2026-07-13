@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -157,6 +158,38 @@ export function registerNotificationTap(
       onTap(extra.recipeId, extra.stepNum);
     },
   );
+
+  return () => {
+    handlePromise.then((handle) => handle.remove()).catch(() => {});
+  };
+}
+
+// ─── Hardware / Swipe Back Button ────────────────────────────────────────────
+
+/**
+ * Register a handler for the Android hardware back-button and the edge
+ * swipe-back gesture. Without this, Capacitor immediately exits the app
+ * whenever the WebView has no more native history entries.
+ *
+ * The callback receives no arguments and must return `true` if it handled
+ * the action (navigated within the app) or `false` if we are already at the
+ * root and the app should exit.
+ *
+ * Returns a cleanup function that removes the listener.
+ * No-op on non-native platforms.
+ */
+export function registerBackButtonHandler(
+  onBack: () => boolean,
+): () => void {
+  if (!isNative()) return () => {};
+
+  const handlePromise = App.addListener('backButton', (_ev) => {
+    const handled = onBack();
+    if (!handled) {
+      // Nothing left to navigate back to — exit gracefully.
+      App.exitApp();
+    }
+  });
 
   return () => {
     handlePromise.then((handle) => handle.remove()).catch(() => {});
