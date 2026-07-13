@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Job, Ingredient, Recipe } from '../../types';
 import RecipeDetails from '../RecipeDetails';
 import { useMobileNavigationBack } from '../../hooks/useMobileNavigationBack';
 import { useI18n } from '../../context/I18nContext';
 import { useSavedCatalog } from '../../hooks/useSavedCatalog';
 import { useAuth } from '../../context/AuthContext';
+import { useCollections } from '../../hooks/useCollections';
 import PremiumModal from '../PremiumModal';
 import PremiumHint from '../PremiumHint';
+import CollectionSheet from './CollectionSheet';
 
 import RecipeCard from './RecipeCard';
 import RecipeListItem from './RecipeListItem';
@@ -81,7 +83,14 @@ export default function SavedCatalog({
     handleCardClick,
     handleDirectAddToShoppingList,
     handleBulkAddToShoppingList,
-    handleBulkDelete
+    handleBulkDelete,
+    sortBy,
+    setSortBy,
+    allFlags,
+    toggleFavorite,
+    toggleFlag,
+    setRecipeFlags,
+    assignCollections
   } = useSavedCatalog({
     history,
     setSelectedJob,
@@ -90,6 +99,68 @@ export default function SavedCatalog({
     getAccessToken,
     onSelectModeChange
   });
+
+  const { collections, refreshCollections } = useCollections();
+  const [isCollectionSheetOpen, setIsCollectionSheetOpen] = useState(false);
+  const [collectionSheetJob, setCollectionSheetJob] = useState<Job | undefined>(undefined);
+  const [collectionSheetBulkIds, setCollectionSheetBulkIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (historyLoaded) {
+      refreshCollections();
+    }
+  }, [historyLoaded, refreshCollections]);
+
+  const handleAddCollectionClick = () => {
+    if (!isPremium) {
+      setIsPremiumModalOpen(true);
+    } else {
+      setCollectionSheetJob(undefined);
+      setCollectionSheetBulkIds([]);
+      setIsCollectionSheetOpen(true);
+    }
+  };
+
+  const handleBulkAddToCollectionClick = () => {
+    if (!isPremium) {
+      setIsPremiumModalOpen(true);
+    } else {
+      setCollectionSheetJob(undefined);
+      setCollectionSheetBulkIds(Array.from(selectedIds));
+      setIsCollectionSheetOpen(true);
+    }
+  };
+
+  const handleAssignCollectionsClick = (job: Job) => {
+    if (!isPremium) {
+      setIsPremiumModalOpen(true);
+    } else {
+      setCollectionSheetJob(job);
+      setCollectionSheetBulkIds([]);
+      setIsCollectionSheetOpen(true);
+    }
+  };
+
+  const handleManageFlagsClick = async (job: Job) => {
+    if (!isPremium) {
+      setIsPremiumModalOpen(true);
+      return;
+    }
+    const currentFlags = job.flags?.join(', ') || '';
+    const promptMessage = language === 'de'
+      ? 'Gib Labels für dieses Rezept ein (kommagetrennt):'
+      : 'Enter labels for this recipe (comma-separated):';
+    
+    const result = window.prompt(promptMessage, currentFlags);
+    if (result === null) return;
+
+    const nextFlags = result
+      .split(',')
+      .map(f => f.trim())
+      .filter(f => f.length > 0);
+
+    await setRecipeFlags(job, nextFlags);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -120,6 +191,8 @@ export default function SavedCatalog({
                   setSelectedJob(parentJob);
                 }
               }}
+              onAssignCollections={() => handleAssignCollectionsClick(selectedJob)}
+              onManageFlags={() => handleManageFlagsClick(selectedJob)}
             />
           )}
         </div>
@@ -143,6 +216,8 @@ export default function SavedCatalog({
                 activeFilter={activeFilter}
                 setActiveFilter={setActiveFilter}
                 allTags={allTags}
+                allFlags={allFlags}
+                collections={collections}
                 isSelectMode={isSelectMode}
                 setIsSelectMode={(active) => {
                   setIsSelectMode(active);
@@ -150,6 +225,9 @@ export default function SavedCatalog({
                     setSelectedIds(new Set());
                   }
                 }}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                onAddCollection={handleAddCollectionClick}
               />
 
               {/* Free plan catalog limit banner */}
@@ -189,6 +267,10 @@ export default function SavedCatalog({
                       onClick={(e) => handleCardClick(e, job)}
                       onDirectAdd={(e) => handleDirectAddToShoppingList(e, job)}
                       onDelete={(e) => handleDeleteJob(e, job.id)}
+                      onToggleFavorite={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(job);
+                      }}
                     />
                   ))}
                 </div>
@@ -210,6 +292,10 @@ export default function SavedCatalog({
                       onClick={(e) => handleCardClick(e, job)}
                       onDirectAdd={(e) => handleDirectAddToShoppingList(e, job)}
                       onDelete={(e) => handleDeleteJob(e, job.id)}
+                      onToggleFavorite={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(job);
+                      }}
                     />
                   ))}
                 </div>
@@ -229,8 +315,20 @@ export default function SavedCatalog({
           }}
           onBulkAdd={handleBulkAddToShoppingList}
           onBulkDelete={handleBulkDelete}
+          onBulkAddToCollection={handleBulkAddToCollectionClick}
         />
       )}
+
+      {/* Collection Management bottom sheet */}
+      <CollectionSheet
+        isOpen={isCollectionSheetOpen}
+        onClose={() => setIsCollectionSheetOpen(false)}
+        job={collectionSheetJob}
+        selectedJobIds={collectionSheetBulkIds}
+        onUpdated={() => {
+          fetchHistory?.();
+        }}
+      />
 
       {/* Premium Modal */}
       <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
