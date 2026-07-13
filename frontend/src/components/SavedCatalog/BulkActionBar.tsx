@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { ShoppingCart, Trash2 } from 'lucide-react';
+import { ShoppingCart, Trash2, Folder } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 
 interface BulkActionBarProps {
@@ -7,31 +7,42 @@ interface BulkActionBarProps {
   onCancel: () => void;
   onBulkAdd: () => void;
   onBulkDelete: () => void;
+  onBulkAddToCollection: () => void;
 }
 
 export default function BulkActionBar({
   selectedCount,
   onCancel,
   onBulkAdd,
-  onBulkDelete
+  onBulkDelete,
+  onBulkAddToCollection
 }: BulkActionBarProps) {
   const { t, language } = useI18n();
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-md bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border shadow-2xl rounded-2xl p-3 flex flex-col gap-2 animate-slide-up border-emerald-500/30">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[95%] max-w-lg bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border shadow-2xl rounded-2xl p-3 flex flex-col gap-2 animate-slide-up border-emerald-500/30">
       <div className="flex items-center justify-between px-1">
         <span className="text-xs font-bold text-gray-900 dark:text-white">
           {t('catalog.itemsSelected', { count: selectedCount })}
         </span>
       </div>
 
-      <div className="flex items-center justify-end gap-1.5 sm:gap-2 flex-nowrap w-full">
+      <div className="flex items-center justify-end gap-1.5 sm:gap-2 flex-wrap w-full">
         <Button
           variant="outline"
           onPress={onCancel}
           className="text-sm h-11 px-3 sm:px-4 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl font-semibold active:scale-95 transition-all shrink min-w-0"
         >
           <span className="truncate">{t('dialog.cancelDefault')}</span>
+        </Button>
+
+        <Button
+          onPress={onBulkAddToCollection}
+          isDisabled={selectedCount === 0}
+          className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10 text-sm h-11 px-3 sm:px-4 font-bold rounded-xl flex items-center gap-1.5 active:scale-95 transition-all shrink-0"
+        >
+          <Folder className="w-4 h-4 shrink-0 text-emerald-500" />
+          <span className="truncate">{language === 'de' ? 'Sammlung' : 'Collection'}</span>
         </Button>
 
         <Button
