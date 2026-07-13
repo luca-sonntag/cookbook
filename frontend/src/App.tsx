@@ -3,7 +3,7 @@ import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
 
 import type { Job } from './types';
 import { apiUrl } from './api';
-import { registerShareIntent, registerNotificationTap, hideSplashScreen } from './native';
+import { registerShareIntent, registerNotificationTap, hideSplashScreen, registerBackButtonHandler } from './native';
 import { parseSharedUrl } from './utils/shareUrl';
 import InstallBanner from './components/InstallBanner';
 import ExtractForm from './components/ExtractForm';
@@ -145,6 +145,36 @@ export default function App() {
     setUrl('');
     navigate('extract');
   });
+
+  // Android hardware back-button & edge swipe-back gesture (Capacitor native).
+  // Without this listener, Capacitor exits the app instead of navigating back.
+  // Priority order:
+  //   1. history + selectedJob open → go back to recipe list
+  //   2. extract + recipe shown   → go back to extract form
+  //   3. any non-root tab         → go to history (root tab)
+  //   4. root (history, no job)   → return false → Capacitor calls exitApp()
+  useEffect(() => {
+    return registerBackButtonHandler(() => {
+      if (activeView === 'history' && selectedJob) {
+        navigate('history');
+        return true;
+      }
+      if (activeView === 'extract' && recipe) {
+        setRecipe(null);
+        setUrl('');
+        navigate('extract');
+        return true;
+      }
+      if (activeView !== 'history') {
+        navigate('history');
+        return true;
+      }
+      // Already at root — let Capacitor exit the app.
+      return false;
+    });
+  // Note: activeView, selectedJob and recipe are intentionally in the dep array
+  // so the handler always closes over the latest state.
+  }, [activeView, selectedJob, recipe, navigate, setRecipe, setUrl]);
 
   // Fetch history on load. Waits for AuthContext's own initial getSession()
   // to settle first (authLoading) instead of firing immediately on mount —
