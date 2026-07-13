@@ -77,13 +77,13 @@ export default function RecipeHeader({
           )}
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed break-words">{recipe.description}</p>
           {((flags && flags.length > 0) || onManageFlags) && (
-            <div className="flex flex-wrap gap-1 mt-2">
+            <div className="flex flex-wrap gap-1.5 mt-2">
               {flags && flags.map((flag, idx) => (
                 <span
                   key={`flag-${idx}`}
-                  className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap border border-amber-500/20 flex items-center gap-0.5"
+                  className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-sm font-bold px-3 py-1 rounded-full select-none whitespace-nowrap border border-amber-500/20 flex items-center gap-1"
                 >
-                  <Tag className="w-2.5 h-2.5" />
+                  <Tag className="w-3.5 h-3.5" />
                   {flag}
                 </span>
               ))}
@@ -91,9 +91,9 @@ export default function RecipeHeader({
                 <button
                   type="button"
                   onClick={onManageFlags}
-                  className="bg-transparent border border-dashed border-black/20 dark:border-white/20 hover:border-black/40 dark:hover:border-white/40 text-gray-500 hover:text-emerald-500 dark:text-gray-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap flex items-center gap-0.5 active:scale-95 transition-all cursor-pointer outline-none"
+                  className="bg-transparent border border-dashed border-black/20 dark:border-white/20 hover:border-black/40 dark:hover:border-white/40 text-gray-500 hover:text-emerald-500 dark:text-gray-400 text-sm font-bold px-3 py-1 rounded-full select-none whitespace-nowrap flex items-center gap-1 active:scale-95 transition-all cursor-pointer outline-none"
                 >
-                  <Plus className="w-2.5 h-2.5" />
+                  <Plus className="w-3.5 h-3.5" />
                   <span>{language === 'de' ? 'Label' : 'Label'}</span>
                 </button>
               )}
