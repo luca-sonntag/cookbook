@@ -1,7 +1,4 @@
-import fs from 'fs/promises';
-import path from 'path';
-
-const LOG_DIR = path.resolve('logs', 'gemini');
+import { getClient } from './db.js';
 
 export interface LlmMetricsSummary {
   totalTokens: number;
@@ -13,6 +10,21 @@ export interface LlmMetricsSummary {
   dailyCost: { date: string; cost: number }[];
 }
 
+/** Row shape selected from the `gemini_logs` table for metrics aggregation. */
+interface GeminiLogMetricsRow {
+  created_at: string;
+  request_type: string | null;
+  token_prompt: number | null;
+  token_candidate: number | null;
+  token_total: number | null;
+  cost_total_usd: number | null;
+}
+
+/**
+ * Aggregate Gemini usage and cost metrics from the persistent `gemini_logs`
+ * table over the last `days` days. This replaces the previous filesystem-based
+ * log parsing, which was wiped on every ephemeral container redeploy.
+ */
 export async function getLlmMetrics(days = 30): Promise<LlmMetricsSummary> {
   const summary: LlmMetricsSummary = {
     totalTokens: 0,
@@ -24,75 +36,64 @@ export async function getLlmMetrics(days = 30): Promise<LlmMetricsSummary> {
     dailyCost: [],
   };
 
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  const dailyMap: Record<string, number> = {};
+
   try {
-    const files = await fs.readdir(LOG_DIR);
-    const now = new Date();
-    const limitDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-    const limitPrefix = limitDate.toISOString().split('T')[0];
+    const { data, error } = await getClient()
+      .from('gemini_logs')
+      .select('created_at, request_type, token_prompt, token_candidate, token_total, cost_total_usd')
+      .gte('created_at', cutoff.toISOString())
+      .returns<GeminiLogMetricsRow[]>();
 
-    // Filter files matching timestamp from last 30 days
-    const relevantFiles = files.filter(file => {
-      if (!file.endsWith('.json')) return false;
-      // Filename starts with ISO timestamp like '2026-07-11T...'
-      const prefix = file.slice(0, 10);
-      return prefix >= limitPrefix;
-    });
+    if (error) throw new Error(error.message);
 
-    const dailyMap: Record<string, number> = {};
+    for (const row of data ?? []) {
+      const type = row.request_type || 'unknown';
+      const tokens = row.token_total ?? 0;
+      const pTokens = row.token_prompt ?? 0;
+      const cTokens = row.token_candidate ?? 0;
+      // numeric columns come back as strings via PostgREST → coerce defensively
+      const cost = Number(row.cost_total_usd ?? 0) || 0;
 
-    for (const file of relevantFiles) {
-      try {
-        const filePath = path.join(LOG_DIR, file);
-        const contentStr = await fs.readFile(filePath, 'utf-8');
-        const entry = JSON.parse(contentStr);
+      summary.count++;
+      summary.totalTokens += tokens;
+      summary.promptTokens += pTokens;
+      summary.candidateTokens += cTokens;
+      summary.totalCostUsd += cost;
 
-        const type = entry.requestType || 'unknown';
-        const tokens = entry.tokenUsage?.totalTokens || 0;
-        const pTokens = entry.tokenUsage?.promptTokens || 0;
-        const cTokens = entry.tokenUsage?.candidateTokens || 0;
-        const cost = entry.costEstimate?.totalCostUsd || 0;
+      summary.breakdown[type] ??= { count: 0, cost: 0, tokens: 0 };
+      summary.breakdown[type].count++;
+      summary.breakdown[type].cost += cost;
+      summary.breakdown[type].tokens += tokens;
 
-        summary.count++;
-        summary.totalTokens += tokens;
-        summary.promptTokens += pTokens;
-        summary.candidateTokens += cTokens;
-        summary.totalCostUsd += cost;
-
-        summary.breakdown[type] ??= { count: 0, cost: 0, tokens: 0 };
-        summary.breakdown[type].count++;
-        summary.breakdown[type].cost += cost;
-        summary.breakdown[type].tokens += tokens;
-
-        if (entry.timestamp) {
-          const dateStr = entry.timestamp.split('T')[0];
-          dailyMap[dateStr] = (dailyMap[dateStr] || 0) + cost;
-        }
-      } catch (err) {
-        // Skip malformed log files
+      if (row.created_at) {
+        const dateStr = row.created_at.split('T')[0];
+        dailyMap[dateStr] = (dailyMap[dateStr] || 0) + cost;
       }
     }
 
-    // Format breakdown costs
+    // Round breakdown costs to avoid floating-point noise
     for (const key of Object.keys(summary.breakdown)) {
       summary.breakdown[key].cost = parseFloat(summary.breakdown[key].cost.toFixed(6));
     }
 
-    // Generate last 30 days daily costs array
-    for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(now.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      summary.dailyCost.push({
-        date: dateStr,
-        cost: parseFloat((dailyMap[dateStr] || 0).toFixed(6)),
-      });
-    }
-
     summary.totalCostUsd = parseFloat(summary.totalCostUsd.toFixed(6));
   } catch (err: any) {
-    if (err.code !== 'ENOENT') {
-      console.error('[AdminMetrics] Error reading LLM logs:', err.message);
-    }
+    console.error('[AdminMetrics] Error reading LLM logs from DB:', err.message);
+  }
+
+  // Generate a dense last-`days`-days daily cost array (zero-filled) regardless
+  // of whether the query succeeded, so the chart always renders a full window.
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    summary.dailyCost.push({
+      date: dateStr,
+      cost: parseFloat((dailyMap[dateStr] || 0).toFixed(6)),
+    });
   }
 
   return summary;

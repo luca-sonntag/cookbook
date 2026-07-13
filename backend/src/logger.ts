@@ -1,12 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-
-const LOG_DIR = path.resolve('logs', 'gemini');
-
-/** Ensure the log directory exists (created once at startup or on first use). */
-async function ensureLogDir(): Promise<void> {
-  await fs.mkdir(LOG_DIR, { recursive: true });
-}
+import { getClient } from './db.js';
 
 // ---------------------------------------------------------------------------
 // Pricing table (Google AI Studio / Gemini API, approximate as of June 2026)
@@ -178,15 +172,68 @@ export interface GeminiLogEntry {
 }
 
 /**
- * Write a single Gemini request/response log as a JSON file.
+ * Persist a single Gemini request/response log.
+ *
+ * Primary sink is the Supabase `gemini_logs` table so metrics survive Railway's
+ * ephemeral filesystem (containers are wiped on every deploy). When `logDir` is
+ * set, the full entry is *additionally* written as a JSON file into that
+ * per-run debug directory (`logs/{userId}/run-...`) for deep debugging — those
+ * dirs are auto-pruned after 30 days and are not the persistent data source.
+ *
+ * Neither sink is allowed to throw: logging must never crash the main flow.
+ */
+export async function writeGeminiLog(entry: GeminiLogEntry): Promise<void> {
+  await writeGeminiLogToDb(entry);
+
+  if (entry.logDir) {
+    await writeGeminiLogToFile(entry, entry.logDir);
+  }
+
+  const costStr = entry.costEstimate
+    ? ` | cost≈${entry.costEstimate.totalCostFormatted}`
+    : '';
+  const tokenStr = entry.tokenUsage
+    ? ` | tokens: ${entry.tokenUsage.totalTokens} (in ${entry.tokenUsage.promptTokens} / out ${entry.tokenUsage.candidateTokens})`
+    : '';
+  console.log(`[GeminiLogger] ${entry.requestType} ${entry.success ? '✓' : '✗'}${tokenStr}${costStr}`);
+}
+
+/** Insert a log entry as a row into the Supabase `gemini_logs` table. */
+async function writeGeminiLogToDb(entry: GeminiLogEntry): Promise<void> {
+  try {
+    const { error } = await getClient()
+      .from('gemini_logs')
+      .insert({
+        created_at:      entry.timestamp,
+        request_type:    entry.requestType,
+        model:           entry.model,
+        duration_ms:     entry.durationMs,
+        success:         entry.success,
+        error_msg:       entry.error ?? null,
+        input_data:      entry.input ?? null,
+        token_prompt:    entry.tokenUsage?.promptTokens ?? null,
+        token_candidate: entry.tokenUsage?.candidateTokens ?? null,
+        token_total:     entry.tokenUsage?.totalTokens ?? null,
+        cost_input_usd:  entry.costEstimate?.inputCostUsd ?? null,
+        cost_output_usd: entry.costEstimate?.outputCostUsd ?? null,
+        cost_total_usd:  entry.costEstimate?.totalCostUsd ?? null,
+      });
+    if (error) throw new Error(error.message);
+  } catch (err: any) {
+    // Never let logging failures crash the main flow.
+    console.error('[GeminiLogger] Failed to write log to DB:', err.message);
+  }
+}
+
+/**
+ * Write the full log entry as a JSON file into a per-run debug directory.
  *
  * Filename pattern:
  *   <ISO-timestamp>_<requestType>_<random-4-hex>.json
  *   e.g. 2026-06-20T13-45-00-123Z_extract_recipe_a3f1.json
  */
-export async function writeGeminiLog(entry: GeminiLogEntry): Promise<void> {
+async function writeGeminiLogToFile(entry: GeminiLogEntry, targetDir: string): Promise<void> {
   try {
-    const targetDir = entry.logDir ?? LOG_DIR;
     await fs.mkdir(targetDir, { recursive: true });
 
     // Replace colons and periods with dashes so the filename is Windows-safe
@@ -198,16 +245,8 @@ export async function writeGeminiLog(entry: GeminiLogEntry): Promise<void> {
     const filepath = path.join(targetDir, filename);
 
     await fs.writeFile(filepath, JSON.stringify(entry, null, 2), 'utf-8');
-
-    const costStr = entry.costEstimate
-      ? ` | cost≈${entry.costEstimate.totalCostFormatted}`
-      : '';
-    const tokenStr = entry.tokenUsage
-      ? ` | tokens: ${entry.tokenUsage.totalTokens} (in ${entry.tokenUsage.promptTokens} / out ${entry.tokenUsage.candidateTokens})`
-      : '';
-    console.log(`[GeminiLogger] ${entry.requestType} ${entry.success ? '✓' : '✗'}${tokenStr}${costStr} → ${filepath}`);
   } catch (err: any) {
-    // Never let logging failures crash the main flow
-    console.error('[GeminiLogger] Failed to write log:', err.message);
+    // Never let logging failures crash the main flow.
+    console.error('[GeminiLogger] Failed to write log file:', err.message);
   }
 }
