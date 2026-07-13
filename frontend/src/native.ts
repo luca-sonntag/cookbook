@@ -12,8 +12,8 @@ export function isNative(): boolean {
 }
 
 /**
- * Theme the native status bar to match the app's brand color and hide the
- * splash screen. Safe to call on web (no-ops off native).
+ * Theme the native status bar to match the app's brand color.
+ * Safe to call on web (no-ops off native).
  */
 export async function initNativeUi(): Promise<void> {
   if (!isNative()) return;
@@ -24,9 +24,19 @@ export async function initNativeUi(): Promise<void> {
     }
   } catch (err) {
     console.warn('StatusBar setup failed:', err);
-  } finally {
-    // Hide the splash once the web layer is ready, regardless of status bar result.
-    SplashScreen.hide().catch(() => {});
+  }
+}
+
+/**
+ * Hide the native splash screen when the web layer is ready and synced.
+ * Safe to call on web (no-ops off native).
+ */
+export async function hideSplashScreen(): Promise<void> {
+  if (!isNative()) return;
+  try {
+    await SplashScreen.hide();
+  } catch (err) {
+    console.warn('Failed to hide splash screen:', err);
   }
 }
 
