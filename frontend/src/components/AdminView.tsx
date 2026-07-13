@@ -471,7 +471,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                                         const isErrLog = log.level === 'error' || log.level === 'warn';
                                         return (
                                           <div key={idx} className={isErrLog ? 'text-rose-400' : 'text-emerald-400'}>
-                                            <span className="text-gray-500 font-semibold">[{log.level.toUpperCase()}]</span> {log.message}
+                                            <span className="text-gray-500 font-semibold">[{log.level.toUpperCase()}]</span> {log.text}
                                           </div>
                                         );
                                       })}
