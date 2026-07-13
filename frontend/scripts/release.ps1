@@ -65,14 +65,14 @@ $newContent = "VERSION_CODE=$newCode`nVERSION_NAME=$newName`n"
 
 
 Write-Host ""
-Write-Host "  ╔══════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "  ║  Snagbite Release Builder                ║" -ForegroundColor Cyan
-Write-Host "  ╠══════════════════════════════════════════╣" -ForegroundColor Cyan
-Write-Host "  ║  versionCode: $currentCode -> $newCode" -ForegroundColor White -NoNewline
-Write-Host "$(' ' * (28 - "$currentCode -> $newCode".Length))║" -ForegroundColor Cyan
-Write-Host "  ║  versionName: $currentName -> $newName" -ForegroundColor White -NoNewline
-Write-Host "$(' ' * (28 - "$currentName -> $newName".Length))║" -ForegroundColor Cyan
-Write-Host "  ╚══════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "  +------------------------------------------+" -ForegroundColor Cyan
+Write-Host "  |  Snagbite Release Builder                |" -ForegroundColor Cyan
+Write-Host "  +------------------------------------------+" -ForegroundColor Cyan
+Write-Host "  |  versionCode: $currentCode -> $newCode" -ForegroundColor White -NoNewline
+Write-Host "$(' ' * (28 - "$currentCode -> $newCode".Length))|" -ForegroundColor Cyan
+Write-Host "  |  versionName: $currentName -> $newName" -ForegroundColor White -NoNewline
+Write-Host "$(' ' * (28 - "$currentName -> $newName".Length))|" -ForegroundColor Cyan
+Write-Host "  +------------------------------------------+" -ForegroundColor Cyan
 Write-Host ""
 
 # ── 5. Build frontend ────────────────────────────────────────────────
@@ -135,9 +135,9 @@ $aabDest = "$releasesDir\snagbite-v${newName}-vc${newCode}-${timestamp}.aab"
 Copy-Item $aabSource $aabDest
 
 Write-Host ""
-Write-Host "  ✅ Release AAB ready!" -ForegroundColor Green
-Write-Host "  📦 $aabDest" -ForegroundColor White
-Write-Host "  📱 versionName: $newName | versionCode: $newCode" -ForegroundColor White
+Write-Host "  [OK] Release AAB ready!" -ForegroundColor Green
+Write-Host "  AAB: $aabDest" -ForegroundColor White
+Write-Host "  versionName: $newName | versionCode: $newCode" -ForegroundColor White
 Write-Host ""
 Write-Host "  Next: Upload to Google Play Console" -ForegroundColor DarkGray
 Write-Host "  https://play.google.com/console" -ForegroundColor DarkGray
