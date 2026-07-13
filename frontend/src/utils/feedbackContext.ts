@@ -1,14 +1,12 @@
 import { Capacitor } from '@capacitor/core';
 import type { User } from '@supabase/supabase-js';
 import { isNative } from '../native';
+import { APP_VERSION, APP_BUILD } from '../version';
 import { getRecentLogs, type LogEntry } from './consoleBuffer';
-
-// App version shown in Settings (SettingsView footer). Kept in sync manually
-// until a build-time version injection exists.
-export const APP_VERSION = 'v1.0.0';
 
 export interface FeedbackContext {
   appVersion: string;
+  appBuild: string;
   platform: string;
   isNative: boolean;
   userAgent: string;
@@ -25,6 +23,7 @@ export interface FeedbackContext {
 export function collectFeedbackContext(user: User | null, language: string): FeedbackContext {
   return {
     appVersion: APP_VERSION,
+    appBuild: APP_BUILD,
     platform: Capacitor.getPlatform(),
     isNative: isNative(),
     userAgent: navigator.userAgent,

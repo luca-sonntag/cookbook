@@ -8,6 +8,7 @@ import { usePwaInstall } from '../hooks/usePwaInstall';
 import { useDialog } from '../context/DialogContext';
 import PremiumModal from './PremiumModal';
 import { FeedbackDrawer } from './FeedbackDrawer';
+import { APP_VERSION_LABEL } from '../version';
 
 function SettingInfo({ text }: { text: string }) {
   return (
@@ -502,7 +503,7 @@ export default function SettingsView() {
 
       <div className="flex justify-center mt-4 mb-8">
         <p className="text-xs text-gray-400 dark:text-gray-600 font-medium">
-          Snagbite v1.0.0
+          Snagbite {APP_VERSION_LABEL}
         </p>
       </div>
 
