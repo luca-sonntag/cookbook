@@ -7,6 +7,8 @@
     This script can deploy the backend (by merging develop to master and pushing with version tags),
     deploy the mobile app to Google Play Console, or both.
     Supports both non-interactive CLI flags and interactive selection menu.
+    All operations are structured as a single transaction. If any step fails, all local branch
+    modifications, commits, merges, and tags are rolled back automatically.
 
 .PARAMETER Backend
     Switch to run the backend deploy flow (merge develop -> master, tag, push).
@@ -55,82 +57,110 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-function Run-BackendDeploy {
-    Write-Host ""
-    Write-Host "+----------------------------------------------+" -ForegroundColor Cyan
-    Write-Host "|  Deploying Backend (Develop -> Master)       |" -ForegroundColor Cyan
-    Write-Host "+----------------------------------------------+" -ForegroundColor Cyan
-    Write-Host ""
+# --- Safe Git Wrappers (preventing stderr false-positives under Stop policy) ---
 
-    # Check git status
-    $status = git status --porcelain
+function Get-GitOutput {
+    param(
+        [string[]]$Arguments
+    )
+    $oldEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $output = & git $Arguments
+        $exitCode = $LASTEXITCODE
+        if ($exitCode -ne 0) {
+            throw "Git command failed with exit code $exitCode: git $Arguments"
+        }
+        return $output
+    } finally {
+        $ErrorActionPreference = $oldEap
+    }
+}
+
+function Run-Git {
+    param(
+        [string[]]$Arguments,
+        [switch]$IgnoreError
+    )
+    $oldEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & git $Arguments
+        $exitCode = $LASTEXITCODE
+        if ($exitCode -ne 0 -and -not $IgnoreError) {
+            throw "Git command failed with exit code $exitCode: git $Arguments"
+        }
+        return $exitCode
+    } finally {
+        $ErrorActionPreference = $oldEap
+    }
+}
+
+# --- Transaction Helper ---
+
+$originalBranch = $null
+$originalMasterCommit = $null
+$originalDevelopCommit = $null
+$rollbackNeeded = $false
+$rollbackTag = $null
+
+function Initialize-GitState {
+    # Check if working directory is clean
+    $status = Get-GitOutput -Arguments @("status", "--porcelain")
     if ($status) {
         Write-Error "Cannot deploy: you have uncommitted changes. Please commit or stash them first."
         exit 1
     }
 
-    $originalBranch = (git branch --show-current).Trim()
-    Write-Host "Current branch is: $originalBranch" -ForegroundColor White
-
-    # Switch to master
-    Write-Host "Switching to master..." -ForegroundColor Yellow
-    git checkout master
-    if ($LASTEXITCODE -ne 0) { throw "Failed to checkout master" }
-
-    try {
-        # Pull latest master
-        Write-Host "Pulling latest master from remote..." -ForegroundColor Yellow
-        git pull origin master
-
-        # Merge develop
-        Write-Host "Merging develop into master..." -ForegroundColor Yellow
-        git merge develop --no-edit
-        if ($LASTEXITCODE -ne 0) {
-            throw "Merge conflicts occurred. Please resolve manually on master branch."
-        }
-
-        # Read version
-        $versionFile = "frontend/android/version.properties"
-        if (-not (Test-Path $versionFile)) {
-            throw "version.properties not found at $versionFile"
-        }
-        $versionContent = Get-Content $versionFile -Raw
-        $versionName = [regex]::Match($versionContent, 'VERSION_NAME=(.+)').Groups[1].Value.Trim()
-        $versionCode = [regex]::Match($versionContent, 'VERSION_CODE=(\d+)').Groups[1].Value.Trim()
-
-        Write-Host "Version detected: v$versionName (Code $versionCode)" -ForegroundColor Green
-
-        # Re-tag if exists
-        $tagExists = git tag -l "v$versionName"
-        if ($tagExists) {
-            Write-Host "Tag v$versionName already exists. Re-tagging..." -ForegroundColor Yellow
-            git tag -d "v$versionName"
-            git push origin --delete "v$versionName" 2>$null
-        }
-
-        Write-Host "Creating release tag v$versionName..." -ForegroundColor Yellow
-        git tag -a "v$versionName" -m "Release v$versionName (Code $versionCode)"
-        if ($LASTEXITCODE -ne 0) { throw "Failed to create tag" }
-
-        # Push master & tags
-        Write-Host "Pushing master branch and tags to origin..." -ForegroundColor Yellow
-        git push origin master
-        if ($LASTEXITCODE -ne 0) { throw "Failed to push master branch" }
-        git push origin "v$versionName"
-        if ($LASTEXITCODE -ne 0) { throw "Failed to push release tag" }
-
-        Write-Host ""
-        Write-Host "[OK] Backend deployment triggered successfully (pushed to origin/master with tag v$versionName)!" -ForegroundColor Green
-        Write-Host ""
-    }
-    finally {
-        # Checkout original branch
-        Write-Host "Switching back to original branch: $originalBranch..." -ForegroundColor Yellow
-        git checkout $originalBranch
-    }
+    # Store state
+    global:originalBranch = (Get-GitOutput -Arguments @("branch", "--show-current")).ToString().Trim()
+    global:originalMasterCommit = (Get-GitOutput -Arguments @("rev-parse", "master")).ToString().Trim()
+    global:originalDevelopCommit = (Get-GitOutput -Arguments @("rev-parse", "develop")).ToString().Trim()
+    global:rollbackNeeded = $true
 }
 
-function Run-AppDeploy {
+function Undo-Transaction {
+    if (-not $rollbackNeeded) { return }
+
+    Write-Host ""
+    Write-Host "==============================================" -ForegroundColor Red
+    Write-Host "       DEPLOYMENT FAILED: ROLLING BACK        " -ForegroundColor Red
+    Write-Host "==============================================" -ForegroundColor Red
+    Write-Host ""
+
+    # Restore version.properties if modified on disk
+    if (Test-Path "frontend/android/version.properties") {
+        Write-Host "Restoring version.properties..." -ForegroundColor Yellow
+        Run-Git -Arguments @("checkout", "--", "frontend/android/version.properties") -IgnoreError
+    }
+
+    # Delete local tag if created
+    if ($rollbackTag) {
+        Write-Host "Deleting local tag v$rollbackTag..." -ForegroundColor Yellow
+        Run-Git -Arguments @("tag", "-d", "v$rollbackTag") -IgnoreError
+    }
+
+    # Reset branches to their original states
+    Write-Host "Resetting develop to $originalDevelopCommit..." -ForegroundColor Yellow
+    Run-Git -Arguments @("checkout", "develop") -IgnoreError
+    Run-Git -Arguments @("reset", "--hard", $originalDevelopCommit) -IgnoreError
+
+    Write-Host "Resetting master to $originalMasterCommit..." -ForegroundColor Yellow
+    Run-Git -Arguments @("checkout", "master") -IgnoreError
+    Run-Git -Arguments @("reset", "--hard", $originalMasterCommit) -IgnoreError
+
+    # Checkout original branch
+    Write-Host "Returning to original branch: $originalBranch..." -ForegroundColor Yellow
+    Run-Git -Arguments @("checkout", $originalBranch) -IgnoreError
+
+    Write-Host ""
+    Write-Host "Rollback completed. Repository is back to its clean starting state." -ForegroundColor Green
+    Write-Host ""
+}
+
+# --- Deployment Tasks ---
+
+function Build-AndUploadApp {
     Write-Host ""
     Write-Host "+----------------------------------------------+" -ForegroundColor Cyan
     Write-Host "|  Releasing App to Google Play Store          |" -ForegroundColor Cyan
@@ -147,12 +177,72 @@ function Run-AppDeploy {
     Write-Host "Calling frontend/scripts/deploy-playstore.ps1 with parameters:" -ForegroundColor Yellow
     $params.Keys | ForEach-Object { Write-Host "  $_ : $($params[$_])" -ForegroundColor DarkGray }
 
+    # Run script and ensure it fails scripting-wise if exit code is non-zero
     & "frontend/scripts/deploy-playstore.ps1" @params
-    if ($LASTEXITCODE -ne 0) { throw "App deployment script failed." }
+    if ($LASTEXITCODE -ne 0) { throw "App release script returned non-zero exit code $LASTEXITCODE" }
+}
 
+function Merge-AndDeployBackend {
     Write-Host ""
-    Write-Host "[OK] App released to the $Track track successfully!" -ForegroundColor Green
+    Write-Host "+----------------------------------------------+" -ForegroundColor Cyan
+    Write-Host "|  Deploying Backend (Develop -> Master)       |" -ForegroundColor Cyan
+    Write-Host "+----------------------------------------------+" -ForegroundColor Cyan
     Write-Host ""
+
+    # Read version details
+    $versionFile = "frontend/android/version.properties"
+    if (-not (Test-Path $versionFile)) {
+        throw "version.properties not found at $versionFile"
+    }
+    $versionContent = Get-Content $versionFile -Raw
+    $versionName = [regex]::Match($versionContent, 'VERSION_NAME=(.+)').Groups[1].Value.Trim()
+    $versionCode = [regex]::Match($versionContent, 'VERSION_CODE=(\d+)').Groups[1].Value.Trim()
+
+    # Store version name for potential tag deletion in rollback
+    global:rollbackTag = $versionName
+
+    # Commit version bump to develop if version was updated locally
+    # Check if version.properties is modified
+    $diff = Get-GitOutput -Arguments @("diff", "--name-only", "frontend/android/version.properties")
+    if ($diff) {
+        Write-Host "Committing version bump to develop branch..." -ForegroundColor Yellow
+        Run-Git -Arguments @("add", "frontend/android/version.properties")
+        Run-Git -Arguments @("commit", "-m", "chore(version): bump app version to $versionName ($versionCode)")
+    }
+
+    # Switch to master
+    Write-Host "Switching to master branch..." -ForegroundColor Yellow
+    Run-Git -Arguments @("checkout", "master")
+
+    # Pull latest master
+    Write-Host "Pulling latest master from remote..." -ForegroundColor Yellow
+    Run-Git -Arguments @("pull", "origin", "master")
+
+    # Merge develop into master
+    Write-Host "Merging develop into master..." -ForegroundColor Yellow
+    Run-Git -Arguments @("merge", "develop", "--no-edit")
+
+    # Check and manage tag
+    $tagExists = (Get-GitOutput -Arguments @("tag", "-l", "v$versionName"))
+    if ($tagExists) {
+        Write-Host "Tag v$versionName already exists locally/remotely. Re-tagging..." -ForegroundColor Yellow
+        Run-Git -Arguments @("tag", "-d", "v$versionName")
+        # Try to delete remote tag (best effort)
+        Run-Git -Arguments @("push", "origin", "--delete", "v$versionName") -IgnoreError
+    }
+
+    # Create tag
+    Write-Host "Creating release tag v$versionName..." -ForegroundColor Yellow
+    Run-Git -Arguments @("tag", "-a", "v$versionName", "-m", "Release v$versionName (Code $versionCode)")
+
+    # Push to origin (deploys backend on Railway)
+    Write-Host "Pushing master branch and tags to origin..." -ForegroundColor Yellow
+    Run-Git -Arguments @("push", "origin", "master")
+    Run-Git -Arguments @("push", "origin", "v$versionName")
+
+    # Switch back to original branch
+    Write-Host "Switching back to original branch $originalBranch..." -ForegroundColor Yellow
+    Run-Git -Arguments @("checkout", $originalBranch)
 }
 
 # --- Main Entry Point ---
@@ -183,10 +273,27 @@ if (-not $runBackend -and -not $runApp) {
     }
 }
 
-if ($runBackend) {
-    Run-BackendDeploy
-}
+try {
+    # Setup initial git tracking state
+    Initialize-GitState
 
-if ($runApp) {
-    Run-AppDeploy
+    # Reorder operations if All is specified: App first (more failure prone), then Backend
+    if ($runApp) {
+        Build-AndUploadApp
+    }
+
+    if ($runBackend) {
+        Merge-AndDeployBackend
+    }
+
+    # If we reached here, deploy was completely successful, no rollback needed
+    global:rollbackNeeded = $false
+    Write-Host ""
+    Write-Host "[OK] Deploy and release completed successfully!" -ForegroundColor Green
+    Write-Host ""
+}
+catch {
+    Undo-Transaction
+    Write-Error "Deployment failed: $_"
+    exit 1
 }
