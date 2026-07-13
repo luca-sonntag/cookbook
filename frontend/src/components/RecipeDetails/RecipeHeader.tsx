@@ -77,12 +77,13 @@ export default function RecipeHeader({
           )}
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed break-words">{recipe.description}</p>
           {flags && flags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {flags.map(flag => (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {flags.map((flag, idx) => (
                 <span
-                  key={flag}
-                  className="inline-flex items-center bg-amber-500/10 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-semibold px-2.5 py-0.5 rounded-full select-none"
+                  key={`flag-${idx}`}
+                  className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap border border-amber-500/20 flex items-center gap-0.5"
                 >
+                  <Tag className="w-2.5 h-2.5" />
                   {flag}
                 </span>
               ))}
