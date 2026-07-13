@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Button, Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 import { useDialog } from '../context/DialogContext';
 import PremiumModal from './PremiumModal';
+import { FeedbackDrawer } from './FeedbackDrawer';
 
 function SettingInfo({ text }: { text: string }) {
   return (
@@ -45,6 +46,7 @@ export default function SettingsView() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const isDev = import.meta.env.DEV;
 
   const preferredTempUnit = user?.user_metadata?.preferred_temperature_unit || 'Celsius';
@@ -389,7 +391,7 @@ export default function SettingsView() {
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
           <button
             onClick={() => window.dispatchEvent(new Event('app:replay-onboarding'))}
-            className="w-full p-4 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
+            className="w-full p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
           >
             <div className="flex items-center gap-3">
               <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
@@ -398,6 +400,23 @@ export default function SettingsView() {
               <div>
                 <p className="font-semibold text-gray-950 dark:text-white text-sm">
                   {t('onboarding.replayLabel')}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
+          <button
+            onClick={() => setIsFeedbackOpen(true)}
+            className="w-full p-4 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-950 dark:text-white text-sm">
+                  {t('feedback.rowLabel') || 'Report a bug / Feedback'}
                 </p>
               </div>
             </div>
@@ -489,6 +508,9 @@ export default function SettingsView() {
 
       {/* Premium Modal */}
       <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
+
+      {/* Feedback / Bug Report */}
+      <FeedbackDrawer isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </div>
   );
 }

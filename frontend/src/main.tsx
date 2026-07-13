@@ -7,6 +7,10 @@ import { I18nProvider } from './context/I18nContext.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { TimerProvider } from './context/TimerContext.tsx'
 import { initNativeUi } from './native'
+import { installConsoleBuffer } from './utils/consoleBuffer'
+
+// Capture recent console output app-wide so it can be attached to bug reports.
+installConsoleBuffer()
 
 // Theme the native status bar and dismiss the splash screen (no-op on web).
 initNativeUi()

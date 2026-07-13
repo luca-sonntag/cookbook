@@ -652,6 +652,27 @@ export const uiTranslations = {
         unlockNutrition: 'Nährwerte freischalten',
         upgrade: 'Upgrade'
       }
+    },
+    feedback: {
+      rowLabel: 'Fehler melden / Feedback',
+      title: 'Fehler melden / Feedback',
+      typeBug: 'Fehler',
+      typeIdea: 'Idee',
+      messageLabel: 'Deine Nachricht',
+      placeholder: 'Beschreibe das Problem oder deine Idee möglichst genau...',
+      screenshotLabel: 'Screenshots (optional)',
+      attachScreenshot: 'Screenshots anhängen',
+      addMoreScreenshots: 'Weitere hinzufügen',
+      removeScreenshot: 'Screenshot entfernen',
+      screenshotLimit: 'Du kannst bis zu 6 Bilder anhängen.',
+      screenshotError: 'Screenshot konnte nicht verarbeitet werden.',
+      diagnosticNote: 'Grundlegende Geräteinfos und die letzten App-Logs werden angehängt, damit wir Fehler schneller finden.',
+      cancel: 'Abbrechen',
+      submit: 'Absenden',
+      submitting: 'Wird gesendet...',
+      successTitle: 'Danke!',
+      success: 'Danke für dein Feedback! Wir schauen es uns an.',
+      error: 'Feedback konnte nicht gesendet werden. Bitte versuche es erneut.'
     }
   },
   en: {
@@ -1146,6 +1167,27 @@ export const uiTranslations = {
         unlockNutrition: 'Unlock nutrition',
         upgrade: 'Upgrade'
       }
+    },
+    feedback: {
+      rowLabel: 'Report a bug / Feedback',
+      title: 'Report a bug / Feedback',
+      typeBug: 'Bug',
+      typeIdea: 'Idea',
+      messageLabel: 'Your message',
+      placeholder: 'Describe the issue or your idea in as much detail as possible...',
+      screenshotLabel: 'Screenshots (optional)',
+      attachScreenshot: 'Attach screenshots',
+      addMoreScreenshots: 'Add more',
+      removeScreenshot: 'Remove screenshot',
+      screenshotLimit: 'You can attach up to 6 images.',
+      screenshotError: 'Could not process the screenshot.',
+      diagnosticNote: 'Basic device info and recent app logs are attached to help us debug faster.',
+      cancel: 'Cancel',
+      submit: 'Submit',
+      submitting: 'Sending...',
+      successTitle: 'Thank you!',
+      success: 'Thanks for your feedback! We\'ll take a look.',
+      error: 'Could not send feedback. Please try again.'
     }
   }
 } as const;
