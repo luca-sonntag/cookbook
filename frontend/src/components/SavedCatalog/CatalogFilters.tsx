@@ -103,6 +103,29 @@ export default function CatalogFilters({
               <Search className="w-5 h-5" />
             </Button>
 
+            <Button
+              isIconOnly
+              variant="tertiary"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
+              onPress={() => setViewMode(viewMode === 'card' ? 'compact' : 'card')}
+              aria-label={t('catalog.viewToggle')}
+            >
+              {viewMode === 'card' ? <List className="w-5 h-5" /> : <LayoutGrid className="w-5 h-5" />}
+            </Button>
+            <Button
+              isIconOnly
+              variant="tertiary"
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl active:scale-95 transition-all shrink-0 ${
+                isSelectMode
+                  ? 'bg-emerald-600 border-0 text-white hover:bg-emerald-500 shadow-md shadow-emerald-600/10'
+                  : 'bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5'
+              }`}
+              onPress={() => setIsSelectMode(!isSelectMode)}
+              aria-label={t('catalog.selectModeToggle')}
+            >
+              {isSelectMode ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+            </Button>
+
             {/* Sort Control Dropdown */}
             <Select
               variant="secondary"
@@ -132,29 +155,6 @@ export default function CatalogFilters({
                 </ListBox>
               </Select.Popover>
             </Select>
-
-            <Button
-              isIconOnly
-              variant="tertiary"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
-              onPress={() => setViewMode(viewMode === 'card' ? 'compact' : 'card')}
-              aria-label={t('catalog.viewToggle')}
-            >
-              {viewMode === 'card' ? <List className="w-5 h-5" /> : <LayoutGrid className="w-5 h-5" />}
-            </Button>
-            <Button
-              isIconOnly
-              variant="tertiary"
-              className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl active:scale-95 transition-all shrink-0 ${
-                isSelectMode
-                  ? 'bg-emerald-600 border-0 text-white hover:bg-emerald-500 shadow-md shadow-emerald-600/10'
-                  : 'bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-              onPress={() => setIsSelectMode(!isSelectMode)}
-              aria-label={t('catalog.selectModeToggle')}
-            >
-              {isSelectMode ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
-            </Button>
           </>
         )}
       </div>
