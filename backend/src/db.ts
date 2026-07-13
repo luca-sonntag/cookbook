@@ -535,6 +535,55 @@ export async function getPremiumMaxSavedRecipes(): Promise<number> {
   return getGlobalSetting('premium_max_saved_recipes', -1);
 }
 
+export interface GlobalSetting {
+  key: string;
+  value: string;
+  description: string | null;
+  updated_at: string;
+}
+
+/** Fetch all global settings. */
+export async function getAllGlobalSettings(): Promise<GlobalSetting[]> {
+  const { data, error } = await getClient()
+    .from('global_settings')
+    .select('*')
+    .order('key', { ascending: true });
+
+  if (error) throw wrapError('Failed to fetch global settings', error);
+  return data || [];
+}
+
+/** Update multiple global settings in bulk and invalidate cache. */
+export async function updateGlobalSettings(settings: Record<string, string>): Promise<void> {
+  const rows = Object.entries(settings).map(([key, value]) => ({
+    key,
+    value: String(value),
+    updated_at: new Date().toISOString(),
+  }));
+
+  const { error } = await getClient()
+    .from('global_settings')
+    .upsert(rows);
+
+  if (error) throw wrapError('Failed to update global settings', error);
+
+  // Clear internal cache for updated settings
+  for (const key of Object.keys(settings)) {
+    delete settingsCache[key];
+  }
+}
+
+/** Retrieve all feedback submissions ordered by creation date. */
+export async function getAllFeedback(): Promise<any[]> {
+  const { data, error } = await getClient()
+    .from('feedback')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw wrapError('Failed to fetch all feedback', error);
+  return data || [];
+}
+
 /** Set whether a job is favorited, scoped to userId. */
 export async function setFavorite(jobId: string, userId: string, value: boolean): Promise<void> {
   const { error } = await getClient()
