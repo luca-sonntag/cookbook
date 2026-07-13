@@ -57,9 +57,9 @@ $ErrorActionPreference = 'Stop'
 
 function Run-BackendDeploy {
     Write-Host ""
-    Write-Host "┌──────────────────────────────────────────────┐" -ForegroundColor Cyan
-    Write-Host "│  Deploying Backend (Develop -> Master)       │" -ForegroundColor Cyan
-    Write-Host "└──────────────────────────────────────────────┘" -ForegroundColor Cyan
+    Write-Host "+----------------------------------------------+" -ForegroundColor Cyan
+    Write-Host "|  Deploying Backend (Develop -> Master)       |" -ForegroundColor Cyan
+    Write-Host "+----------------------------------------------+" -ForegroundColor Cyan
     Write-Host ""
 
     # Check git status
@@ -120,7 +120,7 @@ function Run-BackendDeploy {
         if ($LASTEXITCODE -ne 0) { throw "Failed to push release tag" }
 
         Write-Host ""
-        Write-Host "✅ Backend deployment triggered successfully (pushed to origin/master with tag v$versionName)!" -ForegroundColor Green
+        Write-Host "[OK] Backend deployment triggered successfully (pushed to origin/master with tag v$versionName)!" -ForegroundColor Green
         Write-Host ""
     }
     finally {
@@ -132,9 +132,9 @@ function Run-BackendDeploy {
 
 function Run-AppDeploy {
     Write-Host ""
-    Write-Host "┌──────────────────────────────────────────────┐" -ForegroundColor Cyan
-    Write-Host "│  Releasing App to Google Play Store          │" -ForegroundColor Cyan
-    Write-Host "└──────────────────────────────────────────────┘" -ForegroundColor Cyan
+    Write-Host "+----------------------------------------------+" -ForegroundColor Cyan
+    Write-Host "|  Releasing App to Google Play Store          |" -ForegroundColor Cyan
+    Write-Host "+----------------------------------------------+" -ForegroundColor Cyan
     Write-Host ""
 
     $params = @{}
@@ -151,7 +151,7 @@ function Run-AppDeploy {
     if ($LASTEXITCODE -ne 0) { throw "App deployment script failed." }
 
     Write-Host ""
-    Write-Host "✅ App released to the $Track track successfully!" -ForegroundColor Green
+    Write-Host "[OK] App released to the $Track track successfully!" -ForegroundColor Green
     Write-Host ""
 }
 
