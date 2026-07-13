@@ -600,6 +600,7 @@ export const uiTranslations = {
         close: 'Schließen',
         owned: 'Du hast Premium',
         betaOwned: 'Beta-Zugriff Aktiv',
+        verifying: 'Verifiziere Status...',
         footer: 'Jederzeit kündbar · Sicher über Google Play',
         features: {
           extractions: {
@@ -1081,6 +1082,7 @@ export const uiTranslations = {
         close: 'Close',
         owned: 'You have Premium',
         betaOwned: 'Beta Access Active',
+        verifying: 'Verifying Status...',
         footer: 'Cancel anytime · Secure via Google Play',
         features: {
           extractions: {
