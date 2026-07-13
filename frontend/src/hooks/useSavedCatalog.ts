@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import type { Job, Ingredient } from '../types';
+import type { Job, Ingredient, Collection } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
+import { useAuth } from '../context/AuthContext';
 import { deleteCachedImage } from '../utils/imageStore';
 import { apiUrl } from '../api';
 
@@ -24,8 +25,23 @@ export function useSavedCatalog({
 }: UseSavedCatalogProps) {
   const dialog = useDialog();
   const { t, language } = useI18n();
+  const { isPremiumOverride } = useAuth();
 
-  const completedJobs = useMemo(() => history.filter(h => h.status === 'completed' && h.recipe), [history]);
+  const [optimisticFavorites, setOptimisticFavorites] = useState<Record<string, boolean>>({});
+  const [optimisticFlags, setOptimisticFlags] = useState<Record<string, string[]>>({});
+  const [optimisticCollections, setOptimisticCollections] = useState<Record<string, string[]>>({});
+
+  const completedJobs = useMemo(() => {
+    return history
+      .filter(h => h.status === 'completed' && h.recipe)
+      .map(job => ({
+        ...job,
+        isFavorite: optimisticFavorites[job.id] !== undefined ? optimisticFavorites[job.id] : (job.isFavorite ?? false),
+        flags: optimisticFlags[job.id] !== undefined ? optimisticFlags[job.id] : (job.flags ?? []),
+        collectionIds: optimisticCollections[job.id] !== undefined ? optimisticCollections[job.id] : (job.collectionIds ?? [])
+      }));
+  }, [history, optimisticFavorites, optimisticFlags, optimisticCollections]);
+
 
   // View Layout mode: 'card' or 'compact', persisted in localStorage
   const [viewMode, setViewMode] = useState<'card' | 'compact'>(() => {
@@ -39,6 +55,28 @@ export function useSavedCatalog({
   // State for search query & tag filters
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
+
+  // Sorting state persisted to localStorage
+  const [sortBy, setSortBy] = useState<'newest' | 'title' | 'time'>(() => {
+    return (localStorage.getItem('recipe_catalog_sort') as 'newest' | 'title' | 'time') || 'newest';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('recipe_catalog_sort', sortBy);
+  }, [sortBy]);
+
+  // Derive unique flags from completed recipes
+  const allFlags = useMemo(() => {
+    const flagsSet = new Set<string>();
+    completedJobs.forEach(job => {
+      if (job.flags) {
+        job.flags.forEach((flag: string) => {
+          flagsSet.add(flag.trim());
+        });
+      }
+    });
+    return Array.from(flagsSet);
+  }, [completedJobs]);
 
   // Multi-select state
   const [isSelectMode, setIsSelectMode] = useState(false);
@@ -118,7 +156,7 @@ export function useSavedCatalog({
 
   // Filter jobs based on search query and active filter chip
   const filteredJobs = useMemo(() => {
-    return completedJobs.filter(job => {
+    const filtered = completedJobs.filter(job => {
       const r = job.recipe!;
 
       // 1. Search Query filter (matches title, description, tags, ingredients)
@@ -150,12 +188,44 @@ export function useSavedCatalog({
           const cook = typeof r.cookTime === 'number' ? r.cookTime : (parseInt(String(r.cookTime)) || 0);
           return (prep + cook) > 0 && (prep + cook) <= 30;
         }
+        if (activeFilter === 'favorites') {
+          return job.isFavorite === true;
+        }
+        if (activeFilter.startsWith('flag:')) {
+          const flag = activeFilter.substring(5);
+          return job.flags?.includes(flag) || false;
+        }
+        if (activeFilter.startsWith('collection:')) {
+          const colId = activeFilter.substring(11);
+          return job.collectionIds?.includes(colId) || false;
+        }
         return tags.includes(activeFilter);
       }
 
       return true;
     });
-  }, [completedJobs, searchQuery, activeFilter, language]);
+
+    // Apply sorting
+    return [...filtered].sort((a, b) => {
+      if (sortBy === 'title') {
+        return (a.recipe?.title || '').localeCompare(b.recipe?.title || '', language);
+      }
+      if (sortBy === 'time') {
+        const aPrep = typeof a.recipe?.prepTime === 'number' ? a.recipe.prepTime : 0;
+        const aCook = typeof a.recipe?.cookTime === 'number' ? a.recipe.cookTime : 0;
+        const aTime = aPrep + aCook;
+
+        const bPrep = typeof b.recipe?.prepTime === 'number' ? b.recipe.prepTime : 0;
+        const bCook = typeof b.recipe?.cookTime === 'number' ? b.recipe.cookTime : 0;
+        const bTime = bPrep + bCook;
+
+        return aTime - bTime;
+      }
+      // default: 'newest'
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [completedJobs, searchQuery, activeFilter, sortBy, language]);
+
 
   // Helper to check if event target is inside an interactive element
   const isInteractiveTarget = (target: HTMLElement) => {
@@ -358,6 +428,126 @@ export function useSavedCatalog({
     }
   };
 
+  // Toggle favorite status via PATCH /api/jobs/:id/favorite
+  const toggleFavorite = async (job: Job) => {
+    const nextVal = !job.isFavorite;
+    setOptimisticFavorites(prev => ({ ...prev, [job.id]: nextVal }));
+
+    try {
+      const token = getAccessToken ? await getAccessToken() : null;
+      if (!token) return;
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+      if (isPremiumOverride) {
+        headers['X-Simulate-Premium'] = 'true';
+      }
+
+      const response = await fetch(apiUrl(`/api/jobs/${job.id}/favorite`), {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ isFavorite: nextVal })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update favorite status');
+      }
+
+      if (fetchHistory) {
+        fetchHistory();
+      }
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+      setOptimisticFavorites(prev => ({ ...prev, [job.id]: job.isFavorite ?? false }));
+    }
+  };
+
+  // Toggle custom flag/tag via PATCH /api/jobs/:id/flags
+  const toggleFlag = async (job: Job, flagName: string) => {
+    const currentFlags = job.flags ?? [];
+    const nextFlags = currentFlags.includes(flagName)
+      ? currentFlags.filter(f => f !== flagName)
+      : [...currentFlags, flagName];
+
+    setOptimisticFlags(prev => ({ ...prev, [job.id]: nextFlags }));
+
+    try {
+      const token = getAccessToken ? await getAccessToken() : null;
+      if (!token) return { success: false };
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+      if (isPremiumOverride) {
+        headers['X-Simulate-Premium'] = 'true';
+      }
+
+      const response = await fetch(apiUrl(`/api/jobs/${job.id}/flags`), {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ flags: nextFlags })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update flags');
+      }
+
+      if (fetchHistory) {
+        fetchHistory();
+      }
+      return { success: true };
+    } catch (err: any) {
+      console.error('Error updating flag:', err);
+      setOptimisticFlags(prev => ({ ...prev, [job.id]: currentFlags }));
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Assign collections via PATCH /api/jobs/:id/collections
+  const assignCollections = async (jobId: string, collectionIds: string[]) => {
+    const job = completedJobs.find(j => j.id === jobId);
+    const currentCollectionIds = job?.collectionIds ?? [];
+
+    setOptimisticCollections(prev => ({ ...prev, [jobId]: collectionIds }));
+
+    try {
+      const token = getAccessToken ? await getAccessToken() : null;
+      if (!token) return { success: false };
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+      if (isPremiumOverride) {
+        headers['X-Simulate-Premium'] = 'true';
+      }
+
+      const response = await fetch(apiUrl(`/api/jobs/${jobId}/collections`), {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ collectionIds })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update collections');
+      }
+
+      if (fetchHistory) {
+        fetchHistory();
+      }
+      return { success: true };
+    } catch (err: any) {
+      console.error('Error updating collections:', err);
+      setOptimisticCollections(prev => ({ ...prev, [jobId]: currentCollectionIds }));
+      return { success: false, error: err.message };
+    }
+  };
+
   return {
     completedJobs,
     viewMode,
@@ -380,6 +570,12 @@ export function useSavedCatalog({
     handleCardClick,
     handleDirectAddToShoppingList,
     handleBulkAddToShoppingList,
-    handleBulkDelete
+    handleBulkDelete,
+    sortBy,
+    setSortBy,
+    allFlags,
+    toggleFavorite,
+    toggleFlag,
+    assignCollections
   };
 }
