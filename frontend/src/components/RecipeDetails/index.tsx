@@ -38,6 +38,7 @@ interface RecipeDetailsProps {
   parentRecipeTitle?: string | null;
   onAssignCollections?: () => void;
   onManageFlags?: () => void;
+  flags?: string[];
 }
 
 export default function RecipeDetails({
@@ -54,7 +55,8 @@ export default function RecipeDetails({
   onNavigateToRecipe,
   parentRecipeTitle,
   onAssignCollections,
-  onManageFlags
+  onManageFlags,
+  flags
 }: RecipeDetailsProps) {
   const dialog = useDialog();
   const { t, translateCategory } = useI18n();
@@ -427,6 +429,7 @@ export default function RecipeDetails({
           parentRecipeTitle={parentRecipeTitle}
           onAssignCollections={onAssignCollections}
           onManageFlags={onManageFlags}
+          flags={flags}
         />
 
         {/* Recipe Stats (Prep/Cook Time, Servings) */}

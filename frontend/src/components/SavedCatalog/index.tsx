@@ -172,6 +172,7 @@ export default function SavedCatalog({
               reelUrl={selectedJob.url}
               createdAt={selectedJob.createdAt}
               onBack={() => setSelectedJob(null)}
+              flags={selectedJob.flags}
               onNavigateToShoppingList={onNavigateToShoppingList}
               shoppingListCount={shoppingListCount}
               onRemixSuccess={onRemixSuccess}

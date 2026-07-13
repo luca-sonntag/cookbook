@@ -19,6 +19,7 @@ interface RecipeHeaderProps {
   parentRecipeTitle?: string | null;
   onAssignCollections?: () => void;
   onManageFlags?: () => void;
+  flags?: string[];
 }
 
 export default function RecipeHeader({
@@ -34,7 +35,8 @@ export default function RecipeHeader({
   onNavigateToRecipe,
   parentRecipeTitle,
   onAssignCollections,
-  onManageFlags
+  onManageFlags,
+  flags
 }: RecipeHeaderProps) {
   const { t, language } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -74,6 +76,18 @@ export default function RecipeHeader({
             </div>
           )}
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed break-words">{recipe.description}</p>
+          {flags && flags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {flags.map(flag => (
+                <span
+                  key={flag}
+                  className="inline-flex items-center bg-amber-500/10 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-semibold px-2.5 py-0.5 rounded-full select-none"
+                >
+                  {flag}
+                </span>
+              ))}
+            </div>
+          )}
           {createdAt && (
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 font-medium">
               {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
