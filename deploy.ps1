@@ -98,11 +98,11 @@ function Run-Git {
 
 # --- Transaction Helper ---
 
-$originalBranch = $null
-$originalMasterCommit = $null
-$originalDevelopCommit = $null
-$rollbackNeeded = $false
-$rollbackTag = $null
+$global:originalBranch = $null
+$global:originalMasterCommit = $null
+$global:originalDevelopCommit = $null
+$global:rollbackNeeded = $false
+$global:rollbackTag = $null
 
 function Initialize-GitState {
     # Check if working directory is clean
@@ -112,15 +112,14 @@ function Initialize-GitState {
         exit 1
     }
 
-    # Store state
-    global:originalBranch = (Get-GitOutput -Arguments @("branch", "--show-current")).ToString().Trim()
-    global:originalMasterCommit = (Get-GitOutput -Arguments @("rev-parse", "master")).ToString().Trim()
-    global:originalDevelopCommit = (Get-GitOutput -Arguments @("rev-parse", "develop")).ToString().Trim()
-    global:rollbackNeeded = $true
+    $global:originalBranch = (Get-GitOutput -Arguments @("branch", "--show-current")).ToString().Trim()
+    $global:originalMasterCommit = (Get-GitOutput -Arguments @("rev-parse", "master")).ToString().Trim()
+    $global:originalDevelopCommit = (Get-GitOutput -Arguments @("rev-parse", "develop")).ToString().Trim()
+    $global:rollbackNeeded = $true
 }
 
 function Undo-Transaction {
-    if (-not $rollbackNeeded) { return }
+    if (-not $global:rollbackNeeded) { return }
 
     Write-Host ""
     Write-Host "==============================================" -ForegroundColor Red
@@ -135,23 +134,23 @@ function Undo-Transaction {
     }
 
     # Delete local tag if created
-    if ($rollbackTag) {
-        Write-Host "Deleting local tag v$rollbackTag..." -ForegroundColor Yellow
-        Run-Git -Arguments @("tag", "-d", "v$rollbackTag") -IgnoreError
+    if ($global:rollbackTag) {
+        Write-Host "Deleting local tag v$global:rollbackTag..." -ForegroundColor Yellow
+        Run-Git -Arguments @("tag", "-d", "v$global:rollbackTag") -IgnoreError
     }
 
     # Reset branches to their original states
-    Write-Host "Resetting develop to $originalDevelopCommit..." -ForegroundColor Yellow
+    Write-Host "Resetting develop to $global:originalDevelopCommit..." -ForegroundColor Yellow
     Run-Git -Arguments @("checkout", "develop") -IgnoreError
-    Run-Git -Arguments @("reset", "--hard", $originalDevelopCommit) -IgnoreError
+    Run-Git -Arguments @("reset", "--hard", $global:originalDevelopCommit) -IgnoreError
 
-    Write-Host "Resetting master to $originalMasterCommit..." -ForegroundColor Yellow
+    Write-Host "Resetting master to $global:originalMasterCommit..." -ForegroundColor Yellow
     Run-Git -Arguments @("checkout", "master") -IgnoreError
-    Run-Git -Arguments @("reset", "--hard", $originalMasterCommit) -IgnoreError
+    Run-Git -Arguments @("reset", "--hard", $global:originalMasterCommit) -IgnoreError
 
     # Checkout original branch
-    Write-Host "Returning to original branch: $originalBranch..." -ForegroundColor Yellow
-    Run-Git -Arguments @("checkout", $originalBranch) -IgnoreError
+    Write-Host "Returning to original branch: $global:originalBranch..." -ForegroundColor Yellow
+    Run-Git -Arguments @("checkout", $global:originalBranch) -IgnoreError
 
     Write-Host ""
     Write-Host "Rollback completed. Repository is back to its clean starting state." -ForegroundColor Green
@@ -199,7 +198,7 @@ function Merge-AndDeployBackend {
     $versionCode = [regex]::Match($versionContent, 'VERSION_CODE=(\d+)').Groups[1].Value.Trim()
 
     # Store version name for potential tag deletion in rollback
-    global:rollbackTag = $versionName
+    $global:rollbackTag = $versionName
 
     # Commit version bump to develop if version was updated locally
     # Check if version.properties is modified
@@ -241,8 +240,8 @@ function Merge-AndDeployBackend {
     Run-Git -Arguments @("push", "origin", "v$versionName")
 
     # Switch back to original branch
-    Write-Host "Switching back to original branch $originalBranch..." -ForegroundColor Yellow
-    Run-Git -Arguments @("checkout", $originalBranch)
+    Write-Host "Switching back to original branch $global:originalBranch..." -ForegroundColor Yellow
+    Run-Git -Arguments @("checkout", $global:originalBranch)
 }
 
 # --- Main Entry Point ---
@@ -287,7 +286,7 @@ try {
     }
 
     # If we reached here, deploy was completely successful, no rollback needed
-    global:rollbackNeeded = $false
+    $global:rollbackNeeded = $false
     Write-Host ""
     Write-Host "[OK] Deploy and release completed successfully!" -ForegroundColor Green
     Write-Host ""
