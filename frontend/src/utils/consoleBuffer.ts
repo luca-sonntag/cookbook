@@ -12,7 +12,7 @@ export interface LogEntry {
   text: string;
 }
 
-const MAX_ENTRIES = 50;
+const MAX_ENTRIES = 100;
 const MAX_TEXT_LENGTH = 1000;
 
 const buffer: LogEntry[] = [];
