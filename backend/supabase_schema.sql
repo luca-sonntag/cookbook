@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS public.collections (
 -- Phase B: Recipe Collections Join Table
 CREATE TABLE IF NOT EXISTS public.recipe_collections (
   collection_id uuid REFERENCES public.collections(id) ON DELETE CASCADE,
-  job_id uuid REFERENCES public.jobs(id) ON DELETE CASCADE,
+  job_id text REFERENCES public.jobs(id) ON DELETE CASCADE,
   user_id uuid NOT NULL,
   PRIMARY KEY (collection_id, job_id)
 );
