@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections } from './db.js';
 import { config } from './config.js';
 import { requireAuth } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -896,4 +896,241 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
     });
   }
 });
+
+// Helper to check user premium status
+async function checkPremium(req: Request): Promise<boolean> {
+  let isPremium = false;
+  try {
+    let user = await fetchAndSyncUser(req.userId!);
+
+    // Dev-override: allow simulating premium in development environments
+    if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
+      if (!user) user = { id: req.userId, app_metadata: {} };
+      if (!user.app_metadata) user.app_metadata = {};
+      user.app_metadata.tier = 'premium';
+    }
+
+    if (user) {
+      const meta = user.app_metadata || {};
+      isPremium = meta.tier === 'premium' ||
+                  meta.tier === 'beta' ||
+                  meta.custom_extraction_limit === -1 ||
+                  meta.max_extractions_per_window === -1;
+    }
+  } catch (err) {
+    console.warn(`Failed to fetch user metadata for premium check:`, err);
+    if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
+      isPremium = true;
+    }
+  }
+  return isPremium;
+}
+
+/**
+ * Endpoint to update a recipe's favorite status.
+ * PATCH /api/jobs/:id/favorite
+ */
+apiRouter.patch('/jobs/:id/favorite', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { isFavorite } = req.body;
+
+    if (typeof isFavorite !== 'boolean') {
+      res.status(400).json({ success: false, error: 'Field isFavorite must be a boolean.' });
+      return;
+    }
+
+    const job = await getJob(id, req.userId!);
+    if (!job) {
+      res.status(404).json({ success: false, error: 'Job not found.' });
+      return;
+    }
+
+    await setFavorite(id, req.userId!, isFavorite);
+    res.status(200).json({ success: true, message: 'Favorite status updated.' });
+  } catch (error: any) {
+    console.error('Error updating favorite status:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Endpoint to update custom tags/flags.
+ * PATCH /api/jobs/:id/flags
+ */
+apiRouter.patch('/jobs/:id/flags', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { flags } = req.body;
+
+    if (!Array.isArray(flags)) {
+      res.status(400).json({ success: false, error: 'Field flags must be an array of strings.' });
+      return;
+    }
+
+    const isPremium = await checkPremium(req);
+    if (!isPremium) {
+      res.status(403).json({
+        success: false,
+        code: 'PREMIUM_REQUIRED',
+        error: 'Custom tags and flags are premium features. Please upgrade to Premium.',
+      });
+      return;
+    }
+
+    const job = await getJob(id, req.userId!);
+    if (!job) {
+      res.status(404).json({ success: false, error: 'Job not found.' });
+      return;
+    }
+
+    await setFlags(id, req.userId!, flags);
+    res.status(200).json({ success: true, message: 'Custom flags updated.' });
+  } catch (error: any) {
+    console.error('Error updating custom flags:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Endpoint to retrieve all collections.
+ * GET /api/collections
+ */
+apiRouter.get('/collections', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const collections = await listCollections(req.userId!);
+    res.status(200).json({ success: true, collections });
+  } catch (error: any) {
+    console.error('Error listing collections:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Endpoint to create a new collection.
+ * POST /api/collections
+ */
+apiRouter.post('/collections', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, emoji, color, position } = req.body;
+
+    if (!name || typeof name !== 'string') {
+      res.status(400).json({ success: false, error: 'Field name must be a non-empty string.' });
+      return;
+    }
+
+    const isPremium = await checkPremium(req);
+    if (!isPremium) {
+      res.status(403).json({
+        success: false,
+        code: 'PREMIUM_REQUIRED',
+        error: 'Collections are a premium feature. Please upgrade to Premium.',
+      });
+      return;
+    }
+
+    const collection = await createCollection(req.userId!, { name, emoji, color, position });
+    res.status(201).json({ success: true, collection });
+  } catch (error: any) {
+    console.error('Error creating collection:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Endpoint to update a collection.
+ * PATCH /api/collections/:id
+ */
+apiRouter.patch('/collections/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { name, emoji, color, position } = req.body;
+
+    const isPremium = await checkPremium(req);
+    if (!isPremium) {
+      res.status(403).json({
+        success: false,
+        code: 'PREMIUM_REQUIRED',
+        error: 'Collections are a premium feature. Please upgrade to Premium.',
+      });
+      return;
+    }
+
+    const collection = await updateCollection(id, req.userId!, { name, emoji, color, position });
+    res.status(200).json({ success: true, collection });
+  } catch (error: any) {
+    console.error('Error updating collection:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Endpoint to delete a collection.
+ * DELETE /api/collections/:id
+ */
+apiRouter.delete('/collections/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const isPremium = await checkPremium(req);
+    if (!isPremium) {
+      res.status(403).json({
+        success: false,
+        code: 'PREMIUM_REQUIRED',
+        error: 'Collections are a premium feature. Please upgrade to Premium.',
+      });
+      return;
+    }
+
+    const deleted = await deleteCollection(id, req.userId!);
+    if (!deleted) {
+      res.status(404).json({ success: false, error: 'Collection not found.' });
+      return;
+    }
+
+    res.status(200).json({ success: true, message: 'Collection deleted.' });
+  } catch (error: any) {
+    console.error('Error deleting collection:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Endpoint to associate a job/recipe with collections.
+ * PATCH /api/jobs/:id/collections
+ */
+apiRouter.patch('/jobs/:id/collections', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { collectionIds } = req.body;
+
+    if (!Array.isArray(collectionIds)) {
+      res.status(400).json({ success: false, error: 'Field collectionIds must be an array of strings.' });
+      return;
+    }
+
+    const isPremium = await checkPremium(req);
+    if (!isPremium) {
+      res.status(403).json({
+        success: false,
+        code: 'PREMIUM_REQUIRED',
+        error: 'Collections are a premium feature. Please upgrade to Premium.',
+      });
+      return;
+    }
+
+    const job = await getJob(id, req.userId!);
+    if (!job) {
+      res.status(404).json({ success: false, error: 'Job not found.' });
+      return;
+    }
+
+    await setRecipeCollections(id, req.userId!, collectionIds);
+    res.status(200).json({ success: true, message: 'Recipe collections updated.' });
+  } catch (error: any) {
+    console.error('Error updating recipe collections:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
 
