@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { getScraperForUrl } from './scrapers/index.js';
 import { downloadMedia } from './scrapers/download.js';
 import { extractRecipe, remixRecipe } from './gemini.js';
+import { pruneOldGeminiLogs } from './logger.js';
 import type { Job, ProgressData } from './types.js';
 import { config } from './config.js';
 
@@ -300,9 +301,15 @@ export function startQueue(pollIntervalMs = 2000): void {
     60_000
   );
   
-  // Run cleanup once at startup, then every 12 hours
-  cleanupOldRunDirs(30);
-  cleanupInterval = setInterval(() => cleanupOldRunDirs(30), 12 * 60 * 60 * 1000);
+  // Run cleanup once at startup, then every 12 hours.
+  // Local debug run-dirs are pruned after 30 days; the persistent gemini_logs
+  // table is pruned after 90 days (wider than the 30-day metrics window).
+  const runCleanup = () => {
+    cleanupOldRunDirs(30);
+    void pruneOldGeminiLogs(90);
+  };
+  runCleanup();
+  cleanupInterval = setInterval(runCleanup, 12 * 60 * 60 * 1000);
 }
 
 /**

@@ -198,6 +198,27 @@ export async function writeGeminiLog(entry: GeminiLogEntry): Promise<void> {
   console.log(`[GeminiLogger] ${entry.requestType} ${entry.success ? '✓' : '✗'}${tokenStr}${costStr}`);
 }
 
+/**
+ * Delete `gemini_logs` rows older than `days` days. Best-effort: keeps the
+ * table from growing unbounded while the metrics window only reads recent rows.
+ * Never throws.
+ */
+export async function pruneOldGeminiLogs(days: number): Promise<void> {
+  try {
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    const { error, count } = await getClient()
+      .from('gemini_logs')
+      .delete({ count: 'exact' })
+      .lt('created_at', cutoff);
+    if (error) throw new Error(error.message);
+    if (count && count > 0) {
+      console.log(`[Cleanup] Deleted ${count} gemini_logs row(s) older than ${days} days.`);
+    }
+  } catch (err: any) {
+    console.error('[Cleanup] Error pruning gemini_logs:', err.message);
+  }
+}
+
 /** Insert a log entry as a row into the Supabase `gemini_logs` table. */
 async function writeGeminiLogToDb(entry: GeminiLogEntry): Promise<void> {
   try {

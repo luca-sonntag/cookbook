@@ -418,7 +418,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
       : undefined;
     const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
 
-    await writeGeminiLog({
+    void writeGeminiLog({
       timestamp,
       requestType: 'extract_recipe',
       model: config.GEMINI_MODEL,
@@ -440,7 +440,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
 
     return recipe;
   } catch (err: any) {
-    await writeGeminiLog({
+    void writeGeminiLog({
       timestamp,
       requestType: 'extract_recipe',
       model: config.GEMINI_MODEL,
@@ -543,7 +543,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
     if (indices.length === 0) {
       console.warn(`[selectBestFoodFrame] Unexpected response "${rawOutput}", defaulting to last frame`);
 
-      await writeGeminiLog({
+      void writeGeminiLog({
         timestamp,
         requestType: 'select_best_frame',
         model: config.GEMINI_MODEL,
@@ -561,7 +561,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
       return [framePaths.length - 1]; // fallback
     }
 
-    await writeGeminiLog({
+    void writeGeminiLog({
       timestamp,
       requestType: 'select_best_frame',
       model: config.GEMINI_MODEL,
@@ -578,7 +578,7 @@ export async function selectBestFoodFrame(framePaths: string[], gridImagePath: s
     // Ensure we don't return an absurd amount, but allow up to 10
     return indices.slice(0, 10);
   } catch (err: any) {
-    await writeGeminiLog({
+    void writeGeminiLog({
       timestamp,
       requestType: 'select_best_frame',
       model: config.GEMINI_MODEL,
@@ -673,7 +673,7 @@ ${JSON.stringify(parentRecipe, null, 2)}`;
       : undefined;
     const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
 
-    await writeGeminiLog({
+    void writeGeminiLog({
       timestamp,
       requestType: 'remix_recipe',
       model: config.GEMINI_MODEL,
@@ -692,7 +692,7 @@ ${JSON.stringify(parentRecipe, null, 2)}`;
 
     return recipe;
   } catch (err: any) {
-    await writeGeminiLog({
+    void writeGeminiLog({
       timestamp,
       requestType: 'remix_recipe',
       model: config.GEMINI_MODEL,
@@ -919,7 +919,7 @@ Rules:
       const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
 
       // Log the chat call
-      await writeGeminiLog({
+      void writeGeminiLog({
         timestamp,
         requestType: 'chat_recipe',
         model: config.GEMINI_MODEL,
@@ -959,7 +959,7 @@ Rules:
       const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
 
       // Log the chat call
-      await writeGeminiLog({
+      void writeGeminiLog({
         timestamp,
         requestType: 'chat_recipe',
         model: config.GEMINI_MODEL,
@@ -981,7 +981,7 @@ Rules:
     }
   } catch (err: any) {
     console.error(`[chatAboutRecipe] Error in Gemini chat:`, err);
-    await writeGeminiLog({
+    void writeGeminiLog({
       timestamp,
       requestType: 'chat_recipe',
       model: config.GEMINI_MODEL,
@@ -1079,7 +1079,7 @@ Respond in JSON only: {"chips":[{"category":"remix","label":"…","prompt":"…"
       : undefined;
     const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
 
-    await writeGeminiLog({
+    void writeGeminiLog({
       timestamp,
       requestType: 'chat_chips',
       model: config.GEMINI_MODEL,
@@ -1094,7 +1094,7 @@ Respond in JSON only: {"chips":[{"category":"remix","label":"…","prompt":"…"
     return chips;
   } catch (err: any) {
     console.error('[generateChatChips] Error:', err);
-    await writeGeminiLog({
+    void writeGeminiLog({
       timestamp,
       requestType: 'chat_chips',
       model: config.GEMINI_MODEL,
