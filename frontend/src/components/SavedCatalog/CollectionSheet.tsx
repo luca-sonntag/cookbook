@@ -51,7 +51,7 @@ export default function CollectionSheet({
 
   // Form states
   const [name, setName] = useState('');
-  const [selectedEmoji, setSelectedEmoji] = useState(EMOJIS[0]);
+  const [selectedEmoji, setSelectedEmoji] = useState('');
   const [selectedColor, setSelectedColor] = useState(COLORS[0].name);
 
   // Memberships state for checkboxes
@@ -75,7 +75,7 @@ export default function CollectionSheet({
 
   const handleCreateOpen = () => {
     setName('');
-    setSelectedEmoji(EMOJIS[0]);
+    setSelectedEmoji('');
     setSelectedColor(COLORS[0].name);
     setFormError(null);
     setMode('create');
@@ -84,7 +84,7 @@ export default function CollectionSheet({
   const handleEditOpen = (col: Collection) => {
     setEditingCollection(col);
     setName(col.name);
-    setSelectedEmoji(col.emoji || EMOJIS[0]);
+    setSelectedEmoji(col.emoji || '');
     setSelectedColor(col.color || COLORS[0].name);
     setFormError(null);
     setMode('edit');
@@ -97,7 +97,7 @@ export default function CollectionSheet({
     }
 
     if (mode === 'create') {
-      const res = await createCollection(name, selectedEmoji, selectedColor);
+      const res = await createCollection(name, selectedEmoji || null, selectedColor);
       if (res.success) {
         setMode('assign');
         onUpdated?.();
@@ -107,7 +107,7 @@ export default function CollectionSheet({
     } else if (mode === 'edit' && editingCollection) {
       const res = await updateCollection(editingCollection.id, {
         name,
-        emoji: selectedEmoji,
+        emoji: selectedEmoji || null,
         color: selectedColor
       });
       if (res.success) {
@@ -270,9 +270,21 @@ export default function CollectionSheet({
                         {t('catalog.collectionEmoji') || 'Symbol / Emoji'}
                       </label>
                       <div className="flex flex-wrap gap-2 py-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedEmoji('')}
+                          className={`px-3 h-11 text-xs font-bold flex items-center justify-center rounded-2xl transition-all active:scale-90 border cursor-pointer ${
+                            !selectedEmoji
+                              ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
+                              : 'bg-black/5 dark:bg-white/5 border-transparent hover:border-black/10 dark:hover:border-white/10 text-gray-500'
+                          }`}
+                        >
+                          {t('dialog.cancelDefault') || 'Keins'}
+                        </button>
                         {EMOJIS.map(emoji => (
                           <button
                             key={emoji}
+                            type="button"
                             onClick={() => setSelectedEmoji(emoji)}
                             className={`w-11 h-11 text-xl flex items-center justify-center rounded-2xl transition-all active:scale-90 border cursor-pointer ${
                               selectedEmoji === emoji
