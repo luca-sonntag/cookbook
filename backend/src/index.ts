@@ -72,7 +72,7 @@ async function bootstrap() {
         }
         return callback(null, false);
       },
-      methods: ['GET', 'POST', 'DELETE'],
+      methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,
     }));

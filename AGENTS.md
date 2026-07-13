@@ -39,7 +39,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 * **Sicherheits-Hardening (`backend/src/index.ts`):**
   * **`helmet`:** Setzt standardmäßige Security-Header (X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security, etc.). `crossOriginResourcePolicy` ist auf `cross-origin` gesetzt, damit `recipe-images` aus anderen Origins geladen werden können. CSP wird nur in Production aktiviert.
   * **`express-rate-limit`:** Limitiert `/api/*`-Endpunkte auf 100 Requests pro 15-Minuten-Fenster pro IP. Verwendet `standardHeaders: true` für moderne Rate-Limit-Header.
-  * **CORS-Hardening:** In Development permissiv (`http://localhost:5173`), in Production restriktiv über `CORS_ORIGIN` Umgebungsvariable konfigurierbar. Nur `GET`, `POST`, `DELETE` Methoden erlaubt.
+  * **CORS-Hardening:** In Development permissiv (`http://localhost:5173`), in Production restriktiv über `CORS_ORIGIN` Umgebungsvariable konfigurierbar. Nur `GET`, `POST`, `DELETE`, `PATCH`, `PUT` Methoden erlaubt.
   * **`trust proxy`:** Auf `1` gesetzt für korrekte Rate-Limiting-Erkennung hinter Reverse-Proxies (nginx, Railway, etc.).
   * **Body-Limit:** `express.json({ limit: '1mb' })` schützt vor Memory-Exhaustion durch große Payloads.
 * **Health-Check (`/health`):** Erweiterter Endpunkt prüft Supabase-Datenbankverbindung via `checkDbHealth()` (HEAD-Request auf `jobs`-Tabelle). Antwortet `200 OK` bei gesunder DB, `503 Service Unavailable` bei Problemen. Liefert `uptime`, `nodeEnv` und `dbConnected`-Status.
