@@ -1300,5 +1300,34 @@ apiRouter.get('/admin/metrics', requireAdmin, async (req: Request, res: Response
   }
 });
 
+/**
+ * Retrieve a list of registered users.
+ * GET /api/admin/users
+ * Requires admin privileges.
+ */
+apiRouter.get('/admin/users', requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { data, error } = await getClient().auth.admin.listUsers({ perPage: 1000 });
+    if (error) {
+      throw error;
+    }
+
+    const users = (data?.users || []).map(user => ({
+      id: user.id,
+      email: user.email,
+      created_at: user.created_at,
+      last_sign_in_at: user.last_sign_in_at,
+      tier: user.app_metadata?.tier || 'free',
+      custom_limit: user.app_metadata?.custom_extraction_limit ?? user.app_metadata?.max_extractions_per_window ?? null
+    }));
+
+    res.json({ success: true, users });
+  } catch (error: any) {
+    console.error('Error listing users for admin:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+
 
 
