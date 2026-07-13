@@ -1263,33 +1263,74 @@ apiRouter.get('/admin/feedback', requireAdmin, async (req: Request, res: Respons
 });
 
 /**
+ * Translate an admin-metrics range key into a query cutoff (`since`) and the
+ * daily-chart window size (`windowDays`). `today`/`7d`/`30d` are calendar-day
+ * windows anchored to the start of the day; `all` (default) is unbounded.
+ */
+function resolveMetricsRange(range: string): { since: Date | null; windowDays: number | null } {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  switch (range) {
+    case 'today':
+      return { since: startOfToday, windowDays: 1 };
+    case '7d': {
+      const since = new Date(startOfToday);
+      since.setDate(since.getDate() - 6);
+      return { since, windowDays: 7 };
+    }
+    case '30d': {
+      const since = new Date(startOfToday);
+      since.setDate(since.getDate() - 29);
+      return { since, windowDays: 30 };
+    }
+    case 'all':
+    default:
+      return { since: null, windowDays: null };
+  }
+}
+
+/**
  * Retrieve system metrics and LLM cost analytics.
  * GET /api/admin/metrics
  * Requires admin privileges.
  */
 apiRouter.get('/admin/metrics', requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
-    // 1. Fetch total user count from Supabase Auth Admin API
+    // Resolve the requested time range into a cutoff timestamp + daily-window
+    // size. `all` (or an unknown value) aggregates over all time.
+    const range = String(req.query.range ?? 'all');
+    const { since, windowDays } = resolveMetricsRange(range);
+
+    // 1. Fetch users from Supabase Auth Admin API. `total` is the all-time
+    // user base; `newInRange` counts users who registered within the selected
+    // window (equal to `total` for the unbounded "all" range).
     let userCount = 0;
+    let newUsers = 0;
     try {
       const { data, error } = await getClient().auth.admin.listUsers({ perPage: 1000 });
       if (!error && data?.users) {
         userCount = data.users.length;
+        newUsers = since
+          ? data.users.filter((u) => u.created_at && new Date(u.created_at) >= since).length
+          : userCount;
       }
     } catch (err: any) {
       console.error('Error fetching users from Supabase Admin:', err.message);
     }
 
-    // 2. Fetch db jobs metrics
-    const jobsMetrics = await getJobMetrics();
+    // 2. Fetch db jobs metrics (scoped to the selected range)
+    const jobsMetrics = await getJobMetrics(since, windowDays);
 
-    // 3. Fetch logs LLM metrics
-    const llmMetrics = await getLlmMetrics(30);
+    // 3. Fetch logs LLM metrics (scoped to the selected range)
+    const llmMetrics = await getLlmMetrics(since, windowDays);
 
     res.json({
       success: true,
+      range,
       users: {
         total: userCount,
+        newInRange: newUsers,
       },
       jobs: jobsMetrics,
       llm: llmMetrics,

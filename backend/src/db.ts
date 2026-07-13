@@ -753,7 +753,10 @@ export async function setRecipeCollections(jobId: string, userId: string, collec
 }
 
 /** Retrieve database job execution and queue metrics. */
-export async function getJobMetrics(): Promise<{
+export async function getJobMetrics(
+  since: Date | null = null,
+  windowDays: number | null = 14,
+): Promise<{
   total: number;
   completed: number;
   failed: number;
@@ -761,9 +764,15 @@ export async function getJobMetrics(): Promise<{
   processing: number;
   dailyStats: { date: string; count: number }[];
 }> {
-  const { data: allJobs, error } = await getClient()
+  let query = getClient()
     .from('jobs')
     .select('status, created_at');
+
+  if (since) {
+    query = query.gte('created_at', since.toISOString());
+  }
+
+  const { data: allJobs, error } = await query;
 
   if (error) throw wrapError('Failed to fetch jobs for metrics', error);
 
@@ -789,17 +798,26 @@ export async function getJobMetrics(): Promise<{
     }
   }
 
-  // Generate last 14 days daily stats array
+  // Build the daily stats array. For a bounded window, emit a dense
+  // zero-filled array of the last `windowDays` calendar days. For an
+  // unbounded ("all") window, emit only the dates that actually have data,
+  // sorted ascending, to avoid an unboundedly long array.
   const dailyStats: { date: string; count: number }[] = [];
-  const now = new Date();
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(now.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
-    dailyStats.push({
-      date: dateStr,
-      count: dailyCounts[dateStr] || 0,
-    });
+  if (windowDays && windowDays > 0) {
+    const now = new Date();
+    for (let i = windowDays - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      dailyStats.push({
+        date: dateStr,
+        count: dailyCounts[dateStr] || 0,
+      });
+    }
+  } else {
+    for (const dateStr of Object.keys(dailyCounts).sort()) {
+      dailyStats.push({ date: dateStr, count: dailyCounts[dateStr] });
+    }
   }
 
   return { total, completed, failed, pending, processing, dailyStats };

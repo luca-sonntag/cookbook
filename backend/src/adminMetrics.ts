@@ -22,10 +22,17 @@ interface GeminiLogMetricsRow {
 
 /**
  * Aggregate Gemini usage and cost metrics from the persistent `gemini_logs`
- * table over the last `days` days. This replaces the previous filesystem-based
- * log parsing, which was wiped on every ephemeral container redeploy.
+ * table. When `since` is provided, only rows on/after that timestamp are
+ * counted; otherwise all rows are aggregated ("all-time"). `windowDays`
+ * controls the shape of the dense zero-filled `dailyCost` array: a positive
+ * value emits that many trailing calendar days, while `null` emits only the
+ * dates that actually have cost data. This replaces the previous
+ * filesystem-based log parsing, which was wiped on every ephemeral redeploy.
  */
-export async function getLlmMetrics(days = 30): Promise<LlmMetricsSummary> {
+export async function getLlmMetrics(
+  since: Date | null = null,
+  windowDays: number | null = 30,
+): Promise<LlmMetricsSummary> {
   const summary: LlmMetricsSummary = {
     totalTokens: 0,
     promptTokens: 0,
@@ -37,15 +44,18 @@ export async function getLlmMetrics(days = 30): Promise<LlmMetricsSummary> {
   };
 
   const now = new Date();
-  const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
   const dailyMap: Record<string, number> = {};
 
   try {
-    const { data, error } = await getClient()
+    let query = getClient()
       .from('gemini_logs')
-      .select('created_at, request_type, token_prompt, token_candidate, token_total, cost_total_usd')
-      .gte('created_at', cutoff.toISOString())
-      .returns<GeminiLogMetricsRow[]>();
+      .select('created_at, request_type, token_prompt, token_candidate, token_total, cost_total_usd');
+
+    if (since) {
+      query = query.gte('created_at', since.toISOString());
+    }
+
+    const { data, error } = await query.returns<GeminiLogMetricsRow[]>();
 
     if (error) throw new Error(error.message);
 
@@ -84,16 +94,27 @@ export async function getLlmMetrics(days = 30): Promise<LlmMetricsSummary> {
     console.error('[AdminMetrics] Error reading LLM logs from DB:', err.message);
   }
 
-  // Generate a dense last-`days`-days daily cost array (zero-filled) regardless
-  // of whether the query succeeded, so the chart always renders a full window.
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(now.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
-    summary.dailyCost.push({
-      date: dateStr,
-      cost: parseFloat((dailyMap[dateStr] || 0).toFixed(6)),
-    });
+  // Build the daily cost array. For a bounded window, emit a dense zero-filled
+  // array of the last `windowDays` calendar days so the chart always renders a
+  // full window. For an unbounded ("all") window, emit only the dates that
+  // actually have cost data, sorted ascending.
+  if (windowDays && windowDays > 0) {
+    for (let i = windowDays - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      summary.dailyCost.push({
+        date: dateStr,
+        cost: parseFloat((dailyMap[dateStr] || 0).toFixed(6)),
+      });
+    }
+  } else {
+    for (const dateStr of Object.keys(dailyMap).sort()) {
+      summary.dailyCost.push({
+        date: dateStr,
+        cost: parseFloat((dailyMap[dateStr] || 0).toFixed(6)),
+      });
+    }
   }
 
   return summary;
