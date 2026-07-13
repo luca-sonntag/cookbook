@@ -11,6 +11,9 @@ COPY frontend/package*.json frontend/
 # Install dependencies for the workspaces
 RUN YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm ci
 
+ARG SKIP_FRONTEND=false
+ENV SKIP_FRONTEND=$SKIP_FRONTEND
+
 # Build frontend
 COPY frontend/ frontend/
 ARG SUPABASE_URL
@@ -20,7 +23,12 @@ ENV VITE_SUPABASE_URL=$SUPABASE_URL
 ENV VITE_SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY
 ENV VITE_REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY
 
-RUN npm run build -w frontend
+RUN if [ "$SKIP_FRONTEND" = "true" ]; then \
+      echo "Skipping frontend build"; \
+      mkdir -p frontend/dist; \
+    else \
+      npm run build -w frontend; \
+    fi
 
 # Build backend
 COPY backend/tsconfig.json backend/
