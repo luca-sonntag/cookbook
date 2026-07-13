@@ -69,7 +69,7 @@ function Get-GitOutput {
         $output = & git $Arguments
         $exitCode = $LASTEXITCODE
         if ($exitCode -ne 0) {
-            throw "Git command failed with exit code $exitCode: git $Arguments"
+            throw "Git command failed with exit code ${exitCode}: git $Arguments"
         }
         return $output
     } finally {
@@ -88,7 +88,7 @@ function Run-Git {
         & git $Arguments
         $exitCode = $LASTEXITCODE
         if ($exitCode -ne 0 -and -not $IgnoreError) {
-            throw "Git command failed with exit code $exitCode: git $Arguments"
+            throw "Git command failed with exit code ${exitCode}: git $Arguments"
         }
         return $exitCode
     } finally {
