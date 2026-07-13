@@ -34,6 +34,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [localSettings, setLocalSettings] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
+  const [metricsRange, setMetricsRange] = useState<'all' | 'today' | '7d' | '30d'>('all');
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -267,7 +268,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                 [
                   { id: 'settings', icon: <Settings className="w-4 h-4" />, label: isDe ? 'Config' : 'Config' },
                   { id: 'feedback', icon: <MessageSquare className="w-4 h-4" />, label: 'Feedback' },
-                  { id: 'metrics', icon: <BarChart3 className="w-4 h-4" />, label: isDe ? 'Kosten' : 'Costs' },
+                  { id: 'metrics', icon: <BarChart3 className="w-4 h-4" />, label: isDe ? 'Metriken' : 'Metrics' },
                   { id: 'users', icon: <Users className="w-4 h-4" />, label: isDe ? 'Nutzer' : 'Users' },
                 ] as const
               ).map(({ id, icon, label }) => (
@@ -333,22 +334,20 @@ export default function AdminView({ onBack }: AdminViewProps) {
                                 <button
                                   type="button"
                                   onClick={() => handleSettingChange(setting.key, 'true')}
-                                  className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                                    currentValue === 'true'
+                                  className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${currentValue === 'true'
                                       ? 'bg-white dark:bg-gray-850 text-emerald-600 dark:text-emerald-400 shadow-sm'
                                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                                  }`}
+                                    }`}
                                 >
                                   {isDe ? 'Ja' : 'Yes'}
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSettingChange(setting.key, 'false')}
-                                  className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                                    currentValue === 'false'
+                                  className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${currentValue === 'false'
                                       ? 'bg-white dark:bg-gray-855 text-gray-700 dark:text-gray-300 shadow-sm'
                                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                                  }`}
+                                    }`}
                                 >
                                   {isDe ? 'Nein' : 'No'}
                                 </button>
@@ -383,11 +382,10 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   type="button"
                   isDisabled={saving}
                   onPress={handleSaveSettings}
-                  className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${
-                    saving
+                  className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${saving
                       ? 'bg-emerald-800 shadow-none'
                       : 'bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] transition-all cursor-pointer'
-                  } w-full`}
+                    } w-full`}
                 >
                   <span className="flex items-center gap-2 justify-center">
                     {saving ? (
@@ -484,8 +482,8 @@ export default function AdminView({ onBack }: AdminViewProps) {
                               className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors flex items-center gap-1 cursor-pointer outline-none"
                             >
                               <span>
-                                {isExpanded 
-                                  ? (isDe ? 'Details ausblenden' : 'Hide Details') 
+                                {isExpanded
+                                  ? (isDe ? 'Details ausblenden' : 'Hide Details')
                                   : (isDe ? 'Geräte- & Diagnosedaten anzeigen' : 'Show Device & Diagnostic Data')
                                 }
                               </span>
@@ -610,21 +608,21 @@ export default function AdminView({ onBack }: AdminViewProps) {
                     Queue Status Breakdown
                   </h3>
                   <div className="grid grid-cols-4 gap-2 text-center">
-                    <div className="bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/10 dark:border-emerald-500/20 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-xs text-emerald-600 dark:text-emerald-450 font-bold">{isDe ? 'Erfolgreich' : 'Succeeded'}</span>
-                      <span className="text-lg font-black text-emerald-700 dark:text-emerald-300 mt-0.5">{metrics.jobs?.completed ?? 0}</span>
+                    <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 dark:border-emerald-500/15 rounded-xl p-2.5 flex flex-col">
+                      <span className="text-[10px] leading-tight text-emerald-500 dark:text-emerald-400/80 font-semibold truncate">{isDe ? 'Erfolgreich' : 'Succeeded'}</span>
+                      <span className="text-lg font-bold text-emerald-500 dark:text-emerald-300 mt-0.5">{metrics.jobs?.completed ?? 0}</span>
                     </div>
-                    <div className="bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/10 dark:border-rose-500/20 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-xs text-rose-600 dark:text-rose-455 font-bold">{isDe ? 'Fehlgeschlagen' : 'Failed'}</span>
-                      <span className="text-lg font-black text-rose-700 dark:text-rose-300 mt-0.5">{metrics.jobs?.failed ?? 0}</span>
+                    <div className="bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/10 dark:border-rose-500/15 rounded-xl p-2.5 flex flex-col">
+                      <span className="text-[10px] leading-tight text-rose-400 dark:text-rose-400/80 font-semibold truncate">{isDe ? 'Fehlgeschlagen' : 'Failed'}</span>
+                      <span className="text-lg font-bold text-rose-500 dark:text-rose-300 mt-0.5">{metrics.jobs?.failed ?? 0}</span>
                     </div>
-                    <div className="bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/10 dark:border-blue-500/20 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-xs text-blue-600 dark:text-blue-450 font-bold">{isDe ? 'Aktiv' : 'Processing'}</span>
-                      <span className="text-lg font-black text-blue-700 dark:text-blue-300 mt-0.5">{metrics.jobs?.processing ?? 0}</span>
+                    <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/10 dark:border-blue-500/15 rounded-xl p-2.5 flex flex-col">
+                      <span className="text-[10px] leading-tight text-blue-400 dark:text-blue-400/80 font-semibold truncate">{isDe ? 'Aktiv' : 'Processing'}</span>
+                      <span className="text-lg font-bold text-blue-500 dark:text-blue-300 mt-0.5">{metrics.jobs?.processing ?? 0}</span>
                     </div>
-                    <div className="bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/10 dark:border-amber-500/20 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-xs text-amber-600 dark:text-amber-450 font-bold">{isDe ? 'Wartend' : 'Pending'}</span>
-                      <span className="text-lg font-black text-amber-700 dark:text-amber-300 mt-0.5">{metrics.jobs?.pending ?? 0}</span>
+                    <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 dark:border-amber-500/15 rounded-xl p-2.5 flex flex-col">
+                      <span className="text-[10px] leading-tight text-amber-500 dark:text-amber-400/80 font-semibold truncate">{isDe ? 'Wartend' : 'Pending'}</span>
+                      <span className="text-lg font-bold text-amber-500 dark:text-amber-300 mt-0.5">{metrics.jobs?.pending ?? 0}</span>
                     </div>
                   </div>
                 </Card>
@@ -741,8 +739,8 @@ export default function AdminView({ onBack }: AdminViewProps) {
                       user.tier === 'premium'
                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
                         : user.tier === 'beta'
-                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
-                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400';
+                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                          : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400';
 
                     const fmt = (iso: string | null) => {
                       if (!iso) return '—';
