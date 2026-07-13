@@ -114,7 +114,7 @@ const styles = {
   title: "text-base font-bold text-gray-900 dark:text-white line-clamp-1",
   description: "text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed px-5",
 
-  footer: "flex items-center justify-between mt-4 pt-3 px-5 text-sm text-gray-500 dark:text-gray-400",
+  footer: "flex items-center justify-between pt-3 px-5 text-sm text-gray-500 dark:text-gray-400",
 
   addBtnBase: "active:scale-95 transition-all cursor-pointer flex items-center justify-center",
   addBtnAdded: "w-9 h-9 rounded-xl bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent text-xs",
