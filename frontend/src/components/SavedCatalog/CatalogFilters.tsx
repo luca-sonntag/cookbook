@@ -90,9 +90,6 @@ export default function CatalogFilters({
           </div>
         ) : (
           <>
-            <h1 className="flex-1 text-xl font-bold text-gray-900 dark:text-white pl-1 select-none">
-              {t('catalog.title')}
-            </h1>
             <Button
               isIconOnly
               variant="tertiary"
@@ -125,6 +122,8 @@ export default function CatalogFilters({
             >
               {isSelectMode ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
             </Button>
+
+            <div className="flex-1" />
 
             {/* Sort Control Dropdown */}
             <Select
