@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { Job, Ingredient, Recipe } from '../../types';
 import RecipeDetails from '../RecipeDetails';
 import { useMobileNavigationBack } from '../../hooks/useMobileNavigationBack';
@@ -9,6 +9,7 @@ import { useCollections } from '../../hooks/useCollections';
 import PremiumModal from '../PremiumModal';
 import PremiumHint from '../PremiumHint';
 import CollectionSheet from './CollectionSheet';
+import { FlagSheet } from './FlagSheet';
 
 import RecipeCard from './RecipeCard';
 import RecipeListItem from './RecipeListItem';
@@ -103,6 +104,15 @@ export default function SavedCatalog({
   const [collectionSheetJob, setCollectionSheetJob] = useState<Job | undefined>(undefined);
   const [collectionSheetBulkIds, setCollectionSheetBulkIds] = useState<string[]>([]);
 
+  // FlagSheet states
+  const [isFlagSheetOpen, setIsFlagSheetOpen] = useState(false);
+  const [flagSheetJob, setFlagSheetJob] = useState<Job | null>(null);
+
+  // Memoize all distinct flags in catalog to pass as suggestions
+  const allExistingFlags = useMemo(() => {
+    return Array.from(new Set(completedJobs.flatMap(j => j.flags || [])));
+  }, [completedJobs]);
+
   useEffect(() => {
     if (historyLoaded) {
       refreshCollections();
@@ -144,20 +154,8 @@ export default function SavedCatalog({
       setIsPremiumModalOpen(true);
       return;
     }
-    const currentFlags = job.flags?.join(', ') || '';
-    const promptMessage = language === 'de'
-      ? 'Gib Labels für dieses Rezept ein (kommagetrennt):'
-      : 'Enter labels for this recipe (comma-separated):';
-    
-    const result = window.prompt(promptMessage, currentFlags);
-    if (result === null) return;
-
-    const nextFlags = result
-      .split(',')
-      .map(f => f.trim())
-      .filter(f => f.length > 0);
-
-    await setRecipeFlags(job, nextFlags);
+    setFlagSheetJob(job);
+    setIsFlagSheetOpen(true);
   };
 
   return (
@@ -326,6 +324,18 @@ export default function SavedCatalog({
         onUpdated={() => {
           fetchHistory?.();
           refreshCollections();
+        }}
+      />
+
+      {/* Flag/Label Management bottom sheet */}
+      <FlagSheet
+        isOpen={isFlagSheetOpen}
+        onClose={() => setIsFlagSheetOpen(false)}
+        job={flagSheetJob}
+        allExistingFlags={allExistingFlags}
+        onSave={async (j, flags) => {
+          await setRecipeFlags(j, flags);
+          fetchHistory?.();
         }}
       />
 
