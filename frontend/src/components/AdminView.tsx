@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Tabs, Tab, Card, CardBody, Input, Switch, Button, Spinner } from '@heroui/react';
+import { Tabs, Card, TextField, Label, Input, Button, Spinner } from '@heroui/react';
 import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
@@ -158,6 +158,38 @@ export default function AdminView({ onBack }: AdminViewProps) {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6 font-sans pb-12">
+        {/* Top Bar Navigation */}
+        <div className="flex items-center gap-3 px-2">
+          <button
+            onClick={onBack}
+            className="p-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-gray-700 dark:text-gray-300 cursor-pointer"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1">
+              <Shield className="w-3.5 h-3.5 text-emerald-500" />
+              Administration
+            </span>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-none mt-0.5">
+              {isDe ? 'Admin-Bereich' : 'Admin Panel'}
+            </h2>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center py-24 gap-3">
+          <Spinner color="success" size="lg" />
+          <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+            {isDe ? 'Lade Daten...' : 'Loading data...'}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out font-sans pb-12">
       {/* Top Bar Navigation */}
@@ -182,63 +214,43 @@ export default function AdminView({ onBack }: AdminViewProps) {
 
       {/* Tabs Switch */}
       <div className="mx-2">
-        <Tabs
-          selectedKey={activeTab}
-          onSelectionChange={(key) => {
-            setError(null);
-            setActiveTab(key as 'settings' | 'feedback');
-          }}
-          className="w-full"
-          variant="solid"
-          color="emerald"
-        >
-          <Tab
-            key="settings"
-            title={
-              <div className="flex items-center gap-2 font-semibold">
-                <Settings className="w-4 h-4" />
-                <span>{isDe ? 'Einstellungen' : 'Settings'}</span>
-              </div>
-            }
-          />
-          <Tab
-            key="feedback"
-            title={
-              <div className="flex items-center gap-2 font-semibold">
-                <MessageSquare className="w-4 h-4" />
-                <span>Feedback</span>
-              </div>
-            }
-          />
-        </Tabs>
-      </div>
+        <Tabs selectedKey={activeTab} onSelectionChange={(key) => { setError(null); setActiveTab(key as 'settings' | 'feedback'); }} className="w-full">
+          <Tabs.ListContainer className="w-full">
+            <Tabs.List className="flex w-full mb-4 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-black/5 dark:border-white/5">
+              <Tabs.Tab id="settings" className="flex-1 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
+                <div className="flex items-center justify-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  <span>{isDe ? 'Einstellungen' : 'Settings'}</span>
+                </div>
+              </Tabs.Tab>
+              <Tabs.Tab id="feedback" className="flex-1 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
+                <div className="flex items-center justify-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Feedback</span>
+                </div>
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs.ListContainer>
 
-      {/* Alert / Notification Area */}
-      {error && (
-        <div className="mx-2 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-2xl flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <span className="text-xs font-semibold">{error}</span>
-        </div>
-      )}
+          {/* Alert / Notification Area */}
+          {error && (
+            <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-2xl flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <span className="text-xs font-semibold">{error}</span>
+            </div>
+          )}
 
-      {successMessage && (
-        <div className="mx-2 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-start gap-3">
-          <Shield className="w-5 h-5 shrink-0 mt-0.5" />
-          <span className="text-xs font-semibold">{successMessage}</span>
-        </div>
-      )}
+          {successMessage && (
+            <div className="mb-4 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-start gap-3">
+              <Shield className="w-5 h-5 shrink-0 mt-0.5" />
+              <span className="text-xs font-semibold">{successMessage}</span>
+            </div>
+          )}
 
-      {/* Data loading spinner */}
-      {loading ? (
-        <div className="flex justify-center items-center py-16">
-          <Spinner color="emerald" label={isDe ? 'Lade Daten...' : 'Loading data...'} size="lg" />
-        </div>
-      ) : (
-        <>
-          {activeTab === 'settings' && (
-            <div className="flex flex-col gap-6 mx-2">
-              <Card className="border border-black/5 dark:border-white/10 bg-white dark:bg-gray-900 rounded-3xl shadow-sm">
-                <CardBody className="p-5 flex flex-col gap-5">
+          <Tabs.Panel id="settings">
+            <div className="flex flex-col gap-6">
+              <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl bg-white dark:bg-gray-900">
+                <div className="flex flex-col gap-5">
                   {settings.length === 0 ? (
                     <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
                       {isDe ? 'Keine Einstellungen vorhanden.' : 'No settings available.'}
@@ -251,61 +263,99 @@ export default function AdminView({ onBack }: AdminViewProps) {
 
                       return (
                         <div key={setting.key} className="flex flex-col gap-2 pb-4 border-b border-black/5 dark:border-white/5 last:border-0 last:pb-0">
-                          <div className="flex items-center justify-between">
-                            <label className="text-sm font-bold text-gray-800 dark:text-gray-200">
-                              {setting.key}
-                            </label>
-                            {isBoolean ? (
-                              <Switch
-                                isSelected={currentValue === 'true'}
-                                onValueChange={(checked) => handleSettingChange(setting.key, checked ? 'true' : 'false')}
-                                color="emerald"
-                                size="sm"
-                                aria-label={setting.key}
-                              />
-                            ) : null}
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex flex-col gap-0.5">
+                              <label className="text-sm font-bold text-gray-850 dark:text-gray-200">
+                                {setting.key}
+                              </label>
+                              {setting.description && (
+                                <span className="text-xs text-gray-400 dark:text-gray-500 leading-relaxed">
+                                  {setting.description}
+                                </span>
+                              )}
+                            </div>
+
+                            {isBoolean && (
+                              <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSettingChange(setting.key, 'true')}
+                                  className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                                    currentValue === 'true'
+                                      ? 'bg-white dark:bg-gray-850 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                  }`}
+                                >
+                                  {isDe ? 'Ja' : 'Yes'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSettingChange(setting.key, 'false')}
+                                  className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                                    currentValue === 'false'
+                                      ? 'bg-white dark:bg-gray-855 text-gray-700 dark:text-gray-300 shadow-sm'
+                                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                  }`}
+                                >
+                                  {isDe ? 'Nein' : 'No'}
+                                </button>
+                              </div>
+                            )}
                           </div>
 
-                          {setting.description && (
-                            <span className="text-xs text-gray-400 dark:text-gray-500 leading-relaxed">
-                              {setting.description}
-                            </span>
-                          )}
-
                           {!isBoolean && (
-                            <Input
-                              type={isNumber ? 'number' : 'text'}
+                            <TextField
+                              fullWidth
+                              name={setting.key}
                               value={currentValue}
-                              onValueChange={(val) => handleSettingChange(setting.key, val)}
-                              className="w-full"
-                              size="sm"
-                              variant="bordered"
-                              color="emerald"
-                              aria-label={setting.key}
-                            />
+                              onChange={(val) => handleSettingChange(setting.key, val)}
+                            >
+                              <Label className="sr-only">{setting.key}</Label>
+                              <Input
+                                type={isNumber ? 'number' : 'text'}
+                                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                aria-label={setting.key}
+                              />
+                            </TextField>
                           )}
                         </div>
                       );
                     })
                   )}
-                </CardBody>
+                </div>
               </Card>
 
               {settings.length > 0 && (
                 <Button
+                  type="button"
+                  isDisabled={saving}
                   onPress={handleSaveSettings}
-                  isLoading={saving}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm h-12 rounded-2xl shadow-lg shadow-emerald-600/10 active:scale-95 transition-all w-full flex items-center justify-center gap-2 cursor-pointer"
+                  className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${
+                    saving
+                      ? 'bg-emerald-800 shadow-none'
+                      : 'bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] transition-all cursor-pointer'
+                  } w-full`}
                 >
-                  <Save className="w-4 h-4" />
-                  {isDe ? 'Änderungen speichern' : 'Save Changes'}
+                  <span className="flex items-center gap-2 justify-center">
+                    {saving ? (
+                      <>
+                        <Spinner color="current" size="sm" />
+                        <span>{isDe ? 'Wird gespeichert...' : 'Saving...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>{isDe ? 'Änderungen speichern' : 'Save Changes'}</span>
+                      </>
+                    )}
+                  </span>
                 </Button>
               )}
             </div>
-          )}
+          </Tabs.Panel>
 
-          {activeTab === 'feedback' && (
-            <div className="flex flex-col gap-4 mx-2">
+          <Tabs.Panel id="feedback">
+            <div className="flex flex-col gap-4">
               {feedback.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-12">
                   {isDe ? 'Bisher kein Feedback eingegangen.' : 'No feedback submissions received yet.'}
@@ -317,12 +367,12 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   const isExpanded = expandedFeedbackId === item.id;
 
                   return (
-                    <Card key={item.id} className="border border-black/5 dark:border-white/10 bg-white dark:bg-gray-900 rounded-3xl shadow-sm overflow-hidden">
-                      <CardBody className="p-5 flex flex-col gap-3">
+                    <Card key={item.id} className="border border-black/5 dark:border-white/10 bg-white dark:bg-gray-900 rounded-2xl shadow-sm overflow-hidden">
+                      <div className="p-5 flex flex-col gap-3">
                         {/* Feed Card Header */}
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               {isBug ? (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-500/20 uppercase tracking-wider">
                                   <Bug className="w-3 h-3 text-rose-500" />
@@ -361,8 +411,9 @@ export default function AdminView({ onBack }: AdminViewProps) {
                               {item.screenshot_urls.map((url, idx) => (
                                 <button
                                   key={idx}
+                                  type="button"
                                   onClick={() => setLightboxImage(url)}
-                                  className="w-16 h-16 rounded-xl border border-black/10 dark:border-white/10 overflow-hidden shrink-0 active:scale-95 hover:brightness-95 transition-all cursor-pointer bg-gray-100 dark:bg-gray-800"
+                                  className="w-16 h-16 rounded-xl border border-black/10 dark:border-white/10 overflow-hidden shrink-0 active:scale-95 hover:brightness-95 transition-all cursor-pointer bg-gray-100 dark:bg-gray-800 bg-none border-none outline-none"
                                 >
                                   <img src={url} alt={`Screenshot ${idx}`} className="w-full h-full object-cover" />
                                 </button>
@@ -375,6 +426,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                         {item.context && (
                           <div className="mt-1">
                             <button
+                              type="button"
                               onClick={() => toggleFeedbackExpand(item.id)}
                               className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors flex items-center gap-1 cursor-pointer outline-none"
                             >
@@ -430,15 +482,15 @@ export default function AdminView({ onBack }: AdminViewProps) {
                             )}
                           </div>
                         )}
-                      </CardBody>
+                      </div>
                     </Card>
                   );
                 })
               )}
             </div>
-          )}
-        </>
-      )}
+          </Tabs.Panel>
+        </Tabs>
+      </div>
 
       {/* Lightbox for screenshots */}
       {lightboxImage && (
@@ -447,8 +499,9 @@ export default function AdminView({ onBack }: AdminViewProps) {
           onClick={() => setLightboxImage(null)}
         >
           <button
+            type="button"
             onClick={() => setLightboxImage(null)}
-            className="absolute top-4 right-4 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            className="absolute top-4 right-4 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer border-none outline-none"
             aria-label="Close Lightbox"
           >
             <X className="w-6 h-6" />
