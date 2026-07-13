@@ -45,6 +45,7 @@ export default function App() {
   // History & multi-view states
   const [history, setHistory] = useState<Job[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [initialSyncDone, setInitialSyncDone] = useState(false);
   const [isCatalogSelectMode, setIsCatalogSelectMode] = useState(false);
   const { pendingNavigation } = useTimerManager();
 
@@ -165,12 +166,45 @@ export default function App() {
     }).catch(err => console.error('Failed to load billing module:', err));
   }, [authLoading, user, fetchHistory]);
 
-  // Fetch rate limit status when entering the extract tab
+  // Initial sync on startup/login
   useEffect(() => {
-    if (activeView === 'extract' && user) {
+    if (authLoading) return;
+    if (!user) {
+      setInitialSyncDone(true);
+      return;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        await fetchLimitStatus();
+      } catch (e) {
+        console.warn('Startup sync failed:', e);
+      } finally {
+        if (active) {
+          setInitialSyncDone(true);
+        }
+      }
+    };
+    sync();
+    return () => { active = false; };
+  }, [authLoading, user, fetchLimitStatus]);
+
+  // Fetch rate limit status when entering the extract tab (refresh)
+  useEffect(() => {
+    if (initialSyncDone && activeView === 'extract' && user) {
       fetchLimitStatus();
     }
-  }, [activeView, user, isPremiumOverride, fetchLimitStatus]);
+  }, [activeView, user, isPremiumOverride, fetchLimitStatus, initialSyncDone]);
+
+  // Hide native splash screen when app is fully ready
+  useEffect(() => {
+    if (!authLoading && initialSyncDone) {
+      import('./native').then(({ hideSplashScreen }) => {
+        hideSplashScreen();
+      }).catch(err => console.error('Failed to hide splash screen:', err));
+    }
+  }, [authLoading, initialSyncDone]);
 
   // After history loads, check if current URL references a valid jobId and keep it,
   // or clear the subPath if the jobId no longer exists.
@@ -392,7 +426,7 @@ export default function App() {
   const statusDetails = getStatusDetails();
 
   // ── Auth gate ────────────────────────────────────────────────────────────
-  if (authLoading) {
+  if (authLoading || !initialSyncDone) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent" />
