@@ -89,7 +89,7 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
               {/* Header */}
               <Drawer.Header className="border-b border-black/5 dark:border-white/5 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 flex items-center justify-center">
                     <Tag className="w-4.5 h-4.5 text-amber-600 dark:text-amber-400" />
                   </div>
                   <Drawer.Heading className="text-base font-bold">
@@ -114,7 +114,7 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
                       {tags.map(tag => (
                         <span
                           key={tag}
-                          className="inline-flex items-center gap-1 bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-semibold px-2.5 py-1 rounded-xl"
+                          className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2.5 py-1 rounded-xl border border-amber-500/20"
                         >
                           {tag}
                           <button
