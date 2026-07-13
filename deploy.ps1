@@ -96,6 +96,51 @@ function Run-Git {
     }
 }
 
+# --- Frontend .env Safety Guard ---
+
+# Validates VITE_API_BASE_URL in frontend/.env before any native (Capacitor / APK / AAB)
+# build runs. A missing, empty, or loopback value would silently ship a Play Store release
+# whose production webview cannot reach the backend (everything stays on
+# http(s)://localhost and dies). This guard is a hard pre-flight check.
+function Test-FrontendApiBaseUrl {
+    $envFile = "frontend/.env"
+    if (-not (Test-Path $envFile)) {
+        throw "frontend/.env not found. Create it before building a native release."
+    }
+
+    $content = Get-Content $envFile -Raw
+    # Match `VITE_API_BASE_URL=...`, tolerant to leading whitespace and an optional `export `.
+    $match = [regex]::Match($content, '(?im)^\s*(?:export\s+)?VITE_API_BASE_URL\s*=\s*(.*?)\s*$')
+    if (-not $match.Success) {
+        throw "VITE_API_BASE_URL is not defined in frontend/.env. Add it (e.g. `VITE_API_BASE_URL=https://api.example.com`) before building a native release."
+    }
+
+    # Strip inline comments and surrounding quotes, then trim.
+    $raw = ($match.Groups[1].Value -replace '\s*#.*$', '').Trim()
+    $raw = $raw.Trim('"').Trim("'")
+
+    if ([string]::IsNullOrWhiteSpace($raw)) {
+        throw "VITE_API_BASE_URL in frontend/.env is empty. Native (Capacitor) builds cannot use a same-origin / empty value. Set it to your production backend origin, e.g. `VITE_API_BASE_URL=https://api.example.com`."
+    }
+
+    $parsedUri = $null
+    if (-not [Uri]::TryCreate($raw, [UriKind]::Absolute, [ref]$parsedUri) -or ($parsedUri.Scheme -ne 'http' -and $parsedUri.Scheme -ne 'https')) {
+        throw "VITE_API_BASE_URL in frontend/.env is not a valid http(s) URL: '$raw'. Use the form `VITE_API_BASE_URL=https://api.example.com`."
+    }
+
+    # Reject loopback / device-only addresses. System.Uri.IsLoopback already covers 'localhost'
+    # (case-insensitive), 127.0.0.0/8, and every IPv6 loopback rendering ([::1], [0:0:...:1], ...).
+    # We also explicitly block 0.0.0.0 and the IPv6 unspecified address [::] which .NET does not
+    # classify as loopback but are equally unsafe in a production client URL.
+    $hostName = $parsedUri.Host.ToLowerInvariant()
+    $extraBlocked = @('0.0.0.0', '[0000:0000:0000:0000:0000:0000:0000:0000]')
+    if ($parsedUri.IsLoopback -or $extraBlocked -contains $hostName) {
+        throw "VITE_API_BASE_URL in frontend/.env points to a loopback or unspecified address ('$($parsedUri.Host)'). This is unsafe for a native release because the device has no access to your dev machine. Use a publicly reachable backend origin, e.g. `VITE_API_BASE_URL=https://api.example.com`."
+    }
+
+    Write-Host "  VITE_API_BASE_URL OK: $($parsedUri.Scheme)://$($parsedUri.Host)" -ForegroundColor DarkGray
+}
+
 # --- Transaction Helper ---
 
 $global:originalBranch = $null
@@ -165,6 +210,10 @@ function Build-AndUploadApp {
     Write-Host "|  Releasing App to Google Play Store          |" -ForegroundColor Cyan
     Write-Host "+----------------------------------------------+" -ForegroundColor Cyan
     Write-Host ""
+
+    # Pre-flight: ensure the production backend URL is configured for the native bundle.
+    Write-Host "Validating frontend/.env VITE_API_BASE_URL for native build..." -ForegroundColor Yellow
+    Test-FrontendApiBaseUrl
 
     $params = @{}
     $params["Track"] = $Track
