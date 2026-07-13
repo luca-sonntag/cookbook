@@ -39,11 +39,15 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
   const { addTimer } = useTimerManager();
   const { addCustomItem } = useShoppingList();
 
+  // Recipe.id is optional on the type but always present at runtime (the backend
+  // normalizes it). Derive a guaranteed string for the per-recipe cache keys.
+  const recipeId = recipe.id ?? '';
+
   const [message, setMessage] = useState('');
   // Lazily hydrate the chat from the per-recipe cache so a reopened session resumes where it left off.
   const [history, setHistory] = useState<Message[]>(() => {
     try {
-      const saved = localStorage.getItem(chatStorageKey(recipe.id));
+      const saved = localStorage.getItem(chatStorageKey(recipeId));
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -63,8 +67,8 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
   // conversation into another recipe's cache key when the `recipe` prop swaps (e.g. after a remix).
   const loadedRecipeIdRef = useRef(recipe.id);
 
-  const chatKey = chatStorageKey(recipe.id);
-  const chipsKey = chipsStorageKey(recipe.id, language);
+  const chatKey = chatStorageKey(recipeId);
+  const chipsKey = chipsStorageKey(recipeId, language);
 
   // Persist the chat to the per-recipe cache on every change.
   useEffect(() => {
