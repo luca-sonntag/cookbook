@@ -84,6 +84,7 @@ interface AuthState {
   authError: string | null;
   isPremium: boolean;
   isPremiumOverride: boolean;
+  isAdmin: boolean;
   setIsPremiumOverride: (value: boolean) => void;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
@@ -103,6 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [autoSignedIn, setAutoSignedIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Development-only Premium simulator state
   const [isPremiumOverride, setIsPremiumOverrideState] = useState<boolean>(() => {
@@ -170,6 +172,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkAdminStatus = useCallback(async (token: string | null) => {
+    if (!token) {
+      setIsAdmin(false);
+      return;
+    }
+    try {
+      const response = await fetch(apiUrl('/api/admin/check'), {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setIsAdmin(!!data.isAdmin);
+      } else {
+        setIsAdmin(false);
+      }
+    } catch (e) {
+      console.warn('Failed to check admin status:', e);
+      setIsAdmin(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!session) {
+      setIsAdmin(false);
+      return;
+    }
+    checkAdminStatus(session.access_token);
+  }, [session, checkAdminStatus]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     setAuthError(null);
@@ -302,7 +335,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [getAccessToken, signOut]);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, isPremiumOverride, setIsPremiumOverride, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount, refreshSession }}>
+    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, isPremiumOverride, isAdmin, setIsPremiumOverride, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );
