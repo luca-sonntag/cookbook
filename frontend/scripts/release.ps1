@@ -101,6 +101,20 @@ Write-Host "  Capacitor sync complete." -ForegroundColor Green
 Write-Host "[3/4] Building release AAB..." -ForegroundColor Yellow
 Push-Location $androidDir
 try {
+    # Check for active live-reload server configuration
+    $configFile = "$androidDir\app\src\main\assets\capacitor.config.json"
+    if (Test-Path $configFile) {
+        $configJson = Get-Content $configFile -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
+        if ($configJson -and $configJson.server -and $configJson.server.url) {
+            throw "Error: A live-reload server URL ($($configJson.server.url)) is configured in capacitor.config.json. Please stop the 'npm run cap:live' process and run 'npx cap sync android' to restore standard configuration before building a release."
+        }
+    }
+
+    # Clean intermediate build cache to ensure stale configurations are not packaged
+    Write-Host "  Cleaning Gradle build cache..."
+    & .\gradlew.bat clean
+    if ($LASTEXITCODE -ne 0) { throw "Gradle clean failed" }
+
     & .\gradlew.bat bundleRelease
     if ($LASTEXITCODE -ne 0) { throw "Gradle bundleRelease failed" }
 } finally {
