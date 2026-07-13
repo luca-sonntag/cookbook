@@ -1,7 +1,8 @@
-import React, { useState, useEffect, KeyboardEvent } from 'react';
+import React, { useState, useEffect } from 'react';
+import type { KeyboardEvent } from 'react';
 import { Button, Drawer } from '@heroui/react';
 import { Tag, X, Plus } from 'lucide-react';
-import { Job } from '../../types';
+import type { Job } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 
 interface FlagSheetProps {
@@ -191,10 +192,10 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
                 </Button>
                 <Button
                   onPress={handleSave}
-                  isLoading={isSaving}
+                  isDisabled={isSaving}
                   className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm h-11 font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/10 active:scale-95 transition-all"
                 >
-                  {t('recipe.save') || 'Speichern'}
+                  {isSaving ? (language === 'de' ? 'Speichern...' : 'Saving...') : (t('recipe.save') || 'Speichern')}
                 </Button>
               </Drawer.Footer>
             </Drawer.Dialog>
