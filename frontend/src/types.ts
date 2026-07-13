@@ -78,7 +78,22 @@ export interface Job {
   prompt?: string | null;
   createdAt: string;
   updatedAt: string;
+  isFavorite?: boolean;
+  flags?: string[];
+  collectionIds?: string[];
 }
+
+export interface Collection {
+  id: string;
+  userId: string;
+  name: string;
+  emoji?: string | null;
+  color?: string | null;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
 
 export interface BeforeInstallPromptEvent extends Event {
