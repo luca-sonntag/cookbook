@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Tabs, Card, TextField, Label, Input, Button, Spinner } from '@heroui/react';
-import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal } from 'lucide-react';
+import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal, BarChart3, Users, BookOpen, TrendingUp, Coins } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
 import { useI18n } from '../context/I18nContext';
@@ -29,10 +29,11 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const { getAccessToken } = useAuth();
   const { language } = useI18n();
 
-  const [activeTab, setActiveTab] = useState<'settings' | 'feedback'>('settings');
+  const [activeTab, setActiveTab] = useState<'settings' | 'feedback' | 'metrics'>('settings');
   const [settings, setSettings] = useState<GlobalSetting[]>([]);
   const [localSettings, setLocalSettings] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
+  const [metrics, setMetrics] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,16 +88,38 @@ export default function AdminView({ onBack }: AdminViewProps) {
     }
   }, [getAccessToken, isDe]);
 
+  const fetchMetrics = useCallback(async () => {
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(apiUrl('/api/admin/metrics'), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setMetrics(data);
+      } else {
+        throw new Error(data.error || 'Failed to fetch metrics');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(isDe ? 'Metriken konnten nicht geladen werden.' : 'Failed to load metrics.');
+    }
+  }, [getAccessToken, isDe]);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     if (activeTab === 'settings') {
       await fetchSettings();
-    } else {
+    } else if (activeTab === 'feedback') {
       await fetchFeedback();
+    } else if (activeTab === 'metrics') {
+      await fetchMetrics();
     }
     setLoading(false);
-  }, [activeTab, fetchSettings, fetchFeedback]);
+  }, [activeTab, fetchSettings, fetchFeedback, fetchMetrics]);
 
   useEffect(() => {
     loadData();
@@ -214,7 +237,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
 
       {/* Tabs Switch */}
       <div className="mx-2">
-        <Tabs selectedKey={activeTab} onSelectionChange={(key) => { setError(null); setActiveTab(key as 'settings' | 'feedback'); }} className="w-full">
+        <Tabs selectedKey={activeTab} onSelectionChange={(key) => { setError(null); setActiveTab(key as 'settings' | 'feedback' | 'metrics'); }} className="w-full">
           <Tabs.ListContainer className="w-full">
             <Tabs.List className="flex w-full mb-4 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-black/5 dark:border-white/5">
               <Tabs.Tab id="settings" className="flex-1 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
@@ -227,6 +250,12 @@ export default function AdminView({ onBack }: AdminViewProps) {
                 <div className="flex items-center justify-center gap-2">
                   <MessageSquare className="w-4 h-4" />
                   <span>Feedback</span>
+                </div>
+              </Tabs.Tab>
+              <Tabs.Tab id="metrics" className="flex-1 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
+                <div className="flex items-center justify-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  <span>{isDe ? 'Metriken' : 'Metrics'}</span>
                 </div>
               </Tabs.Tab>
             </Tabs.List>
@@ -488,6 +517,183 @@ export default function AdminView({ onBack }: AdminViewProps) {
                 })
               )}
             </div>
+          </Tabs.Panel>
+
+          <Tabs.Panel id="metrics">
+            {metrics ? (
+              <div className="flex flex-col gap-6">
+                {/* 1. Top Level Metrics Cards Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-gray-400 dark:text-gray-500">
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{isDe ? 'Nutzer' : 'Users'}</span>
+                      <Users className="w-4 h-4 text-emerald-555 text-emerald-500" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                        {metrics.users?.total ?? 0}
+                      </span>
+                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">{isDe ? 'Registriert' : 'Registered'}</span>
+                    </div>
+                  </Card>
+
+                  <Card className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-gray-400 dark:text-gray-500">
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{isDe ? 'Rezepte' : 'Recipes'}</span>
+                      <BookOpen className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                        {metrics.jobs?.total ?? 0}
+                      </span>
+                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">{isDe ? 'Extraktionen' : 'Extractions'}</span>
+                    </div>
+                  </Card>
+
+                  <Card className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-gray-400 dark:text-gray-500">
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{isDe ? 'LLM Kosten' : 'LLM Costs'}</span>
+                      <Coins className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                        ${metrics.llm?.totalCostUsd?.toFixed(4) ?? '0.0000'}
+                      </span>
+                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">{isDe ? 'Letzte 30 Tage' : 'Last 30 days'}</span>
+                    </div>
+                  </Card>
+
+                  <Card className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-gray-400 dark:text-gray-500">
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{isDe ? 'Anfragen' : 'Requests'}</span>
+                      <TrendingUp className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                        {metrics.llm?.count ?? 0}
+                      </span>
+                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">Gemini Calls</span>
+                    </div>
+                  </Card>
+                </div>
+
+                {/* 2. Job Status Queue breakdown card */}
+                <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-4">
+                  <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5 leading-none">
+                    Queue Status Breakdown
+                  </h3>
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <div className="bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/10 dark:border-emerald-500/20 rounded-xl p-2.5 flex flex-col">
+                      <span className="text-xs text-emerald-600 dark:text-emerald-450 font-bold">{isDe ? 'Erfolgreich' : 'Succeeded'}</span>
+                      <span className="text-lg font-black text-emerald-700 dark:text-emerald-300 mt-0.5">{metrics.jobs?.completed ?? 0}</span>
+                    </div>
+                    <div className="bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/10 dark:border-rose-500/20 rounded-xl p-2.5 flex flex-col">
+                      <span className="text-xs text-rose-600 dark:text-rose-455 font-bold">{isDe ? 'Fehlgeschlagen' : 'Failed'}</span>
+                      <span className="text-lg font-black text-rose-700 dark:text-rose-300 mt-0.5">{metrics.jobs?.failed ?? 0}</span>
+                    </div>
+                    <div className="bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/10 dark:border-blue-500/20 rounded-xl p-2.5 flex flex-col">
+                      <span className="text-xs text-blue-600 dark:text-blue-450 font-bold">{isDe ? 'Aktiv' : 'Processing'}</span>
+                      <span className="text-lg font-black text-blue-700 dark:text-blue-300 mt-0.5">{metrics.jobs?.processing ?? 0}</span>
+                    </div>
+                    <div className="bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/10 dark:border-amber-500/20 rounded-xl p-2.5 flex flex-col">
+                      <span className="text-xs text-amber-600 dark:text-amber-450 font-bold">{isDe ? 'Wartend' : 'Pending'}</span>
+                      <span className="text-lg font-black text-amber-700 dark:text-amber-300 mt-0.5">{metrics.jobs?.pending ?? 0}</span>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 3. LLM Breakdown Table */}
+                <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-4 overflow-hidden">
+                  <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
+                    {isDe ? 'LLM Kosten nach Funktion' : 'LLM Costs by Function'}
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs text-gray-550 dark:text-gray-400 border-collapse">
+                      <thead>
+                        <tr className="border-b border-black/5 dark:border-white/5 text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                          <th className="pb-2.5 font-bold">{isDe ? 'Funktion' : 'Function'}</th>
+                          <th className="pb-2.5 text-right font-bold">{isDe ? 'Anfragen' : 'Requests'}</th>
+                          <th className="pb-2.5 text-right font-bold">Tokens</th>
+                          <th className="pb-2.5 text-right font-bold">{isDe ? 'Kosten (USD)' : 'Costs (USD)'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/5 dark:divide-white/5 font-semibold">
+                        {Object.entries(metrics.llm?.breakdown || {}).map(([key, value]: [string, any]) => (
+                          <tr key={key} className="text-gray-800 dark:text-gray-200">
+                            <td className="py-2.5 font-mono text-[11px] text-gray-500 dark:text-gray-450">{key}</td>
+                            <td className="py-2.5 text-right">{value.count}</td>
+                            <td className="py-2.5 text-right font-mono">{value.tokens.toLocaleString()}</td>
+                            <td className="py-2.5 text-right font-mono text-amber-600 dark:text-amber-450">${value.cost.toFixed(4)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+
+                {/* 4. Daily stats list acting as elegant visual bar-charts */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Daily Extractions */}
+                  <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-4">
+                    <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
+                      {isDe ? 'Extraktionen (Letzte 14 Tage)' : 'Extractions (Last 14 Days)'}
+                    </h3>
+                    <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
+                      {metrics.jobs?.dailyStats?.map((stat: any) => {
+                        const maxCount = Math.max(...metrics.jobs.dailyStats.map((s: any) => s.count), 1);
+                        const pct = (stat.count / maxCount) * 100;
+                        return (
+                          <div key={stat.date} className="flex items-center gap-3 text-[11px]">
+                            <span className="w-20 text-gray-400 dark:text-gray-500 font-mono shrink-0">{stat.date.slice(5)}</span>
+                            <div className="flex-1 bg-black/5 dark:bg-white/5 h-2.5 rounded-full overflow-hidden">
+                              <div
+                                className="bg-emerald-500 dark:bg-emerald-600 h-full rounded-full transition-all duration-500"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="w-6 text-right font-bold text-gray-800 dark:text-white shrink-0">{stat.count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Card>
+
+                  {/* Daily Costs */}
+                  <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-4">
+                    <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
+                      {isDe ? 'Gemini Kosten (Letzte 30 Tage)' : 'Gemini Costs (Last 30 Days)'}
+                    </h3>
+                    <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
+                      {metrics.llm?.dailyCost?.filter((stat: any) => stat.cost > 0).map((stat: any) => {
+                        const maxCost = Math.max(...metrics.llm.dailyCost.map((s: any) => s.cost), 0.0001);
+                        const pct = (stat.cost / maxCost) * 100;
+                        return (
+                          <div key={stat.date} className="flex items-center gap-3 text-[11px]">
+                            <span className="w-20 text-gray-400 dark:text-gray-500 font-mono shrink-0">{stat.date}</span>
+                            <div className="flex-1 bg-black/5 dark:bg-white/5 h-2.5 rounded-full overflow-hidden">
+                              <div
+                                className="bg-amber-500 dark:bg-amber-600 h-full rounded-full transition-all duration-500"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="w-16 text-right font-bold text-amber-600 dark:text-amber-450 shrink-0 font-mono">${stat.cost.toFixed(4)}</span>
+                          </div>
+                        );
+                      })}
+                      {metrics.llm?.dailyCost?.filter((stat: any) => stat.cost > 0).length === 0 && (
+                        <p className="text-center text-xs text-gray-400 py-12">
+                          {isDe ? 'Keine Kosten im Zeitraum.' : 'No cost data in timeframe.'}
+                        </p>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-12">
+                {isDe ? 'Keine Metriken verfügbar.' : 'No metrics available.'}
+              </p>
+            )}
           </Tabs.Panel>
         </Tabs>
       </div>
