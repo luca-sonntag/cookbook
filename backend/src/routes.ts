@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback } from './db.js';
 import { config } from './config.js';
-import { requireAuth } from './auth.js';
+import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
 
 export const apiRouter = Router();
@@ -1188,6 +1188,75 @@ apiRouter.patch('/jobs/:id/collections', async (req: Request, res: Response): Pr
     res.status(200).json({ success: true, message: 'Recipe collections updated.' });
   } catch (error: any) {
     console.error('Error updating recipe collections:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Check if the user is an admin.
+ * GET /api/admin/check
+ * Available to all authenticated users.
+ */
+apiRouter.get('/admin/check', (req: Request, res: Response): void => {
+  const email = req.userEmail;
+  if (!email) {
+    res.json({ success: true, isAdmin: false });
+    return;
+  }
+  const adminEmails = config.ADMIN_EMAILS.split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean);
+  const isAdmin = adminEmails.includes(email.toLowerCase());
+  res.json({ success: true, isAdmin });
+});
+
+/**
+ * Fetch all global settings.
+ * GET /api/admin/settings
+ * Requires admin privileges.
+ */
+apiRouter.get('/admin/settings', requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const settings = await getAllGlobalSettings();
+    res.json({ success: true, settings });
+  } catch (error) {
+    console.error('Error fetching global settings:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Update global settings.
+ * PATCH /api/admin/settings
+ * Requires admin privileges.
+ */
+apiRouter.patch('/admin/settings', requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { settings } = req.body;
+    if (!settings || typeof settings !== 'object') {
+      res.status(400).json({ success: false, error: 'Settings object is required.' });
+      return;
+    }
+
+    await updateGlobalSettings(settings);
+    res.json({ success: true, message: 'Global settings updated.' });
+  } catch (error) {
+    console.error('Error updating global settings:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Retrieve all feedback.
+ * GET /api/admin/feedback
+ * Requires admin privileges.
+ */
+apiRouter.get('/admin/feedback', requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const feedback = await getAllFeedback();
+    res.json({ success: true, feedback });
+  } catch (error) {
+    console.error('Error fetching feedback:', error);
     res.status(500).json({ success: false, error: 'Internal server error.' });
   }
 });
