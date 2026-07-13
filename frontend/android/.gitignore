@@ -76,6 +76,15 @@ fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
 
+# Keep our hand-written fastlane docs (the template ignores the auto-generated
+# lowercase fastlane/readme.md; on case-insensitive filesystems that would also
+# swallow README.md).
+!fastlane/README.md
+
+# Google Play service-account key — NEVER commit
+fastlane/play-store-key.json
+fastlane/*-play-store-key.json
+
 # Version control
 vcs.xml
 

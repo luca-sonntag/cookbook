@@ -1,0 +1,7 @@
+# Fastlane Appfile — Google Play upload config for Snagbite.
+#
+# The service-account JSON key path is provided at runtime via the
+# SUPPLY_JSON_KEY_FILE env var (mounted into the Docker container). The key file
+# itself must NEVER be committed — see README.md in this folder.
+json_key_file(ENV["SUPPLY_JSON_KEY_FILE"] || "play-store-key.json")
+package_name("at.snagbite.app")

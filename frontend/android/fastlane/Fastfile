@@ -1,0 +1,35 @@
+# Fastlane config for uploading Snagbite's signed AAB to Google Play.
+#
+# Design (hybrid): the AAB is built locally by frontend/scripts/release.ps1 and
+# this lane only UPLOADS it. Fastlane runs inside a small Ruby+Fastlane Docker
+# image (see Dockerfile) so no local Ruby install is required. The wrapper
+# frontend/scripts/deploy-internal.ps1 chains build -> upload into one command.
+#
+# Runtime inputs (env vars, set by the wrapper / docker run):
+#   AAB_PATH             Absolute path to the .aab inside the container.
+#   SUPPLY_JSON_KEY_FILE Path to the Google Play service-account JSON key.
+#   RELEASE_STATUS       Play release status: completed (default) | draft | halted.
+
+default_platform(:android)
+
+platform :android do
+  desc "Upload the signed AAB to the Google Play internal testing track"
+  lane :internal do
+    aab = ENV["AAB_PATH"] || "../releases/app-release.aab"
+    UI.user_error!("AAB not found at '#{aab}'. Build it first (release.ps1).") unless File.exist?(aab)
+
+    upload_to_play_store(
+      track: "internal",
+      aab: aab,
+      release_status: ENV["RELEASE_STATUS"] || "completed",
+      # Upload the bundle only — no store listing / metadata changes from here.
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    )
+
+    UI.success("Uploaded #{File.basename(aab)} to the internal track.")
+  end
+end

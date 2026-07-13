@@ -1,0 +1,6 @@
+# Never send secrets or fastlane run artifacts into the Docker build context.
+play-store-key.json
+*.json
+report.xml
+Preview.html
+README.md
