@@ -263,30 +263,25 @@ export default function AdminView({ onBack }: AdminViewProps) {
         <Tabs selectedKey={activeTab} onSelectionChange={(key) => { setError(null); setActiveTab(key as 'settings' | 'feedback' | 'metrics' | 'users'); }} className="w-full">
           <Tabs.ListContainer className="w-full">
             <Tabs.List className="flex w-full mb-4 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-black/5 dark:border-white/5">
-              <Tabs.Tab id="settings" className="flex-1 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
-                <div className="flex items-center justify-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  <span>{isDe ? 'Einstellungen' : 'Settings'}</span>
-                </div>
-              </Tabs.Tab>
-              <Tabs.Tab id="feedback" className="flex-1 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
-                <div className="flex items-center justify-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Feedback</span>
-                </div>
-              </Tabs.Tab>
-              <Tabs.Tab id="metrics" className="flex-1 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
-                <div className="flex items-center justify-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  <span>{isDe ? 'Metriken' : 'Metrics'}</span>
-                </div>
-              </Tabs.Tab>
-              <Tabs.Tab id="users" className="flex-1 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
-                <div className="flex items-center justify-center gap-2">
-                  <Users className="w-4 h-4" />
-                  <span>{isDe ? 'Nutzer' : 'Users'}</span>
-                </div>
-              </Tabs.Tab>
+              {(
+                [
+                  { id: 'settings', icon: <Settings className="w-4 h-4" />, label: isDe ? 'Config' : 'Config' },
+                  { id: 'feedback', icon: <MessageSquare className="w-4 h-4" />, label: 'Feedback' },
+                  { id: 'metrics', icon: <BarChart3 className="w-4 h-4" />, label: isDe ? 'Kosten' : 'Costs' },
+                  { id: 'users', icon: <Users className="w-4 h-4" />, label: isDe ? 'Nutzer' : 'Users' },
+                ] as const
+              ).map(({ id, icon, label }) => (
+                <Tabs.Tab
+                  key={id}
+                  id={id}
+                  className="flex-1 px-1 py-2 text-center font-semibold transition-all cursor-pointer rounded-lg !text-gray-500 dark:!text-gray-400 data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white"
+                >
+                  <div className="flex flex-col items-center justify-center gap-0.5">
+                    {icon}
+                    <span className="text-[10px] leading-none">{label}</span>
+                  </div>
+                </Tabs.Tab>
+              ))}
             </Tabs.List>
           </Tabs.ListContainer>
 
@@ -553,16 +548,19 @@ export default function AdminView({ onBack }: AdminViewProps) {
               <div className="flex flex-col gap-6">
                 {/* 1. Top Level Metrics Cards Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-2">
+                  <Card
+                    className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-2 cursor-pointer hover:ring-2 hover:ring-emerald-400/50 transition-all active:scale-95"
+                    onClick={() => { setError(null); setActiveTab('users'); }}
+                  >
                     <div className="flex items-center justify-between text-gray-400 dark:text-gray-500">
                       <span className="text-[10px] font-bold uppercase tracking-wider">{isDe ? 'Nutzer' : 'Users'}</span>
-                      <Users className="w-4 h-4 text-emerald-555 text-emerald-500" />
+                      <Users className="w-4 h-4 text-emerald-500" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
                         {metrics.users?.total ?? 0}
                       </span>
-                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">{isDe ? 'Registriert' : 'Registered'}</span>
+                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">{isDe ? 'Registriert → Nutzer' : 'Registered → Users'}</span>
                     </div>
                   </Card>
 
