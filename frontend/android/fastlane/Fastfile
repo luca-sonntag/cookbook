@@ -4,6 +4,7 @@
 # this lane only UPLOADS it. Fastlane runs inside a small Ruby+Fastlane Docker
 # image (see Dockerfile) so no local Ruby install is required. The wrapper
 # frontend/scripts/deploy-internal.ps1 chains build -> upload into one command.
+# One-time Google Play setup: see SETUP.md in this folder.
 #
 # Runtime inputs (env vars, set by the wrapper / docker run):
 #   AAB_PATH             Absolute path to the .aab inside the container.

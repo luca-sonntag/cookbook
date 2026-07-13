@@ -17,7 +17,7 @@
         (default: frontend/android/fastlane/play-store-key.json). NEVER commit it.
       - The app already created in Play Console with its first release uploaded
         manually (Play requires the first AAB of a new app via the UI).
-      See frontend/android/fastlane/README.md for one-time setup.
+      See frontend/android/fastlane/SETUP.md for one-time setup.
 
 .PARAMETER Bump
     versionName bump passed through to release.ps1: none (default)/patch/minor/major.
@@ -79,7 +79,7 @@ Write-Host "  -> $($aab.Name)" -ForegroundColor Green
 # --- 3. Validate service-account key ---------------------------------
 if (-not (Test-Path $KeyFile)) {
     throw "Google Play service-account key not found at '$KeyFile'.`n" +
-          "Create one and place it there (see frontend/android/fastlane/README.md). Never commit it."
+          "Create one and place it there (see frontend/android/fastlane/SETUP.md). Never commit it."
 }
 
 # --- 4. Build the Fastlane image (cached) ----------------------------
