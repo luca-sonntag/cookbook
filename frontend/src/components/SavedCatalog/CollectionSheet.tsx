@@ -92,7 +92,7 @@ export default function CollectionSheet({
 
   const handleSaveCollection = async () => {
     if (!name.trim()) {
-      setFormError(t('collections.nameRequired') || 'Name ist erforderlich');
+      setFormError(t('catalog.collectionNameRequired') || 'Name ist erforderlich');
       return;
     }
 
