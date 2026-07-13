@@ -325,6 +325,7 @@ export default function SavedCatalog({
         selectedJobIds={collectionSheetBulkIds}
         onUpdated={() => {
           fetchHistory?.();
+          refreshCollections();
         }}
       />
 

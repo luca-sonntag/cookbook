@@ -100,6 +100,7 @@ export default function CollectionSheet({
       const res = await createCollection(name, selectedEmoji, selectedColor);
       if (res.success) {
         setMode('assign');
+        onUpdated?.();
       } else {
         setFormError(res.error || 'Fehler beim Erstellen');
       }
@@ -111,6 +112,7 @@ export default function CollectionSheet({
       });
       if (res.success) {
         setMode('assign');
+        onUpdated?.();
       } else {
         setFormError(res.error || 'Fehler beim Aktualisieren');
       }
@@ -122,6 +124,7 @@ export default function CollectionSheet({
     const res = await deleteCollection(editingCollection.id);
     if (res.success) {
       setMode('assign');
+      onUpdated?.();
     } else {
       setFormError(res.error || 'Fehler beim Löschen');
     }
