@@ -7,6 +7,7 @@ declare global {
   namespace Express {
     interface Request {
       userId?: string;
+      userEmail?: string;
     }
   }
 }
@@ -19,7 +20,7 @@ const JWKS = createRemoteJWKSet(
 /**
  * Middleware that verifies the Supabase JWT locally via JWKS.
  * No network round-trip to Supabase Auth per request.
- * Attaches `req.userId` on success.
+ * Attaches `req.userId` and `req.userEmail` on success.
  */
 export async function requireAuth(
   req: Request,
@@ -45,8 +46,41 @@ export async function requireAuth(
     }
 
     req.userId = payload.sub;
+    req.userEmail = payload.email as string | undefined;
     next();
   } catch {
     res.status(401).json({ success: false, error: 'Unauthorized: Invalid or expired token.' });
   }
+}
+
+/**
+ * Middleware that verifies if the authenticated user is a configured admin.
+ * Assumes requireAuth has already executed and populated req.userId and req.userEmail.
+ */
+export function requireAdmin(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  if (!req.userId) {
+    res.status(401).json({ success: false, error: 'Unauthorized: Authentication required.' });
+    return;
+  }
+
+  const email = req.userEmail;
+  if (!email) {
+    res.status(403).json({ success: false, error: 'Forbidden: Missing email claim in authentication token.' });
+    return;
+  }
+
+  const adminEmails = config.ADMIN_EMAILS.split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (!adminEmails.includes(email.toLowerCase())) {
+    res.status(403).json({ success: false, error: 'Forbidden: User is not configured as an admin.' });
+    return;
+  }
+
+  next();
 }
