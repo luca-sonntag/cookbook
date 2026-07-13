@@ -56,6 +56,7 @@ export function useHashRouter() {
   useEffect(() => {
     const onHashChange = () => {
       setRoute(parseHash(window.location.hash));
+      window.scrollTo({ top: 0, behavior: 'instant' });
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -74,7 +75,7 @@ export function useHashRouter() {
     const newHash = buildHash(tab, subPath);
     if (window.location.hash !== newHash) {
       window.location.hash = newHash;
-      // hashchange event fires → setRoute via listener above
+      // hashchange event fires → setRoute + scrollToTop via listener above
     }
   }, []);
 
@@ -87,6 +88,7 @@ export function useHashRouter() {
     const cleanBasePath = basePath.endsWith('/') ? basePath : (basePath + '/');
     window.history.replaceState(null, '', cleanBasePath + newHash);
     setRoute(parseHash(newHash));
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
   return {
