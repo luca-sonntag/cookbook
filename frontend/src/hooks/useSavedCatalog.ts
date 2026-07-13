@@ -507,6 +507,46 @@ export function useSavedCatalog({
     }
   };
 
+  // Set custom flags/tags list directly via PATCH /api/jobs/:id/flags
+  const setRecipeFlags = async (job: Job, nextFlags: string[]) => {
+    const currentFlags = job.flags ?? [];
+    setOptimisticFlags(prev => ({ ...prev, [job.id]: nextFlags }));
+
+    try {
+      const token = getAccessToken ? await getAccessToken() : null;
+      if (!token) return { success: false };
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+      if (isPremiumOverride) {
+        headers['X-Simulate-Premium'] = 'true';
+      }
+
+      const response = await fetch(apiUrl(`/api/jobs/${job.id}/flags`), {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ flags: nextFlags })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update flags');
+      }
+
+      if (fetchHistory) {
+        fetchHistory();
+      }
+      return { success: true };
+    } catch (err: any) {
+      console.error('Error updating flags:', err);
+      setOptimisticFlags(prev => ({ ...prev, [job.id]: currentFlags }));
+      return { success: false, error: err.message };
+    }
+  };
+
+
   // Assign collections via PATCH /api/jobs/:id/collections
   const assignCollections = async (jobId: string, collectionIds: string[]) => {
     const job = completedJobs.find(j => j.id === jobId);
@@ -576,6 +616,7 @@ export function useSavedCatalog({
     allFlags,
     toggleFavorite,
     toggleFlag,
+    setRecipeFlags,
     assignCollections
   };
 }
