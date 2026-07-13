@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient, PostgrestError } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
 import { config } from './config.js';
-import type { Job, JobStatus, Recipe, ProgressData } from './types.js';
+import type { Job, JobStatus, Recipe, ProgressData, Collection } from './types.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,6 +20,8 @@ interface JobRow {
   locked_at: string | null;
   locked_by: string | null;
   url_normalized: string | null;
+  is_favorite?: boolean;
+  flags?: string[];
 }
 
 // ── Supabase client (lazy singleton) ─────────────────────────────────────────
@@ -64,6 +66,8 @@ function rowToJob(row: JobRow): Job {
     userId: row.user_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    isFavorite: row.is_favorite ?? false,
+    flags: row.flags ?? [],
   };
   if (job.recipe) {
     normalizeRecipe(job.recipe, job.id);
@@ -87,6 +91,8 @@ function jobToRow(updates: Partial<Job>): Partial<JobRow> {
   if (updates.prompt !== undefined) row.prompt = updates.prompt;
   if (updates.createdAt !== undefined) row.created_at = updates.createdAt;
   if (updates.updatedAt !== undefined) row.updated_at = updates.updatedAt;
+  if (updates.isFavorite !== undefined) row.is_favorite = updates.isFavorite;
+  if (updates.flags !== undefined) row.flags = updates.flags;
   return row;
 }
 
@@ -263,7 +269,21 @@ export async function getAllJobs(userId: string): Promise<Job[]> {
     .returns<JobRow[]>();
 
   if (error) throw wrapError('Failed to get all jobs', error);
-  return data.map(rowToJob);
+  const jobs = data.map(rowToJob);
+
+  try {
+    const memberships = await getCollectionMembership(userId);
+    for (const job of jobs) {
+      job.collectionIds = memberships[job.id] ?? [];
+    }
+  } catch (err) {
+    console.warn('Failed to load collection memberships for jobs:', err);
+    for (const job of jobs) {
+      job.collectionIds = [];
+    }
+  }
+
+  return jobs;
 }
 
 /** Delete a job by ID, scoped to userId. Returns `true` if deleted, `false` if not found. */
@@ -455,6 +475,175 @@ export async function getPremiumMaxExtractions(): Promise<number> {
 export async function getPremiumMaxSavedRecipes(): Promise<number> {
   return getGlobalSetting('premium_max_saved_recipes', -1);
 }
+
+/** Set whether a job is favorited, scoped to userId. */
+export async function setFavorite(jobId: string, userId: string, value: boolean): Promise<void> {
+  const { error } = await getClient()
+    .from('jobs')
+    .update({ is_favorite: value, updated_at: new Date().toISOString() })
+    .eq('id', jobId)
+    .eq('user_id', userId);
+
+  if (error) throw wrapError(`Failed to set favorite for job ${jobId}`, error);
+}
+
+/** Set custom flags for a job, scoped to userId. */
+export async function setFlags(jobId: string, userId: string, flags: string[]): Promise<void> {
+  const { error } = await getClient()
+    .from('jobs')
+    .update({ flags, updated_at: new Date().toISOString() })
+    .eq('id', jobId)
+    .eq('user_id', userId);
+
+  if (error) throw wrapError(`Failed to set flags for job ${jobId}`, error);
+}
+
+/** List all collections for a user. */
+export async function listCollections(userId: string): Promise<Collection[]> {
+  const { data, error } = await getClient()
+    .from('collections')
+    .select()
+    .eq('user_id', userId)
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error) throw wrapError('Failed to list collections', error);
+
+  return (data || []).map(row => ({
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    emoji: row.emoji,
+    color: row.color,
+    position: row.position,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
+}
+
+/** Create a new collection for a user. */
+export async function createCollection(userId: string, col: Partial<Collection>): Promise<Collection> {
+  const now = new Date().toISOString();
+  const id = col.id || randomUUID();
+  const position = col.position ?? 0;
+
+  const { data, error } = await getClient()
+    .from('collections')
+    .insert({
+      id,
+      user_id: userId,
+      name: col.name!,
+      emoji: col.emoji || null,
+      color: col.color || null,
+      position,
+      created_at: now,
+      updated_at: now
+    })
+    .select()
+    .single();
+
+  if (error) throw wrapError('Failed to create collection', error);
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    name: data.name,
+    emoji: data.emoji,
+    color: data.color,
+    position: data.position,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at
+  };
+}
+
+/** Update an existing collection for a user. */
+export async function updateCollection(id: string, userId: string, col: Partial<Collection>): Promise<Collection> {
+  const now = new Date().toISOString();
+  const updates: Record<string, any> = { updated_at: now };
+  if (col.name !== undefined) updates.name = col.name;
+  if (col.emoji !== undefined) updates.emoji = col.emoji;
+  if (col.color !== undefined) updates.color = col.color;
+  if (col.position !== undefined) updates.position = col.position;
+
+  const { data, error } = await getClient()
+    .from('collections')
+    .update(updates)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) throw wrapError(`Failed to update collection ${id}`, error);
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    name: data.name,
+    emoji: data.emoji,
+    color: data.color,
+    position: data.position,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at
+  };
+}
+
+/** Delete a collection, scoped to user. */
+export async function deleteCollection(id: string, userId: string): Promise<boolean> {
+  const { error, count } = await getClient()
+    .from('collections')
+    .delete({ count: 'exact' })
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) throw wrapError(`Failed to delete collection ${id}`, error);
+  return (count ?? 0) > 0;
+}
+
+/** Get collection membership mappings { [jobId]: string[] } for a user. */
+export async function getCollectionMembership(userId: string): Promise<Record<string, string[]>> {
+  const { data, error } = await getClient()
+    .from('recipe_collections')
+    .select('job_id, collection_id')
+    .eq('user_id', userId);
+
+  if (error) throw wrapError('Failed to get collection membership', error);
+
+  const mapping: Record<string, string[]> = {};
+  if (data) {
+    for (const row of data) {
+      mapping[row.job_id] ??= [];
+      mapping[row.job_id].push(row.collection_id);
+    }
+  }
+  return mapping;
+}
+
+/** Set collection memberships for a recipe. */
+export async function setRecipeCollections(jobId: string, userId: string, collectionIds: string[]): Promise<void> {
+  // Delete existing memberships for this recipe
+  const { error: deleteError } = await getClient()
+    .from('recipe_collections')
+    .delete()
+    .eq('job_id', jobId)
+    .eq('user_id', userId);
+
+  if (deleteError) throw wrapError('Failed to clear old recipe collections', deleteError);
+
+  // Insert new memberships
+  if (collectionIds.length > 0) {
+    const inserts = collectionIds.map(cid => ({
+      collection_id: cid,
+      job_id: jobId,
+      user_id: userId
+    }));
+    const { error: insertError } = await getClient()
+      .from('recipe_collections')
+      .insert(inserts);
+
+    if (insertError) throw wrapError('Failed to save new recipe collections', insertError);
+  }
+}
+
 
 
 
