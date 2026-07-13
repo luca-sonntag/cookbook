@@ -36,7 +36,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [metrics, setMetrics] = useState<any | null>(null);
   const [metricsRange, setMetricsRange] = useState<'all' | 'today' | '7d' | '30d'>('all');
   const [users, setUsers] = useState<any[]>([]);
-  const [usersRange, setUsersRange] = useState<'all' | '7d' | '30d'>('all');
+  const [usersRange, setUsersRange] = useState<'all' | 'today' | '7d' | '30d'>('all');
   const [loading, setLoading] = useState(true);
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -58,7 +58,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
   // client-side since the users tab loads the full list in one request.
   const filteredUsers = (() => {
     if (usersRange === 'all') return users;
-    const days = usersRange === '7d' ? 7 : 30;
+    const days = usersRange === 'today' ? 1 : usersRange === '7d' ? 7 : 30;
     const cutoff = new Date();
     cutoff.setHours(0, 0, 0, 0);
     cutoff.setDate(cutoff.getDate() - (days - 1));
@@ -806,6 +806,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   {(
                     [
                       { id: 'all', label: isDe ? 'Alle' : 'All' },
+                      { id: 'today', label: isDe ? 'Heute' : 'Today' },
                       { id: '7d', label: isDe ? '7 Tage' : 'Last 7 days' },
                       { id: '30d', label: isDe ? '30 Tage' : 'Last 30 days' },
                     ] as const
