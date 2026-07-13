@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { MoreVertical, Check, Copy, ShoppingCart, Trash2 } from 'lucide-react';
+import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeImageGallery from '../RecipeImageGallery';
 import { useI18n } from '../../context/I18nContext';
@@ -17,6 +17,8 @@ interface RecipeHeaderProps {
   isParentAvailable?: boolean;
   onNavigateToRecipe?: (recipeId: string) => void;
   parentRecipeTitle?: string | null;
+  onAssignCollections?: () => void;
+  onManageFlags?: () => void;
 }
 
 export default function RecipeHeader({
@@ -30,7 +32,9 @@ export default function RecipeHeader({
   isCopied,
   isParentAvailable,
   onNavigateToRecipe,
-  parentRecipeTitle
+  parentRecipeTitle,
+  onAssignCollections,
+  onManageFlags
 }: RecipeHeaderProps) {
   const { t, language } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -89,6 +93,32 @@ export default function RecipeHeader({
           </Popover.Trigger>
           <Popover.Content placement="bottom end" className="p-1.5 min-w-[180px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
             <div className="flex flex-col w-full">
+              {onAssignCollections && (
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onAssignCollections();
+                  }}
+                  className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                >
+                  <Folder className="w-4 h-4 text-emerald-500" />
+                  <span>{t('catalog.bulkAddToCollection') || 'Zu Sammlung hinzufügen'}</span>
+                </button>
+              )}
+
+              {onManageFlags && (
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onManageFlags();
+                  }}
+                  className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                >
+                  <Tag className="w-4 h-4 text-amber-500" />
+                  <span>{t('catalog.manageRecipeFlagsTitle') || 'Labels verwalten'}</span>
+                </button>
+              )}
+
               <button
                 onClick={() => {
                   onCopyMarkdown();
