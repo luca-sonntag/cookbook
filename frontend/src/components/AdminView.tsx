@@ -36,6 +36,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [metrics, setMetrics] = useState<any | null>(null);
   const [metricsRange, setMetricsRange] = useState<'all' | 'today' | '7d' | '30d'>('all');
   const [users, setUsers] = useState<any[]>([]);
+  const [usersRange, setUsersRange] = useState<'all' | '7d' | '30d'>('all');
   const [loading, setLoading] = useState(true);
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -52,6 +53,17 @@ export default function AdminView({ onBack }: AdminViewProps) {
     '7d': isDe ? 'Letzte 7 Tage' : 'Last 7 days',
     '30d': isDe ? 'Letzte 30 Tage' : 'Last 30 days',
   };
+
+  // Filter the (already-fetched) user list by registration date. Done
+  // client-side since the users tab loads the full list in one request.
+  const filteredUsers = (() => {
+    if (usersRange === 'all') return users;
+    const days = usersRange === '7d' ? 7 : 30;
+    const cutoff = new Date();
+    cutoff.setHours(0, 0, 0, 0);
+    cutoff.setDate(cutoff.getDate() - (days - 1));
+    return users.filter((u: any) => u.created_at && new Date(u.created_at) >= cutoff);
+  })();
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -789,16 +801,47 @@ export default function AdminView({ onBack }: AdminViewProps) {
           <Tabs.Panel id="users" className="outline-none">
             {users.length > 0 ? (
               <div className="flex flex-col gap-4">
+                {/* Time range filter */}
+                <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-black/5 dark:border-white/5">
+                  {(
+                    [
+                      { id: 'all', label: isDe ? 'Alle' : 'All' },
+                      { id: '7d', label: isDe ? '7 Tage' : 'Last 7 days' },
+                      { id: '30d', label: isDe ? '30 Tage' : 'Last 30 days' },
+                    ] as const
+                  ).map(({ id, label }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setUsersRange(id)}
+                      className={`flex-1 px-2 py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${usersRange === id
+                          ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                        }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
                 {/* Header row */}
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-gray-400 dark:text-gray-500 font-mono">
-                    {users.length} {isDe ? 'registrierte Nutzer' : 'registered users'}
+                    {filteredUsers.length}{' '}
+                    {usersRange === 'all'
+                      ? (isDe ? 'registrierte Nutzer' : 'registered users')
+                      : (isDe ? 'neue Nutzer' : 'new users')}
                   </p>
                 </div>
 
-                {/* User cards */}
+                {filteredUsers.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-12">
+                    {isDe ? 'Keine neuen Nutzer im Zeitraum.' : 'No new users in this timeframe.'}
+                  </p>
+                ) : (
+                /* User cards */
                 <div className="flex flex-col gap-3">
-                  {users.map((user: any) => {
+                  {filteredUsers.map((user: any) => {
                     const tierColor =
                       user.tier === 'premium'
                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
@@ -853,6 +896,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                     );
                   })}
                 </div>
+                )}
               </div>
             ) : loading ? (
               <div className="flex justify-center py-16">
