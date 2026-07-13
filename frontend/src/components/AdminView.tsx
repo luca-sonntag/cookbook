@@ -37,6 +37,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [metricsRange, setMetricsRange] = useState<'all' | 'today' | '7d' | '30d'>('all');
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [metricsLoading, setMetricsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -44,6 +45,13 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   const isDe = language === 'de';
+
+  const rangeLabel: Record<'all' | 'today' | '7d' | '30d', string> = {
+    all: isDe ? 'Gesamt' : 'All time',
+    today: isDe ? 'Heute' : 'Today',
+    '7d': isDe ? 'Letzte 7 Tage' : 'Last 7 days',
+    '30d': isDe ? 'Letzte 30 Tage' : 'Last 30 days',
+  };
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -90,10 +98,10 @@ export default function AdminView({ onBack }: AdminViewProps) {
     }
   }, [getAccessToken, isDe]);
 
-  const fetchMetrics = useCallback(async () => {
+  const fetchMetrics = useCallback(async (range: string) => {
     try {
       const token = await getAccessToken();
-      const res = await fetch(apiUrl('/api/admin/metrics'), {
+      const res = await fetch(apiUrl(`/api/admin/metrics?range=${range}`), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -131,23 +139,43 @@ export default function AdminView({ onBack }: AdminViewProps) {
   }, [getAccessToken, isDe]);
 
   const loadData = useCallback(async () => {
+    // The metrics tab manages its own loading via `metricsLoading` (see effect
+    // below) so that changing the range filter refreshes only the chart area
+    // instead of blanking the whole panel.
+    if (activeTab === 'metrics') {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     if (activeTab === 'settings') {
       await fetchSettings();
     } else if (activeTab === 'feedback') {
       await fetchFeedback();
-    } else if (activeTab === 'metrics') {
-      await fetchMetrics();
     } else if (activeTab === 'users') {
       await fetchUsers();
     }
     setLoading(false);
-  }, [activeTab, fetchSettings, fetchFeedback, fetchMetrics, fetchUsers]);
+  }, [activeTab, fetchSettings, fetchFeedback, fetchUsers]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Fetch metrics whenever the metrics tab is active and the selected range
+  // changes. Keeps tabs + range filter visible; only the content area spins.
+  useEffect(() => {
+    if (activeTab !== 'metrics') return;
+    let cancelled = false;
+    setMetricsLoading(true);
+    setError(null);
+    fetchMetrics(metricsRange).finally(() => {
+      if (!cancelled) setMetricsLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, metricsRange, fetchMetrics]);
 
   const handleSaveSettings = async () => {
     setSaving(true);
@@ -542,8 +570,37 @@ export default function AdminView({ onBack }: AdminViewProps) {
           </Tabs.Panel>
 
           <Tabs.Panel id="metrics">
-            {metrics ? (
-              <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6">
+              {/* Time range filter */}
+              <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-black/5 dark:border-white/5">
+                {(
+                  [
+                    { id: 'all', label: isDe ? 'Alle' : 'All' },
+                    { id: 'today', label: isDe ? 'Heute' : 'Today' },
+                    { id: '7d', label: isDe ? '7 Tage' : 'Last 7 days' },
+                    { id: '30d', label: isDe ? '30 Tage' : 'Last 30 days' },
+                  ] as const
+                ).map(({ id, label }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setMetricsRange(id)}
+                    className={`flex-1 px-2 py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${metricsRange === id
+                        ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                      }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {metricsLoading && !metrics ? (
+                <div className="flex justify-center py-16">
+                  <Spinner color="success" size="md" />
+                </div>
+              ) : metrics ? (
+              <div className={`flex flex-col gap-6 transition-opacity ${metricsLoading ? 'opacity-50 pointer-events-none' : ''}`}>
                 {/* 1. Top Level Metrics Cards Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <Card
@@ -551,14 +608,20 @@ export default function AdminView({ onBack }: AdminViewProps) {
                     onClick={() => { setError(null); setActiveTab('users'); }}
                   >
                     <div className="flex items-center justify-between text-gray-400 dark:text-gray-500">
-                      <span className="text-[10px] font-bold uppercase tracking-wider">{isDe ? 'Nutzer' : 'Users'}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        {metricsRange === 'all' ? (isDe ? 'Nutzer' : 'Users') : (isDe ? 'Neue Nutzer' : 'New Users')}
+                      </span>
                       <Users className="w-4 h-4 text-emerald-500" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
-                        {metrics.users?.total ?? 0}
+                        {metricsRange === 'all' ? (metrics.users?.total ?? 0) : (metrics.users?.newInRange ?? 0)}
                       </span>
-                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">{isDe ? 'Registriert → Nutzer' : 'Registered → Users'}</span>
+                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">
+                        {metricsRange === 'all'
+                          ? (isDe ? 'Registriert → Nutzer' : 'Registered → Users')
+                          : (isDe ? `Neu · ${rangeLabel[metricsRange]}` : `New · ${rangeLabel[metricsRange]}`)}
+                      </span>
                     </div>
                   </Card>
 
@@ -584,7 +647,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                       <span className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
                         ${metrics.llm?.totalCostUsd?.toFixed(4) ?? '0.0000'}
                       </span>
-                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">{isDe ? 'Letzte 30 Tage' : 'Last 30 days'}</span>
+                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">{rangeLabel[metricsRange]}</span>
                     </div>
                   </Card>
 
@@ -661,7 +724,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   {/* Daily Extractions */}
                   <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-4">
                     <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
-                      {isDe ? 'Extraktionen (Letzte 14 Tage)' : 'Extractions (Last 14 Days)'}
+                      {isDe ? 'Extraktionen' : 'Extractions'} ({rangeLabel[metricsRange]})
                     </h3>
                     <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
                       {metrics.jobs?.dailyStats?.map((stat: any) => {
@@ -686,7 +749,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   {/* Daily Costs */}
                   <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-4">
                     <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
-                      {isDe ? 'Gemini Kosten (Letzte 30 Tage)' : 'Gemini Costs (Last 30 Days)'}
+                      {isDe ? 'Gemini Kosten' : 'Gemini Costs'} ({rangeLabel[metricsRange]})
                     </h3>
                     <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
                       {metrics.llm?.dailyCost?.filter((stat: any) => stat.cost > 0).map((stat: any) => {
@@ -714,11 +777,12 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   </Card>
                 </div>
               </div>
-            ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-12">
-                {isDe ? 'Keine Metriken verfügbar.' : 'No metrics available.'}
-              </p>
-            )}
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-12">
+                  {isDe ? 'Keine Metriken verfügbar.' : 'No metrics available.'}
+                </p>
+              )}
+            </div>
           </Tabs.Panel>
 
           {/* === USERS PANEL === */}
