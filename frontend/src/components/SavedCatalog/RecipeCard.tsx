@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@heroui/react';
-import { Clock, Utensils, ShoppingCart, Check, Trash2 } from 'lucide-react';
+import { Clock, Utensils, ShoppingCart, Check, Trash2, Star, Tag } from 'lucide-react';
 import type { Job } from '../../types';
 import CachedImage from '../CachedImage';
 
@@ -86,6 +86,7 @@ interface RecipeCardProps {
   onClick: (e: React.MouseEvent) => void;
   onDirectAdd: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
+  onToggleFavorite?: (e: React.MouseEvent) => void;
 }
 
 // --- Class Name Constants ---
@@ -134,7 +135,8 @@ export default function RecipeCard({
   bindLongPress,
   onClick,
   onDirectAdd,
-  onDelete
+  onDelete,
+  onToggleFavorite
 }: RecipeCardProps) {
   const r = job.recipe!;
   const platform = detectPlatform(job.url);
@@ -153,6 +155,21 @@ export default function RecipeCard({
         </div>
       )}
 
+      {/* Fallback Favorite star overlay when no image exists */}
+      {!isSelectMode && !r.imageUrl && onToggleFavorite && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(e);
+          }}
+          className="absolute top-4 right-4 z-10 w-9 h-9 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-500 hover:text-emerald-500 hover:bg-black/10 dark:hover:bg-white/10 active:scale-90 transition-all flex items-center justify-center cursor-pointer"
+          aria-label="Toggle favorite"
+        >
+          <Star className={`w-4 h-4 ${job.isFavorite ? 'text-amber-500 fill-amber-500 stroke-amber-500' : 'text-gray-400 dark:text-gray-500'}`} />
+        </button>
+      )}
+
       <div className="flex-1 flex flex-col">
         {/* Thumbnail Image Container */}
         {r.imageUrl && (
@@ -167,6 +184,20 @@ export default function RecipeCard({
               <div className={`${styles.imageCheckbox} ${isSelected ? styles.imageCheckboxSelected : styles.imageCheckboxUnselected}`}>
                 {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
               </div>
+            )}
+            {/* Favorite star overlay inside the thumbnail container */}
+            {!isSelectMode && onToggleFavorite && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite(e);
+                }}
+                className="absolute top-2.5 right-2.5 z-10 w-9 h-9 rounded-xl bg-black/40 backdrop-blur-sm border border-white/20 text-white hover:bg-black/60 active:scale-90 transition-all flex items-center justify-center cursor-pointer"
+                aria-label="Toggle favorite"
+              >
+                <Star className={`w-4 h-4 ${job.isFavorite ? 'text-amber-400 fill-amber-400 stroke-amber-400' : 'text-white'}`} />
+              </button>
             )}
             {/* Creator Badge Overlay */}
             {r.instagramHandle && (
@@ -191,7 +222,7 @@ export default function RecipeCard({
         </p>
 
         {/* Tag pills under the description */}
-        {(durationBadge || recipeTags.length > 0) && (
+        {(durationBadge || recipeTags.length > 0 || (job.flags && job.flags.length > 0)) && (
           <div className="flex flex-wrap gap-1.5 px-5 mt-auto pt-4">
             {durationBadge && (
               <span className={styles.inlineTagBadge}>
@@ -201,6 +232,12 @@ export default function RecipeCard({
             {recipeTags.map((tag: string, idx: number) => (
               <span key={idx} className={styles.inlineTagBadge}>
                 {tag}
+              </span>
+            ))}
+            {job.flags?.map((flag: string, idx: number) => (
+              <span key={`flag-${idx}`} className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2.5 py-1 rounded-full select-none whitespace-nowrap border border-amber-500/20 flex items-center gap-1">
+                <Tag className="w-2.5 h-2.5" />
+                {flag}
               </span>
             ))}
           </div>
