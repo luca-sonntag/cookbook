@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@heroui/react';
-import { Clock, Utensils, ShoppingCart, Check, Trash2 } from 'lucide-react';
+import { Clock, Utensils, ShoppingCart, Check, Trash2, Star, Tag } from 'lucide-react';
 import type { Job } from '../../types';
 import CachedImage from '../CachedImage';
 
@@ -17,6 +17,7 @@ interface RecipeListItemProps {
   onClick: (e: React.MouseEvent) => void;
   onDirectAdd: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
+  onToggleFavorite?: (e: React.MouseEvent) => void;
 }
 
 export default function RecipeListItem({
@@ -31,7 +32,8 @@ export default function RecipeListItem({
   bindLongPress,
   onClick,
   onDirectAdd,
-  onDelete
+  onDelete,
+  onToggleFavorite
 }: RecipeListItemProps) {
   const r = job.recipe!;
 
@@ -69,7 +71,7 @@ export default function RecipeListItem({
           {r.title}
         </h4>
         {/* Tag pills under the name */}
-        {(durationBadge || recipeTags.length > 0) && (
+        {(durationBadge || recipeTags.length > 0 || (job.flags && job.flags.length > 0)) && (
           <div className="flex flex-wrap gap-1 mt-1 pr-20">
             {durationBadge && (
               <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap">
@@ -79,6 +81,12 @@ export default function RecipeListItem({
             {recipeTags.slice(0, 2).map((tag: string, idx: number) => (
               <span key={idx} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap">
                 {tag}
+              </span>
+            ))}
+            {job.flags?.slice(0, 2).map((flag: string, idx: number) => (
+              <span key={`flag-${idx}`} className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap border border-amber-500/20 flex items-center gap-0.5">
+                <Tag className="w-2.5 h-2.5" />
+                {flag}
               </span>
             ))}
           </div>
@@ -96,7 +104,19 @@ export default function RecipeListItem({
 
       {/* Actions */}
       {!isSelectMode && (
-        <div className="absolute right-3 bottom-2 flex items-center gap-1.5">
+        <div className="absolute right-3 bottom-2 flex items-center gap-1">
+          {onToggleFavorite && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite(e);
+              }}
+              className="text-gray-500 hover:text-amber-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+              aria-label="Toggle favorite"
+            >
+              <Star className={`w-4 h-4 ${job.isFavorite ? 'text-amber-500 fill-amber-500 stroke-amber-500' : 'text-gray-400 dark:text-gray-500'}`} />
+            </button>
+          )}
           <button
             className={`active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
               isAdded
