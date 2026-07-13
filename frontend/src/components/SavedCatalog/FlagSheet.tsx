@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, Drawer } from '@heroui/react';
-import { Tag, X, Plus } from 'lucide-react';
+import { Tag, X } from 'lucide-react';
 import type { Job } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 
