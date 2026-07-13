@@ -27,41 +27,47 @@ export default function BulkActionBar({
         </span>
       </div>
 
-      <div className="flex items-center justify-end gap-1.5 sm:gap-2 flex-wrap w-full">
-        <Button
-          variant="outline"
-          onPress={onCancel}
-          className="text-sm h-11 px-3 sm:px-4 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl font-semibold active:scale-95 transition-all shrink min-w-0"
-        >
-          <span className="truncate">{t('dialog.cancelDefault')}</span>
-        </Button>
+      <div className="flex flex-col gap-2 w-full mt-1">
+        {/* Row 1: Abbrechen & Sammlung */}
+        <div className="flex gap-2 w-full">
+          <Button
+            variant="outline"
+            onPress={onCancel}
+            className="flex-1 text-sm h-11 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl font-semibold active:scale-95 transition-all min-w-0"
+          >
+            <span className="truncate">{t('dialog.cancelDefault')}</span>
+          </Button>
 
-        <Button
-          onPress={onBulkAddToCollection}
-          isDisabled={selectedCount === 0}
-          className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10 text-sm h-11 px-3 sm:px-4 font-bold rounded-xl flex items-center gap-1.5 active:scale-95 transition-all shrink-0"
-        >
-          <Folder className="w-4 h-4 shrink-0 text-emerald-500" />
-          <span className="truncate">{language === 'de' ? 'Sammlung' : 'Collection'}</span>
-        </Button>
+          <Button
+            onPress={onBulkAddToCollection}
+            isDisabled={selectedCount === 0}
+            className="flex-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10 text-sm h-11 font-bold rounded-xl flex items-center justify-center gap-1.5 active:scale-95 transition-all min-w-0"
+          >
+            <Folder className="w-4 h-4 shrink-0 text-emerald-500" />
+            <span className="truncate">{language === 'de' ? 'Sammlung' : 'Collection'}</span>
+          </Button>
+        </div>
 
-        <Button
-          onPress={onBulkAdd}
-          isDisabled={selectedCount === 0}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm h-11 px-3 sm:px-4 font-bold rounded-xl flex items-center gap-1.5 shadow-md shadow-emerald-600/10 active:scale-95 transition-all shrink-0"
-        >
-          <ShoppingCart className="w-4 h-4 shrink-0" />
-          <span className="truncate">{language === 'de' ? 'Einkaufsliste' : 'Cart'}</span>
-        </Button>
+        {/* Row 2: Einkaufsliste & Löschen */}
+        <div className="flex gap-2 w-full">
+          <Button
+            onPress={onBulkAdd}
+            isDisabled={selectedCount === 0}
+            className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm h-11 font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/10 active:scale-95 transition-all min-w-0"
+          >
+            <ShoppingCart className="w-4 h-4 shrink-0" />
+            <span className="truncate">{language === 'de' ? 'Einkaufsliste' : 'Cart'}</span>
+          </Button>
 
-        <Button
-          onPress={onBulkDelete}
-          isDisabled={selectedCount === 0}
-          className="bg-red-500 hover:bg-red-400 text-white text-sm h-11 px-3 sm:px-4 font-bold rounded-xl flex items-center gap-1.5 shadow-md shadow-red-500/10 active:scale-95 transition-all shrink-0"
-        >
-          <Trash2 className="w-4 h-4 shrink-0" />
-          <span className="truncate">{language === 'de' ? 'Löschen' : 'Delete'}</span>
-        </Button>
+          <Button
+            onPress={onBulkDelete}
+            isDisabled={selectedCount === 0}
+            className="flex-1 bg-red-500 hover:bg-red-400 text-white text-sm h-11 font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-red-500/10 active:scale-95 transition-all min-w-0"
+          >
+            <Trash2 className="w-4 h-4 shrink-0" />
+            <span className="truncate">{language === 'de' ? 'Löschen' : 'Delete'}</span>
+          </Button>
+        </div>
       </div>
     </div>
   );
