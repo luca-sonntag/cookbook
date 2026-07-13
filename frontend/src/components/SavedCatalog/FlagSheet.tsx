@@ -152,11 +152,6 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
                       <Plus className="w-5 h-5" />
                     </Button>
                   </div>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 px-1 mt-0.5">
-                    {language === 'de'
-                      ? 'Drücke Enter oder Komma, um das Label hinzuzufügen.'
-                      : 'Press Enter or comma to add the label.'}
-                  </span>
                 </div>
 
                 {/* Suggestions List */}
