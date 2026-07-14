@@ -58,20 +58,40 @@ export default function CollectionSheet({
   const [membershipIds, setMembershipIds] = useState<string[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Whether there is a recipe (or recipes) to assign collections to. When false,
+  // the sheet was opened purely to create a new collection.
+  const hasTarget = !!job || selectedJobIds.length > 0;
+
   // Load collections and current memberships on open
   useEffect(() => {
     if (isOpen) {
       refreshCollections();
-      setMode('assign');
       setFormError(null);
-      
-      if (job) {
-        setMembershipIds(job.collectionIds ?? []);
+
+      if (hasTarget) {
+        setMode('assign');
+        setMembershipIds(job ? (job.collectionIds ?? []) : []);
       } else {
+        // No recipe to assign — open the create form directly instead of a
+        // selectable list of collections.
+        setName('');
+        setSelectedEmoji('');
+        setSelectedColor(COLORS[0].name);
+        setMode('create');
         setMembershipIds([]);
       }
     }
-  }, [isOpen, job, refreshCollections]);
+  }, [isOpen, job, hasTarget, refreshCollections]);
+
+  // Leaving the create/edit form: go back to the assign list when there is a
+  // recipe to assign, otherwise close the sheet entirely.
+  const handleFormBack = () => {
+    if (hasTarget) {
+      setMode('assign');
+    } else {
+      onClose();
+    }
+  };
 
   const handleCreateOpen = () => {
     setName('');
@@ -99,8 +119,8 @@ export default function CollectionSheet({
     if (mode === 'create') {
       const res = await createCollection(name, selectedEmoji || null, selectedColor);
       if (res.success) {
-        setMode('assign');
         onUpdated?.();
+        handleFormBack();
       } else {
         setFormError(res.error || 'Fehler beim Erstellen');
       }
@@ -174,7 +194,7 @@ export default function CollectionSheet({
                       isIconOnly
                       variant="tertiary"
                       className="w-8 h-8 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-500"
-                      onPress={() => setMode('assign')}
+                      onPress={handleFormBack}
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -360,7 +380,7 @@ export default function CollectionSheet({
                     <Button
                       variant="tertiary"
                       className="flex-1 py-3 rounded-xl text-sm font-semibold"
-                      onPress={() => setMode('assign')}
+                      onPress={handleFormBack}
                     >
                       {t('app.dialog.deleteRecipe.cancel') || 'Abbrechen'}
                     </Button>

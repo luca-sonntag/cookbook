@@ -132,8 +132,17 @@ export default function SavedCatalog({
     if (!isPremium) {
       setIsPremiumModalOpen(true);
     } else {
-      setCollectionSheetJob(undefined);
-      setCollectionSheetBulkIds(Array.from(selectedIds));
+      const ids = Array.from(selectedIds);
+      // For a single selected recipe, open the sheet in single-recipe mode so its
+      // current collection memberships are preloaded — this lets the user remove it
+      // from a collection, not just add it. Multiple selections use bulk mode.
+      if (ids.length === 1) {
+        setCollectionSheetJob(completedJobs.find(j => j.id === ids[0]));
+        setCollectionSheetBulkIds([]);
+      } else {
+        setCollectionSheetJob(undefined);
+        setCollectionSheetBulkIds(ids);
+      }
       setIsCollectionSheetOpen(true);
     }
   };
