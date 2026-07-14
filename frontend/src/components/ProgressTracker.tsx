@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@heroui/react';
+import { ChefHat } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import type { SupportedLanguage } from '../i18n';
 import type { ProgressData } from '../types';
@@ -147,31 +148,34 @@ export default function ProgressTracker({ isPending, jobStatus, statusDetails, p
   if (!isPending || !statusDetails) return null;
 
   return (
-    <Card className="glass-panel p-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/5 shadow-md transition-all duration-300 w-full">
+    <Card className="p-5 rounded-2xl border border-emerald-500/20 bg-emerald-50/80 dark:bg-emerald-950/30 shadow-md shadow-emerald-900/5 transition-all duration-300 w-full">
       <div className="flex flex-col gap-4">
-        {/* Top details and percent */}
-        <div>
-          <div className="flex justify-between items-center text-sm font-semibold text-gray-900 dark:text-white mb-2">
-            <span className="truncate pr-2">{statusDetails.text}</span>
-            <span className="text-emerald-600 dark:text-emerald-400 tabular-nums shrink-0">{percent}%</span>
+        {/* Header: icon badge + status text + percent */}
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+            <ChefHat className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1 flex justify-between items-center gap-2">
+            <span className="truncate text-sm font-semibold text-emerald-950 dark:text-emerald-50">{statusDetails.text}</span>
+            <span className="text-emerald-600 dark:text-emerald-400 text-sm font-semibold tabular-nums shrink-0">{percent}%</span>
           </div>
+        </div>
 
-          {/* Smooth Linear Progress Bar */}
-          <div className="w-full bg-gray-200 dark:bg-gray-800 h-2.5 rounded-full overflow-hidden relative shadow-inner">
-            <div
-              className="bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 h-full rounded-full transition-all duration-500 ease-out relative"
-              style={{ width: `${percent}%` }}
-            >
-              <div className="absolute inset-0 bg-white/20 animate-pulse" />
-            </div>
+        {/* Smooth Linear Progress Bar */}
+        <div className="w-full bg-emerald-500/10 dark:bg-emerald-500/10 h-2.5 rounded-full overflow-hidden relative shadow-inner">
+          <div
+            className="bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 h-full rounded-full transition-all duration-500 ease-out relative"
+            style={{ width: `${percent}%` }}
+          >
+            <div className="absolute inset-0 bg-white/20 animate-pulse" />
           </div>
         </div>
 
         {/* Rotating funny status text */}
-        <div className="pt-2 border-t border-black/5 dark:border-white/5 min-h-[28px] flex items-center">
+        <div className="pt-2 border-t border-emerald-500/15 min-h-[28px] flex items-center">
           <p
             key={funnyText}
-            className="text-xs text-gray-500 dark:text-gray-400 italic truncate opacity-90 animate-fade-in"
+            className="text-xs text-emerald-800/80 dark:text-emerald-200/70 italic truncate opacity-90 animate-fade-in"
           >
             {funnyText}
           </p>

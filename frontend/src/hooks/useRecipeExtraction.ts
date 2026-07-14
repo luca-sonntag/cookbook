@@ -1,8 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Recipe, Job, ProgressData } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { apiUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
+
+// Tracks the currently in-flight extraction job across reloads/restarts, so a
+// still-running job can be resumed instead of the user re-submitting the same
+// URL (which previously produced a duplicate saved recipe).
+const PENDING_JOB_STORAGE_KEY = 'kb_pending_job_id';
 
 export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void, isPremiumOverride?: boolean) {
   const { t } = useI18n();
@@ -99,6 +104,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setJobStatus('failed');
           setJobError('form.validation.unauthorized');
           setIsPending(false);
+          localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
           return;
         }
         const response = await fetch(apiUrl(`/api/jobs/${id}`), {
@@ -114,6 +120,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setJobStatus('failed');
           setJobError(response.status === 429 ? 'too many requests' : 'form.validation.serverError');
           setIsPending(false);
+          localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
           return;
         }
 
@@ -122,6 +129,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setJobStatus('failed');
           setJobError(data.error || 'form.validation.failedCheck');
           setIsPending(false);
+          localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
           return;
         }
 
@@ -133,12 +141,14 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setProgress(null);
           setIsPending(false);
           setUrl('');
+          localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
           onExtractionSuccess(job.id);
         } else if (job.status === 'failed') {
           clearInterval(interval);
           setJobError(job.error || 'form.validation.failedExtraction');
           setProgress(null);
           setIsPending(false);
+          localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
         } else {
           setProgress(job.progress || null);
         }
@@ -148,6 +158,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         setJobError(err instanceof Error ? err.message : 'form.validation.lostConnection');
         setProgress(null);
         setIsPending(false);
+        localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
       }
     }, 2000);
   }, [getAccessToken, onExtractionSuccess]);
@@ -200,6 +211,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
 
       setJobStatus(data.status);
       fetchLimitStatus();
+      localStorage.setItem(PENDING_JOB_STORAGE_KEY, data.jobId);
       startPolling(data.jobId);
     } catch (err: unknown) {
       setJobStatus('failed');
@@ -208,6 +220,24 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       setIsPending(false);
     }
   }, [getAccessToken, startPolling, validateUrl, fetchLimitStatus]);
+
+  // Resume a still-running extraction after a reload/restart wiped in-memory
+  // state (e.g. the app was backgrounded and killed by the OS, or the PWA was
+  // relaunched). Without this, the Extract tab looked blank even though a job
+  // was still running, which led users to re-submit the same URL and end up
+  // with two saved recipes for one source.
+  const hasResumedPendingJobRef = useRef(false);
+  useEffect(() => {
+    if (hasResumedPendingJobRef.current) return;
+    hasResumedPendingJobRef.current = true;
+
+    const pendingJobId = localStorage.getItem(PENDING_JOB_STORAGE_KEY);
+    if (!pendingJobId) return;
+
+    setIsPending(true);
+    setJobStatus('pending');
+    startPolling(pendingJobId);
+  }, [startPolling]);
 
 
   return {

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -148,6 +148,21 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
         jobId: existingJob.id,
         status: existingJob.status,
         message: 'Recipe already extracted successfully.',
+      });
+      return;
+    }
+
+    // Check if a job for this URL is already running (scoped to user). Without this,
+    // re-submitting the same URL while the first extraction is still in flight -
+    // e.g. after the app was closed/reopened mid-extraction - creates a second job
+    // that also completes, resulting in a duplicate saved recipe.
+    const activeJob = await findActiveJobByUrl(cleanUrl, req.userId!);
+    if (activeJob) {
+      res.status(202).json({
+        success: true,
+        jobId: activeJob.id,
+        status: activeJob.status,
+        message: 'Recipe extraction already in progress.',
       });
       return;
     }
