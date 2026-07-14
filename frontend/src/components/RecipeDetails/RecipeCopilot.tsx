@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button, Drawer, Card } from '@heroui/react';
-import { Send, Sparkles, Bot, User, Loader2, RefreshCw, X, Plus, Trash2 } from 'lucide-react';
+import { Send, Sparkles, Bot, User, Loader2, RefreshCw, X, Plus, Trash2, ListChecks } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTimerManager } from '../../hooks/useTimerManager';
@@ -10,8 +10,13 @@ import type { Recipe } from '../../types';
 
 type Chip = { label: string; prompt: string; category: string };
 
+// A single modification the user has staged in the chat "transaction" but not yet applied.
+type PendingChange = { id: string; text: string };
+
 // localStorage key helpers — the copilot session (chat + suggested chips) is cached per recipe.
 const chatStorageKey = (recipeId: string) => `recipe_copilot_chat_${recipeId}`;
+// Staged (collected but not-yet-applied) recipe changes are cached per recipe.
+const changesStorageKey = (recipeId: string) => `recipe_copilot_changes_${recipeId}`;
 // Chips are language-specific, so they are cached per recipe *and* UI language.
 const chipsStorageKey = (recipeId: string, lang: string) => `recipe_copilot_chips_${recipeId}_${lang}`;
 
@@ -19,8 +24,6 @@ interface Message {
   role: 'user' | 'model';
   text: string;
   isRemixReady?: boolean;
-  pendingRemix?: boolean;
-  modificationRequest?: string;
   newJobId?: string;
   newRecipe?: Recipe;
 }
@@ -60,6 +63,17 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
   const [chips, setChips] = useState<Chip[]>([]);
   const [chipsLoading, setChipsLoading] = useState(false);
   const [confirmingClear, setConfirmingClear] = useState(false);
+  // The chat "transaction": modifications collected across turns but not yet applied.
+  const [pendingChanges, setPendingChanges] = useState<PendingChange[]>(() => {
+    try {
+      const saved = localStorage.getItem(changesStorageKey(recipeId));
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  // When true, the transaction card reveals the "replace current" / "as new recipe" choice.
+  const [choosingApply, setChoosingApply] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLInputElement>(null);
@@ -68,6 +82,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
   const loadedRecipeIdRef = useRef(recipe.id);
 
   const chatKey = chatStorageKey(recipeId);
+  const changesKey = changesStorageKey(recipeId);
   const chipsKey = chipsStorageKey(recipeId, language);
 
   // Persist the chat to the per-recipe cache on every change.
@@ -83,6 +98,20 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
       // Ignore quota / serialization errors — caching is best-effort.
     }
   }, [history, chatKey, recipe.id]);
+
+  // Persist the staged changes (the transaction) to the per-recipe cache on every change.
+  useEffect(() => {
+    if (loadedRecipeIdRef.current !== recipe.id) return; // guard against writing before a reload
+    try {
+      if (pendingChanges.length > 0) {
+        localStorage.setItem(changesKey, JSON.stringify(pendingChanges));
+      } else {
+        localStorage.removeItem(changesKey);
+      }
+    } catch {
+      // Ignore quota / serialization errors — caching is best-effort.
+    }
+  }, [pendingChanges, changesKey, recipe.id]);
 
   // Load suggested chips, preferring the per-recipe/language cache. Pass `force` to bypass it
   // and regenerate fresh chips (used by the clear/reset action).
@@ -123,10 +152,13 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
   const performClearSession = () => {
     setConfirmingClear(false);
     setHistory([]);
+    setPendingChanges([]);
+    setChoosingApply(false);
     setMessage('');
     setError(null);
     try {
       localStorage.removeItem(chatKey);
+      localStorage.removeItem(changesKey);
       localStorage.removeItem(chipsKey);
     } catch {
       // Ignore.
@@ -161,6 +193,17 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
       stored = [];
     }
     setHistory(stored);
+
+    // Reload the persisted staged changes for the current recipe.
+    let storedChanges: PendingChange[] = [];
+    try {
+      const savedChanges = localStorage.getItem(changesKey);
+      storedChanges = savedChanges ? JSON.parse(savedChanges) : [];
+    } catch {
+      storedChanges = [];
+    }
+    setPendingChanges(storedChanges);
+    setChoosingApply(false);
     loadedRecipeIdRef.current = recipe.id;
 
     setError(null);
@@ -202,7 +245,10 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
         },
         body: JSON.stringify({
           message: textToSend,
-          history: cleanHistory
+          history: cleanHistory,
+          // Give the model the modifications already staged in the transaction so it can
+          // build on them consistently across turns (avoid duplicates, flag conflicts).
+          stagedChanges: pendingChanges.map(c => c.text)
         })
       });
 
@@ -251,13 +297,20 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
         addTimer(mins * 60, label, recipe.id);
       }
 
+      // A modification request is not applied immediately anymore — instead it is staged in the
+      // transaction card, where the user collects changes across turns and applies them together.
+      if (data.pendingRemix && data.modificationRequest) {
+        setPendingChanges(prev => [
+          ...prev,
+          { id: crypto.randomUUID(), text: data.modificationRequest },
+        ]);
+      }
+
       // Add AI reply to history
       const modelMsg: Message = {
         role: 'model',
         text: data.chatMessage,
         isRemixReady: data.recipeWasModified && !data.pendingRemix,
-        pendingRemix: data.pendingRemix,
-        modificationRequest: data.modificationRequest,
         newJobId: data.newJobId,
         newRecipe: data.updatedRecipeJson
       };
@@ -280,8 +333,31 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
     setTimeout(() => onClose(), 50);
   };
 
-  const handleConfirmRemix = async (_msgIdx: number, modificationRequest: string, replaceCurrent: boolean) => {
+  // Remove a single staged change from the transaction.
+  const removeChange = (id: string) => {
+    setPendingChanges(prev => {
+      const next = prev.filter(c => c.id !== id);
+      if (next.length === 0) setChoosingApply(false);
+      return next;
+    });
+  };
+
+  // Discard the whole transaction.
+  const discardAllChanges = () => {
+    setPendingChanges([]);
+    setChoosingApply(false);
+  };
+
+  // Apply all staged changes at once: combine them into a single, numbered remix request and
+  // run the existing confirm/remix flow. On success the transaction is cleared.
+  const handleApplyChanges = async (replaceCurrent: boolean) => {
+    if (pendingChanges.length === 0 || isPending) return;
+    const modificationRequest = pendingChanges
+      .map((c, i) => `${i + 1}. ${c.text}`)
+      .join('\n');
+
     setIsPending(true);
+    setError(null);
     try {
       const token = await getAccessToken();
       const res = await fetch(apiUrl(`/api/jobs/${recipe.id}/chat/confirm`), {
@@ -304,6 +380,10 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
         newRecipe: data.updatedRecipeJson,
       };
       setHistory(prev => [...prev, successMsg]);
+
+      // The transaction is done — clear the staged changes.
+      setPendingChanges([]);
+      setChoosingApply(false);
 
       // If replacing current recipe, immediately load it
       if (replaceCurrent && data.updatedRecipeJson) {
@@ -429,40 +509,6 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                         </Card>
                       )}
 
-                      {/* Pending remix confirm card */}
-                      {isAI && msg.pendingRemix && msg.modificationRequest && (
-                        <Card className="p-4 border border-amber-500/20 bg-amber-500/5 flex flex-col gap-3 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="w-4.5 h-4.5 text-amber-500 animate-spin-slow" />
-                            <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
-                              {t('copilot.remixConfirmTitle')}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-gray-300 leading-normal">
-                            {t('copilot.remixConfirmBody', { request: msg.modificationRequest })}
-                          </p>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              className="bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs"
-                              onPress={() => handleConfirmRemix(idx, msg.modificationRequest!, true)}
-                              isDisabled={isPending}
-                            >
-                              <RefreshCw className="w-3.5 h-3.5" />
-                              {t('copilot.remixReplaceBtn')}
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="bg-white dark:bg-gray-700 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-medium rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs hover:bg-amber-50 dark:hover:bg-amber-500/10"
-                              onPress={() => handleConfirmRemix(idx, msg.modificationRequest!, false)}
-                              isDisabled={isPending}
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                              {t('copilot.remixNewBtn')}
-                            </Button>
-                          </div>
-                        </Card>
-                      )}
                     </div>
                   </div>
                 );
@@ -493,9 +539,106 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
               <div ref={messagesEndRef} />
             </Drawer.Body>
 
-            {/* Footer: Quick Chips & Message Input */}
+            {/* Footer: Transaction Card, Quick Chips & Message Input */}
             <div className="border-t border-black/5 dark:border-white/5 p-4 flex flex-col gap-3.5 bg-white dark:bg-gray-900 flex-shrink-0">
-              
+
+              {/* Transaction Card — collected (staged) changes, applied together */}
+              {pendingChanges.length > 0 && (
+                <Card className="p-3.5 border border-emerald-500/20 bg-emerald-500/5 flex flex-col gap-3 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="flex items-center gap-2">
+                    <ListChecks className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                      {t('copilot.changesTitle', { count: pendingChanges.length })}
+                    </span>
+                  </div>
+
+                  {/* Collected changes list */}
+                  <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto scrollbar-none">
+                    {pendingChanges.map((change, idx) => (
+                      <div
+                        key={change.id}
+                        className="flex items-start gap-2 p-2 rounded-xl bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/5"
+                      >
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0 w-4 text-center">
+                          {idx + 1}.
+                        </span>
+                        <span className="text-xs text-gray-700 dark:text-gray-200 leading-snug flex-1 min-w-0 break-words">
+                          {change.text}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeChange(change.id)}
+                          disabled={isPending}
+                          className="flex-shrink-0 p-1 rounded-full text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 transition-all outline-none border-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          aria-label={t('copilot.changesDeleteAria')}
+                          title={t('copilot.changesDeleteAria')}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Actions: apply (reveals replace/new choice) or discard all */}
+                  {choosingApply ? (
+                    <div className="flex flex-col gap-2">
+                      <p className="text-[11px] text-gray-600 dark:text-gray-300 leading-normal">
+                        {t('copilot.changesApplyPrompt')}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs flex-1"
+                          onPress={() => handleApplyChanges(true)}
+                          isDisabled={isPending}
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          {t('copilot.remixReplaceBtn')}
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-white dark:bg-gray-700 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-medium rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs flex-1 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
+                          onPress={() => handleApplyChanges(false)}
+                          isDisabled={isPending}
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          {t('copilot.remixNewBtn')}
+                        </Button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setChoosingApply(false)}
+                        disabled={isPending}
+                        className="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium self-center outline-none border-none cursor-pointer bg-transparent disabled:opacity-40"
+                      >
+                        {t('dialog.cancelDefault')}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs flex-1"
+                        onPress={() => setChoosingApply(true)}
+                        isDisabled={isPending}
+                      >
+                        {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                        {t('copilot.changesApply')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-white dark:bg-gray-800 border border-black/10 dark:border-white/10 text-gray-500 dark:text-gray-400 font-medium rounded-xl flex items-center gap-1.5 active:scale-95 transition-all text-xs hover:text-red-500 dark:hover:text-red-400 hover:border-red-500/30"
+                        onPress={discardAllChanges}
+                        isDisabled={isPending}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        {t('copilot.changesDiscardAll')}
+                      </Button>
+                    </div>
+                  )}
+                </Card>
+              )}
+
               {/* Quick Chips Scroll Container */}
               {showChips && (
                 <div className="flex flex-col gap-2">

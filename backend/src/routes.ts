@@ -774,7 +774,13 @@ apiRouter.post('/jobs/:id/chat/confirm', async (req: Request, res: Response): Pr
 apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { message, history } = req.body;
+    const { message, history, stagedChanges } = req.body;
+
+    // Optional: modifications the user has already collected in the chat "transaction"
+    // (not yet applied). Passed to the model so it can build on them consistently.
+    const normalizedStagedChanges: string[] | undefined = Array.isArray(stagedChanges)
+      ? stagedChanges.filter((c: unknown): c is string => typeof c === 'string' && c.trim().length > 0)
+      : undefined;
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({
@@ -875,7 +881,8 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       message,
       history,
       req.userId!,
-      userPrefs
+      userPrefs,
+      normalizedStagedChanges
     );
 
     let responsePayload: any = {
