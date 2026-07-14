@@ -10,6 +10,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   const [isPending, setIsPending] = useState(false);
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
   const [jobError, setJobError] = useState<string | null>(null);
+  const [jobErrorCode, setJobErrorCode] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [url, setUrl] = useState('');
@@ -158,6 +159,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     setIsPending(true);
     setJobStatus('pending');
     setJobError(null);
+    setJobErrorCode(null);
     setRecipe(null);
     setProgress(null);
 
@@ -193,7 +195,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       }
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'form.validation.submitFailed');
+        throw Object.assign(new Error(data.error || 'form.validation.submitFailed'), { code: data.code });
       }
 
       setJobStatus(data.status);
@@ -202,6 +204,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     } catch (err: unknown) {
       setJobStatus('failed');
       setJobError(err instanceof Error ? err.message : 'form.validation.submissionError');
+      setJobErrorCode(err instanceof Error && 'code' in err ? (err as Error & { code?: string }).code ?? null : null);
       setIsPending(false);
     }
   }, [getAccessToken, startPolling, validateUrl, fetchLimitStatus]);
@@ -211,6 +214,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     isPending,
     jobStatus,
     jobError,
+    jobErrorCode,
     recipe,
     setRecipe,
     progress,

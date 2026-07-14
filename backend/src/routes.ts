@@ -214,6 +214,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
 
         res.status(429).json({
           success: false,
+          code: 'RATE_LIMIT_EXCEEDED',
           error: `Rate limit: You have reached your limit of ${limit} recipe extractions per ${windowDays} days.` +
             (minutesRemaining > 0 ? ` Please try again in ${minutesRemaining} minutes.` : ''),
         });

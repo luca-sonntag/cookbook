@@ -649,6 +649,7 @@ export const uiTranslations = {
         extractUnlimited: 'Premium: Unbegrenzt freischalten',
         catalogFull: 'Kochbuch voll ({count}/{limit}) – Lösche ein Rezept oder upgrade.',
         catalogAlmostFull: 'Kochbuch fast voll ({count}/{limit})',
+        extractionLimitReached: 'Tageslimit erreicht ({used}/{limit}) – Upgrade auf Premium für unbegrenzte Extraktionen.',
         unlockNutrition: 'Nährwerte freischalten',
         upgrade: 'Upgrade'
       }
@@ -1164,6 +1165,7 @@ export const uiTranslations = {
         extractUnlimited: 'Premium: Unlock unlimited',
         catalogFull: 'Cookbook full ({count}/{limit}) – Delete a recipe or upgrade.',
         catalogAlmostFull: 'Cookbook almost full ({count}/{limit})',
+        extractionLimitReached: 'Daily limit reached ({used}/{limit}) – Upgrade to Premium for unlimited extractions.',
         unlockNutrition: 'Unlock nutrition',
         upgrade: 'Upgrade'
       }
