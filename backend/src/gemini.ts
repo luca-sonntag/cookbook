@@ -715,7 +715,8 @@ export async function chatAboutRecipe(
   message: string,
   history: { role: 'user' | 'model'; text: string }[],
   userId: string,
-  userPrefs?: UserPreferences
+  userPrefs?: UserPreferences,
+  stagedChanges?: string[]
 ): Promise<{
   chatMessage: string;
   toolCalled: string | null;
@@ -812,7 +813,12 @@ Rules:
 - Keep your conversational answers very short and concise (max 2-3 sentences). In the kitchen, speed is key!
 - When you call a tool, the system will execute it and return the result to you. You should then write a short, friendly message explaining what was done.
 - Respond in the language requested by the user. If not specified, default to ${targetLanguage}.
-`;
+${stagedChanges && stagedChanges.length > 0 ? `
+Pending recipe changes:
+The user has already collected the following modifications, which will be applied together in a later remix (they are NOT applied yet):
+${stagedChanges.map((c, i) => `${i + 1}. ${c}`).join('\n')}
+When the user requests a further modification, call modify_current_recipe with only the NEW change (do not repeat the already-collected ones). Build on top of the collected changes, avoid duplicates, and briefly point out if a new request conflicts with an already-collected one.
+` : ''}`;
 
     // Map history & new message to Gemini Content format
     const contents: any[] = [];
