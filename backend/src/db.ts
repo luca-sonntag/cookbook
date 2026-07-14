@@ -130,6 +130,9 @@ function normalizeUrl(urlStr: string): string {
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
+/** Postgres error code for a unique-constraint violation. */
+const PG_UNIQUE_VIOLATION = '23505';
+
 /** Create a new pending job. */
 export async function createJob(url: string, userId: string): Promise<Job> {
   const now = new Date().toISOString();
@@ -142,7 +145,17 @@ export async function createJob(url: string, userId: string): Promise<Job> {
     .returns<JobRow>()
     .single();
 
-  if (error) throw wrapError('Failed to create job', error);
+  if (error) {
+    // Two near-simultaneous requests for the same URL can both pass the
+    // app-level active-job check before either INSERT commits; the partial
+    // unique index on (user_id, url_normalized) for active jobs catches that
+    // race here. Return the job the other request created instead of failing.
+    if (error.code === PG_UNIQUE_VIOLATION) {
+      const existing = await findActiveJobByUrl(url, userId);
+      if (existing) return existing;
+    }
+    throw wrapError('Failed to create job', error);
+  }
   return rowToJob(data);
 }
 
@@ -256,6 +269,21 @@ export async function findCompletedJobByUrl(url: string, userId: string): Promis
     .limit(1);
 
   if (error) throw wrapError('Failed to search jobs by URL', error);
+  return data.length > 0 ? rowToJob(data[0]) : null;
+}
+
+/** Find a still-running (not yet completed/failed) job by URL (normalized), scoped to userId. */
+export async function findActiveJobByUrl(url: string, userId: string): Promise<Job | null> {
+  const { data, error } = await getClient()
+    .from('jobs')
+    .select()
+    .in('status', ['pending', 'scraping', 'processing'])
+    .eq('user_id', userId)
+    .eq('url_normalized', normalizeUrl(url))
+    .returns<JobRow[]>()
+    .limit(1);
+
+  if (error) throw wrapError('Failed to search active jobs by URL', error);
   return data.length > 0 ? rowToJob(data[0]) : null;
 }
 

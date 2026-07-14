@@ -127,3 +127,12 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('feedback-screenshots', 'feedback-screenshots', false)
 ON CONFLICT (id) DO NOTHING;
 
+-- --- duplicate-extraction fix ---
+
+-- Backstop against two near-simultaneous /extract-recipe requests for the same
+-- URL both passing the app-level "no active job yet" check and creating two
+-- jobs. Only one non-terminal job per (user, normalized URL) is allowed.
+CREATE UNIQUE INDEX IF NOT EXISTS jobs_active_user_url_idx
+  ON public.jobs (user_id, url_normalized)
+  WHERE status IN ('pending', 'scraping', 'processing');
+
