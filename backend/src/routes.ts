@@ -41,6 +41,20 @@ async function fetchAndSyncUser(userId: string): Promise<any> {
     } catch (err) {
       console.error(`Error auto-assigning beta tier to user ${userId}:`, err);
     }
+  } else if (!betaActive && currentTier === 'beta') {
+    try {
+      console.log(`Auto-reverting user ${userId} from beta to free tier because beta is inactive`);
+      const { data: updatedData, error: updateError } = await getClient().auth.admin.updateUserById(userId, {
+        app_metadata: { ...user.app_metadata, tier: 'free' }
+      });
+      if (updateError) {
+        console.error(`Failed to auto-revert beta tier for user ${userId}:`, updateError.message);
+      } else if (updatedData?.user) {
+        user = updatedData.user;
+      }
+    } catch (err) {
+      console.error(`Error auto-reverting beta tier for user ${userId}:`, err);
+    }
   }
 
   return user;
