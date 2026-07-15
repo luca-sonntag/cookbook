@@ -359,11 +359,6 @@ export const uiTranslations = {
         serverError: 'Der Server hat keine gültige Antwort zurückgegeben. Bitte versuche es erneut.',
       }
     },
-    install: {
-      title: 'Als App installieren',
-      desc: 'Teile Links direkt mit dieser App, um Rezepte schneller zu speichern!',
-      btn: 'Installieren',
-    },
     recipe: {
       copyMarkdown: 'Rezept als Markdown kopieren',
       copyRecipe: 'Rezept kopieren',
@@ -881,11 +876,6 @@ export const uiTranslations = {
         submissionError: 'An error occurred during submission.',
         serverError: 'The server returned an unexpected response. Please try again.',
       }
-    },
-    install: {
-      title: 'Install as App',
-      desc: 'Share links directly to this app to save recipes faster!',
-      btn: 'Install',
     },
     recipe: {
       copyMarkdown: 'Copy Recipe Markdown',

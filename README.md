@@ -1,164 +1,133 @@
-# 🍳 Instagram Reel Recipe Extractor (Express + TypeScript)
+# 🍳 Snagbite — Instagram Reel Recipe Extractor
 
-This repository contains a Node.js Express service built with TypeScript to automatically scrape Instagram recipe Reels and extract them into highly detailed structured JSON recipes. 
+Snagbite turns Instagram / social cooking Reels into rich, structured recipes. A
+user shares a Reel, the backend scrapes the video, extracts frames, and sends them
+to Google Gemini (structured JSON output) to produce a detailed, culinary-correct
+recipe that the app renders as an interactive cooking guide.
 
-It uses the **Apify Instagram Reel Scraper** actor to fetch video metadata, descriptions, and audio track URLs without needing complex browser scrapers or being blocked by Instagram. It then downloads the audio track and submits it alongside the caption to **Google Gemini 1.5 Flash** using Structured Outputs (JSON schema) to extract a complete, rich, culinary-correct recipe.
+This is an npm-workspaces monorepo:
+
+| Workspace | Stack | Role |
+|-----------|-------|------|
+| `backend/` | Express + TypeScript | **API-only** service: recipe extraction, jobs, auth, billing sync, admin. Deployed on **Railway** (Docker). |
+| `frontend/` | React 19 + Vite + TypeScript + Capacitor | **Native Android app** (Capacitor). Shipped via the **Google Play Store**. |
+
+> The canonical, in-depth architecture/context document is [`AGENTS.md`](./AGENTS.md).
+> Supplementary docs live in [`docs/`](./docs) (styleguide, scaling plan, provider contracts).
 
 ---
 
-## 🛠️ Architecture & Workflow
+## 🛠️ How extraction works
 
-1. **Client Submission:** Client submits an Instagram Reel URL (`https://www.instagram.com/reel/...`) to the Express API.
-2. **Immediate Acknowledgment:** The API creates a background job with `pending` status in a local JSON database and returns a `jobId`.
-3. **Background Scraping (Apify):** The worker picks up the job and triggers the Apify scraper to retrieve the post `caption` and `audioUrl`.
-4. **Background AI Processing (Gemini):**
-   * The server downloads the audio file temporarily.
-   * The audio track is uploaded to the Google AI File API.
-   * Gemini 1.5 Flash is invoked with the file and caption, structured by a strict JSON schema.
-   * Discrepancies between spoken instructions (audio) and descriptions (caption) are resolved.
-5. **Auto-Cleanup:** The audio file is deleted from local disk and the Gemini File API.
-6. **Result Polling:** The client polls the job endpoint to retrieve status changes and the final JSON recipe structure.
+1. **Submit** — the app sends a Reel URL to `POST /api/extract-recipe`; the backend creates a
+   `pending` job in Supabase and returns a `jobId`.
+2. **Scrape** — a background worker resolves the video through a provider chain
+   (RapidAPI → local `yt-dlp` → first-party Apify actor as fallback).
+3. **Frames** — the downloaded media is processed with **ffmpeg** to extract representative frames.
+4. **AI** — frames + caption are sent to **Google Gemini** with a strict JSON schema to produce
+   the structured recipe.
+5. **Poll** — the client polls `GET /api/jobs/:id` for status changes and the final recipe.
+
+Data (jobs, recipes, collections, favorites, users) is stored in **Supabase Postgres** with RLS;
+auth is verified via Supabase JWKS (`jose`); premium entitlements sync via **RevenueCat**.
+
+The backend can run as `ROLE=web`, `ROLE=worker`, or `ROLE=both` (see `backend/.env.example`).
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-* Node.js v18 or higher (which includes native `fetch` support).
-* An [Apify Account & API Token](https://apify.com/).
-* A [Google Gemini API Key](https://aistudio.google.com/).
+* Node.js v20+
+* `ffmpeg` + `python3` available locally (for frame extraction / `yt-dlp`) — the Docker image installs these automatically.
+* Accounts/keys: RapidAPI, Google Gemini, Supabase, (optional) Apify, RevenueCat.
 
-### Installation
+### Install
+```bash
+npm install
+```
 
-1. Clone the repository and navigate into the project directory:
-   ```powershell
-   npm install --ignore-scripts
-   ```
-   *(Using `--ignore-scripts` is recommended on Windows to bypass native compilation script errors for build packages like `esbuild` and SQLite.)*
+### Configure environment
+```bash
+# Backend
+cp backend/.env.example backend/.env   # fill in RapidAPI / Gemini / Supabase / RevenueCat keys
 
-2. Create a `.env` file from the example:
-   ```powershell
-   Copy-Item .env.example .env
-   ```
+# Frontend (Vite)
+#   VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY,
+#   VITE_REVENUECAT_ANDROID_API_KEY, VITE_API_BASE_URL
+```
 
-3. Open `.env` and configure your API tokens:
-   ```env
-   PORT=3000
-   APIFY_TOKEN=your_real_apify_token
-   GEMINI_API_KEY=your_real_gemini_api_key
-   DATABASE_PATH=database.json
-   GEMINI_MODEL=gemini-1.5-flash
-   RECIPE_LANGUAGE=German
-   PREFERRED_TEMPERATURE_UNIT=Celsius
-   PREFERRED_UNIT_SYSTEM=metric
-   ```
-
----
-
-## 💻 Running the Application
-
-### 1. Start the Express API Server (Dev mode)
-Runs the server with hot-reloading:
-```powershell
+### Run in development
+Runs backend (`tsx watch`) and frontend (`vite`) together:
+```bash
 npm run dev
 ```
+The Vite dev server proxies `/api` to the backend on `localhost:3000`.
 
 ---
 
-## 🐳 Running with Docker (Recommended)
+## 📱 Building the Android app (Capacitor)
 
-A Docker Compose configuration is provided to build and run the services in isolated containers. Make sure Docker Desktop is installed and running.
-
-### 1. Build and Start the Stack
-Builds the docker images and runs the main application and `apk-host` containers in the background:
-```powershell
-npm run docker:up
-```
-* **Main Application UI & API:** Accessible at [http://localhost:3000](http://localhost:3000)
-* **APK Host Server:** Accessible at [http://localhost:8080](http://localhost:8080)
-
-### 2. View Logs
-View real-time logs from both containers:
-```powershell
-npm run docker:logs
+From `frontend/`:
+```bash
+npm run cap:sync     # build web assets + sync into the Android project
+npm run cap:run      # build, sync, and run on a device/emulator
+npm run cap:live     # live-reload against the Vite dev server
 ```
 
-### 3. Rebuild the Images
-If you modify dependencies or the Dockerfiles, rebuild the containers using:
+Release + Play Store upload are automated via the PowerShell scripts in `frontend/scripts/`
+(`release.ps1`, `deploy-playstore.ps1`) and orchestrated from the repo root by `deploy.ps1`:
 ```powershell
-npm run docker:build
+npm run deploy                 # interactive: backend and/or app
+npm run deploy:all:internal    # bump + backend deploy + app to Play internal track
 ```
 
-### 4. Stop the Containers
-Stop and remove all running containers for this project:
-```powershell
-npm run docker:down
-```
+---
+
+## ☁️ Deployment
+
+* **Backend → Railway.** Railway builds the root [`Dockerfile`](./Dockerfile) (multi-stage,
+  `node:22-alpine`, ffmpeg/python3 at runtime). Deploy is triggered by `deploy.ps1` merging
+  `develop → master` and pushing tags. The container is **API-only** — it does not serve a web frontend.
+* **App → Google Play.** `frontend/scripts/deploy-playstore.ps1` builds a signed AAB and uploads it
+  to the configured track.
 
 ---
 
 ## 📡 API Reference
 
-### 1. Submit Recipe Extraction Job
+### Submit a recipe extraction job
 * **Endpoint:** `POST /api/extract-recipe`
-* **Content-Type:** `application/json`
-* **Request Body:**
+* **Body:** `{ "url": "https://www.instagram.com/reel/…/" }`
+* **Response (202):**
   ```json
-  {
-    "url": "https://www.instagram.com/reel/C8C_jApt_2j/"
-  }
-  ```
-* **Response (202 Accepted):**
-  ```json
-  {
-    "success": true,
-    "jobId": "q8z46p9u8",
-    "status": "pending",
-    "message": "Recipe extraction job successfully queued."
-  }
+  { "success": true, "jobId": "q8z46p9u8", "status": "pending" }
   ```
 
-### 2. Get Job Status and Extracted Recipe
+### Get job status and extracted recipe
 * **Endpoint:** `GET /api/jobs/:id`
-* **Response (200 OK):**
+* **Response (200):**
   ```json
   {
     "success": true,
     "job": {
       "id": "q8z46p9u8",
-      "url": "https://www.instagram.com/reel/C8C_jApt_2j/",
+      "url": "https://www.instagram.com/reel/…/",
       "status": "completed",
-      "error": null,
       "recipe": {
         "title": "Creamy Tuscan Chicken Pasta",
-        "description": "A delicious, easy-to-make pasta recipe with chicken, sun-dried tomatoes, and spinach in a rich garlic cream sauce.",
-        "prepTime": "15 mins",
-        "cookTime": "20 mins",
         "servings": 4,
         "ingredients": [
-          { "name": "chicken breast", "amount": 2, "unit": "pieces", "notes": "sliced" },
-          { "name": "penne pasta", "amount": 300, "unit": "g" }
+          { "name": "chicken breast", "amount": 2, "unit": "pieces", "notes": "sliced" }
         ],
         "instructions": [
-          { "step": 1, "description": "Boil the pasta in salted water until al dente." },
-          { "step": 2, "description": "Sear the sliced chicken breast in olive oil until golden brown." }
-        ],
-        "equipment": ["Large skillet", "Pasta pot", "Chef knife"],
-        "nutritionalEstimates": {
-          "calories": 620,
-          "protein": "42g",
-          "carbs": "58g",
-          "fat": "24g"
-        },
-        "tips": [
-          "Deglaze the skillet with a splash of white wine before adding cream for extra depth."
-        ],
-        "alternativeIngredients": [
-          { "original": "penne pasta", "substitute": "gluten-free pasta", "notes": "or zucchini noodles" }
+          { "step": 1, "description": "Boil the pasta in salted water until al dente." }
         ]
-      },
-      "createdAt": "2026-06-19T19:35:00.000Z",
-      "updatedAt": "2026-06-19T19:36:00.000Z"
+      }
     }
   }
   ```
+
+See `backend/src/routes.ts` for the full endpoint list (jobs, remix, chat, collections,
+favorites, extraction limits, billing sync, feedback, admin). A `GET /health` endpoint reports
+DB connectivity and role.

@@ -137,29 +137,7 @@ async function sendNotification(
       return;
     }
 
-    // Always prefer service worker showNotification for reliable PWA delivery.
-    // `navigator.serviceWorker.ready` waits for the SW to be active.
-    // We do NOT gate on `.controller` — it's null on first load after SW activation,
-    // but `registration.showNotification()` still works.
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification(title, {
-          body,
-          icon: '/icon-512.png',
-          badge: '/icon-192.png',
-          tag: 'cooking-timer',
-          vibrate: [200, 100, 200, 100, 400],
-          data: { recipeId, stepNum },
-          requireInteraction: true,
-        } as NotificationOptions & { vibrate?: number[] });
-        return;
-      } catch (swErr) {
-        console.error('[Timer] SW showNotification failed, falling back:', swErr);
-      }
-    }
-
-    // Ultimate fallback (non-PWA / SW failed)
+    // Web fallback (only reached when not native, or native delivery failed).
     try {
       const notification = new Notification(title, {
         body,

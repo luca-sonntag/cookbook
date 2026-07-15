@@ -1,4 +1,4 @@
-# ── Build stage: compile TypeScript and build frontend ──────────────────────
+# ── Build stage: compile the backend TypeScript ─────────────────────────────
 FROM node:22-alpine AS builder
 
 WORKDIR /app
@@ -10,25 +10,6 @@ COPY frontend/package*.json frontend/
 
 # Install dependencies for the workspaces
 RUN YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm ci
-
-ARG SKIP_FRONTEND=false
-ENV SKIP_FRONTEND=$SKIP_FRONTEND
-
-# Build frontend
-COPY frontend/ frontend/
-ARG SUPABASE_URL
-ARG SUPABASE_PUBLISHABLE_KEY
-ARG REVENUECAT_ANDROID_API_KEY
-ENV VITE_SUPABASE_URL=$SUPABASE_URL
-ENV VITE_SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY
-ENV VITE_REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY
-
-RUN if [ "$SKIP_FRONTEND" = "true" ]; then \
-      echo "Skipping frontend build"; \
-      mkdir -p frontend/dist; \
-    else \
-      npm run build -w frontend; \
-    fi
 
 # Build backend
 COPY backend/tsconfig.json backend/
@@ -45,7 +26,6 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/backend/package.json ./backend/package.json
 COPY --from=builder /app/backend/dist ./backend/dist
-COPY --from=builder /app/frontend/dist ./frontend/dist
 
 # Install runtime dependencies (ffmpeg/ffprobe for frame extraction, python3 for yt-dlp, ttf-dejavu for text-drawing fonts)
 RUN apk add --no-cache ffmpeg python3 ttf-dejavu

@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Button, Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, MonitorSmartphone, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare, Shield } from 'lucide-react';
+import { Select, ListBox, Popover } from '@heroui/react';
+import { LogOut, Globe, Moon, Sun, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare, Shield } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
-import { usePwaInstall } from '../hooks/usePwaInstall';
 import { useDialog } from '../context/DialogContext';
 import { useHashRouter } from '../hooks/useHashRouter';
 import PremiumModal from './PremiumModal';
@@ -45,7 +44,6 @@ export default function SettingsView() {
   const dialog = useDialog();
   const { navigate } = useHashRouter();
   const [theme, setTheme] = useTheme();
-  const { isInstallable, handleInstallClick } = usePwaInstall();
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
@@ -361,27 +359,6 @@ export default function SettingsView() {
             </div>
           </div>
 
-          {/* PWA Install Option (If applicable) */}
-          {isInstallable && (
-            <div className="p-4 flex items-center justify-between border-t border-black/5 dark:border-white/5">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl">
-                  <MonitorSmartphone className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                    {t('app.installBanner.title') || 'Install App'}
-                  </p>
-                </div>
-              </div>
-              <Button
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs h-9 px-4 rounded-xl shadow-md active:scale-95 transition-all"
-                onPress={handleInstallClick}
-              >
-                Install
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 
