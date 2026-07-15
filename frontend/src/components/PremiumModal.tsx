@@ -130,8 +130,8 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
   // Render the Coffee Anchor Badge if we have a monthly package or yearly monthly equivalence
   const renderCoffeeAnchor = () => {
     return (
-      <div className="flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[10px] font-bold tracking-wide uppercase shrink-0">
-        <Sparkles className="w-3.5 h-3.5 fill-amber-300 animate-pulse" />
+      <div className="flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[10px] font-bold tracking-wide shrink-0">
+        <Sparkles className="w-3.5 h-3.5 fill-amber-300" />
         {t('premium.modal.coffeeAnchor') || 'Weniger als ein Kaffee im Monat ☕'}
       </div>
     );
@@ -185,8 +185,8 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
           {renderCoffeeAnchor()}
         </div>
 
-        {/* Scrollable middle container */}
-        <div className="flex-1 overflow-y-auto pr-1 -mr-1 flex flex-col gap-4 py-2 scrollbar-thin">
+        {/* Scrollable middle container - Scrollbar completely hidden for premium aesthetic */}
+        <div className="flex-1 overflow-y-auto pr-1 -mr-1 flex flex-col gap-4 py-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
           {/* Dynamic Comparison Table or Outcome Benefits */}
           {showTableVariant ? (
@@ -267,82 +267,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
 
-          {/* Pricing Options Cards */}
-          {isLoadingPackages ? (
-            <div className="flex flex-col items-center justify-center py-6 gap-2 shrink-0">
-              <Loader2 className="w-6 h-6 animate-spin text-amber-300" />
-              <span className="text-xs text-emerald-100/60">{t('premium.modal.verifying') || 'Lade Optionen...'}</span>
-            </div>
-          ) : packages.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 shrink-0">
-              {packages.map((pkg) => {
-                const isSelected = selectedPackageId === pkg.identifier;
-                const isYearly = pkg.packageType === 'ANNUAL';
-                
-                // Format monthly equivalent for yearly (standard yearly price / 12)
-                let monthlyPriceStr = pkg.product.priceString;
-                if (isYearly) {
-                  const monthlyEquiv = pkg.product.pricePerMonthString || 
-                    (pkg.product.price ? `${(pkg.product.price / 12).toFixed(2).replace('.', ',')} €` : '');
-                  monthlyPriceStr = t('premium.modal.priceMonthlyEquivalent').replace('{price}', monthlyEquiv);
-                }
-
-                // If monthly package exists, we can show savings percentage on yearly
-                // Hardcode 58% if there's a monthly equivalent package
-                const hasSavings = isYearly && packages.some(p => p.packageType === 'MONTHLY');
-
-                return (
-                  <div
-                    key={pkg.identifier}
-                    onClick={() => setSelectedPackageId(pkg.identifier)}
-                    className={`relative p-4 rounded-3xl flex flex-col gap-1 border-2 transition-all active:scale-[0.98] cursor-pointer ${
-                      isSelected
-                        ? 'bg-emerald-500/25 border-amber-400 shadow-lg shadow-black/15'
-                        : 'bg-black/15 border-white/10 hover:bg-black/20 hover:border-white/20'
-                    }`}
-                  >
-                    {/* Bestseller Badge */}
-                    {isYearly && (
-                      <span className="absolute top-0 right-4 -translate-y-1/2 bg-amber-400 text-emerald-950 font-extrabold text-[8px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                        {t('premium.modal.bestseller') || 'Bestseller'}
-                      </span>
-                    )}
-
-                    {/* Savings Badge */}
-                    {hasSavings && (
-                      <span className="absolute top-2 left-2 bg-emerald-400 text-emerald-950 font-extrabold text-[7px] px-1.5 py-0.5 rounded">
-                        {t('premium.modal.savePercent').replace('{percent}', '58') || '-58%'}
-                      </span>
-                    )}
-
-                    <div className="pt-2 text-xs font-bold text-white/80">
-                      {isYearly ? t('premium.modal.yearly') : t('premium.modal.monthly')}
-                    </div>
-
-                    <div className="text-lg font-extrabold text-white leading-tight">
-                      {monthlyPriceStr}
-                    </div>
-
-                    <div className="text-[10px] text-emerald-100/60 mt-auto">
-                      {isYearly 
-                        ? t('premium.modal.priceYearlyPeriod').replace('{price}', pkg.product.priceString)
-                        : t('premium.modal.pricePeriod').replace('{price}', pkg.product.priceString)
-                      }
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl shrink-0">
-              <AlertCircle className="w-5 h-5 text-amber-300 shrink-0" />
-              <span className="text-xs text-amber-200/80 leading-relaxed">
-                Keine Angebote geladen. Der Kauf wird über das Standard-Abo abgewickelt.
-              </span>
-            </div>
-          )}
-
-          {/* Blinkist Step-by-Step Trial Timeline */}
+          {/* Blinkist Step-by-Step Trial Timeline - stays in scrollable middle if active */}
           {!isLoadingPackages && hasSelectedTrial && (
             <div className="flex flex-col gap-3 bg-black/15 border border-white/10 rounded-3xl p-4.5 shrink-0">
               <div className="text-xs font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
@@ -416,43 +341,122 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
           </div>
         )}
 
-        {/* CTA Button Block */}
-        <div className="shrink-0 mt-4">
-          {user?.app_metadata?.tier === 'beta' ? (
-            <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
-              <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.betaOwned') || 'Beta-Zugriff Aktiv'}
-            </button>
-          ) : isPremium ? (
-            <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
-              <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.owned') || 'Du hast Premium'}
-            </button>
-          ) : isValidating || isLoadingPackages ? (
-            <button disabled className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
-              <Loader2 className="w-5 h-5 animate-spin text-amber-300" /> {t('premium.modal.verifying') || 'Verifiziere Status...'}
-            </button>
+        {/* Sticky Pricing & CTA Block - Moved out of scroll container so it's always visible */}
+        <div className="shrink-0 mt-3 pt-3 border-t border-white/10 flex flex-col gap-3.5">
+          
+          {/* Pricing Options Cards */}
+          {isLoadingPackages ? (
+            <div className="flex flex-col items-center justify-center py-4 gap-2 shrink-0">
+              <Loader2 className="w-5 h-5 animate-spin text-amber-300" />
+              <span className="text-[10px] text-emerald-100/60">{t('premium.modal.verifying') || 'Lade Optionen...'}</span>
+            </div>
+          ) : packages.length > 0 ? (
+            <div className={`grid ${packages.length === 1 ? 'grid-cols-1 w-48 mx-auto' : 'grid-cols-2'} gap-3 shrink-0`}>
+              {packages.map((pkg) => {
+                const isSelected = selectedPackageId === pkg.identifier;
+                const isYearly = pkg.packageType === 'ANNUAL';
+                
+                // Format monthly equivalent for yearly (standard yearly price / 12)
+                let monthlyPriceStr = pkg.product.priceString;
+                if (isYearly) {
+                  const monthlyEquiv = pkg.product.pricePerMonthString || 
+                    (pkg.product.price ? `${(pkg.product.price / 12).toFixed(2).replace('.', ',')} €` : '');
+                  monthlyPriceStr = t('premium.modal.priceMonthlyEquivalent').replace('{price}', monthlyEquiv);
+                }
+
+                // If monthly package exists, we can show savings percentage on yearly
+                const hasSavings = isYearly && packages.some(p => p.packageType === 'MONTHLY');
+
+                return (
+                  <div
+                    key={pkg.identifier}
+                    onClick={() => setSelectedPackageId(pkg.identifier)}
+                    className={`relative p-3 rounded-2xl flex flex-col gap-0.5 border-2 transition-all active:scale-[0.98] cursor-pointer ${
+                      isSelected
+                        ? 'bg-emerald-500/25 border-amber-400 shadow-lg shadow-black/15'
+                        : 'bg-black/15 border-white/10 hover:bg-black/20 hover:border-white/20'
+                    }`}
+                  >
+                    {/* Bestseller Badge */}
+                    {isYearly && (
+                      <span className="absolute top-0 right-3 -translate-y-1/2 bg-amber-400 text-emerald-950 font-extrabold text-[8px] px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                        {t('premium.modal.bestseller') || 'Bestseller'}
+                      </span>
+                    )}
+
+                    {/* Savings Badge */}
+                    {hasSavings && (
+                      <span className="absolute top-2 left-2 bg-emerald-400 text-emerald-950 font-extrabold text-[7px] px-1.5 py-0.5 rounded">
+                        {t('premium.modal.savePercent').replace('{percent}', '58') || '-58%'}
+                      </span>
+                    )}
+
+                    <div className="pt-1.5 text-[10px] font-bold text-white/80">
+                      {isYearly ? t('premium.modal.yearly') : t('premium.modal.monthly')}
+                    </div>
+
+                    <div className="text-base font-extrabold text-white leading-tight">
+                      {monthlyPriceStr}
+                    </div>
+
+                    <div className="text-[9px] text-emerald-100/60 mt-auto">
+                      {isYearly 
+                        ? t('premium.modal.priceYearlyPeriod').replace('{price}', pkg.product.priceString)
+                        : t('premium.modal.pricePeriod').replace('{price}', pkg.product.priceString)
+                      }
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
-            <button
-              onClick={handleUpgrade}
-              disabled={loading || !selectedPackageId}
-              className="w-full h-14 rounded-2xl bg-amber-400 hover:bg-amber-300 text-emerald-950 text-base font-extrabold flex items-center justify-center gap-2 shadow-xl shadow-black/25 active:scale-[0.98] transition-all duration-150 disabled:opacity-60 cursor-pointer animate-pulse"
-            >
-              {loading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> {t('premium.modal.loading')}</>
-              ) : (
-                <>
-                  <Crown className="w-5 h-5" />
-                  <span>
-                    {hasSelectedTrial ? t('premium.modal.ctaWithTrial') : t('premium.modal.ctaWithoutTrial')}
-                  </span>
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl shrink-0">
+              <AlertCircle className="w-4 h-4 text-amber-300 shrink-0" />
+              <span className="text-[10px] text-amber-200/80 leading-relaxed">
+                Keine Angebote geladen. Der Kauf wird über das Standard-Abo abgewickelt.
+              </span>
+            </div>
           )}
-          {!isPremium && !loading && !isValidating && !isLoadingPackages && (
-            <p className="text-center text-[11px] text-emerald-100/50 mt-2 font-semibold">
-              {t('premium.modal.cancelSubtitle') || 'Kein Risiko. Jederzeit kündbar.'}
-            </p>
-          )}
+
+          {/* CTA Button Block */}
+          <div>
+            {user?.app_metadata?.tier === 'beta' ? (
+              <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
+                <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.betaOwned') || 'Beta-Zugriff Aktiv'}
+              </button>
+            ) : isPremium ? (
+              <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
+                <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.owned') || 'Du hast Premium'}
+              </button>
+            ) : isValidating || isLoadingPackages ? (
+              <button disabled className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
+                <Loader2 className="w-5 h-5 animate-spin text-amber-300" /> {t('premium.modal.verifying') || 'Verifiziere Status...'}
+              </button>
+            ) : (
+              <button
+                onClick={handleUpgrade}
+                disabled={loading || !selectedPackageId}
+                className="w-full h-14 rounded-2xl bg-amber-400 hover:bg-amber-300 text-emerald-950 text-base font-extrabold flex items-center justify-center gap-2 shadow-xl shadow-black/25 active:scale-[0.98] transition-all duration-150 disabled:opacity-60 cursor-pointer"
+              >
+                {loading ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> {t('premium.modal.loading')}</>
+                ) : (
+                  <>
+                    <Crown className="w-5 h-5" />
+                    <span>
+                      {hasSelectedTrial ? t('premium.modal.ctaWithTrial') : t('premium.modal.ctaWithoutTrial')}
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
+            {!isPremium && !loading && !isValidating && !isLoadingPackages && (
+              <p className="text-center text-[11px] text-emerald-100/50 mt-2 font-semibold">
+                {t('premium.modal.cancelSubtitle') || 'Kein Risiko. Jederzeit kündbar.'}
+              </p>
+            )}
+          </div>
+
         </div>
 
       </div>
