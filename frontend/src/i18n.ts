@@ -583,6 +583,13 @@ export const uiTranslations = {
       clearConfirmTitle: 'Chat zurücksetzen?',
       clearConfirmBody: 'Möchtest du diese Unterhaltung und die Vorschläge für dieses Rezept löschen? Das kann nicht rückgängig gemacht werden.',
       clearConfirmBtn: 'Zurücksetzen',
+      changesTitle: 'Geplante Änderungen ({count})',
+      changesHint: 'Sammle Änderungen und wende sie gemeinsam an.',
+      changesApply: 'Änderungen anwenden',
+      changesDiscardAll: 'Alle verwerfen',
+      changesDeleteAria: 'Änderung entfernen',
+      changesApplyPrompt: 'Wie möchtest du die Änderungen anwenden?',
+      changesEmpty: 'Noch keine Änderungen gesammelt.',
     },
     timer: {
       confirmTitle: 'Timer starten?',
@@ -649,6 +656,7 @@ export const uiTranslations = {
         extractUnlimited: 'Premium: Unbegrenzt freischalten',
         catalogFull: 'Kochbuch voll ({count}/{limit}) – Lösche ein Rezept oder upgrade.',
         catalogAlmostFull: 'Kochbuch fast voll ({count}/{limit})',
+        extractionLimitReached: 'Tageslimit erreicht ({used}/{limit}) – Upgrade auf Premium für unbegrenzte Extraktionen.',
         unlockNutrition: 'Nährwerte freischalten',
         upgrade: 'Upgrade'
       }
@@ -1098,6 +1106,13 @@ export const uiTranslations = {
       clearConfirmTitle: 'Reset chat?',
       clearConfirmBody: 'Do you want to clear this conversation and the suggestions for this recipe? This cannot be undone.',
       clearConfirmBtn: 'Reset',
+      changesTitle: 'Planned changes ({count})',
+      changesHint: 'Collect changes and apply them together.',
+      changesApply: 'Apply changes',
+      changesDiscardAll: 'Discard all',
+      changesDeleteAria: 'Remove change',
+      changesApplyPrompt: 'How do you want to apply the changes?',
+      changesEmpty: 'No changes collected yet.',
     },
     timer: {
       confirmTitle: 'Start timer?',
@@ -1164,6 +1179,7 @@ export const uiTranslations = {
         extractUnlimited: 'Premium: Unlock unlimited',
         catalogFull: 'Cookbook full ({count}/{limit}) – Delete a recipe or upgrade.',
         catalogAlmostFull: 'Cookbook almost full ({count}/{limit})',
+        extractionLimitReached: 'Daily limit reached ({used}/{limit}) – Upgrade to Premium for unlimited extractions.',
         unlockNutrition: 'Unlock nutrition',
         upgrade: 'Upgrade'
       }

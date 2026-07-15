@@ -73,6 +73,8 @@ export default function ExtractForm({
   // Premium/Unlimited users (including overrides) never get capped.
   const isRealPremium = user?.app_metadata?.tier === 'premium' || isPremiumOverride;
   const cookbookFull = !isRealPremium && !!limitStatus?.cookbookFull;
+  const extractionLimitReached = !isRealPremium && !cookbookFull && !!limitStatus && limitStatus.limit >= 0 && limitStatus.remaining <= 0;
+  const blockedByLimit = cookbookFull || extractionLimitReached;
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -103,7 +105,7 @@ export default function ExtractForm({
 
   const handleDemoClick = (demoUrl: string) => {
     if (isPending) return;
-    if (cookbookFull) { setIsPremiumModalOpen(true); return; }
+    if (blockedByLimit) { setIsPremiumModalOpen(true); return; }
     setUrl(demoUrl);
     validateUrl(demoUrl);
 
@@ -137,7 +139,7 @@ export default function ExtractForm({
       <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
         <form
           onSubmit={(e) => {
-            if (cookbookFull) { e.preventDefault(); setIsPremiumModalOpen(true); return; }
+            if (blockedByLimit) { e.preventDefault(); setIsPremiumModalOpen(true); return; }
             handleFormSubmit(e);
           }}
           className="flex flex-col gap-3"
@@ -191,8 +193,8 @@ export default function ExtractForm({
             type="submit"
             fullWidth
             isPending={isPending}
-            isDisabled={cookbookFull}
-            className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${cookbookFull
+            isDisabled={blockedByLimit}
+            className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${blockedByLimit
               ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-70 shadow-none'
               : isPending
                 ? 'bg-emerald-800 shadow-none'
@@ -224,6 +226,18 @@ export default function ExtractForm({
                 label={t('premium.hint.catalogFull', {
                   count: limitStatus?.savedRecipes ?? 0,
                   limit: limitStatus?.maxSavedRecipes ?? 5
+                })}
+                cta={t('premium.hint.upgrade')}
+              />
+            </div>
+          ) : extractionLimitReached ? (
+            <div className="flex flex-col gap-1.5 -mt-1">
+              <PremiumHint
+                variant="banner"
+                onClick={() => setIsPremiumModalOpen(true)}
+                label={t('premium.hint.extractionLimitReached', {
+                  used: limitStatus?.used ?? 0,
+                  limit: limitStatus?.limit ?? 0
                 })}
                 cta={t('premium.hint.upgrade')}
               />

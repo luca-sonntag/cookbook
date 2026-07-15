@@ -157,11 +157,11 @@ export default function CatalogFilters({
       </div>
 
       {/* Horizontal Scrollable Filter Chips */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-none py-1 -mx-4 px-4 md:-mx-6 md:px-6 scroll-smooth">
+      <div className="flex gap-1.5 overflow-x-auto scrollbar-none py-1 -mx-4 px-4 md:-mx-6 md:px-6 scroll-smooth">
         {/* 'All' chip */}
         <button
           onClick={() => setActiveFilter('all')}
-          className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
+          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
             activeFilter === 'all'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -173,13 +173,13 @@ export default function CatalogFilters({
         {/* 'Favorites' chip */}
         <button
           onClick={() => setActiveFilter('favorites')}
-          className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer flex items-center gap-1 ${
             activeFilter === 'favorites'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
-          <Star className={`w-3.5 h-3.5 ${activeFilter === 'favorites' ? 'fill-white stroke-white text-white' : 'text-amber-500 fill-amber-500'}`} />
+          <Star className={`w-3 h-3 ${activeFilter === 'favorites' ? 'fill-white stroke-white text-white' : 'text-amber-500 fill-amber-500'}`} />
           {t('catalog.favoritesFilter') || 'Favoriten'}
         </button>
 
@@ -191,13 +191,13 @@ export default function CatalogFilters({
             <button
               key={col.id}
               onClick={() => setActiveFilter(isSelected ? 'all' : colFilter)}
-              className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer flex items-center gap-1 ${
                 isSelected
                   ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
                   : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              {col.emoji && <span className="text-base leading-none">{col.emoji}</span>}
+              {col.emoji && <span className="text-sm leading-none">{col.emoji}</span>}
               <span>{col.name}</span>
             </button>
           );
@@ -206,7 +206,7 @@ export default function CatalogFilters({
         {/* 'Under 15' chip */}
         <button
           onClick={() => setActiveFilter('under15')}
-          className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
+          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
             activeFilter === 'under15'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -218,7 +218,7 @@ export default function CatalogFilters({
         {/* 'Under 30' chip */}
         <button
           onClick={() => setActiveFilter('under30')}
-          className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
+          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
             activeFilter === 'under30'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -235,13 +235,13 @@ export default function CatalogFilters({
             <button
               key={flag}
               onClick={() => setActiveFilter(isSelected ? 'all' : flagFilter)}
-              className={`px-4.5 py-2 text-sm font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer flex items-center gap-1 ${
                 isSelected
                   ? 'bg-amber-500 border-amber-500 text-white shadow-sm font-bold'
                   : 'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
               }`}
             >
-              <Tag className={`w-3 h-3 ${isSelected ? 'text-white' : 'text-amber-500'}`} />
+              <Tag className={`w-2.5 h-2.5 ${isSelected ? 'text-white' : 'text-amber-500'}`} />
               <span>{flag}</span>
             </button>
           );
@@ -250,9 +250,9 @@ export default function CatalogFilters({
         {/* '+ Sammlung' button */}
         <button
           onClick={onAddCollection}
-          className="px-4.5 py-2 text-sm font-semibold rounded-full border border-dashed border-emerald-600/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5 active:scale-95 transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 shrink-0"
+          className="px-3.5 py-1.5 text-xs font-semibold rounded-full border border-dashed border-emerald-600/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5 active:scale-95 transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 shrink-0"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-3 h-3" />
           <span>{t('catalog.addCollection') || '＋ Sammlung'}</span>
         </button>
       </div>

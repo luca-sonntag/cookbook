@@ -127,6 +127,7 @@ export default function App() {
     isPending,
     jobStatus,
     jobError,
+    jobErrorCode,
     recipe,
     setRecipe,
     progress,
@@ -559,6 +560,7 @@ export default function App() {
                 isPending={isPending}
                 jobStatus={jobStatus}
                 jobError={jobError}
+                jobErrorCode={jobErrorCode}
                 triggerExtraction={triggerExtraction}
                 url={url}
               />

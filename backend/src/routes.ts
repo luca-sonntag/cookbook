@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -152,6 +152,21 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       return;
     }
 
+    // Check if a job for this URL is already running (scoped to user). Without this,
+    // re-submitting the same URL while the first extraction is still in flight -
+    // e.g. after the app was closed/reopened mid-extraction - creates a second job
+    // that also completes, resulting in a duplicate saved recipe.
+    const activeJob = await findActiveJobByUrl(cleanUrl, req.userId!);
+    if (activeJob) {
+      res.status(202).json({
+        success: true,
+        jobId: activeJob.id,
+        status: activeJob.status,
+        message: 'Recipe extraction already in progress.',
+      });
+      return;
+    }
+
     // Enforce per-user quota to protect Apify/Gemini budget
     const activeCount = await countActiveJobsForUser(req.userId!);
     if (activeCount >= config.MAX_JOBS_PER_USER) {
@@ -214,6 +229,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
 
         res.status(429).json({
           success: false,
+          code: 'RATE_LIMIT_EXCEEDED',
           error: `Rate limit: You have reached your limit of ${limit} recipe extractions per ${windowDays} days.` +
             (minutesRemaining > 0 ? ` Please try again in ${minutesRemaining} minutes.` : ''),
         });
@@ -758,7 +774,13 @@ apiRouter.post('/jobs/:id/chat/confirm', async (req: Request, res: Response): Pr
 apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { message, history } = req.body;
+    const { message, history, stagedChanges } = req.body;
+
+    // Optional: modifications the user has already collected in the chat "transaction"
+    // (not yet applied). Passed to the model so it can build on them consistently.
+    const normalizedStagedChanges: string[] | undefined = Array.isArray(stagedChanges)
+      ? stagedChanges.filter((c: unknown): c is string => typeof c === 'string' && c.trim().length > 0)
+      : undefined;
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({
@@ -859,7 +881,8 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       message,
       history,
       req.userId!,
-      userPrefs
+      userPrefs,
+      normalizedStagedChanges
     );
 
     let responsePayload: any = {

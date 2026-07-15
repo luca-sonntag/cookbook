@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { Card, Button } from '@heroui/react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { resolveJobError } from '../i18n';
+import PremiumHint from './PremiumHint';
+import PremiumModal from './PremiumModal';
 
 interface ErrorBannerProps {
   isPending: boolean;
   jobStatus: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed' | null;
   jobError: string | null;
+  jobErrorCode?: string | null;
   triggerExtraction: (url: string) => void;
   url: string;
 }
@@ -15,12 +19,28 @@ export default function ErrorBanner({
   isPending,
   jobStatus,
   jobError,
+  jobErrorCode,
   triggerExtraction,
   url
 }: ErrorBannerProps) {
   const { t, language } = useI18n();
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
   if (isPending || jobStatus !== 'failed') return null;
+
+  if (jobErrorCode === 'RATE_LIMIT_EXCEEDED') {
+    return (
+      <>
+        <PremiumHint
+          variant="banner"
+          onClick={() => setIsPremiumModalOpen(true)}
+          label={t('premium.hint.extractUnlimited')}
+          cta={t('premium.hint.upgrade')}
+        />
+        <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
+      </>
+    );
+  }
 
   return (
     <Card className="glass-panel p-4 rounded-2xl border border-red-500/15 bg-red-50/70 dark:bg-red-950/20">
