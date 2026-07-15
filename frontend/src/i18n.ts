@@ -657,20 +657,20 @@ export const uiTranslations = {
         },
         features: {
           extractions: {
-            title: 'Dein Kochbuch ohne Limits',
-            desc: 'Sammle unendlich viele Rezepte direkt aus Instagram Reels (statt 3 pro Tag).'
+            title: 'Unbegrenzt Rezepte',
+            desc: 'Direkt aus Instagram Reels importieren.'
           },
           remix: {
-            title: 'Persönlicher Koch-Assistent',
-            desc: 'Rezepte per Chat anpassen, Reste verwerten & Kochschritte anpassen.'
+            title: 'Rezept-KI-Chat',
+            desc: 'Rezepte flexibel per Chat anpassen.'
           },
           nutrition: {
-            title: 'Gesund & Fit im Blick',
-            desc: 'Ausführliche Nährwerte pro Portion und Zutat direkt berechnet.'
+            title: 'Nährwerte & Makros',
+            desc: 'Zutaten & Portionen im Blick behalten.'
           },
           shoppingList: {
-            title: 'Entspannter Wocheneinkauf',
-            desc: 'Zutaten aus all deinen Rezepten automatisch in einer Liste kombinieren.'
+            title: 'Smarte Einkaufsliste',
+            desc: 'Zutaten automatisch kombinieren.'
           },
           cookingMode: {
             title: 'Entspanntes Kochen',
@@ -1218,20 +1218,20 @@ export const uiTranslations = {
         },
         features: {
           extractions: {
-            title: 'Your Cookbook Without Limits',
-            desc: 'Save as many recipes from Instagram Reels as you want (instead of 3 per day).'
+            title: 'Unlimited Recipes',
+            desc: 'Import directly from Instagram Reels.'
           },
           remix: {
-            title: 'Personal Cooking Assistant',
-            desc: 'Customize recipes via chat, use leftover ingredients, and adjust steps dynamically.'
+            title: 'Recipe AI Chat',
+            desc: 'Adapt recipes dynamically via chat.'
           },
           nutrition: {
-            title: 'Health & Nutrition at a Glance',
-            desc: 'Get detailed macro and calorie breakdowns calculated per portion and ingredient.'
+            title: 'Nutrition & Macros',
+            desc: 'Keep track of ingredients & portions.'
           },
           shoppingList: {
-            title: 'Stress-free Grocery Trips',
-            desc: 'Automatically combine and group shopping items from multiple recipes.'
+            title: 'Smart Shopping List',
+            desc: 'Combine shopping items automatically.'
           },
           cookingMode: {
             title: 'Relaxed Cooking',
