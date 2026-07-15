@@ -22,6 +22,7 @@ interface JobRow {
   url_normalized: string | null;
   is_favorite?: boolean;
   flags?: string[];
+  video_bytes?: number;
 }
 
 // ── Supabase client (lazy singleton) ─────────────────────────────────────────
@@ -68,6 +69,7 @@ function rowToJob(row: JobRow): Job {
     updatedAt: row.updated_at,
     isFavorite: row.is_favorite ?? false,
     flags: row.flags ?? [],
+    videoBytes: row.video_bytes ?? 0,
   };
   if (job.recipe) {
     normalizeRecipe(job.recipe, job.id);
@@ -93,6 +95,7 @@ function jobToRow(updates: Partial<Job>): Partial<JobRow> {
   if (updates.updatedAt !== undefined) row.updated_at = updates.updatedAt;
   if (updates.isFavorite !== undefined) row.is_favorite = updates.isFavorite;
   if (updates.flags !== undefined) row.flags = updates.flags;
+  if (updates.videoBytes !== undefined) row.video_bytes = updates.videoBytes;
   return row;
 }
 
@@ -790,11 +793,13 @@ export async function getJobMetrics(
   failed: number;
   pending: number;
   processing: number;
+  videoBytes: number;
+  videoMb: number;
   dailyStats: { date: string; count: number }[];
 }> {
   let query = getClient()
     .from('jobs')
-    .select('status, created_at');
+    .select('status, created_at, video_bytes');
 
   if (since) {
     query = query.gte('created_at', since.toISOString());
@@ -809,6 +814,7 @@ export async function getJobMetrics(
   let failed = 0;
   let pending = 0;
   let processing = 0;
+  let videoBytes = 0;
   const dailyCounts: Record<string, number> = {};
 
   if (allJobs) {
@@ -818,6 +824,9 @@ export async function getJobMetrics(
       else if (job.status === 'failed') failed++;
       else if (job.status === 'pending') pending++;
       else if (job.status === 'processing') processing++;
+
+      // video_bytes comes back as a string for bigint via PostgREST → coerce.
+      videoBytes += Number((job as any).video_bytes ?? 0) || 0;
 
       if (job.created_at) {
         const dateStr = job.created_at.split('T')[0];
@@ -848,7 +857,9 @@ export async function getJobMetrics(
     }
   }
 
-  return { total, completed, failed, pending, processing, dailyStats };
+  const videoMb = parseFloat((videoBytes / (1024 * 1024)).toFixed(2));
+
+  return { total, completed, failed, pending, processing, videoBytes, videoMb, dailyStats };
 }
 
 
