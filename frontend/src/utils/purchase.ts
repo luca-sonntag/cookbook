@@ -68,15 +68,77 @@ async function syncBillingStatus(isPremium: boolean): Promise<void> {
   }
 }
 
-export async function buyPremium(): Promise<boolean> {
+export async function getSubscriptionOfferings(): Promise<any[]> {
   if (!Capacitor.isNativePlatform()) {
-    throw new Error('Billing is only supported on native mobile platforms.');
+    // Return mock offerings for web testing
+    return [
+      {
+        identifier: '$rc_monthly',
+        packageType: 'MONTHLY',
+        product: {
+          identifier: 'premium_monthly',
+          title: 'Snagbite Premium Monthly',
+          description: 'Monthly subscription to Snagbite Premium',
+          price: 3.99,
+          priceString: '3,99 €',
+          currencyCode: 'EUR',
+          introPrice: null,
+          subscriptionPeriod: 'P1M',
+        }
+      },
+      {
+        identifier: '$rc_yearly',
+        packageType: 'ANNUAL',
+        product: {
+          identifier: 'premium_yearly',
+          title: 'Snagbite Premium Yearly',
+          description: 'Yearly subscription to Snagbite Premium',
+          price: 19.99,
+          priceString: '19,99 €',
+          currencyCode: 'EUR',
+          introPrice: {
+            price: 0,
+            priceString: '0,00 €',
+            cycles: 1,
+            period: 'P1W',
+            periodUnit: 'DAY',
+            periodNumberOfUnits: 7,
+          },
+          subscriptionPeriod: 'P1Y',
+        }
+      }
+    ];
   }
 
-  // Get current user to ensure we are initialized
+  // Ensure initialized
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  await initBilling(user.id);
+
+  if (!isRCInitialized) return [];
+
+  try {
+    const offerings = await Purchases.getOfferings();
+    return offerings.current?.availablePackages || [];
+  } catch (err) {
+    console.error('Failed to get offerings from RevenueCat:', err);
+    return [];
+  }
+}
+
+export async function buyPremium(packageId?: string): Promise<boolean> {
+  // Get current user to ensure we are logged in
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('User must be logged in to purchase Premium.');
+  }
+
+  if (!Capacitor.isNativePlatform()) {
+    // In web development, simulate a successful purchase
+    console.log('Simulating premium purchase on web for package:', packageId);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    await syncBillingStatus(true);
+    return true;
   }
 
   await initBilling(user.id);
@@ -92,16 +154,22 @@ export async function buyPremium(): Promise<boolean> {
       throw new Error('No active products or subscription packages found.');
     }
 
-    // Purchase the first available package (usually 'monthly' or the current offering)
-    const packageToBuy = offerings.current.availablePackages[0];
+    // Find the requested package or fall back to the first available package
+    let packageToBuy = offerings.current.availablePackages[0];
+    if (packageId) {
+      const found = offerings.current.availablePackages.find(p => p.identifier === packageId);
+      if (found) {
+        packageToBuy = found;
+      } else {
+        console.warn(`Requested package '${packageId}' not found. Falling back to default package.`);
+      }
+    }
+
     const { customerInfo } = await Purchases.purchasePackage({
       aPackage: packageToBuy,
     });
 
     // Check if the user has active entitlements.
-    // In RevenueCat, you usually configure an entitlement like 'premium'.
-    const activeEntitlements = Object.keys(customerInfo.entitlements.active);
-    console.log('Active entitlements:', activeEntitlements);
     const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
 
     if (isPremium) {
@@ -110,6 +178,7 @@ export async function buyPremium(): Promise<boolean> {
     }
 
     await syncBillingStatus(false);
+    const activeEntitlements = Object.keys(customerInfo.entitlements.active);
     const activeList = activeEntitlements.length > 0 ? activeEntitlements.join(', ') : 'none';
     throw new Error(`Purchase was successful, but the 'premium' entitlement is not active (Active: [${activeList}]). Please verify that you have configured an entitlement with ID 'premium' in the RevenueCat dashboard and linked it to this product.`);
   } catch (err: any) {
@@ -120,3 +189,4 @@ export async function buyPremium(): Promise<boolean> {
     throw new Error(err.message || 'Purchase failed.');
   }
 }
+
