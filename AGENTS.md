@@ -49,7 +49,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
     * `EXTRACTION_LIMIT_WINDOW_DAYS` (Default: `1`): Größe des rollierenden Fensters in Tagen.
     * `FREE_MAX_EXTRACTIONS_PER_WINDOW` (Default: `3`): Maximale Anzahl an Extraktionen für Free-User.
     * `PREMIUM_MAX_EXTRACTIONS_PER_WINDOW` (Default: `50`): Maximale Anzahl an Extraktionen für Premium-User.
-  * **Subscription Tiers:** Benutzer befinden sich standardmäßig im `free` Tier. Sobald sie Premium kaufen, wird ihr Tier auf `premium` gesetzt (gesichert in `app_metadata.tier`).
+  * **Subscription Tiers:** Benutzer befinden sich standardmäßig im `free` Tier. Sobald sie Premium kaufen, wird ihr Tier auf `premium` gesetzt (gesichert in `app_metadata.tier`). Wenn der Beta-Modus global aktiviert wird, werden Nutzer beim Abrufen ihres Profils/Limits automatisch in das `beta` Tier verschoben. Wird der Beta-Modus deaktiviert, werden `beta`-Nutzer beim nächsten Sync wieder in das `free` Tier zurückgestuft.
   * **Benutzerbezogene Limits (Overrides):** Werden über Supabase Auth `app_metadata` individuell gesteuert:
     * `custom_extraction_limit` bzw. `max_extractions_per_window` gibt die maximale Anzahl frei (z. B. `-1` für unbegrenzt).
   * **Nutzererfahrung:** Wenn das Limit erreicht ist, ermittelt das Backend die älteste Extraktion im Fenster und berechnet die verbleibende Wartezeit minutengenau. Das Frontend übersetzt diese Fehlermeldung dynamisch im `translateApiError`-Helper und zeigt dem Nutzer die genaue Restdauer an.
