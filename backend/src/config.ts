@@ -15,7 +15,6 @@ export interface Config {
   /** Actor id (`owner/name` or id) of the first-party social downloader (apify-actor repo). Optional final-fallback provider. */
   APIFY_SOCIAL_ACTOR_ID?: string;
   GEMINI_API_KEY: string;
-  DATABASE_PATH: string;
   SUPABASE_URL: string;
   SUPABASE_PUBLISHABLE_KEY: string;
   SUPABASE_SECRET_KEY: string;
@@ -58,7 +57,6 @@ export const config: Config = {
   RAPIDAPI_SOCIAL_HOST: getEnv('RAPIDAPI_SOCIAL_HOST', 'social-download-all-in-one.p.rapidapi.com'),
   APIFY_SOCIAL_ACTOR_ID: process.env.APIFY_SOCIAL_ACTOR_ID,
   GEMINI_API_KEY: getEnv('GEMINI_API_KEY'),
-  DATABASE_PATH: getEnv('DATABASE_PATH', 'database.json'), // Use database.json as the persistent JSON file store
   SUPABASE_URL: getEnv('SUPABASE_URL'),
   SUPABASE_PUBLISHABLE_KEY: getEnv('SUPABASE_PUBLISHABLE_KEY'),
   SUPABASE_SECRET_KEY: getEnv('SUPABASE_SECRET_KEY'),

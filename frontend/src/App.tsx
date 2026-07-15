@@ -5,7 +5,6 @@ import type { Job } from './types';
 import { apiUrl } from './api';
 import { registerShareIntent, registerNotificationTap, hideSplashScreen, registerBackButtonHandler } from './native';
 import { parseSharedUrl } from './utils/shareUrl';
-import InstallBanner from './components/InstallBanner';
 import ExtractForm from './components/ExtractForm';
 import ProgressTracker from './components/ProgressTracker';
 import ErrorBanner from './components/ErrorBanner';
@@ -18,7 +17,6 @@ import TimerBanner from './components/TimerBanner';
 import WelcomeGuide from './components/WelcomeGuide';
 import AdminView from './components/AdminView';
 
-import { usePwaInstall } from './hooks/usePwaInstall';
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
 import { useShoppingList } from './hooks/useShoppingList';
 import { useDialog } from './context/DialogContext';
@@ -72,8 +70,7 @@ export default function App() {
     }
   }, [navigate]);
 
-  // Custom Hooks for PWA Installation, Recipe Extraction, and Shopping List
-  const { isInstallable, handleInstallClick } = usePwaInstall();
+  // Custom Hooks for Recipe Extraction and Shopping List
   const {
     aggregatedList,
     addRecipeIngredients,
@@ -298,24 +295,6 @@ export default function App() {
     return () => window.removeEventListener('app:navigate-to-timer-step', handleNavigate);
   }, [recipe, history, navigate]);
 
-  // Listen for service worker messages (notification clicks on Android PWA)
-  useEffect(() => {
-    const handleSwMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'NOTIFICATION_CLICK') {
-        const { recipeId, stepNum } = event.data;
-        if (recipeId) {
-          window.dispatchEvent(
-            new CustomEvent('app:navigate-to-timer-step', {
-              detail: { recipeId, stepNum },
-            })
-          );
-        }
-      }
-    };
-    navigator.serviceWorker?.addEventListener('message', handleSwMessage);
-    return () => navigator.serviceWorker?.removeEventListener('message', handleSwMessage);
-  }, []);
-
   // Listen for taps on native local notifications (Capacitor Android/iOS)
   useEffect(() => {
     return registerNotificationTap((recipeId, stepNum) => {
@@ -489,9 +468,6 @@ export default function App() {
             </div>
           </div>
         </header>
-
-        {/* App Install Banner */}
-        <InstallBanner isInstallable={isInstallable} handleInstallClick={handleInstallClick} />
 
         {/* Active Cooking Timers Banner */}
         <TimerBanner />
