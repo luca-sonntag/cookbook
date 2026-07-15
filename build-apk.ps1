@@ -25,8 +25,8 @@ Write-Host "Cleaning Gradle build cache..."
 
 .\gradlew assembleDebug
 
-Write-Host "Copying APK to apk-host..."
-Copy-Item -Path "app\build\outputs\apk\debug\app-debug.apk" -Destination "..\..\apk-host\snagbite-debug.apk" -Force
+Write-Host "Copying APK to project root..."
+Copy-Item -Path "app\build\outputs\apk\debug\app-debug.apk" -Destination "..\..\snagbite-debug.apk" -Force
 
-Write-Host "Done! APK is available in apk-host/snagbite-debug.apk"
+Write-Host "Done! APK is available in project root: snagbite-debug.apk"
 cd ..\..
