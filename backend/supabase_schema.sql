@@ -38,6 +38,9 @@ ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS is_favorite boolean NOT NULL DE
 -- Phase B: Add flags to jobs
 ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS flags text[] NOT NULL DEFAULT '{}';
 
+-- Downloaded video size (bytes) per job. Powers the admin "Downloaded Video MB" metric.
+ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS video_bytes bigint NOT NULL DEFAULT 0;
+
 -- Phase B: Collections Table
 CREATE TABLE IF NOT EXISTS public.collections (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
