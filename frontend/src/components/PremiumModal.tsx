@@ -435,7 +435,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                   <div
                     key={pkg.identifier}
                     onClick={() => setSelectedPackageId(pkg.identifier)}
-                    className={`relative p-3.5 rounded-2xl flex flex-col gap-0.5 border-2 transition-all active:scale-[0.98] cursor-pointer overflow-hidden ${
+                    className={`relative p-3.5 rounded-2xl flex flex-col gap-0.5 border-2 transition-all active:scale-[0.98] cursor-pointer ${
                       isSelected
                         ? 'bg-gradient-to-b from-amber-400/20 to-amber-400/5 border-amber-400 shadow-xl shadow-amber-400/5'
                         : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/15'
@@ -443,20 +443,20 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                   >
                     {/* Bestseller Badge */}
                     {isYearly && (
-                      <span className="absolute top-0 right-3 -translate-y-1/2 bg-amber-400 text-emerald-950 font-extrabold text-[8px] px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                      <span className="absolute top-2 right-2 bg-amber-400 text-emerald-950 font-extrabold text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider shadow-sm">
                         {t('premium.modal.bestseller') || 'Bestseller'}
                       </span>
                     )}
 
-                    {/* Savings Badge */}
-                    {hasSavings && (
-                      <span className="absolute top-2 left-2 bg-emerald-400 text-emerald-950 font-extrabold text-[7px] px-1.5 py-0.5 rounded">
-                        {t('premium.modal.savePercent').replace('{percent}', '58') || '-58%'}
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <span className="text-[10px] font-bold text-white/80">
+                        {isYearly ? t('premium.modal.yearly') : t('premium.modal.monthly')}
                       </span>
-                    )}
-
-                    <div className="pt-1.5 text-[10px] font-bold text-white/80">
-                      {isYearly ? t('premium.modal.yearly') : t('premium.modal.monthly')}
+                      {hasSavings && (
+                        <span className="bg-emerald-400/20 text-emerald-400 font-extrabold text-[7.5px] px-1 py-0.5 rounded border border-emerald-500/20">
+                          {t('premium.modal.savePercent').replace('{percent}', '58') || '-58%'}
+                        </span>
+                      )}
                     </div>
 
                     <div className="text-base font-extrabold text-white leading-tight">
