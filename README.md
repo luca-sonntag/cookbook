@@ -70,15 +70,14 @@ npm run dev
 A Docker Compose configuration is provided to build and run the services in isolated containers. Make sure Docker Desktop is installed and running.
 
 ### 1. Build and Start the Stack
-Builds the docker images and runs the main application and `apk-host` containers in the background:
+Builds the docker images and runs the main application container in the background:
 ```powershell
 npm run docker:up
 ```
 * **Main Application UI & API:** Accessible at [http://localhost:3000](http://localhost:3000)
-* **APK Host Server:** Accessible at [http://localhost:8080](http://localhost:8080)
 
 ### 2. View Logs
-View real-time logs from both containers:
+View real-time logs:
 ```powershell
 npm run docker:logs
 ```
