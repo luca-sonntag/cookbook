@@ -19,19 +19,21 @@ FROM nginx:alpine
 # Copy the build output from the builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Create a custom nginx configuration to handle client-side routing
-# We write this inline to avoid needing an extra file in the repo
+# Create a custom nginx configuration template to handle dynamic PORT mapping from Railway
+RUN mkdir -p /etc/nginx/templates
 RUN echo 'server { \
-    listen 80; \
+    listen ${PORT}; \
     location / { \
         root /usr/share/nginx/html; \
         index index.html index.htm; \
         try_files $uri $uri/ /index.html; \
     } \
-}' > /etc/nginx/conf.d/default.conf
+}' > /etc/nginx/templates/default.conf.template
 
-# Expose the default Nginx port (Railway will map this automatically or use the PORT env var if configured, 
-# but for simple Dockerfile deploys on Railway, exposing 80 is standard if we serve on 80)
+# Default port fallback if PORT env var is not set (e.g., local run)
+ENV PORT=80
+
+# Expose the port (expose is informational, Railway reads PORT env var)
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
