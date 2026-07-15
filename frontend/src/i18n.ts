@@ -653,12 +653,14 @@ export const uiTranslations = {
           rowAiChatPremium: '✔️ Ja',
           rowNutrition: 'Nährwerte & Makros',
           rowNutritionFree: '❌ Nein',
-          rowNutritionPremium: '✔️ Ja'
+          rowNutritionPremium: '✔️ Ja',
+          rowCollections: 'Sammlungen & Labels',
+          rowCookingMode: 'Kochmodus & Timer'
         },
         features: {
           extractions: {
             title: 'Unbegrenzt Rezepte',
-            desc: 'Direkt aus Instagram Reels importieren.'
+            desc: 'Rezepte aus Social Media & Web importieren.'
           },
           remix: {
             title: 'Rezept-KI-Chat',
@@ -1214,12 +1216,14 @@ export const uiTranslations = {
           rowAiChatPremium: '✔️ Yes',
           rowNutrition: 'Nutrition & Macros',
           rowNutritionFree: '❌ No',
-          rowNutritionPremium: '✔️ Yes'
+          rowNutritionPremium: '✔️ Yes',
+          rowCollections: 'Collections & Labels',
+          rowCookingMode: 'Cooking Mode & Timers'
         },
         features: {
           extractions: {
             title: 'Unlimited Recipes',
-            desc: 'Import directly from Instagram Reels.'
+            desc: 'Import recipes from social media & web.'
           },
           remix: {
             title: 'Recipe AI Chat',
