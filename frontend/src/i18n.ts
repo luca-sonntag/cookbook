@@ -612,34 +612,77 @@ export const uiTranslations = {
         betaOwned: 'Beta-Zugriff Aktiv',
         verifying: 'Verifiziere Status...',
         footer: 'Jederzeit kündbar · Sicher über Google Play',
+        monthly: 'Monatlich',
+        yearly: 'Jährlich',
+        savePercent: 'Spare {percent}%',
+        bestseller: 'Bestseller',
+        coffeeAnchor: 'Weniger als ein Kaffee im Monat ☕',
+        pricePeriod: '{price} / Monat',
+        priceYearlyPeriod: '{price} / Jahr',
+        priceMonthlyEquivalent: 'nur {price}/Monat',
+        freeTrialTitle: '7 Tage kostenlos testen',
+        ctaWithTrial: 'Kostenlose Testphase starten >',
+        ctaWithoutTrial: 'Premium freischalten >',
+        cancelSubtitle: 'Kein Risiko. Jederzeit kündbar.',
+        switchLayout: 'Vergleichstabelle anzeigen',
+        switchLayoutBack: 'Vorteile anzeigen',
+        timeline: {
+          step1Title: 'Heute',
+          step1Desc: 'Testphase starten. Vollzugriff.',
+          step2Title: 'Tag 5',
+          step2Desc: 'Erinnerungs-Push erhalten.',
+          step3Title: 'Tag 7',
+          step3Desc: 'Abo beginnt. Jederzeit kündbar.'
+        },
+        comparison: {
+          tableTitle: 'Free vs. Premium im Vergleich',
+          headerFeature: 'Funktion',
+          headerFree: 'Kostenlos',
+          headerPremium: 'Premium',
+          rowExtractions: 'Rezept-Extraktion',
+          rowExtractionsFree: '3 / Tag',
+          rowExtractionsPremium: 'Unbegrenzt',
+          rowCookbook: 'Kochbuch (Speichern)',
+          rowCookbookFree: 'Max. 5 Rezepte',
+          rowCookbookPremium: 'Unbegrenzt',
+          rowShoppingList: 'Einkaufsliste',
+          rowShoppingListFree: 'Lokal, 1 Rezept',
+          rowShoppingListPremium: 'Smarte Kombi',
+          rowAiChat: 'Rezept-KI-Chat',
+          rowAiChatFree: '❌ Nein',
+          rowAiChatPremium: '✔️ Ja',
+          rowNutrition: 'Nährwerte & Makros',
+          rowNutritionFree: '❌ Nein',
+          rowNutritionPremium: '✔️ Ja'
+        },
         features: {
           extractions: {
-            title: 'Unbegrenzte Extraktionen',
-            desc: 'Extrahiere so viele Rezepte aus Reels wie du möchtest (statt 3 pro Tag).'
+            title: 'Dein Kochbuch ohne Limits',
+            desc: 'Sammle unendlich viele Rezepte direkt aus Instagram Reels (statt 3 pro Tag).'
           },
           remix: {
-            title: 'Rezept-KI-Chat',
-            desc: 'Passe Rezepte flexibel per Chat an, frage nach Alternativen, Einkaufslisten-Export & Timern.'
+            title: 'Persönlicher Koch-Assistent',
+            desc: 'Rezepte per Chat anpassen, Reste verwerten & Kochschritte anpassen.'
           },
           nutrition: {
-            title: 'Nährwerte & Makros',
-            desc: 'Detaillierte Nährwertangaben pro Portion und Zutat auf einen Blick.'
+            title: 'Gesund & Fit im Blick',
+            desc: 'Ausführliche Nährwerte pro Portion und Zutat direkt berechnet.'
           },
           shoppingList: {
-            title: 'Smarte Kombi-Einkaufsliste',
-            desc: 'Führe Zutaten aus beliebig vielen Rezepten automatisch zusammen.'
+            title: 'Entspannter Wocheneinkauf',
+            desc: 'Zutaten aus all deinen Rezepten automatisch in einer Liste kombinieren.'
           },
           cookingMode: {
-            title: 'Koch-Timer & Modus',
-            desc: 'Schritt-für-Schritt-Anleitungen mit direkt klickbaren In-App-Timern.'
+            title: 'Entspanntes Kochen',
+            desc: 'Interaktive Schritt-für-Schritt-Ansicht mit integrierten Timern.'
           },
           catalog: {
-            title: 'Unbegrenztes Kochbuch',
-            desc: 'Speichere unendlich viele Rezepte (statt maximal 5).'
+            title: 'Rezeptsammlung ohne Limit',
+            desc: 'Speichere so viele Rezepte, wie du möchtest (statt maximal 5).'
           },
           organization: {
-            title: 'Sammlungen & Labels',
-            desc: 'Organisiere dein Kochbuch in eigenen Sammlungen und filtere per Label, Favorit & Kochzeit.'
+            title: 'Perfekte Ordnung',
+            desc: 'Rezepte in Sammlungen sortieren und blitzschnell filtern.'
           }
         }
       },
@@ -1130,34 +1173,77 @@ export const uiTranslations = {
         betaOwned: 'Beta Access Active',
         verifying: 'Verifying Status...',
         footer: 'Cancel anytime · Secure via Google Play',
+        monthly: 'Monthly',
+        yearly: 'Yearly',
+        savePercent: 'Save {percent}%',
+        bestseller: 'Best Value',
+        coffeeAnchor: 'Less than the price of a coffee per month ☕',
+        pricePeriod: '{price} / month',
+        priceYearlyPeriod: '{price} / year',
+        priceMonthlyEquivalent: 'only {price}/month',
+        freeTrialTitle: '7-Day Free Trial',
+        ctaWithTrial: 'Start Free Trial >',
+        ctaWithoutTrial: 'Unlock Premium >',
+        cancelSubtitle: 'No risk. Cancel anytime.',
+        switchLayout: 'Show comparison table',
+        switchLayoutBack: 'Show benefits',
+        timeline: {
+          step1Title: 'Today',
+          step1Desc: 'Start free trial. Full access.',
+          step2Title: 'Day 5',
+          step2Desc: 'Get reminder notification.',
+          step3Title: 'Day 7',
+          step3Desc: 'Subscription starts. Cancel anytime.'
+        },
+        comparison: {
+          tableTitle: 'Free vs. Premium Comparison',
+          headerFeature: 'Feature',
+          headerFree: 'Free',
+          headerPremium: 'Premium',
+          rowExtractions: 'Recipe Extraction',
+          rowExtractionsFree: '3 / day',
+          rowExtractionsPremium: 'Unlimited',
+          rowCookbook: 'Cookbook (Save)',
+          rowCookbookFree: 'Max 5 recipes',
+          rowCookbookPremium: 'Unlimited',
+          rowShoppingList: 'Shopping List',
+          rowShoppingListFree: 'Local, 1 recipe',
+          rowShoppingListPremium: 'Smart Combined',
+          rowAiChat: 'Recipe AI Chat',
+          rowAiChatFree: '❌ No',
+          rowAiChatPremium: '✔️ Yes',
+          rowNutrition: 'Nutrition & Macros',
+          rowNutritionFree: '❌ No',
+          rowNutritionPremium: '✔️ Yes'
+        },
         features: {
           extractions: {
-            title: 'Unlimited Extractions',
-            desc: 'Extract as many recipes from Reels as you want (instead of 3 per day).'
+            title: 'Your Cookbook Without Limits',
+            desc: 'Save as many recipes from Instagram Reels as you want (instead of 3 per day).'
           },
           remix: {
-            title: 'Recipe AI Chat',
-            desc: 'Adapt recipes dynamically via chat, ask for alternatives, export to shopping list & set timers.'
+            title: 'Personal Cooking Assistant',
+            desc: 'Customize recipes via chat, use leftover ingredients, and adjust steps dynamically.'
           },
           nutrition: {
-            title: 'Nutrition & Macros',
-            desc: 'Detailed nutritional facts per portion and ingredient at a glance.'
+            title: 'Health & Nutrition at a Glance',
+            desc: 'Get detailed macro and calorie breakdowns calculated per portion and ingredient.'
           },
           shoppingList: {
-            title: 'Smart Combined Shopping List',
-            desc: 'Automatically combine ingredients from as many recipes as you want.'
+            title: 'Stress-free Grocery Trips',
+            desc: 'Automatically combine and group shopping items from multiple recipes.'
           },
           cookingMode: {
-            title: 'Cooking Timers & Mode',
-            desc: 'Step-by-step instructions with clickable in-app timers.'
+            title: 'Relaxed Cooking',
+            desc: 'Follow clear step-by-step guides with fully integrated active timers.'
           },
           catalog: {
-            title: 'Unlimited Cookbook',
-            desc: 'Save unlimited recipes (instead of a maximum of 5).'
+            title: 'Infinite Cookbook',
+            desc: 'Store unlimited recipes in your profile (instead of a maximum of 5).'
           },
           organization: {
-            title: 'Collections & Labels',
-            desc: 'Organize your cookbook into custom collections and filter by label, favorite & cook time.'
+            title: 'Perfect Organization',
+            desc: 'Sort recipes into custom collections and filter by tags, favorites, and cook times.'
           }
         }
       },
