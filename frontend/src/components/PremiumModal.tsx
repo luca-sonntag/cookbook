@@ -160,6 +160,16 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
       free: false,
       premium: true,
     },
+    {
+      feature: t('premium.modal.comparison.rowCollections'),
+      free: false,
+      premium: true,
+    },
+    {
+      feature: t('premium.modal.comparison.rowCookingMode'),
+      free: false,
+      premium: true,
+    },
   ];
 
   // Helper to render comparison cells cleanly using modern check/cross components
@@ -232,7 +242,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
 
         {/* Close Button */}
         {!loading && (
-          <div className="flex justify-end pb-1 shrink-0">
+          <div className="flex justify-end pt-4 pb-1 shrink-0">
             <button
               onClick={() => onOpenChange(false)}
               className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white transition-colors cursor-pointer"
