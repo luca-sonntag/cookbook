@@ -430,6 +430,17 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
 
                 // If monthly package exists, we can show savings percentage on yearly
                 const hasSavings = isYearly && packages.some(p => p.packageType === 'MONTHLY');
+                let savingsPercent = 37;
+                if (hasSavings) {
+                  const monthlyPkg = packages.find(p => p.packageType === 'MONTHLY');
+                  if (monthlyPkg?.product?.price && pkg.product.price) {
+                    const monthlyCost = monthlyPkg.product.price * 12;
+                    const yearlyCost = pkg.product.price;
+                    if (monthlyCost > yearlyCost) {
+                      savingsPercent = Math.round(((monthlyCost - yearlyCost) / monthlyCost) * 100);
+                    }
+                  }
+                }
 
                 return (
                   <div
@@ -454,7 +465,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                       </span>
                       {hasSavings && (
                         <span className="bg-emerald-400/20 text-emerald-400 font-extrabold text-[7.5px] px-1 py-0.5 rounded border border-emerald-500/20">
-                          {t('premium.modal.savePercent').replace('{percent}', '58') || '-58%'}
+                          {t('premium.modal.savePercent').replace('{percent}', String(savingsPercent)) || `-${savingsPercent}%`}
                         </span>
                       )}
                     </div>
