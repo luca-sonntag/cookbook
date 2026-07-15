@@ -624,8 +624,6 @@ export const uiTranslations = {
         ctaWithTrial: 'Kostenlose Testphase starten >',
         ctaWithoutTrial: 'Premium freischalten >',
         cancelSubtitle: 'Kein Risiko. Jederzeit kündbar.',
-        switchLayout: 'Vergleichstabelle anzeigen',
-        switchLayoutBack: 'Vorteile anzeigen',
         timeline: {
           step1Title: 'Heute',
           step1Desc: 'Testphase starten. Vollzugriff.',
@@ -673,18 +671,6 @@ export const uiTranslations = {
           shoppingList: {
             title: 'Smarte Einkaufsliste',
             desc: 'Zutaten automatisch kombinieren.'
-          },
-          cookingMode: {
-            title: 'Entspanntes Kochen',
-            desc: 'Interaktive Schritt-für-Schritt-Ansicht mit integrierten Timern.'
-          },
-          catalog: {
-            title: 'Rezeptsammlung ohne Limit',
-            desc: 'Speichere so viele Rezepte, wie du möchtest (statt maximal 5).'
-          },
-          organization: {
-            title: 'Perfekte Ordnung',
-            desc: 'Rezepte in Sammlungen sortieren und blitzschnell filtern.'
           }
         }
       },
@@ -1187,8 +1173,6 @@ export const uiTranslations = {
         ctaWithTrial: 'Start Free Trial >',
         ctaWithoutTrial: 'Unlock Premium >',
         cancelSubtitle: 'No risk. Cancel anytime.',
-        switchLayout: 'Show comparison table',
-        switchLayoutBack: 'Show benefits',
         timeline: {
           step1Title: 'Today',
           step1Desc: 'Start free trial. Full access.',
@@ -1236,18 +1220,6 @@ export const uiTranslations = {
           shoppingList: {
             title: 'Smart Shopping List',
             desc: 'Combine shopping items automatically.'
-          },
-          cookingMode: {
-            title: 'Relaxed Cooking',
-            desc: 'Follow clear step-by-step guides with fully integrated active timers.'
-          },
-          catalog: {
-            title: 'Infinite Cookbook',
-            desc: 'Store unlimited recipes in your profile (instead of a maximum of 5).'
-          },
-          organization: {
-            title: 'Perfect Organization',
-            desc: 'Sort recipes into custom collections and filter by tags, favorites, and cook times.'
           }
         }
       },
