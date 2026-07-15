@@ -185,6 +185,13 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
       * **Cache-Invalidierung:** Bei Löschung eines Rezepts (Einzellöschung in `App.tsx` oder Bulk-Delete in `useSavedCatalog.ts`) werden die zugehörigen IndexedDB-Einträge automatisch mitgelöscht.
       * **Fallback:** Bei Canvas-Fehlern (CORS, corrupt images) wird direkt die Proxy-URL als `src` verwendet — der Nutzer sieht das Bild in Originalqualität, nur ohne Caching.
     * **Typensicherheit (`backend/src/types.ts` & `frontend/src/types.ts`):** Zentralisierte TypeScript-Modelle für Rezepte, Zutaten, Nährwerte und API-Jobs. Nutzung von `type`-only Imports zur Einhaltung von Compiler-Richtlinien (wie `verbatimModuleSyntax`).
+
+### 5. Website-Layer (React & HeroUI)
+
+* **Technologie:** React 19, Vite, TypeScript, HeroUI v3, Tailwind CSS v4. Eigenständiges Projekt im Ordner `website/`.
+* **Zweck:** Dient als öffentliche Landingpage zur Bewerbung der App und zum Hosten rechtlicher Seiten (Datenschutzerklärung, Impressum, AGB, Datenlöschung).
+* **Design:** Teilt sich das Design-System (Schriftart Outfit, Tailwind-Variablen, Farben) mit dem Frontend-Layer. Verwendet eine eigene `index.html` und Router.
+* **Deployment:** Bietet ein dediziertes `Dockerfile` (Multi-Stage mit Node-Build und Nginx) für das eigenständige Deployment als statischer Webserver (z. B. auf Railway).
 * **Visuelles Design:** Theme-gesteuert (Hell- & Dunkelmodus) mit modernem Glassmorphismus und harmonischen Akzenten (Smaragdgrün). Optimiert für mobile Displays mit flüssigen Übergängen.
 * **Strikte Mobile-First & Header-Architektur:**
   * Die Webanwendung fokussiert sich zu 100% auf ein Smartphone-Erlebnis, unabhängig vom Endgerät. Das Design erzwingt global ein `max-w-md` Container-Layout, sodass die App auch auf Desktop-Bildschirmen wie eine native Smartphone-Applikation wirkt.
