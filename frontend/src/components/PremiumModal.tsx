@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Crown, Check, X, Loader2, Sparkles, ChevronRight, AlertCircle } from 'lucide-react';
+import { Crown, Check, X, Loader2, Sparkles, ChevronRight, AlertCircle, Video, MessageSquare, Flame, ListTodo } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { buyPremium, getSubscriptionOfferings } from '../utils/purchase';
 import { useAuth } from '../context/AuthContext';
@@ -113,14 +113,84 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
   };
 
   const featureItems = [
-    { title: t('premium.modal.features.extractions.title'), desc: t('premium.modal.features.extractions.desc') },
-    { title: t('premium.modal.features.remix.title'),        desc: t('premium.modal.features.remix.desc') },
-    { title: t('premium.modal.features.nutrition.title'),    desc: t('premium.modal.features.nutrition.desc') },
-    { title: t('premium.modal.features.shoppingList.title'), desc: t('premium.modal.features.shoppingList.desc') },
-    { title: t('premium.modal.features.cookingMode.title'),  desc: t('premium.modal.features.cookingMode.desc') },
-    { title: t('premium.modal.features.catalog.title'),      desc: t('premium.modal.features.catalog.desc') },
-    { title: t('premium.modal.features.organization.title'), desc: t('premium.modal.features.organization.desc') },
+    { 
+      title: t('premium.modal.features.extractions.title'), 
+      desc: t('premium.modal.features.extractions.desc'),
+      icon: <Video className="w-3.5 h-3.5 text-emerald-950" />
+    },
+    { 
+      title: t('premium.modal.features.remix.title'),        
+      desc: t('premium.modal.features.remix.desc'),
+      icon: <MessageSquare className="w-3.5 h-3.5 text-emerald-950" />
+    },
+    { 
+      title: t('premium.modal.features.nutrition.title'),    
+      desc: t('premium.modal.features.nutrition.desc'),
+      icon: <Flame className="w-3.5 h-3.5 text-emerald-950" />
+    },
+    { 
+      title: t('premium.modal.features.shoppingList.title'), 
+      desc: t('premium.modal.features.shoppingList.desc'),
+      icon: <ListTodo className="w-3.5 h-3.5 text-emerald-950" />
+    },
   ];
+
+  const comparisonRows = [
+    {
+      feature: t('premium.modal.comparison.rowExtractions'),
+      free: t('premium.modal.comparison.rowExtractionsFree'),
+      premium: t('premium.modal.comparison.rowExtractionsPremium'),
+    },
+    {
+      feature: t('premium.modal.comparison.rowCookbook'),
+      free: t('premium.modal.comparison.rowCookbookFree'),
+      premium: t('premium.modal.comparison.rowCookbookPremium'),
+    },
+    {
+      feature: t('premium.modal.comparison.rowShoppingList'),
+      free: t('premium.modal.comparison.rowShoppingListFree'),
+      premium: t('premium.modal.comparison.rowShoppingListPremium'),
+    },
+    {
+      feature: t('premium.modal.comparison.rowAiChat'),
+      free: false,
+      premium: true,
+    },
+    {
+      feature: t('premium.modal.comparison.rowNutrition'),
+      free: false,
+      premium: true,
+    },
+  ];
+
+  // Helper to render comparison cells cleanly using modern check/cross components
+  const renderCellContent = (val: string | boolean, isPremiumCol: boolean) => {
+    if (typeof val === 'boolean') {
+      if (val) {
+        return (
+          <div className="flex items-center justify-center">
+            <div className="w-4.5 h-4.5 rounded-full bg-amber-400/90 flex items-center justify-center shadow-sm shadow-amber-400/30 shrink-0">
+              <Check className="w-2.5 h-2.5 text-emerald-950" strokeWidth={4} />
+            </div>
+          </div>
+        );
+      } else {
+        return (
+          <div className="flex items-center justify-center">
+            <div className="w-4.5 h-4.5 rounded-full bg-red-550/20 border border-red-500/20 flex items-center justify-center shrink-0">
+              <X className="w-2.5 h-2.5 text-red-300" strokeWidth={3} />
+            </div>
+          </div>
+        );
+      }
+    }
+    
+    return (
+      <span className={isPremiumCol ? 'text-amber-300 font-extrabold text-[11px]' : 'text-emerald-100/65 font-medium text-[11px]'}>
+        {val}
+      </span>
+    );
+  };
 
   // Helper to determine trial info
   const selectedPackage = packages.find(p => p.identifier === selectedPackageId);
@@ -185,14 +255,14 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
           {renderCoffeeAnchor()}
         </div>
 
-        {/* Scrollable middle container - Scrollbar completely hidden for premium aesthetic */}
+        {/* Scrollable middle container - Scrollbar completely hidden */}
         <div className="flex-1 overflow-y-auto pr-1 -mr-1 flex flex-col gap-4 py-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
           {/* Dynamic Comparison Table or Outcome Benefits */}
           {showTableVariant ? (
             /* Variant B: Comparison Table */
             <div className="flex flex-col rounded-3xl overflow-hidden bg-black/15 border border-white/10 shrink-0">
-              <div className="bg-black/10 px-4 py-2 border-b border-white/10 text-center">
+              <div className="bg-black/10 px-4 py-2.5 border-b border-white/10 text-center">
                 <span className="text-xs font-bold text-white tracking-wide">
                   {t('premium.modal.comparison.tableTitle')}
                 </span>
@@ -200,56 +270,42 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-white/8 text-[9px] uppercase tracking-wider text-emerald-200/50">
-                    <th className="px-4 py-2.5 font-bold">{t('premium.modal.comparison.headerFeature')}</th>
-                    <th className="px-3 py-2.5 font-bold text-center">{t('premium.modal.comparison.headerFree')}</th>
-                    <th className="px-3 py-2.5 font-bold text-center text-amber-300">{t('premium.modal.comparison.headerPremium')}</th>
+                    <th className="px-4 py-3 font-bold">{t('premium.modal.comparison.headerFeature')}</th>
+                    <th className="px-3 py-3 font-bold text-center">{t('premium.modal.comparison.headerFree')}</th>
+                    <th className="px-3 py-3 font-bold text-center text-amber-300">{t('premium.modal.comparison.headerPremium')}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 text-[11px]">
-                  <tr>
-                    <td className="px-4 py-2 font-semibold text-white">{t('premium.modal.comparison.rowExtractions')}</td>
-                    <td className="px-3 py-2 text-center text-emerald-100/60">{t('premium.modal.comparison.rowExtractionsFree')}</td>
-                    <td className="px-3 py-2 text-center font-bold text-amber-300">{t('premium.modal.comparison.rowExtractionsPremium')}</td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2 font-semibold text-white">{t('premium.modal.comparison.rowCookbook')}</td>
-                    <td className="px-3 py-2 text-center text-emerald-100/60">{t('premium.modal.comparison.rowCookbookFree')}</td>
-                    <td className="px-3 py-2 text-center font-bold text-amber-300">{t('premium.modal.comparison.rowCookbookPremium')}</td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2 font-semibold text-white">{t('premium.modal.comparison.rowShoppingList')}</td>
-                    <td className="px-3 py-2 text-center text-emerald-100/60">{t('premium.modal.comparison.rowShoppingListFree')}</td>
-                    <td className="px-3 py-2 text-center font-bold text-amber-300">{t('premium.modal.comparison.rowShoppingListPremium')}</td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2 font-semibold text-white">{t('premium.modal.comparison.rowAiChat')}</td>
-                    <td className="px-3 py-2 text-center text-emerald-100/60">{t('premium.modal.comparison.rowAiChatFree')}</td>
-                    <td className="px-3 py-2 text-center font-bold text-amber-300">{t('premium.modal.comparison.rowAiChatPremium')}</td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2 font-semibold text-white">{t('premium.modal.comparison.rowNutrition')}</td>
-                    <td className="px-3 py-2 text-center text-emerald-100/60">{t('premium.modal.comparison.rowNutritionFree')}</td>
-                    <td className="px-3 py-2 text-center font-bold text-amber-300">{t('premium.modal.comparison.rowNutritionPremium')}</td>
-                  </tr>
+                <tbody className="divide-y divide-white/5">
+                  {comparisonRows.map((row, index) => (
+                    <tr key={index}>
+                      <td className="px-4 py-3.5 font-bold text-white text-[11px] leading-tight">{row.feature}</td>
+                      <td className="px-3 py-3.5 text-center leading-none">
+                        {renderCellContent(row.free, false)}
+                      </td>
+                      <td className="px-3 py-3.5 text-center leading-none">
+                        {renderCellContent(row.premium, true)}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           ) : (
-            /* Variant A (Default): Outcome Benefits List */
-            <div className="flex flex-col rounded-3xl overflow-hidden bg-black/10 border border-white/10 shrink-0">
+            /* Variant A (Default): 2x2 Outcome Benefit Tiles */
+            <div className="grid grid-cols-2 gap-3 shrink-0">
               {featureItems.map((item, idx) => (
                 <div
                   key={idx}
-                  className={`flex items-start gap-4 px-5 py-3 ${idx < featureItems.length - 1 ? 'border-b border-white/8' : ''}`}
+                  className="bg-black/15 border border-white/10 rounded-2.5xl p-4 flex flex-col gap-2.5 hover:bg-black/20 hover:border-white/15 transition-colors"
                 >
-                  <div className="mt-0.5 w-6 h-6 rounded-full bg-amber-400/90 flex items-center justify-center shrink-0 shadow-sm shadow-amber-400/30">
-                    <Check className="w-3.5 h-3.5 text-emerald-950" strokeWidth={3} />
+                  <div className="w-7.5 h-7.5 rounded-xl bg-amber-400/90 flex items-center justify-center shrink-0 shadow-sm shadow-amber-400/20">
+                    {item.icon}
                   </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-bold text-white leading-snug">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-extrabold text-white leading-tight">
                       {item.title}
                     </span>
-                    <span className="text-xs text-emerald-100/65 leading-snug">
+                    <span className="text-[10px] text-emerald-100/60 leading-normal">
                       {item.desc}
                     </span>
                   </div>
@@ -341,7 +397,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
           </div>
         )}
 
-        {/* Sticky Pricing & CTA Block - Moved out of scroll container so it's always visible */}
+        {/* Sticky Pricing & CTA Block - Prices and CTA always locked at bottom */}
         <div className="shrink-0 mt-3 pt-3 border-t border-white/10 flex flex-col gap-3.5">
           
           {/* Pricing Options Cards */}
