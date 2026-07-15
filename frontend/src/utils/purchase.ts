@@ -69,7 +69,8 @@ async function syncBillingStatus(isPremium: boolean): Promise<void> {
 }
 
 export async function getSubscriptionOfferings(): Promise<any[]> {
-  if (!Capacitor.isNativePlatform()) {
+  const useMock = !Capacitor.isNativePlatform() || import.meta.env.VITE_USE_MOCK_BILLING === 'true';
+  if (useMock) {
     // Return mock offerings for web testing
     return [
       {
@@ -133,9 +134,10 @@ export async function buyPremium(packageId?: string): Promise<boolean> {
     throw new Error('User must be logged in to purchase Premium.');
   }
 
-  if (!Capacitor.isNativePlatform()) {
+  const useMock = !Capacitor.isNativePlatform() || import.meta.env.VITE_USE_MOCK_BILLING === 'true';
+  if (useMock) {
     // In web development, simulate a successful purchase
-    console.log('Simulating premium purchase on web for package:', packageId);
+    console.log('Simulating premium purchase on web/mock for package:', packageId);
     await new Promise(resolve => setTimeout(resolve, 1500));
     await syncBillingStatus(true);
     return true;
