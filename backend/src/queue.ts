@@ -124,14 +124,14 @@ async function processJob(job: Job): Promise<void> {
     audioFilePath = downloaded.audioFilePath;
     videoFilePath = downloaded.videoFilePath;
     const mimeType = downloaded.mimeType;
-    console.log(`[Job ${jobId}] Downloads complete (video: ${(downloaded.videoBytes / (1024 * 1024)).toFixed(2)} MB).`);
+    console.log(`[Job ${jobId}] Downloads complete (media: ${(downloaded.mediaBytes / (1024 * 1024)).toFixed(2)} MB).`);
 
-    // Persist the downloaded video size so admin metrics can aggregate total
-    // downloaded MB over a time window. Fire-and-forget-ish: a failure here must
+    // Persist the total downloaded media size (audio + video) so admin metrics
+    // can aggregate total downloaded MB over a time window. A failure here must
     // not abort recipe extraction, so we swallow errors.
-    if (downloaded.videoBytes > 0) {
-      await updateJob(jobId, { videoBytes: downloaded.videoBytes }).catch((err) =>
-        console.warn(`[Job ${jobId}] Failed to persist video_bytes: ${err.message}`),
+    if (downloaded.mediaBytes > 0) {
+      await updateJob(jobId, { mediaBytes: downloaded.mediaBytes }).catch((err) =>
+        console.warn(`[Job ${jobId}] Failed to persist media_bytes: ${err.message}`),
       );
     }
 

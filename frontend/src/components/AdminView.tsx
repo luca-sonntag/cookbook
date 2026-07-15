@@ -685,12 +685,12 @@ export default function AdminView({ onBack }: AdminViewProps) {
 
                   <Card className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-2">
                     <div className="flex items-center justify-between text-gray-400 dark:text-gray-500">
-                      <span className="text-[10px] font-bold uppercase tracking-wider">{isDe ? 'Video-Download' : 'Video Download'}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{isDe ? 'Medien-Download' : 'Media Download'}</span>
                       <HardDriveDownload className="w-4 h-4 text-indigo-500" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
-                        {formatDownloadSize(metrics.jobs?.videoMb ?? 0)}
+                        {formatDownloadSize(metrics.jobs?.mediaMb ?? 0)}
                       </span>
                       <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">
                         {isDe ? `Heruntergeladen · ${rangeLabel[metricsRange]}` : `Downloaded · ${rangeLabel[metricsRange]}`}

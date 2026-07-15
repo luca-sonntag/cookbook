@@ -58,8 +58,8 @@ export interface DownloadedMedia {
   videoFilePath: string;
   /** Best-effort mime type for the audio file (from its extension). */
   mimeType?: string;
-  /** Size of the downloaded video file in bytes (0 when no video was downloaded). */
-  videoBytes: number;
+  /** Combined size of all downloaded media (audio + video) in bytes (0 when nothing was downloaded). */
+  mediaBytes: number;
 }
 
 /** Best-effort file size in bytes; returns 0 if the path is empty or unreadable. */
@@ -79,7 +79,7 @@ async function fileSizeBytes(filePath: string): Promise<number> {
  * missing video still lets audio + caption drive extraction.
  */
 export async function downloadMedia(media: MediaDownload, runDir: string): Promise<DownloadedMedia> {
-  if (media.kind === 'none') return { audioFilePath: '', videoFilePath: '', videoBytes: 0 };
+  if (media.kind === 'none') return { audioFilePath: '', videoFilePath: '', mediaBytes: 0 };
 
   const audioExt = media.kind === 'ytdlp' ? '.mp3' : media.audioUrl?.includes('.mp3') ? '.mp3' : '.mp4';
   let audioFilePath = path.join(runDir, `audio${audioExt}`);
@@ -139,6 +139,10 @@ export async function downloadMedia(media: MediaDownload, runDir: string): Promi
   }
 
   await Promise.allSettled(downloads);
-  const videoBytes = await fileSizeBytes(videoFilePath);
-  return { audioFilePath, videoFilePath, mimeType: audioExt === '.mp3' ? 'audio/mp3' : 'audio/mp4', videoBytes };
+  const [audioBytes, videoBytes] = await Promise.all([
+    fileSizeBytes(audioFilePath),
+    fileSizeBytes(videoFilePath),
+  ]);
+  const mediaBytes = audioBytes + videoBytes;
+  return { audioFilePath, videoFilePath, mimeType: audioExt === '.mp3' ? 'audio/mp3' : 'audio/mp4', mediaBytes };
 }
