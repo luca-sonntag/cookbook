@@ -359,11 +359,6 @@ export const uiTranslations = {
         serverError: 'Der Server hat keine gültige Antwort zurückgegeben. Bitte versuche es erneut.',
       }
     },
-    install: {
-      title: 'Als App installieren',
-      desc: 'Teile Links direkt mit dieser App, um Rezepte schneller zu speichern!',
-      btn: 'Installieren',
-    },
     recipe: {
       copyMarkdown: 'Rezept als Markdown kopieren',
       copyRecipe: 'Rezept kopieren',
@@ -617,34 +612,65 @@ export const uiTranslations = {
         betaOwned: 'Beta-Zugriff Aktiv',
         verifying: 'Verifiziere Status...',
         footer: 'Jederzeit kündbar · Sicher über Google Play',
+        monthly: 'Monatlich',
+        yearly: 'Jährlich',
+        savePercent: 'Spare {percent}%',
+        bestseller: 'Bestseller',
+        coffeeAnchor: 'Weniger als ein Kaffee im Monat ☕',
+        pricePeriod: '{price} / Monat',
+        priceYearlyPeriod: '{price} / Jahr',
+        priceMonthlyEquivalent: 'nur {price}/Monat',
+        freeTrialTitle: '7 Tage kostenlos testen',
+        ctaWithTrial: 'Kostenlose Testphase starten >',
+        ctaWithoutTrial: 'Premium freischalten >',
+        cancelSubtitle: 'Kein Risiko. Jederzeit kündbar.',
+        timeline: {
+          step1Title: 'Heute',
+          step1Desc: 'Testphase starten. Vollzugriff.',
+          step2Title: 'Tag 5',
+          step2Desc: 'Erinnerungs-Push erhalten.',
+          step3Title: 'Tag 7',
+          step3Desc: 'Abo beginnt. Jederzeit kündbar.'
+        },
+        comparison: {
+          tableTitle: 'Free vs. Premium im Vergleich',
+          headerFeature: 'Funktion',
+          headerFree: 'Kostenlos',
+          headerPremium: 'Premium',
+          rowExtractions: 'Rezept-Extraktion',
+          rowExtractionsFree: '3 / Tag',
+          rowExtractionsPremium: 'Unbegrenzt',
+          rowCookbook: 'Kochbuch (Speichern)',
+          rowCookbookFree: 'Max. 5 Rezepte',
+          rowCookbookPremium: 'Unbegrenzt',
+          rowShoppingList: 'Einkaufsliste',
+          rowShoppingListFree: 'Lokal, 1 Rezept',
+          rowShoppingListPremium: 'Smarte Kombi',
+          rowAiChat: 'Rezept-KI-Chat',
+          rowAiChatFree: '❌ Nein',
+          rowAiChatPremium: '✔️ Ja',
+          rowNutrition: 'Nährwerte & Makros',
+          rowNutritionFree: '❌ Nein',
+          rowNutritionPremium: '✔️ Ja',
+          rowCollections: 'Sammlungen & Labels',
+          rowCookingMode: 'Kochmodus & Timer'
+        },
         features: {
           extractions: {
-            title: 'Unbegrenzte Extraktionen',
-            desc: 'Extrahiere so viele Rezepte aus Reels wie du möchtest (statt 3 pro Tag).'
+            title: 'Unbegrenzt Rezepte',
+            desc: 'Rezepte aus Social Media & Web importieren.'
           },
           remix: {
             title: 'Rezept-KI-Chat',
-            desc: 'Passe Rezepte flexibel per Chat an, frage nach Alternativen, Einkaufslisten-Export & Timern.'
+            desc: 'Rezepte flexibel per Chat anpassen.'
           },
           nutrition: {
             title: 'Nährwerte & Makros',
-            desc: 'Detaillierte Nährwertangaben pro Portion und Zutat auf einen Blick.'
+            desc: 'Zutaten & Portionen im Blick behalten.'
           },
           shoppingList: {
-            title: 'Smarte Kombi-Einkaufsliste',
-            desc: 'Führe Zutaten aus beliebig vielen Rezepten automatisch zusammen.'
-          },
-          cookingMode: {
-            title: 'Koch-Timer & Modus',
-            desc: 'Schritt-für-Schritt-Anleitungen mit direkt klickbaren In-App-Timern.'
-          },
-          catalog: {
-            title: 'Unbegrenztes Kochbuch',
-            desc: 'Speichere unendlich viele Rezepte (statt maximal 5).'
-          },
-          organization: {
-            title: 'Sammlungen & Labels',
-            desc: 'Organisiere dein Kochbuch in eigenen Sammlungen und filtere per Label, Favorit & Kochzeit.'
+            title: 'Smarte Einkaufsliste',
+            desc: 'Zutaten automatisch kombinieren.'
           }
         }
       },
@@ -881,11 +907,6 @@ export const uiTranslations = {
         submissionError: 'An error occurred during submission.',
         serverError: 'The server returned an unexpected response. Please try again.',
       }
-    },
-    install: {
-      title: 'Install as App',
-      desc: 'Share links directly to this app to save recipes faster!',
-      btn: 'Install',
     },
     recipe: {
       copyMarkdown: 'Copy Recipe Markdown',
@@ -1140,34 +1161,65 @@ export const uiTranslations = {
         betaOwned: 'Beta Access Active',
         verifying: 'Verifying Status...',
         footer: 'Cancel anytime · Secure via Google Play',
+        monthly: 'Monthly',
+        yearly: 'Yearly',
+        savePercent: 'Save {percent}%',
+        bestseller: 'Best Value',
+        coffeeAnchor: 'Less than the price of a coffee per month ☕',
+        pricePeriod: '{price} / month',
+        priceYearlyPeriod: '{price} / year',
+        priceMonthlyEquivalent: 'only {price}/month',
+        freeTrialTitle: '7-Day Free Trial',
+        ctaWithTrial: 'Start Free Trial >',
+        ctaWithoutTrial: 'Unlock Premium >',
+        cancelSubtitle: 'No risk. Cancel anytime.',
+        timeline: {
+          step1Title: 'Today',
+          step1Desc: 'Start free trial. Full access.',
+          step2Title: 'Day 5',
+          step2Desc: 'Get reminder notification.',
+          step3Title: 'Day 7',
+          step3Desc: 'Subscription starts. Cancel anytime.'
+        },
+        comparison: {
+          tableTitle: 'Free vs. Premium Comparison',
+          headerFeature: 'Feature',
+          headerFree: 'Free',
+          headerPremium: 'Premium',
+          rowExtractions: 'Recipe Extraction',
+          rowExtractionsFree: '3 / day',
+          rowExtractionsPremium: 'Unlimited',
+          rowCookbook: 'Cookbook (Save)',
+          rowCookbookFree: 'Max 5 recipes',
+          rowCookbookPremium: 'Unlimited',
+          rowShoppingList: 'Shopping List',
+          rowShoppingListFree: 'Local, 1 recipe',
+          rowShoppingListPremium: 'Smart Combined',
+          rowAiChat: 'Recipe AI Chat',
+          rowAiChatFree: '❌ No',
+          rowAiChatPremium: '✔️ Yes',
+          rowNutrition: 'Nutrition & Macros',
+          rowNutritionFree: '❌ No',
+          rowNutritionPremium: '✔️ Yes',
+          rowCollections: 'Collections & Labels',
+          rowCookingMode: 'Cooking Mode & Timers'
+        },
         features: {
           extractions: {
-            title: 'Unlimited Extractions',
-            desc: 'Extract as many recipes from Reels as you want (instead of 3 per day).'
+            title: 'Unlimited Recipes',
+            desc: 'Import recipes from social media & web.'
           },
           remix: {
             title: 'Recipe AI Chat',
-            desc: 'Adapt recipes dynamically via chat, ask for alternatives, export to shopping list & set timers.'
+            desc: 'Adapt recipes dynamically via chat.'
           },
           nutrition: {
             title: 'Nutrition & Macros',
-            desc: 'Detailed nutritional facts per portion and ingredient at a glance.'
+            desc: 'Keep track of ingredients & portions.'
           },
           shoppingList: {
-            title: 'Smart Combined Shopping List',
-            desc: 'Automatically combine ingredients from as many recipes as you want.'
-          },
-          cookingMode: {
-            title: 'Cooking Timers & Mode',
-            desc: 'Step-by-step instructions with clickable in-app timers.'
-          },
-          catalog: {
-            title: 'Unlimited Cookbook',
-            desc: 'Save unlimited recipes (instead of a maximum of 5).'
-          },
-          organization: {
-            title: 'Collections & Labels',
-            desc: 'Organize your cookbook into custom collections and filter by label, favorite & cook time.'
+            title: 'Smart Shopping List',
+            desc: 'Combine shopping items automatically.'
           }
         }
       },

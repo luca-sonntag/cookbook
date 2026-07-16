@@ -124,7 +124,16 @@ async function processJob(job: Job): Promise<void> {
     audioFilePath = downloaded.audioFilePath;
     videoFilePath = downloaded.videoFilePath;
     const mimeType = downloaded.mimeType;
-    console.log(`[Job ${jobId}] Downloads complete.`);
+    console.log(`[Job ${jobId}] Downloads complete (media: ${(downloaded.mediaBytes / (1024 * 1024)).toFixed(2)} MB).`);
+
+    // Persist the total downloaded media size (audio + video) so admin metrics
+    // can aggregate total downloaded MB over a time window. A failure here must
+    // not abort recipe extraction, so we swallow errors.
+    if (downloaded.mediaBytes > 0) {
+      await updateJob(jobId, { mediaBytes: downloaded.mediaBytes }).catch((err) =>
+        console.warn(`[Job ${jobId}] Failed to persist media_bytes: ${err.message}`),
+      );
+    }
 
     // 6. If video is available, extract frames and create grid first
     let gridImagePath: string | undefined;

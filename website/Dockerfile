@@ -1,0 +1,39 @@
+# Stage 1: Build the Vite React app
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package.json package-lock.json* ./
+RUN npm install --no-audit --no-fund
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Stage 2: Serve the app using Nginx
+FROM nginx:alpine
+
+# Copy the build output from the builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Create a custom nginx configuration template to handle dynamic PORT mapping from Railway
+RUN mkdir -p /etc/nginx/templates
+RUN echo 'server { \
+    listen ${PORT}; \
+    location / { \
+        root /usr/share/nginx/html; \
+        index index.html index.htm; \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/templates/default.conf.template
+
+# Default port fallback if PORT env var is not set (e.g., local run)
+ENV PORT=80
+
+# Expose the port (expose is informational, Railway reads PORT env var)
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

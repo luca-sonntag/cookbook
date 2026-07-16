@@ -86,6 +86,8 @@ export interface Job {
   isFavorite?: boolean;
   flags?: string[];
   collectionIds?: string[];
+  /** Total bytes of media (audio + video) downloaded by the worker for this job. */
+  mediaBytes?: number;
 }
 
 export interface Collection {

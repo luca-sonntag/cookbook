@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Tabs, Card, TextField, Label, Input, Button, Spinner } from '@heroui/react';
-import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal, BarChart3, Users, BookOpen, TrendingUp, Coins } from 'lucide-react';
+import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal, BarChart3, Users, BookOpen, TrendingUp, Coins, HardDriveDownload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
 import { useI18n } from '../context/I18nContext';
@@ -23,6 +23,13 @@ interface FeedbackItem {
 
 interface AdminViewProps {
   onBack: () => void;
+}
+
+/** Format a download size given in megabytes into a compact human string (MB → GB). */
+function formatDownloadSize(mb: number): string {
+  if (!mb || mb <= 0) return '0 MB';
+  if (mb >= 1024) return `${(mb / 1024).toFixed(2)} GB`;
+  return `${mb.toFixed(mb < 10 ? 2 : 1)} MB`;
 }
 
 export default function AdminView({ onBack }: AdminViewProps) {
@@ -673,6 +680,21 @@ export default function AdminView({ onBack }: AdminViewProps) {
                         {metrics.llm?.count ?? 0}
                       </span>
                       <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">Gemini Calls</span>
+                    </div>
+                  </Card>
+
+                  <Card className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-gray-400 dark:text-gray-500">
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{isDe ? 'Medien-Download' : 'Media Download'}</span>
+                      <HardDriveDownload className="w-4 h-4 text-indigo-500" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                        {formatDownloadSize(metrics.jobs?.mediaMb ?? 0)}
+                      </span>
+                      <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">
+                        {isDe ? `Heruntergeladen · ${rangeLabel[metricsRange]}` : `Downloaded · ${rangeLabel[metricsRange]}`}
+                      </span>
                     </div>
                   </Card>
                 </div>
