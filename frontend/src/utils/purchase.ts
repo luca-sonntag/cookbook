@@ -94,8 +94,8 @@ export async function getSubscriptionOfferings(): Promise<any[]> {
           identifier: 'premium_yearly',
           title: 'Snagbite Premium Yearly',
           description: 'Yearly subscription to Snagbite Premium',
-          price: 19.99,
-          priceString: '19,99 €',
+          price: 29.99,
+          priceString: '29,99 €',
           currencyCode: 'EUR',
           introPrice: {
             price: 0,
