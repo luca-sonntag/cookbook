@@ -1,89 +1,96 @@
-import { COMPANY } from '../companyInfo';
+import { legal } from '../legal';
 
 export default function LegalPage() {
   return (
     <div className="w-full max-w-md mx-auto px-4 py-8 flex flex-col gap-6">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Impressum</h1>
       <div className="prose prose-emerald dark:prose-invert">
-        <p className="text-sm">
-          Offenlegung gemäß § 5 E-Commerce-Gesetz (ECG), § 14 Unternehmensgesetzbuch
-          (UGB) und Offenlegung gemäß § 25 Mediengesetz.
+        <p>
+          Impressum und Offenlegung gemäß § 5 E-Commerce-Gesetz (ECG), § 63
+          Gewerbeordnung (GewO) sowie §§ 24 f. Mediengesetz (MedienG).
         </p>
 
-        <h2>Medieninhaber, Herausgeber &amp; Diensteanbieter</h2>
+        <h2>Diensteanbieter / Medieninhaber</h2>
         <p>
-          {COMPANY.name}<br />
-          Einzelunternehmen<br />
-          {COMPANY.street}<br />
-          {COMPANY.zipCity}<br />
-          {COMPANY.country}
+          {legal.operatorName}<br />
+          {legal.street}<br />
+          {legal.city}<br />
+          {legal.country}
         </p>
 
         <h2>Kontakt</h2>
         <p>
-          E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a><br />
-          Telefon: {COMPANY.phone}
+          E-Mail: <a href={`mailto:${legal.email}`}>{legal.email}</a><br />
+          Telefon: {legal.phone}
         </p>
 
-        <h2>Unternehmensgegenstand</h2>
-        <p>{COMPANY.businessPurpose}</p>
-
-        <h2>Umsatzsteuer-Identifikationsnummer</h2>
+        <h2>Unternehmensdaten</h2>
+        <ul>
+          {legal.vatId && !legal.vatId.startsWith('AUSFÜLLEN') && (
+            <li>Umsatzsteuer-Identifikationsnummer (UID): {legal.vatId}</li>
+          )}
+          {legal.companyRegister && (
+            <li>Firmenbuch: {legal.companyRegister}</li>
+          )}
+          {legal.tradeAuthority && !legal.tradeAuthority.startsWith('AUSFÜLLEN') && (
+            <li>Gewerbebehörde: {legal.tradeAuthority}</li>
+          )}
+          <li>Unternehmensgegenstand: Betrieb der App und Website „Snagbite" (KI-gestützte Extraktion von Rezepten aus öffentlich zugänglichen Social-Media-Inhalten).</li>
+        </ul>
         <p>
-          UID-Nummer: {COMPANY.uid}
-        </p>
-
-        <h2>Gewerberecht</h2>
-        <p>
-          Anwendbare Rechtsvorschrift: Gewerbeordnung (GewO), abrufbar unter{' '}
+          Anwendbare Rechtsvorschriften: Gewerbeordnung (GewO), abrufbar unter{' '}
           <a href="https://www.ris.bka.gv.at" target="_blank" rel="noopener noreferrer">
             www.ris.bka.gv.at
-          </a>.<br />
-          Zuständige Gewerbebehörde: {COMPANY.gewerbebehoerde}<br />
-          Kammerzugehörigkeit: {COMPANY.wko}
+          </a>. Kammerzugehörigkeit: Wirtschaftskammer Österreich (soweit ein
+          Gewerbe angemeldet ist).
         </p>
 
-        <h2>Online-Streitbeilegung</h2>
+        <h2>Offenlegung gemäß § 25 MedienG</h2>
         <p>
-          Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung
-          (OS) bereit:{' '}
-          <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">
-            https://ec.europa.eu/consumers/odr/
-          </a>.<br />
-          Unsere E-Mail-Adresse finden Sie oben in diesem Impressum. Wir sind weder
-          bereit noch verpflichtet, an Streitbeilegungsverfahren vor einer
-          Verbraucherschlichtungsstelle teilzunehmen.
+          Medieninhaber, Herausgeber und für den Inhalt verantwortlich:{' '}
+          {legal.operatorName}, {legal.mediaOwnerLocation}.
+        </p>
+        <p>
+          Grundlegende Richtung (Blattlinie): Diese Website dient der Information
+          über die App „Snagbite" sowie der Bereitstellung der zugehörigen
+          Rechtstexte. Sie verfolgt keine darüber hinausgehende politische oder
+          weltanschauliche Ausrichtung.
         </p>
 
-        <h2>Haftung für Inhalte</h2>
+        <h2>Online-Streitbeilegung &amp; Verbraucherschlichtung</h2>
         <p>
-          Die Inhalte dieser Website und der Snagbite-App wurden mit größtmöglicher
-          Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der
-          Inhalte kann jedoch keine Gewähr übernommen werden. Insbesondere werden
-          Rezeptdaten automatisiert aus öffentlich zugänglichen Inhalten erzeugt; für
-          deren Richtigkeit (z. B. Zutatenmengen, Nährwerte, Allergene) wird keine
-          Haftung übernommen.
+          Die von der Europäischen Kommission bereitgestellte Plattform zur
+          Online-Streitbeilegung (OS-Plattform) wurde mit 20. Juli 2025
+          eingestellt und steht nicht mehr zur Verfügung. Für außergerichtliche
+          Streitbeilegung steht Verbraucherinnen und Verbrauchern in Österreich
+          unter anderem die Internet Ombudsstelle (
+          <a href="https://www.ombudsstelle.at" target="_blank" rel="noopener noreferrer">
+            www.ombudsstelle.at
+          </a>) zur Verfügung.
         </p>
-
-        <h2>Haftung für Links</h2>
         <p>
-          Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte
-          wir keinen Einfluss haben. Für die Inhalte der verlinkten Seiten ist stets der
-          jeweilige Anbieter oder Betreiber verantwortlich.
+          Wir sind nicht bereit und nicht verpflichtet, an
+          Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
+          teilzunehmen.
         </p>
 
         <h2>Urheberrecht</h2>
         <p>
-          Die durch die Betreiber erstellten Inhalte und Werke unterliegen dem
-          österreichischen Urheberrecht. Die über die App verarbeiteten Videos und
-          Rezepte können urheberrechtlich geschützt sein und verbleiben im Eigentum der
-          jeweiligen Rechteinhaber (Creator/Plattformen). Snagbite beansprucht keine
-          Rechte an diesen Inhalten.
+          Die Inhalte dieser Website und der App unterliegen dem
+          österreichischen Urheberrecht. Über die App verarbeitete Videos,
+          Bilder und Texte Dritter (z.&nbsp;B. der jeweiligen Creator) bleiben im
+          Eigentum ihrer Rechteinhaber; Snagbite beansprucht daran keine Rechte.
         </p>
 
-        <p className="text-xs opacity-70">
-          Hinweis: Dieses Impressum wurde als Standardvorlage nach österreichischem
-          Recht erstellt und ersetzt keine individuelle Rechtsberatung.
+        <h2>Haftung für Inhalte und Links</h2>
+        <p>
+          Als Diensteanbieter sind wir gemäß §§ 13 ff. ECG für eigene Inhalte
+          verantwortlich, jedoch nicht verpflichtet, übermittelte oder
+          gespeicherte fremde Informationen zu überwachen. Unsere Angebote
+          können Links zu externen Websites Dritter enthalten, auf deren Inhalte
+          wir keinen Einfluss haben. Für diese fremden Inhalte übernehmen wir
+          keine Gewähr; verantwortlich ist stets der jeweilige Anbieter der
+          verlinkten Seite.
         </p>
       </div>
     </div>
