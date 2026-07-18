@@ -13,7 +13,7 @@ interface CollectionSheetProps {
   onUpdated?: () => void;
 }
 
-const EMOJIS = ['🥦', '🍕', '🍝', '🥩', '🍰', '🥐', '🥑', '🌮', '🍣', '🍩', '🍳', '🥗', 'soup', '☕', '🍷'];
+const EMOJIS = ['🥦', '🍕', '🍝', '🥩', '🍰', '🥐', '🥑', '🌮', '🍣', '🍩', '🍳', '🥗', '☕', '🍷'];
 
 const COLORS = [
   { name: 'emerald', class: 'bg-emerald-500 border-emerald-600' },
