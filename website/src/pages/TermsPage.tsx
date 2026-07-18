@@ -40,7 +40,7 @@ export default function TermsPage() {
         <p>
           Wir weisen ausdrücklich darauf hin, dass das Extrahieren und Speichern
           von Rezepten von der Verfügbarkeit, den technischen Schnittstellen und
-          der Kooperation externer Drittanbieter-Dienste (wie Social-Media-Plattformen,
+          der Funktionsweise externer Drittanbieter-Dienste (wie Social-Media-Plattformen,
           Scraping-Diensten, API-Schnittstellen und KI-Modellen) abhängt. Sollten
           diese externen Dienste vorübergehend oder dauerhaft ausfallen, den Zugriff
           beschränken oder ihren Betrieb einstellen, kann dies dazu führen, dass

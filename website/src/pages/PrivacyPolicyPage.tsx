@@ -105,8 +105,9 @@ export default function PrivacyPolicyPage() {
         <p>
           Wir geben deine Daten nicht zum Verkauf oder zu Werbezwecken an Dritte
           weiter. Zur Erbringung unseres Dienstes setzen wir sorgfältig
-          ausgewählte Dienstleister ein, mit denen – soweit erforderlich –
-          Auftragsverarbeitungsverträge nach Art. 28 DSGVO bestehen:
+          ausgewählte Dienstleister ein, mit denen entsprechende Vereinbarungen
+          zur Auftragsverarbeitung (in der Regel im Rahmen der standardmäßigen
+          Nutzungsbedingungen und Datenschutz-Zusätze) bestehen:
         </p>
         <ul>
           <li><strong>Supabase (Supabase Inc., USA / EU-Hosting):</strong> Authentifizierung, Datenbank- und Speicher-Hosting (Konto, Rezepte, Feedback, Bilder). <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Datenschutzhinweise</a>.</li>
@@ -125,7 +126,7 @@ export default function PrivacyPolicyPage() {
           DSGVO abgesichert ist – insbesondere durch Standardvertragsklauseln
           der EU-Kommission und, soweit anwendbar, eine Zertifizierung nach dem
           EU-U.S. Data Privacy Framework. Auf Anfrage stellen wir dir nähere
-          Informationen zu den vereinbarten Garantien zur Verfügung.
+          Informationen zu den hierfür verwendeten Garantien zur Verfügung.
         </p>
 
         <h2>7. Speicherdauer</h2>
