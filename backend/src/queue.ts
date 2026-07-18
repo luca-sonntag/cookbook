@@ -8,14 +8,12 @@ import { extractRecipe, remixRecipe } from './gemini.js';
 import { pruneOldGeminiLogs } from './logger.js';
 import type { Job, ProgressData } from './types.js';
 import { config } from './config.js';
-import { runHealthChecks } from './healthcheck.js';
 
 const workerId = randomUUID();
 let activeJobs = 0;
 let workerInterval: NodeJS.Timeout | null = null;
 let reclaimInterval: NodeJS.Timeout | null = null;
 let cleanupInterval: NodeJS.Timeout | null = null;
-let healthcheckInterval: NodeJS.Timeout | null = null;
 
 /**
  * Processes a single job end-to-end.
@@ -322,19 +320,6 @@ export function startQueue(pollIntervalMs = 2000): void {
   runCleanup();
   cleanupInterval = setInterval(runCleanup, 12 * 60 * 60 * 1000);
 
-  // Start periodic health checks if enabled
-  if (config.HEALTHCHECK_ENABLED) {
-    console.log(`[Queue Worker] Periodic health check worker enabled (interval: ${config.HEALTHCHECK_INTERVAL_MINUTES}m)`);
-    // Run first check 5 seconds after startup
-    setTimeout(() => {
-      runHealthChecks(false).catch((err) => console.error('[Queue Worker] Initial health check failed:', err));
-    }, 5000);
-
-    healthcheckInterval = setInterval(
-      () => runHealthChecks(false).catch((err) => console.error('[Queue Worker] Health check execution failed:', err)),
-      config.HEALTHCHECK_INTERVAL_MINUTES * 60 * 1000
-    );
-  }
 }
 
 /**
@@ -344,6 +329,5 @@ export function stopQueue(): void {
   if (workerInterval) { clearInterval(workerInterval); workerInterval = null; }
   if (reclaimInterval) { clearInterval(reclaimInterval); reclaimInterval = null; }
   if (cleanupInterval) { clearInterval(cleanupInterval); cleanupInterval = null; }
-  if (healthcheckInterval) { clearInterval(healthcheckInterval); healthcheckInterval = null; }
   console.log('Background job queue worker stopped.');
 }
