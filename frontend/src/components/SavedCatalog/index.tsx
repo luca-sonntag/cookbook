@@ -52,6 +52,25 @@ export default function SavedCatalog({
   const { isPremium } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
+  // Per-day date key (local time) used to group recipes by their created date
+  const dateKey = (createdAt?: string) => {
+    const d = new Date(createdAt ?? '');
+    if (isNaN(d.getTime())) return '';
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  };
+
+  // Human-readable separator label: Today / Yesterday / full date
+  const formatDateSeparator = (createdAt?: string) => {
+    const d = new Date(createdAt ?? '');
+    if (isNaN(d.getTime())) return '';
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    if (dateKey(createdAt) === dateKey(today.toISOString())) return t('catalog.dateToday');
+    if (dateKey(createdAt) === dateKey(yesterday.toISOString())) return t('catalog.dateYesterday');
+    return d.toLocaleDateString(language, { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
   const FREE_RECIPE_LIMIT = 5;
 
   // Custom hook for swipe-to-go-back and mobile back button handling
@@ -247,7 +266,18 @@ export default function SavedCatalog({
               ) : viewMode === 'card' ? (
                 /* CARD GRID VIEW */
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                  {filteredJobs.map((job) => (
+                  {filteredJobs.map((job, index) => {
+                    const showDateSeparator =
+                      activeFilter === 'all' &&
+                      sortBy === 'newest' &&
+                      (index === 0 || dateKey(filteredJobs[index - 1].createdAt) !== dateKey(job.createdAt));
+                    return (
+                    <React.Fragment key={job.id}>
+                    {showDateSeparator && (
+                      <div className="col-span-1 md:col-span-2 text-center text-xs text-gray-400 dark:text-gray-500 pt-2 first:pt-0">
+                        {formatDateSeparator(job.createdAt)}
+                      </div>
+                    )}
                     <RecipeCard
                       key={job.id}
                       job={job}
@@ -267,12 +297,25 @@ export default function SavedCatalog({
                         toggleFavorite(job);
                       }}
                     />
-                  ))}
+                    </React.Fragment>
+                    );
+                  })}
                 </div>
               ) : (
                 /* COMPACT LIST VIEW */
                 <div className="flex flex-col gap-2.5 mt-2">
-                  {filteredJobs.map((job) => (
+                  {filteredJobs.map((job, index) => {
+                    const showDateSeparator =
+                      activeFilter === 'all' &&
+                      sortBy === 'newest' &&
+                      (index === 0 || dateKey(filteredJobs[index - 1].createdAt) !== dateKey(job.createdAt));
+                    return (
+                    <React.Fragment key={job.id}>
+                    {showDateSeparator && (
+                      <div className="text-center text-xs text-gray-400 dark:text-gray-500 pt-1.5 first:pt-0">
+                        {formatDateSeparator(job.createdAt)}
+                      </div>
+                    )}
                     <RecipeListItem
                       key={job.id}
                       job={job}
@@ -292,7 +335,9 @@ export default function SavedCatalog({
                         toggleFavorite(job);
                       }}
                     />
-                  ))}
+                    </React.Fragment>
+                    );
+                  })}
                 </div>
               )}
             </>
