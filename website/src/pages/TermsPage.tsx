@@ -38,6 +38,18 @@ export default function TermsPage() {
           ernährungswissenschaftliche Beratung.
         </p>
         <p>
+          Wir weisen ausdrücklich darauf hin, dass das Extrahieren und Speichern
+          von Rezepten von der Verfügbarkeit, den technischen Schnittstellen und
+          der Kooperation externer Drittanbieter-Dienste (wie Social-Media-Plattformen,
+          Scraping-Diensten, API-Schnittstellen und KI-Modellen) abhängt. Sollten
+          diese externen Dienste vorübergehend oder dauerhaft ausfallen, den Zugriff
+          beschränken oder ihren Betrieb einstellen, kann dies dazu führen, dass
+          Rezepte nicht mehr extrahiert oder gespeichert werden können. Dies gilt
+          insbesondere auch für Nutzer des kostenpflichtigen Premium-Abonnements;
+          in solchen Fällen von Drittanbieter-Ausfällen besteht kein Anspruch auf
+          Rückerstattung der Gebühren oder Schadensersatz.
+        </p>
+        <p>
           Es besteht kein Anspruch auf ununterbrochene Verfügbarkeit des
           Dienstes. Wir sind berechtigt, den Funktionsumfang weiterzuentwickeln,
           zu ändern oder – unter Wahrung berechtigter Nutzerinteressen –
@@ -179,6 +191,16 @@ export default function TermsPage() {
           oder Nährwertangaben entstehen (z.&nbsp;B. im Zusammenhang mit
           Allergien oder Unverträglichkeiten). Prüfe Zutaten und Angaben stets
           eigenverantwortlich.
+        </p>
+        <p>
+          Eine Haftung oder Gewährleistung für die ständige Verfügbarkeit, Funktionsfähigkeit
+          oder Fehlerfreiheit von Drittanbieter-Systemen und externen Social-Media-Schnittstellen
+          wird ausgeschlossen. Wir haften nicht für Leistungseinschränkungen oder den
+          Verlust von Funktionen (wie das Unvermögen, Rezepte zu extrahieren oder zu speichern),
+          die durch Störungen, Blockaden oder Abschaltungen bei diesen externen Anbietern
+          verursacht werden. Dies gilt ausdrücklich auch für Premium-Nutzer; ein Anspruch
+          auf Rückerstattung der Abonnement-Gebühren oder Schadensersatz ist in diesen Fällen
+          ausgeschlossen.
         </p>
 
         <h2>9. Änderungen dieser AGB</h2>
