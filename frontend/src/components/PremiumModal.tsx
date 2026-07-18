@@ -497,7 +497,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
           <div>
             {user?.app_metadata?.tier === 'beta' ? (
               <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
-                <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.betaOwned') || 'Beta-Zugriff Aktiv'}
+                <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.betaOwned') || 'Käufe während der Beta deaktiviert'}
               </button>
             ) : isPremium ? (
               <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
