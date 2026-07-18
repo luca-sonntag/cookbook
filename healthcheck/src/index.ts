@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ApifyClient } from 'apify-client';
 import dotenv from 'dotenv';
@@ -6,8 +5,6 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || '';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || '';
@@ -18,66 +15,6 @@ const HEALTHCHECK_WEBSITE_URL = process.env.HEALTHCHECK_WEBSITE_URL || '';
 const NTFY_TOPIC = process.env.NTFY_TOPIC || '';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
-
-interface ServiceStatus {
-  status: 'up' | 'down';
-  lastChecked: string;
-  lastChanged: string;
-  error?: string;
-}
-
-interface HealthCheckState {
-  [serviceName: string]: ServiceStatus;
-}
-
-// Initialize Supabase Client if credentials are provided
-const supabase = (SUPABASE_URL && SUPABASE_SECRET_KEY)
-  ? createClient(SUPABASE_URL, SUPABASE_SECRET_KEY)
-  : null;
-
-/**
- * Fetches the last known healthcheck states from the database.
- */
-async function getLastStates(): Promise<HealthCheckState> {
-  if (!supabase) {
-    console.warn('[healthcheck] Supabase credentials missing; state persistence disabled.');
-    return {};
-  }
-  try {
-    const { data, error } = await supabase
-      .from('global_settings')
-      .select('value')
-      .eq('key', 'health_check_status')
-      .maybeSingle();
-
-    if (!error && data?.value) {
-      return JSON.parse(data.value);
-    }
-  } catch (err: any) {
-    console.warn('[healthcheck] Could not load health check state from DB:', err.message);
-  }
-  return {};
-}
-
-/**
- * Saves current healthcheck states to the database.
- */
-async function saveStates(states: HealthCheckState) {
-  if (!supabase) return;
-  try {
-    const { error } = await supabase
-      .from('global_settings')
-      .upsert({
-        key: 'health_check_status',
-        value: JSON.stringify(states),
-        updated_at: new Date().toISOString()
-      });
-
-    if (error) throw error;
-  } catch (err: any) {
-    console.error('[healthcheck] Failed to update health check state in database:', err.message);
-  }
-}
 
 /**
  * Sends a notification via ntfy.sh and/or Telegram Bot when configured.
@@ -144,9 +81,8 @@ async function sendNotification(message: string, isDown: boolean, serviceName: s
 async function run() {
   console.log('[healthcheck] Starting health checks...');
 
-  const lastStates = await getLastStates();
   const now = new Date().toISOString();
-  const currentStates: HealthCheckState = {};
+  const results: any[] = [];
 
   const checks = [
     {
@@ -227,51 +163,21 @@ async function run() {
       status = 'down';
       errorMsg = err?.message || String(err);
       console.warn(`[healthcheck] Service "${check.name}" is DOWN: ${errorMsg}`);
+
+      const alertMessage = `Service "${check.name}" went down. Error: ${errorMsg}`;
+      await sendNotification(alertMessage, true, check.name);
     }
 
-    const prev = lastStates[check.name];
-    let lastChanged = prev?.lastChanged || now;
-
-    if (prev) {
-      if (prev.status !== status) {
-        console.log(`[healthcheck] Service "${check.name}" transitioned from ${prev.status} to ${status}`);
-        lastChanged = now;
-
-        const alertMessage = status === 'down'
-          ? `Service "${check.name}" went down. Error: ${errorMsg}`
-          : `Service "${check.name}" recovered and is back up.`;
-
-        await sendNotification(alertMessage, status === 'down', check.name);
-      }
-    } else {
-      if (status === 'down') {
-        console.log(`[healthcheck] Service "${check.name}" is down on initial check.`);
-        const alertMessage = `Service "${check.name}" went down. Error: ${errorMsg}`;
-        await sendNotification(alertMessage, true, check.name);
-      }
-    }
-
-    currentStates[check.name] = {
-      status,
-      lastChecked: now,
-      lastChanged,
-      error: errorMsg,
-    };
+    results.push({
+      Service: check.name,
+      Status: status.toUpperCase(),
+      'Last Checked': now,
+      Error: errorMsg || '-',
+    });
   }
 
-  // Update states in Supabase
-  const mergedStates = { ...lastStates, ...currentStates };
-  await saveStates(mergedStates);
-
   console.log('[healthcheck] Standalone health checks completed.');
-  console.table(
-    Object.entries(currentStates).map(([name, data]) => ({
-      Service: name,
-      Status: data.status.toUpperCase(),
-      'Last Checked': data.lastChecked,
-      Error: data.error || '-',
-    }))
-  );
+  console.table(results);
   process.exit(0);
 }
 
