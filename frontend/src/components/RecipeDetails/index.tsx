@@ -358,56 +358,131 @@ export default function RecipeDetails({
     onNavigateToShoppingList?.();
   };
 
-  const copyRecipeMarkdown = () => {
-    let md = `# ${recipe.title}\n\n${recipe.description}\n\n`;
-    md += `**Prep Time:** ${formatTimeValue(recipe.prepTime)} | **Cook Time:** ${formatTimeValue(recipe.cookTime)} | **Servings:** ${servings}\n\n`;
+  // Build a human-readable ingredient line, e.g. "200 g Mehl (gesiebt) (Bio)"
+  const formatIngredientLine = (ing: Ingredient) => {
+    const scaledAmount = formatAmount(ing.amount, ing.unit);
+    const amountStr = scaledAmount ? `${scaledAmount} ` : '';
+    const unitStr = ing.unit ? `${ing.unit} ` : '';
+    const modifierStr = ing.modifier ? ` (${ing.modifier})` : '';
+    const noteStr = ing.notes ? ` (${ing.notes})` : '';
+    return `${amountStr}${unitStr}${ing.name}${modifierStr}${noteStr}`;
+  };
 
-    md += `## ${t('recipe.tabIngredients')}\n`;
+  // Escape user-provided text so it is safe/well-formed inside the rich-text (HTML) clipboard payload
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+  // Copy the recipe to the clipboard in two shapes at once:
+  //  - text/plain: clean, readable text (no markdown symbols) for WhatsApp, notes, e-mail
+  //  - text/html: real headings/bold/lists that paste formatted into Word, Google Docs, Gmail
+  const copyRecipe = () => {
+    const hasGroups = recipe.ingredients.length > 1;
+    const metaLine = `${t('recipe.prep')}: ${formatTimeValue(recipe.prepTime)} · ${t('recipe.cook')}: ${formatTimeValue(recipe.cookTime)} · ${t('recipe.serves')}: ${servings}`;
+
+    // --- Plain text ---
+    let text = `${recipe.title}\n\n`;
+    if (recipe.description) text += `${recipe.description}\n\n`;
+    text += `${metaLine}\n\n`;
+
+    text += `${t('recipe.tabIngredients')}\n`;
     sortedIngredients.forEach(({ group }) => {
-      if (recipe.ingredients.length > 1) {
-        md += `### ${translateCategory(group.name)}\n`;
-      }
+      if (hasGroups) text += `${translateCategory(group.name)}\n`;
       group.items.forEach((ing: Ingredient) => {
-        const scaledAmount = formatAmount(ing.amount, ing.unit);
-        const amountStr = scaledAmount ? `${scaledAmount} ` : '';
-        const unitStr = ing.unit ? `${ing.unit} ` : '';
-        const modifierStr = ing.modifier ? ` (${ing.modifier})` : '';
-        const noteStr = ing.notes ? ` (${ing.notes})` : '';
-        md += `- ${amountStr}${unitStr}${ing.name}${modifierStr}${noteStr}\n`;
+        text += `• ${formatIngredientLine(ing)}\n`;
       });
-      if (recipe.ingredients.length > 1) {
-        md += `\n`;
-      }
+      if (hasGroups) text += `\n`;
     });
-    if (recipe.ingredients.length <= 1) {
-      md += `\n`;
-    }
+    if (!hasGroups) text += `\n`;
 
-    md += `## ${t('recipe.tabInstructions')}\n`;
+    text += `${t('recipe.tabInstructions')}\n`;
     recipe.instructions.forEach((step) => {
-      md += `${step.step}. ${step.description}\n`;
+      text += `${step.step}. ${step.description}\n`;
     });
-    md += `\n`;
+    text += `\n`;
 
     if (recipe.equipment && recipe.equipment.length > 0) {
-      md += `## ${t('recipe.requiredEquipment')}\n`;
+      text += `${t('recipe.requiredEquipment')}\n`;
       recipe.equipment.forEach((item) => {
-        md += `- ${item}\n`;
+        text += `• ${item}\n`;
       });
-      md += `\n`;
+      text += `\n`;
     }
 
     if (recipe.tips && recipe.tips.length > 0) {
-      md += `## ${t('recipe.tipsTitle')}\n`;
+      text += `${t('recipe.tipsTitle')}\n`;
       recipe.tips.forEach((tip) => {
-        md += `- ${tip}\n`;
+        text += `• ${tip}\n`;
       });
-      md += `\n`;
+      text += `\n`;
     }
 
-    navigator.clipboard.writeText(md).then(() => {
+    // --- Rich text (HTML) ---
+    let html = `<h1>${escapeHtml(recipe.title)}</h1>`;
+    if (recipe.description) html += `<p>${escapeHtml(recipe.description)}</p>`;
+    html += `<p><strong>${escapeHtml(t('recipe.prep'))}:</strong> ${escapeHtml(formatTimeValue(recipe.prepTime))} · <strong>${escapeHtml(t('recipe.cook'))}:</strong> ${escapeHtml(formatTimeValue(recipe.cookTime))} · <strong>${escapeHtml(t('recipe.serves'))}:</strong> ${servings}</p>`;
+
+    html += `<h2>${escapeHtml(t('recipe.tabIngredients'))}</h2>`;
+    sortedIngredients.forEach(({ group }) => {
+      if (hasGroups) html += `<h3>${escapeHtml(translateCategory(group.name))}</h3>`;
+      html += `<ul>`;
+      group.items.forEach((ing: Ingredient) => {
+        html += `<li>${escapeHtml(formatIngredientLine(ing))}</li>`;
+      });
+      html += `</ul>`;
+    });
+
+    html += `<h2>${escapeHtml(t('recipe.tabInstructions'))}</h2><ol>`;
+    recipe.instructions.forEach((step) => {
+      html += `<li>${escapeHtml(step.description)}</li>`;
+    });
+    html += `</ol>`;
+
+    if (recipe.equipment && recipe.equipment.length > 0) {
+      html += `<h2>${escapeHtml(t('recipe.requiredEquipment'))}</h2><ul>`;
+      recipe.equipment.forEach((item) => {
+        html += `<li>${escapeHtml(item)}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    if (recipe.tips && recipe.tips.length > 0) {
+      html += `<h2>${escapeHtml(t('recipe.tipsTitle'))}</h2><ul>`;
+      recipe.tips.forEach((tip) => {
+        html += `<li>${escapeHtml(tip)}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    const markCopied = () => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
+    };
+
+    // Prefer writing both HTML + plain text; fall back to plain text where
+    // ClipboardItem is unavailable (e.g. some Android WebViews).
+    const writeRichText = async () => {
+      try {
+        if (navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'text/html': new Blob([html], { type: 'text/html' }),
+              'text/plain': new Blob([text], { type: 'text/plain' }),
+            }),
+          ]);
+          return;
+        }
+      } catch {
+        // fall through to plain-text write
+      }
+      await navigator.clipboard.writeText(text);
+    };
+
+    writeRichText().then(markCopied).catch(() => {
+      // Last resort: plain text only
+      navigator.clipboard.writeText(text).then(markCopied).catch(() => {});
     });
   };
 
@@ -422,7 +497,7 @@ export default function RecipeDetails({
           onBack={onBack}
           onNavigateToShoppingList={onAddIngredients ? handleAddAndNavigateToShoppingList : onNavigateToShoppingList}
           onDelete={onDelete}
-          onCopyMarkdown={copyRecipeMarkdown}
+          onCopyRecipe={copyRecipe}
           isCopied={isCopied}
           isParentAvailable={isParentAvailable}
           onNavigateToRecipe={onNavigateToRecipe}

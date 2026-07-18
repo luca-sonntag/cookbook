@@ -12,7 +12,7 @@ interface RecipeHeaderProps {
   onBack?: () => void;
   onNavigateToShoppingList?: () => void;
   onDelete?: () => void;
-  onCopyMarkdown: () => void;
+  onCopyRecipe: () => void;
   isCopied: boolean;
   isParentAvailable?: boolean;
   onNavigateToRecipe?: (recipeId: string) => void;
@@ -29,7 +29,7 @@ export default function RecipeHeader({
   onBack,
   onNavigateToShoppingList,
   onDelete,
-  onCopyMarkdown,
+  onCopyRecipe,
   isCopied,
   isParentAvailable,
   onNavigateToRecipe,
@@ -146,7 +146,7 @@ export default function RecipeHeader({
 
               <button
                 onClick={() => {
-                  onCopyMarkdown();
+                  onCopyRecipe();
                   setIsMenuOpen(false);
                 }}
                 className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
