@@ -1420,6 +1420,18 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
       : 'Failed to retrieve the Instagram Reel. Please make sure the video is public and the link is correct.';
   }
 
+  if (lowerMsg.includes('video too long')) {
+    const limitMatch = errorMsg.match(/the\s+(\d+)\s*min limit/i);
+    const limit = limitMatch ? limitMatch[1] : null;
+    return lang === 'de'
+      ? limit
+        ? `Das Video ist zu lang. Es sind maximal ${limit} Minuten erlaubt.`
+        : 'Das Video ist zu lang.'
+      : limit
+        ? `The video is too long. The maximum allowed length is ${limit} minutes.`
+        : 'The video is too long.';
+  }
+
   if (lowerMsg.includes('could not find any recipe details')) {
     return lang === 'de'
       ? 'Auf dieser Website konnte kein Rezept gefunden werden.'
