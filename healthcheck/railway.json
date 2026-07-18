@@ -7,15 +7,5 @@
   "deploy": {
     "startCommand": "npm run start --prefix healthcheck",
     "restartPolicyType": "never"
-  },
-  "variables": {
-    "SUPABASE_URL": "${{backend.SUPABASE_URL}}",
-    "SUPABASE_SECRET_KEY": "${{backend.SUPABASE_SECRET_KEY}}",
-    "GEMINI_API_KEY": "${{backend.GEMINI_API_KEY}}",
-    "GEMINI_MODEL": "${{backend.GEMINI_MODEL}}",
-    "RAPIDAPI_KEY": "${{backend.RAPIDAPI_KEY}}",
-    "RAPIDAPI_SOCIAL_HOST": "${{backend.RAPIDAPI_SOCIAL_HOST}}",
-    "APIFY_TOKEN": "${{backend.APIFY_TOKEN}}",
-    "HEALTHCHECK_BACKEND_URL": "https://${{backend.RAILWAY_PUBLIC_DOMAIN}}/health"
   }
 }
