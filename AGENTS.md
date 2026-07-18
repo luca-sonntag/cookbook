@@ -24,7 +24,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
 
 ### 2. Processing- & Database-Layer (Node.js & Supabase Postgres)
 
-* **Technologie:** Express.js, TypeScript (ausgeführt über `tsx` / Direct-Node execution), native Node.js 18+ `fetch` API.
+* **Technologie:** Express.js, TypeScript (ausgeführt über `tsx` / Direct-Node execution), Node.js 22+ (erforderlich für `@supabase/supabase-js` native WebSockets).
 * **Datenbank:** Supabase Postgres (`backend/src/db.ts`) mit Row-Level Security (RLS) über `@supabase/supabase-js`. Alle benutzerbezogenen Queries filtern mit `.eq('user_id', userId)`, um mandantenfähige Isolation zu gewährleisten. Interne Queue-Operationen (`getNextPendingJob`, `updateJob`) arbeiten ohne User-Scoping.
 * **Authentifizierung:** Supabase Auth JWT-Verifikation (`backend/src/auth.ts`). Die Middleware `requireAuth` validiert den `Authorization: Bearer <token>` Header, extrahiert die User-ID via `auth.getUser(token)` und reicht sie als `req.userId` an alle Route-Handler weiter. Der statische `x-api-key` Header wurde vollständig entfernt. Unterstützt sowohl E-Mail/Passwort- als auch Google OAuth-Authentifizierung nahtlos, da beide über standardmäßige Supabase JWTs verifiziert werden.
 * **RLS-Policies:** Die `jobs`-Tabelle ist mit vier RLS-Policies abgesichert: `SELECT`/`INSERT`/`UPDATE`/`DELETE` – alle an `auth.uid() = user_id` gebunden. Der `user_id`-Fremdschlüssel referenziert `auth.users.id`.
@@ -408,3 +408,29 @@ Ein niederschwelliger Kanal, über den **alle** angemeldeten Nutzer (insb. Beta-
 * **Submit-Hook (`frontend/src/hooks/useFeedback.ts`):** Authentifizierter `POST /api/feedback` (Header via `getAccessToken`, `apiUrl`, Body u. a. `screenshots: string[]`), Response im `{ success, error? }`-Envelope — analog zu `useCollections`.
 * **Backend (`POST /api/feedback` in `backend/src/routes.ts`):** Automatisch durch `requireAuth` + Rate-Limiter abgedeckt. Validiert `message` (nicht-leer, ≤ 4000), `type` (Whitelist `bug`|`idea`, Default `bug`), optionales `context`-Objekt und optionales `screenshots`-Array (jeweils base64, **max. 6 Bilder**, Gesamtlänge ≤ 1,5 Mio. Zeichen). Persistiert via `createFeedback(userId, …)` (`backend/src/db.ts`): lädt jeden Screenshot in den privaten Bucket `feedback-screenshots` (`${userId}/${feedbackId}/${index}.jpg`) hoch und speichert die 10-Jahres-Signed-URLs als `screenshot_urls text[]`, dann Insert in die `feedback`-Tabelle. Ein fehlgeschlagener Upload eines einzelnen Bildes verwirft den Report **nicht** (Best-Effort pro Bild). Es gibt bewusst **keine** E-Mail/Webhook-Benachrichtigung — Reports werden im Supabase-Dashboard gelesen.
 
+## 🩺 Health Check & Mobile Benachrichtigungs-Dienst
+
+Das Projekt verfügt über ein eigenständiges Monitoring- und Alarmsystem im Ordner `healthcheck/`, das alle Kernkomponenten (Express Backend, Frontend-Website, RapidAPI-Scraper, Apify-Actor, Gemini-LLM-API) unabhängig überwacht und den Administrator bei Ausfällen oder Wiederherstellungen per Push-Benachrichtigung auf dem Smartphone (via **ntfy.sh** und/oder **Telegram Bot**) benachrichtigt.
+
+### 1. Überwachte Dienste & Test-Logik (`healthcheck/src/index.ts`)
+* **Backend:** Ruft die öffentliche `/health` API auf und validiert das Antwort-JSON, welches die Uptime und den Verbindungsstatus der Datenbank zurückgibt.
+* **Website:** Führt einen HTTP GET-Request gegen die in `HEALTHCHECK_WEBSITE_URL` hinterlegte URL aus und prüft auf HTTP-Status `200-299`.
+* **RapidAPI:** Sendet einen ressourcenschonenden Test-POST an `https://<RAPIDAPI_HOST>/v1/social/autolink` mit einer Dummy-URL, um API-Key-Gültigkeit und Routing ohne Scraping-Kosten zu prüfen. HTTP `401`/`403` deutet auf einen ungültigen API-Key hin, `5xx` auf einen API-Ausfall.
+* **Apify:** Ruft die kostenfreie API `client.actors().list({ limit: 1 })` auf, um die Validität des `APIFY_TOKEN` und die allgemeine Verfügbarkeit der Apify-Plattform zu testen.
+* **Gemini:** Führt eine minimalistische Textgenerierung (`generateContent('Ping')`) aus, um sicherzustellen, dass die Google-AI-Plattform, das Gemini-Modell und der API-Key voll funktionsfähig sind.
+
+### 2. Persistente Zustandshaltung & Entprellung
+Um Spam zu vermeiden, speichert das System den Zustand jedes Dienstes als JSON-String in der Supabase-Tabelle `global_settings` unter dem Schlüssel `health_check_status`.
+* Eine Benachrichtigung wird **nur** versendet, wenn ein Zustandswechsel stattfindet (z. B. `up` -> `down` oder `down` -> `up`).
+* Beim ersten Start des Dienstes wird ein initialer Alarm gesendet, falls ein Dienst fehlerhaft (`down`) startet.
+
+### 3. Alarmierungs-Kanäle (Push-Benachrichtigung)
+* **ntfy.sh (Empfohlen, da konfigurierungsfrei):** Wenn `NTFY_TOPIC` in `.env` konfiguriert ist, sendet das System bei Statusänderungen HTTP-POST-Requests an `https://ntfy.sh/<topic>`. Der Administrator erhält über die kostenlose, quelloffene ntfy-App (Android/iOS) durch einfaches Abonnieren des Topics sofortige Push-Benachrichtigungen mit passenden Icons (Skull/Party) und Prioritäten.
+* **Telegram Bot:** Wenn `TELEGRAM_BOT_TOKEN` und `TELEGRAM_CHAT_ID` gesetzt sind, sendet das Backend HTML-formatierte Telegram-Nachrichten direkt auf das Smartphone des Administrators.
+
+### 4. Ausführung & Integration
+Der Dienst ist als **eigenständiges Paket** im Root-Verzeichnis (`healthcheck/`) organisiert. Er kann auf zwei Arten ausgeführt werden:
+1. **Lokal / Manuell (CLI):** Über `npm run healthcheck` im Hauptverzeichnis (führt im Hintergrund `npm run start --prefix healthcheck` aus).
+2. **Als Railway Cron-Job:** Der Dienst wird als separater Service in deinem Railway-Projekt deployt. Setze dort den **Start Command** auf `npm run start --prefix healthcheck` (oder `npm run start` direkt im `healthcheck`-Unterverzeichnis) und konfiguriere einen **Cron Schedule** (z. B. `*/15 * * * *` für alle 15 Minuten).
+
+*Tipp:* Durch das Ausführen als separater Railway-Dienst wird das Haupt-Backend zuverlässig von außen überwacht. Fällt dein Haupt-Backend aus, meldet der separate Healthcheck-Container dies sofort.

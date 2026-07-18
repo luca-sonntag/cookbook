@@ -319,6 +319,7 @@ export function startQueue(pollIntervalMs = 2000): void {
   };
   runCleanup();
   cleanupInterval = setInterval(runCleanup, 12 * 60 * 60 * 1000);
+
 }
 
 /**
