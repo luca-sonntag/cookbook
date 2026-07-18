@@ -207,8 +207,6 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
   const selectedPackage = packages.find(p => p.identifier === selectedPackageId);
   const hasSelectedTrial = !!(selectedPackage?.product?.introPrice && selectedPackage?.product?.introPrice?.price === 0);
   const trialDays = selectedPackage?.product?.introPrice?.periodNumberOfUnits || 3;
-  // Reminder day = the day before the subscription charges (Google Play sends the actual reminder).
-  const reminderDay = Math.max(1, trialDays - 1);
 
   // Render the Coffee Anchor Badge
   const renderCoffeeAnchor = () => {
@@ -334,66 +332,6 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
               </tbody>
             </table>
           </div>
-
-          {/* Blinkist Step-by-Step Trial Timeline */}
-          {!isLoadingPackages && hasSelectedTrial && (
-            <div className="flex flex-col gap-3 bg-white/5 border border-white/10 rounded-3xl p-4.5 shrink-0 backdrop-blur-md">
-              <div className="text-xs font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 fill-amber-300" />
-                {t('premium.modal.freeTrialTitle').replace('{days}', String(trialDays))}
-              </div>
-
-              <div className="relative pl-7 flex flex-col gap-4">
-                {/* Connector Line */}
-                <div className="absolute left-[9px] top-2.5 bottom-2.5 w-0.5 bg-emerald-500/30" />
-
-                {/* Step 1 */}
-                <div className="relative">
-                  <div className="absolute -left-[23px] top-1 w-4 h-4 rounded-full bg-amber-400 border border-emerald-950 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-950" />
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-extrabold text-white">
-                      {t('premium.modal.timeline.step1Title') || 'Heute'}
-                    </span>
-                    <span className="text-[11px] text-emerald-100/70">
-                      {t('premium.modal.timeline.step1Desc') || 'Testphase starten. Vollzugriff.'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Step 2 */}
-                <div className="relative">
-                  <div className="absolute -left-[23px] top-1 w-4 h-4 rounded-full bg-emerald-600 border border-emerald-950 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-extrabold text-white">
-                      {t('premium.modal.timeline.step2Title').replace('{reminderDay}', String(reminderDay))}
-                    </span>
-                    <span className="text-[11px] text-emerald-100/70">
-                      {t('premium.modal.timeline.step2Desc')}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Step 3 */}
-                <div className="relative">
-                  <div className="absolute -left-[23px] top-1 w-4 h-4 rounded-full bg-emerald-600 border border-emerald-950 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-extrabold text-white">
-                      {t('premium.modal.timeline.step3Title').replace('{days}', String(trialDays))}
-                    </span>
-                    <span className="text-[11px] text-emerald-100/70">
-                      {t('premium.modal.timeline.step3Desc') || 'Abo beginnt. Jederzeit kündbar.'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
         </div>
 
