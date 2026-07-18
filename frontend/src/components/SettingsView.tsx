@@ -114,11 +114,10 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
 
       {/* Save Status / Error Notification */}
       {saveMessage && (
-        <div className={`mx-2 px-4 py-2.5 text-xs text-center rounded-xl font-semibold border transition-all ${
-          saveMessage === t('app.settings.saved')
-            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-            : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-        }`}>
+        <div className={`mx-2 px-4 py-2.5 text-xs text-center rounded-xl font-semibold border transition-all ${saveMessage === t('app.settings.saved')
+          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+          }`}>
           {saveMessage}
         </div>
       )}
@@ -132,11 +131,10 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-2xl pointer-events-none -mr-8 -mt-8" />
         )}
         <div className="flex items-center gap-4">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg text-white shadow-md shrink-0 ${
-            isPremium 
-              ? 'bg-gradient-to-tr from-emerald-500 to-teal-500 shadow-emerald-500/20 ring-2 ring-emerald-500/20' 
-              : 'bg-gradient-to-tr from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-black/10'
-          }`}>
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg text-white shadow-md shrink-0 ${isPremium
+            ? 'bg-gradient-to-tr from-emerald-500 to-teal-500 shadow-emerald-500/20 ring-2 ring-emerald-500/20'
+            : 'bg-gradient-to-tr from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-black/10'
+            }`}>
             {getInitials(user?.email)}
           </div>
           <div className="flex flex-col min-w-0 font-sans flex-1">
@@ -192,7 +190,7 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
         <h3 className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
           {language === 'de' ? 'Einstellungen' : 'Preferences'}
         </h3>
-        
+
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
           {/* Language Option */}
           <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
@@ -331,22 +329,20 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
             <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
               <button
                 onClick={() => setTheme('light')}
-                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                  theme === 'light'
-                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                }`}
+                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${theme === 'light'
+                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  }`}
               >
                 <Sun className="w-3.5 h-3.5" />
                 Light
               </button>
               <button
                 onClick={() => setTheme('dark')}
-                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                  theme === 'dark'
-                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                }`}
+                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${theme === 'dark'
+                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  }`}
               >
                 <Moon className="w-3.5 h-3.5" />
                 Dark
@@ -449,9 +445,8 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`w-full p-4 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group ${
-                idx < arr.length - 1 ? 'border-b border-black/5 dark:border-white/5' : ''
-              }`}
+              className={`w-full p-4 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group ${idx < arr.length - 1 ? 'border-b border-black/5 dark:border-white/5' : ''
+                }`}
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
@@ -474,7 +469,7 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
         <h3 className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
           {language === 'de' ? 'Konto-Aktionen' : 'Account Actions'}
         </h3>
-        
+
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
           {/* Logout Option */}
           {!autoSignedIn && (
@@ -530,16 +525,14 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
           <button
             type="button"
             onClick={() => setIsPremiumOverride(!isPremium)}
-            className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none border-2 shrink-0 ${
-              isPremium
-                ? 'bg-violet-500 border-violet-500'
-                : 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600'
-            }`}
+            className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none border-2 shrink-0 ${isPremium
+              ? 'bg-violet-500 border-violet-500'
+              : 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600'
+              }`}
             aria-label="Toggle simulate premium"
           >
-            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-              isPremium ? 'translate-x-6' : 'translate-x-0'
-            }`} />
+            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${isPremium ? 'translate-x-6' : 'translate-x-0'
+              }`} />
           </button>
         </div>
       )}

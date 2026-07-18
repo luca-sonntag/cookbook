@@ -9,9 +9,10 @@ interface PremiumUpgradeCardProps {
 
 export default function PremiumUpgradeCard({ onUpgradeClick, className = '' }: PremiumUpgradeCardProps) {
   const { t } = useI18n();
-  const { isPremium, isPremiumOverride } = useAuth();
+  const { user, isPremiumOverride } = useAuth();
+  const isRealPremium = user?.app_metadata?.tier === 'premium' || isPremiumOverride;
 
-  if (isPremium || isPremiumOverride) return null;
+  if (isRealPremium) return null;
 
   return (
     <div
