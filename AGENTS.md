@@ -410,10 +410,10 @@ Ein niederschwelliger Kanal, über den **alle** angemeldeten Nutzer (insb. Beta-
 
 ## 🩺 Health Check & Mobile Benachrichtigungs-Dienst
 
-Das Projekt verfügt über ein integriertes Monitoring- und Alarmsystem, das alle Kernkomponenten (Express Backend, Frontend-Website, RapidAPI-Scraper, Apify-Actor, Gemini-LLM-API) kontinuierlich überwacht und den Administrator bei Ausfällen oder Wiederherstellungen per Push-Benachrichtigung auf dem Smartphone (via **ntfy.sh** und/oder **Telegram Bot**) benachrichtigt.
+Das Projekt verfügt über ein eigenständiges Monitoring- und Alarmsystem im Ordner `healthcheck/`, das alle Kernkomponenten (Express Backend, Frontend-Website, RapidAPI-Scraper, Apify-Actor, Gemini-LLM-API) unabhängig überwacht und den Administrator bei Ausfällen oder Wiederherstellungen per Push-Benachrichtigung auf dem Smartphone (via **ntfy.sh** und/oder **Telegram Bot**) benachrichtigt.
 
-### 1. Überwachte Dienste & Test-Logik (`backend/src/healthcheck.ts`)
-* **Backend:** Führt bei Ausführung im integrierten Worker eine direkte Datenbank-Healthcheck-Abfrage (`checkDbHealth()`) aus. Als Standalone-Skript prüft es stattdessen die öffentliche `/health` API und validiert das Antwort-JSON.
+### 1. Überwachte Dienste & Test-Logik (`healthcheck/src/index.ts`)
+* **Backend:** Ruft die öffentliche `/health` API auf und validiert das Antwort-JSON, welches die Uptime und den Verbindungsstatus der Datenbank zurückgibt.
 * **Website:** Führt einen HTTP GET-Request gegen die in `HEALTHCHECK_WEBSITE_URL` hinterlegte URL aus und prüft auf HTTP-Status `200-299`.
 * **RapidAPI:** Sendet einen ressourcenschonenden Test-POST an `https://<RAPIDAPI_HOST>/v1/social/autolink` mit einer Dummy-URL, um API-Key-Gültigkeit und Routing ohne Scraping-Kosten zu prüfen. HTTP `401`/`403` deutet auf einen ungültigen API-Key hin, `5xx` auf einen API-Ausfall.
 * **Apify:** Ruft die kostenfreie API `client.actors().list({ limit: 1 })` auf, um die Validität des `APIFY_TOKEN` und die allgemeine Verfügbarkeit der Apify-Plattform zu testen.
@@ -429,8 +429,8 @@ Um Spam zu vermeiden, speichert das System den Zustand jedes Dienstes als JSON-S
 * **Telegram Bot:** Wenn `TELEGRAM_BOT_TOKEN` und `TELEGRAM_CHAT_ID` gesetzt sind, sendet das Backend HTML-formatierte Telegram-Nachrichten direkt auf das Smartphone des Administrators.
 
 ### 4. Ausführung & Integration
-Der Dienst kann auf zwei Arten ausgeführt werden:
-1. **Integriert:** Wird bei gesetztem `HEALTHCHECK_ENABLED=true` automatisch im Hintergrund des Express Queue-Workers gestartet. Die Prüfung erfolgt alle `HEALTHCHECK_INTERVAL_MINUTES` Minuten (Default: 10).
-2. **Standalone-Skript (CLI):** Über `npm run healthcheck` (bzw. `npx tsx src/healthcheck-standalone.ts` im Backend-Ordner) kann die Prüfung jederzeit manuell oder als externer Cron-Job (z. B. GitHub Actions oder ein separater Railway-Container) aufgerufen werden. Dies ist besonders nützlich, um die Erreichbarkeit des Backends selbst von außen zu überwachen.
+Der Dienst ist als **eigenständiges Paket** im Root-Verzeichnis (`healthcheck/`) organisiert. Er kann auf zwei Arten ausgeführt werden:
+1. **Lokal / Manuell (CLI):** Über `npm run healthcheck` im Hauptverzeichnis (führt im Hintergrund `npm run start --prefix healthcheck` aus).
+2. **Als Railway Cron-Job:** Der Dienst wird als separater Service in deinem Railway-Projekt deployt. Setze dort den **Start Command** auf `npm run start --prefix healthcheck` (oder `npm run start` direkt im `healthcheck`-Unterverzeichnis) und konfiguriere einen **Cron Schedule** (z. B. `*/15 * * * *` für alle 15 Minuten).
 
-*Tipp für Ausfälle des Backends:* Da ein integrierter Check keine Komplettabstürze des Backend-Servers melden kann, sollte zusätzlich ein kostenloser externer Uptime-Monitor (z. B. UptimeRobot oder Better Stack) auf die Backend-URL `/health` gerichtet werden.
+*Tipp:* Durch das Ausführen als separater Railway-Dienst wird das Haupt-Backend zuverlässig von außen überwacht. Fällt dein Haupt-Backend aus, meldet der separate Healthcheck-Container dies sofort.
