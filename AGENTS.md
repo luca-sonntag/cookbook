@@ -162,7 +162,7 @@ Durch die Kombination des Apify Instagram Scrapers, den multimodalen Fähigkeite
         * `RecipeActionDock.tsx`: Rendert die schwebende Navigations- und Startleiste am unteren Bildschirmrand.
       * **`SavedCatalog/`:** Grid- und Listen-Layout der Rezept-Historie inklusive Suchfilterung, Bulk-Select-Modus (aktivierbar über einen sichtbaren Checkbox-Toggle-Button in den Filtern oder via Long-Press), Massenlöschung und Weiterleitung von Einkaufslisten-Befehlen.
         * `CatalogFilters.tsx`: Sticky Such-/View-/Sortier-Leiste plus die horizontal scrollbaren Filter-Chips (`all`, `favorites`, `under15`, `under30`, dynamische `collection:*`- und `flag:*`-Chips sowie der „＋ Sammlung"-Button).
-        * `CollectionSheet.tsx`: Bottom-Sheet zum Zuweisen (Einzel & Bulk), Erstellen, Bearbeiten und Löschen von Sammlungen (Emoji- und Farb-Auswahl). Nutzt `useCollections`.
+        * `CollectionSheet.tsx`: Bottom-Sheet zum Zuweisen (Einzel & Bulk), Erstellen, Bearbeiten und Löschen von Sammlungen (Emoji-Auswahl). Nutzt `useCollections`.
         * `FlagSheet.tsx`: Bottom-Sheet zum Verwalten der eigenen Freitext-Labels/Flags eines Rezepts (Tag-Eingabe mit Vorschlägen aus bereits vergebenen Labels).
         * `BulkActionBar.tsx`: Schwebende Aktionsleiste im Multi-Select-Modus (Bulk zur Einkaufsliste, Bulk zu Sammlung hinzufügen, Bulk-Delete).
       * **`ShoppingList/`:** Ein modularisiertes Verzeichnis für die Verwaltung der Einkaufsliste:

@@ -95,7 +95,6 @@ export interface Collection {
   userId: string;
   name: string;
   emoji?: string | null;
-  color?: string | null;
   position: number;
   createdAt: string;
   updatedAt: string;

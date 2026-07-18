@@ -47,7 +47,6 @@ CREATE TABLE IF NOT EXISTS public.collections (
   user_id uuid NOT NULL,
   name text NOT NULL,
   emoji text,
-  color text,
   position int NOT NULL DEFAULT 0,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()

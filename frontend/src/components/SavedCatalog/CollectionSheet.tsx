@@ -15,19 +15,6 @@ interface CollectionSheetProps {
 
 const EMOJIS = ['🥦', '🍕', '🍝', '🥩', '🍰', '🥐', '🥑', '🌮', '🍣', '🍩', '🍳', '🥗', '☕', '🍷'];
 
-const COLORS = [
-  { name: 'emerald', class: 'bg-emerald-500 border-emerald-600' },
-  { name: 'teal', class: 'bg-teal-500 border-teal-600' },
-  { name: 'blue', class: 'bg-blue-500 border-blue-600' },
-  { name: 'indigo', class: 'bg-indigo-500 border-indigo-600' },
-  { name: 'purple', class: 'bg-purple-500 border-purple-600' },
-  { name: 'pink', class: 'bg-pink-500 border-pink-600' },
-  { name: 'rose', class: 'bg-rose-500 border-rose-600' },
-  { name: 'red', class: 'bg-red-500 border-red-600' },
-  { name: 'orange', class: 'bg-orange-500 border-orange-600' },
-  { name: 'amber', class: 'bg-amber-500 border-amber-600' }
-];
-
 export default function CollectionSheet({
   isOpen,
   onClose,
@@ -52,7 +39,6 @@ export default function CollectionSheet({
   // Form states
   const [name, setName] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('');
-  const [selectedColor, setSelectedColor] = useState(COLORS[0].name);
 
   // Memberships state for checkboxes
   const [membershipIds, setMembershipIds] = useState<string[]>([]);
@@ -76,7 +62,6 @@ export default function CollectionSheet({
   const handleCreateOpen = () => {
     setName('');
     setSelectedEmoji('');
-    setSelectedColor(COLORS[0].name);
     setFormError(null);
     setMode('create');
   };
@@ -85,7 +70,6 @@ export default function CollectionSheet({
     setEditingCollection(col);
     setName(col.name);
     setSelectedEmoji(col.emoji || '');
-    setSelectedColor(col.color || COLORS[0].name);
     setFormError(null);
     setMode('edit');
   };
@@ -97,7 +81,7 @@ export default function CollectionSheet({
     }
 
     if (mode === 'create') {
-      const res = await createCollection(name, selectedEmoji || null, selectedColor);
+      const res = await createCollection(name, selectedEmoji || null);
       if (res.success) {
         setMode('assign');
         onUpdated?.();
@@ -107,8 +91,7 @@ export default function CollectionSheet({
     } else if (mode === 'edit' && editingCollection) {
       const res = await updateCollection(editingCollection.id, {
         name,
-        emoji: selectedEmoji || null,
-        color: selectedColor
+        emoji: selectedEmoji || null
       });
       if (res.success) {
         setMode('assign');
@@ -294,31 +277,6 @@ export default function CollectionSheet({
                             }`}
                           >
                             {emoji}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Color Select Grid */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-1">
-                        {t('catalog.collectionColor') || 'Farbe'}
-                      </label>
-                      <div className="flex flex-wrap gap-3.5 py-1.5 px-1">
-                        {COLORS.map(color => (
-                          <button
-                            key={color.name}
-                            onClick={() => setSelectedColor(color.name)}
-                            className={`w-7 h-7 rounded-full border-2 transition-all active:scale-90 cursor-pointer flex items-center justify-center ${color.class} ${
-                              selectedColor === color.name
-                                ? 'border-gray-900 dark:border-white scale-110 shadow-sm'
-                                : 'border-transparent hover:scale-105'
-                            }`}
-                            aria-label={color.name}
-                          >
-                            {selectedColor === color.name && (
-                              <Check className="w-3.5 h-3.5 text-white" />
-                            )}
                           </button>
                         ))}
                       </div>
