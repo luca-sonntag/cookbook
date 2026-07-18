@@ -10,6 +10,7 @@ import PremiumModal from './PremiumModal';
 import { FeedbackDrawer } from './FeedbackDrawer';
 import { APP_VERSION_LABEL } from '../version';
 import { LEGAL_URLS } from '../legal';
+import PremiumUpgradeCard from './PremiumUpgradeCard';
 
 function SettingInfo({ text }: { text: string }) {
   return (
@@ -41,7 +42,7 @@ const getInitials = (email?: string) => {
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
-  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, isPremiumOverride, setIsPremiumOverride, isAdmin } = useAuth();
+  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, setIsPremiumOverride, isAdmin } = useAuth();
   const dialog = useDialog();
   const { navigate } = useHashRouter();
   const [theme, setTheme] = useTheme();
@@ -170,28 +171,7 @@ export default function SettingsView() {
       </div>
 
       {/* Premium Upgrade Promotion (only for free members and beta testers) */}
-      {!(user?.app_metadata?.tier === 'premium' || isPremiumOverride) && (
-        <div
-          onClick={() => setIsPremiumModalOpen(true)}
-          className="mx-2 cursor-pointer p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-md text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:brightness-[1.02] active:scale-[0.99] transition-all relative overflow-hidden group"
-        >
-          <div className="z-10">
-            <h3 className="text-base font-bold flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
-              Snagbite Premium
-            </h3>
-            <p className="text-xs text-emerald-100/90 mt-1 max-w-sm">
-              Unlock unlimited recipe extractions, advanced remix capabilities, and priority processing.
-            </p>
-          </div>
-          <div
-            className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs h-9 px-4 rounded-xl shadow-md active:scale-95 transition-all self-start sm:self-auto flex items-center gap-1.5 shrink-0 z-10"
-          >
-            <Crown className="w-3.5 h-3.5" />
-            {t('app.settings.upgradePremium') || 'Upgrade to Premium'}
-          </div>
-        </div>
-      )}
+      <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} className="mx-2" />
 
       {/* Preferences Section */}
       <div className="flex flex-col gap-2">

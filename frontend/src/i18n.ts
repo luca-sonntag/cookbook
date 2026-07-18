@@ -222,6 +222,7 @@ export const uiTranslations = {
         premiumActiveDesc: 'Du hast unbegrenzten Zugriff auf alle Premium-Features.',
         betaActive: 'Beta-Zugriff',
         betaActiveDesc: 'Du bist Beta-Tester! Du hast kostenlosen Zugriff auf alle Premium-Features während der Beta. Extraktionslimits gelten weiterhin.',
+        premiumCardDesc: 'Schalte unbegrenzte Rezept-Extraktionen, KI-Chat & Remix und smarte Einkaufslisten frei.',
         legal: {
           section: 'Rechtliches',
           privacy: 'Datenschutzerklärung',
@@ -657,7 +658,7 @@ export const uiTranslations = {
           rowCookbookFree: 'Max. 5 Rezepte',
           rowCookbookPremium: 'Unbegrenzt',
           rowShoppingList: 'Einkaufsliste',
-          rowShoppingListFree: 'Lokal, 1 Rezept',
+          rowShoppingListFree: '1 Rezept',
           rowShoppingListPremium: 'Smarte Kombi',
           rowAiChat: 'Rezept-KI-Chat',
           rowAiChatFree: '❌ Nein',
@@ -784,6 +785,7 @@ export const uiTranslations = {
         premiumActiveDesc: 'You have unlimited access to all premium features.',
         betaActive: 'Beta Access',
         betaActiveDesc: 'You are a beta tester! You have free access to all premium features during the beta. Extraction limits apply.',
+        premiumCardDesc: 'Unlock unlimited recipe extractions, advanced remix capabilities, and smart shopping lists.',
         legal: {
           section: 'Legal',
           privacy: 'Privacy Policy',
@@ -1219,7 +1221,7 @@ export const uiTranslations = {
           rowCookbookFree: 'Max 5 recipes',
           rowCookbookPremium: 'Unlimited',
           rowShoppingList: 'Shopping List',
-          rowShoppingListFree: 'Local, 1 recipe',
+          rowShoppingListFree: '1 recipe',
           rowShoppingListPremium: 'Smart Combined',
           rowAiChat: 'Recipe AI Chat',
           rowAiChatFree: '❌ No',
