@@ -371,7 +371,6 @@ export const uiTranslations = {
       }
     },
     recipe: {
-      copyMarkdown: 'Rezept als Markdown kopieren',
       copyRecipe: 'Rezept kopieren',
       copied: 'Kopiert!',
       delete: 'Rezept löschen',
@@ -934,7 +933,6 @@ export const uiTranslations = {
       }
     },
     recipe: {
-      copyMarkdown: 'Copy Recipe Markdown',
       copyRecipe: 'Copy Recipe',
       copied: 'Copied!',
       delete: 'Delete Recipe',
