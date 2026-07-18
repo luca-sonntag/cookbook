@@ -142,6 +142,24 @@ async function sendNotification(message: string, isDown: boolean, serviceName: s
  * Main execution logic.
  */
 async function run() {
+  const isTestMode = process.argv.includes('test') || process.argv.includes('--test');
+
+  if (isTestMode) {
+    console.log('[healthcheck] Running in TEST mode. Sending test notifications...');
+    if (!NTFY_TOPIC && (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID)) {
+      console.warn('[healthcheck] No notification channels configured (NTFY_TOPIC or TELEGRAM credentials missing).');
+      process.exit(0);
+    }
+
+    await sendNotification(
+      'This is a test notification from the Cookbook healthcheck service!',
+      true,
+      'test-service'
+    );
+    console.log('[healthcheck] Test notifications sent successfully.');
+    process.exit(0);
+  }
+
   console.log('[healthcheck] Starting health checks...');
 
   const lastStates = await getLastStates();
