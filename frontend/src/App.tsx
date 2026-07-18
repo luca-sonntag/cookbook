@@ -595,7 +595,7 @@ export default function App() {
           <AdminView onBack={() => navigate('settings')} />
         ) : (
           /* SETTINGS TAB */
-          <SettingsView subPath={subPath} limitStatus={limitStatus} />
+          <SettingsView limitStatus={limitStatus} />
         )}
       </main>
 

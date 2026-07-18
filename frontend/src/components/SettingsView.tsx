@@ -10,7 +10,7 @@ import PremiumModal from './PremiumModal';
 import { FeedbackDrawer } from './FeedbackDrawer';
 import { APP_VERSION_LABEL } from '../version';
 import { LEGAL_URLS } from '../legal';
-import ProfileView from './ProfileView';
+import ExtractionCard from './ExtractionCard';
 import PremiumUpgradeCard from './PremiumUpgradeCard';
 
 function SettingInfo({ text }: { text: string }) {
@@ -42,11 +42,10 @@ const getInitials = (email?: string) => {
 };
 
 interface SettingsViewProps {
-  subPath?: string | null;
   limitStatus?: any;
 }
 
-export default function SettingsView({ subPath, limitStatus }: SettingsViewProps) {
+export default function SettingsView({ limitStatus }: SettingsViewProps) {
   const { t, language, setLanguage } = useI18n();
   const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, setIsPremiumOverride, isAdmin } = useAuth();
   const dialog = useDialog();
@@ -99,10 +98,6 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
     }
   };
 
-  if (subPath === 'profile') {
-    return <ProfileView onBack={() => navigate('settings')} limitStatus={limitStatus} />;
-  }
-
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
       {/* Title */}
@@ -124,8 +119,7 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
 
       {/* Profile Card */}
       <div
-        onClick={() => navigate('settings', 'profile')}
-        className="mx-2 p-5 bg-white dark:bg-gray-900 border border-black/5 dark:border-white/10 rounded-3xl shadow-sm flex flex-col gap-4 relative overflow-hidden hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.99] cursor-pointer transition-all group"
+        className="mx-2 p-5 bg-white dark:bg-gray-900 border border-black/5 dark:border-white/10 rounded-3xl shadow-sm flex flex-col gap-4 relative overflow-hidden"
       >
         {isPremium && (
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-2xl pointer-events-none -mr-8 -mt-8" />
@@ -139,7 +133,7 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
           </div>
           <div className="flex flex-col min-w-0 font-sans flex-1">
             <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-              {language === 'de' ? 'Konto' : 'Account'}
+              {t('app.settings.account') || 'Account'}
             </span>
             <span className="text-base font-bold text-gray-900 dark:text-white truncate mt-0.5">
               {user?.email}
@@ -157,12 +151,11 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
                 </span>
               ) : (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-black/5 dark:border-white/5 uppercase tracking-wider">
-                  Free Member
+                  {t('app.settings.freeMember') || 'Free Member'}
                 </span>
               )}
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
         </div>
 
         {user?.app_metadata?.tier === 'beta' ? (
@@ -181,6 +174,13 @@ export default function SettingsView({ subPath, limitStatus }: SettingsViewProps
           </div>
         ) : null}
       </div>
+
+      {/* Extraction Card */}
+      <ExtractionCard 
+        limitStatus={limitStatus} 
+        onUpgradeClick={() => setIsPremiumModalOpen(true)} 
+        className="mx-2"
+      />
 
       {/* Premium Upgrade Promotion (only for free members and beta testers) */}
       <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} className="mx-2" />
