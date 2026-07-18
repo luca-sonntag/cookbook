@@ -88,7 +88,7 @@ async function sendNotification(message: string, isDown: boolean, serviceName: s
   // 1. ntfy.sh notification
   if (NTFY_TOPIC) {
     const title = isDown ? `🔴 Service Alert: ${serviceName} is DOWN` : `🟢 Service Recovery: ${serviceName} is UP`;
-    const priority = isDown ? 'high' : 'default';
+    const priority = isDown ? 4 : 3;
     const tags = isDown ? ['warning', 'skull'] : ['white_check_mark', 'partying_face'];
 
     promises.push(
