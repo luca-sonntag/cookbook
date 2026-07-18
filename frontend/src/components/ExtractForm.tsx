@@ -7,6 +7,7 @@ import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import PremiumModal from './PremiumModal';
 import PremiumHint from './PremiumHint';
+import PremiumUpgradeCard from './PremiumUpgradeCard';
 
 import { InstagramIcon, ShareStep1Mockup, ShareStep2Mockup, ShareStep3Mockup } from './ShareMockups';
 
@@ -281,6 +282,9 @@ export default function ExtractForm({
           </div>
         </form>
       </Card>
+
+      {/* Premium Upgrade Promotion */}
+      <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
 
       {/* Share Directly Accordion */}
       {!url && (
