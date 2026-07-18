@@ -89,17 +89,21 @@ async function sendNotification(message: string, isDown: boolean, serviceName: s
   if (NTFY_TOPIC) {
     const title = isDown ? `🔴 Service Alert: ${serviceName} is DOWN` : `🟢 Service Recovery: ${serviceName} is UP`;
     const priority = isDown ? 'high' : 'default';
-    const tags = isDown ? 'warning,skull' : 'white_check_mark,partying_face';
+    const tags = isDown ? ['warning', 'skull'] : ['white_check_mark', 'partying_face'];
 
     promises.push(
-      fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+      fetch('https://ntfy.sh/', {
         method: 'POST',
-        body: message,
         headers: {
-          'Title': title,
-          'Priority': priority,
-          'Tags': tags,
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          topic: NTFY_TOPIC,
+          message: message,
+          title: title,
+          priority: priority,
+          tags: tags,
+        }),
       }).then(res => {
         if (!res.ok) console.error(`[healthcheck] ntfy alert failed with status ${res.status}`);
       }).catch(err => {
