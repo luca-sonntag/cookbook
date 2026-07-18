@@ -408,3 +408,29 @@ Ein niederschwelliger Kanal, über den **alle** angemeldeten Nutzer (insb. Beta-
 * **Submit-Hook (`frontend/src/hooks/useFeedback.ts`):** Authentifizierter `POST /api/feedback` (Header via `getAccessToken`, `apiUrl`, Body u. a. `screenshots: string[]`), Response im `{ success, error? }`-Envelope — analog zu `useCollections`.
 * **Backend (`POST /api/feedback` in `backend/src/routes.ts`):** Automatisch durch `requireAuth` + Rate-Limiter abgedeckt. Validiert `message` (nicht-leer, ≤ 4000), `type` (Whitelist `bug`|`idea`, Default `bug`), optionales `context`-Objekt und optionales `screenshots`-Array (jeweils base64, **max. 6 Bilder**, Gesamtlänge ≤ 1,5 Mio. Zeichen). Persistiert via `createFeedback(userId, …)` (`backend/src/db.ts`): lädt jeden Screenshot in den privaten Bucket `feedback-screenshots` (`${userId}/${feedbackId}/${index}.jpg`) hoch und speichert die 10-Jahres-Signed-URLs als `screenshot_urls text[]`, dann Insert in die `feedback`-Tabelle. Ein fehlgeschlagener Upload eines einzelnen Bildes verwirft den Report **nicht** (Best-Effort pro Bild). Es gibt bewusst **keine** E-Mail/Webhook-Benachrichtigung — Reports werden im Supabase-Dashboard gelesen.
 
+## 🩺 Health Check & Mobile Benachrichtigungs-Dienst
+
+Das Projekt verfügt über ein integriertes Monitoring- und Alarmsystem, das alle Kernkomponenten (Express Backend, Frontend-Website, RapidAPI-Scraper, Apify-Actor, Gemini-LLM-API) kontinuierlich überwacht und den Administrator bei Ausfällen oder Wiederherstellungen per Push-Benachrichtigung auf dem Smartphone (via **ntfy.sh** und/oder **Telegram Bot**) benachrichtigt.
+
+### 1. Überwachte Dienste & Test-Logik (`backend/src/healthcheck.ts`)
+* **Backend:** Führt bei Ausführung im integrierten Worker eine direkte Datenbank-Healthcheck-Abfrage (`checkDbHealth()`) aus. Als Standalone-Skript prüft es stattdessen die öffentliche `/health` API und validiert das Antwort-JSON.
+* **Website:** Führt einen HTTP GET-Request gegen die in `HEALTHCHECK_WEBSITE_URL` hinterlegte URL aus und prüft auf HTTP-Status `200-299`.
+* **RapidAPI:** Sendet einen ressourcenschonenden Test-POST an `https://<RAPIDAPI_HOST>/v1/social/autolink` mit einer Dummy-URL, um API-Key-Gültigkeit und Routing ohne Scraping-Kosten zu prüfen. HTTP `401`/`403` deutet auf einen ungültigen API-Key hin, `5xx` auf einen API-Ausfall.
+* **Apify:** Ruft die kostenfreie API `client.actors().list({ limit: 1 })` auf, um die Validität des `APIFY_TOKEN` und die allgemeine Verfügbarkeit der Apify-Plattform zu testen.
+* **Gemini:** Führt eine minimalistische Textgenerierung (`generateContent('Ping')`) aus, um sicherzustellen, dass die Google-AI-Plattform, das Gemini-Modell und der API-Key voll funktionsfähig sind.
+
+### 2. Persistente Zustandshaltung & Entprellung
+Um Spam zu vermeiden, speichert das System den Zustand jedes Dienstes als JSON-String in der Supabase-Tabelle `global_settings` unter dem Schlüssel `health_check_status`.
+* Eine Benachrichtigung wird **nur** versendet, wenn ein Zustandswechsel stattfindet (z. B. `up` -> `down` oder `down` -> `up`).
+* Beim ersten Start des Dienstes wird ein initialer Alarm gesendet, falls ein Dienst fehlerhaft (`down`) startet.
+
+### 3. Alarmierungs-Kanäle (Push-Benachrichtigung)
+* **ntfy.sh (Empfohlen, da konfigurierungsfrei):** Wenn `NTFY_TOPIC` in `.env` konfiguriert ist, sendet das System bei Statusänderungen HTTP-POST-Requests an `https://ntfy.sh/<topic>`. Der Administrator erhält über die kostenlose, quelloffene ntfy-App (Android/iOS) durch einfaches Abonnieren des Topics sofortige Push-Benachrichtigungen mit passenden Icons (Skull/Party) und Prioritäten.
+* **Telegram Bot:** Wenn `TELEGRAM_BOT_TOKEN` und `TELEGRAM_CHAT_ID` gesetzt sind, sendet das Backend HTML-formatierte Telegram-Nachrichten direkt auf das Smartphone des Administrators.
+
+### 4. Ausführung & Integration
+Der Dienst kann auf zwei Arten ausgeführt werden:
+1. **Integriert:** Wird bei gesetztem `HEALTHCHECK_ENABLED=true` automatisch im Hintergrund des Express Queue-Workers gestartet. Die Prüfung erfolgt alle `HEALTHCHECK_INTERVAL_MINUTES` Minuten (Default: 10).
+2. **Standalone-Skript (CLI):** Über `npm run healthcheck` (bzw. `npx tsx src/healthcheck-standalone.ts` im Backend-Ordner) kann die Prüfung jederzeit manuell oder als externer Cron-Job (z. B. GitHub Actions oder ein separater Railway-Container) aufgerufen werden. Dies ist besonders nützlich, um die Erreichbarkeit des Backends selbst von außen zu überwachen.
+
+*Tipp für Ausfälle des Backends:* Da ein integrierter Check keine Komplettabstürze des Backend-Servers melden kann, sollte zusätzlich ein kostenloser externer Uptime-Monitor (z. B. UptimeRobot oder Better Stack) auf die Backend-URL `/health` gerichtet werden.
