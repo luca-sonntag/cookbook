@@ -13,7 +13,8 @@
     "start": "npm run start -w backend",
     "preview": "npm run preview -w backend",
     "deploy": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
-    "deploy:all:internal": "powershell -ExecutionPolicy Bypass -File deploy.ps1 -All -Bump patch -Track internal"
+    "deploy:all:internal": "powershell -ExecutionPolicy Bypass -File deploy.ps1 -All -Bump patch -Track internal",
+    "healthcheck": "npm run healthcheck -w backend"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"
