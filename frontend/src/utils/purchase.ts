@@ -34,6 +34,19 @@ export async function initBilling(userId: string): Promise<void> {
       isRCInitialized = true;
       console.log('[RevenueCat] Configured successfully for user:', userId);
 
+      // Register a listener that fires whenever the subscription status changes
+      // (expiry, renewal, refund, cross-device restore, etc.)
+      try {
+        await Purchases.addCustomerInfoUpdateListener(async (info) => {
+          console.log('[RevenueCat] CustomerInfo updated (listener):', JSON.stringify(info, null, 2));
+          const isPremium = info.entitlements.active['premium'] !== undefined;
+          await syncBillingStatus(isPremium);
+        });
+        console.log('[RevenueCat] CustomerInfoUpdateListener registered.');
+      } catch (listenerErr) {
+        console.warn('[RevenueCat] Failed to register CustomerInfoUpdateListener:', listenerErr);
+      }
+
       // Initial status sync on app launch to verify actual entitlements
       try {
         const { customerInfo } = await Purchases.getCustomerInfo();
