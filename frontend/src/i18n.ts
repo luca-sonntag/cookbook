@@ -1421,14 +1421,25 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
   }
 
   if (lowerMsg.includes('video too long')) {
-    const limitMatch = errorMsg.match(/the\s+(\d+)\s*min limit/i);
-    const limit = limitMatch ? limitMatch[1] : null;
+    const limitMatch = errorMsg.match(/the\s+(\d+)\s*s limit/i);
+    const limitSec = limitMatch ? parseInt(limitMatch[1], 10) : null;
+    // Whole minutes read as "X min"; anything else stays in seconds (e.g. 90s).
+    const limitLabel =
+      limitSec != null && limitSec % 60 === 0
+        ? lang === 'de'
+          ? `${limitSec / 60} Minuten`
+          : `${limitSec / 60} minutes`
+        : limitSec != null
+          ? lang === 'de'
+            ? `${limitSec} Sekunden`
+            : `${limitSec} seconds`
+          : null;
     return lang === 'de'
-      ? limit
-        ? `Das Video ist zu lang. Es sind maximal ${limit} Minuten erlaubt.`
+      ? limitLabel
+        ? `Das Video ist zu lang. Es sind maximal ${limitLabel} erlaubt.`
         : 'Das Video ist zu lang.'
-      : limit
-        ? `The video is too long. The maximum allowed length is ${limit} minutes.`
+      : limitLabel
+        ? `The video is too long. The maximum allowed length is ${limitLabel}.`
         : 'The video is too long.';
   }
 

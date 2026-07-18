@@ -117,9 +117,8 @@ async function processJob(job: Job): Promise<void> {
     // any download bandwidth. 0 disables the check; results without a reported duration pass.
     const maxDuration = config.MAX_VIDEO_DURATION_SECONDS;
     if (maxDuration > 0 && scrapeResult.durationSeconds && scrapeResult.durationSeconds > maxDuration) {
-      const actualMin = (scrapeResult.durationSeconds / 60).toFixed(1);
-      const limitMin = Math.round(maxDuration / 60);
-      throw new Error(`Video too long: ${actualMin} min exceeds the ${limitMin} min limit.`);
+      const actualSec = Math.round(scrapeResult.durationSeconds);
+      throw new Error(`Video too long: ${actualSec}s exceeds the ${maxDuration}s limit.`);
     }
 
     // 3. Mark job as processing
