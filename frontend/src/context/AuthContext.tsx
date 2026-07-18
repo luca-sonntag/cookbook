@@ -12,6 +12,14 @@ const GOOGLE_WEB_CLIENT_ID = import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID as string
 // Cleared again once the user signs in (any method) of their own accord.
 const AUTO_SIGNIN_DISABLED_KEY = 'kb_auto_signin_disabled';
 
+// Set once the user has given consent to the privacy policy / terms by
+// explicitly signing in from the AuthForm (which displays the consent notice).
+// The silent on-device Google sign-in is gated on this flag so that NO data
+// processing happens before the user has seen the legal notice — required for
+// an Austrian sole proprietorship. Persists across sign-out (consent stays
+// valid); only cleared by wiping app storage (e.g. reinstall).
+const LEGAL_CONSENT_KEY = 'kb_legal_consent_v1';
+
 // Lazily initialize the native Google Sign-In plugin exactly once. Safe to call
 // repeatedly; only the first call hits the plugin.
 let socialLoginInitialized: Promise<void> | null = null;
@@ -33,6 +41,10 @@ async function attemptSilentGoogleSignIn(): Promise<{ success: boolean; error?: 
   if (Capacitor.getPlatform() !== 'android') return { success: false };
   if (!GOOGLE_WEB_CLIENT_ID) return { success: false };
   if (localStorage.getItem(AUTO_SIGNIN_DISABLED_KEY)) return { success: false };
+  // No silent sign-in before the user has seen the legal notice and consented
+  // (by signing in explicitly at least once). This must be the first guard: it
+  // prevents any Google/Supabase data processing on a fresh install.
+  if (!localStorage.getItem(LEGAL_CONSENT_KEY)) return { success: false };
 
   try {
     console.log('attemptSilentGoogleSignIn: Initializing social login');
@@ -209,6 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
+    localStorage.setItem(LEGAL_CONSENT_KEY, '1');
     setAutoSignedIn(false);
     return {};
   }, []);
@@ -220,6 +233,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // If user is immediately confirmed (no email confirmation), session is available
     if (data.session) {
       localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
+      localStorage.setItem(LEGAL_CONSENT_KEY, '1');
       setAutoSignedIn(false);
       return {};
     }
@@ -261,6 +275,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         console.log('signInWithGoogle: Supabase sign-in successful');
         localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
+        localStorage.setItem(LEGAL_CONSENT_KEY, '1');
         setAutoSignedIn(false);
         return {};
       } catch (e) {
@@ -273,6 +288,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Web: the redirect-based OAuth flow (opens the provider in the browser).
+    // Record consent before the redirect navigates away — the user clicked
+    // "sign in" on the AuthForm, which carries the legal notice.
+    localStorage.setItem(LEGAL_CONSENT_KEY, '1');
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

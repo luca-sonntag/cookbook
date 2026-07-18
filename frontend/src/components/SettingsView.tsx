@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare, Shield } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare, Shield, ScrollText, Building2, ExternalLink } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
@@ -9,6 +9,7 @@ import { useHashRouter } from '../hooks/useHashRouter';
 import PremiumModal from './PremiumModal';
 import { FeedbackDrawer } from './FeedbackDrawer';
 import { APP_VERSION_LABEL } from '../version';
+import { LEGAL_URLS } from '../legal';
 
 function SettingInfo({ text }: { text: string }) {
   return (
@@ -434,6 +435,43 @@ export default function SettingsView() {
             </div>
             <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
           </button>
+        </div>
+      </div>
+
+      {/* Section: Legal (Datenschutz / AGB / Impressum) */}
+      <div className="flex flex-col gap-2">
+        <h3 className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+          {t('app.settings.legal.section') || 'Rechtliches'}
+        </h3>
+
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+          {[
+            { href: LEGAL_URLS.privacy, icon: Shield, label: t('app.settings.legal.privacy') || 'Datenschutzerklärung' },
+            { href: LEGAL_URLS.terms, icon: ScrollText, label: t('app.settings.legal.terms') || 'AGB' },
+            { href: LEGAL_URLS.imprint, icon: Building2, label: t('app.settings.legal.imprint') || 'Impressum' },
+          ].map(({ href, icon: Icon, label }, idx, arr) => (
+            <a
+              key={href}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`w-full p-4 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group ${
+                idx < arr.length - 1 ? 'border-b border-black/5 dark:border-white/5' : ''
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-950 dark:text-white text-sm">
+                    {label}
+                  </p>
+                </div>
+              </div>
+              <ExternalLink className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+            </a>
+          ))}
         </div>
       </div>
 
