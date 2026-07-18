@@ -19,7 +19,7 @@ export default function DataDeletionPage() {
           Dein Account, alle deine gespeicherten Rezepte und zugehörigen Medien werden unwiderruflich von unseren Servern gelöscht.
         </p>
         <p>
-          Falls du keinen Zugriff mehr auf die App hast, kannst du uns auch eine E-Mail an <code>support@snagbite.app</code> senden, und wir werden deine Daten manuell löschen.
+          Falls du keinen Zugriff mehr auf die App hast, kannst du uns auch eine E-Mail an <code>snagbite.app@gmail.com</code> senden, und wir werden deine Daten manuell löschen.
         </p>
       </div>
     </div>

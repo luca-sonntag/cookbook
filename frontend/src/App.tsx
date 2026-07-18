@@ -443,6 +443,13 @@ export default function App() {
     );
   }
 
+  // First-launch onboarding is shown BEFORE the login screen. WelcomeGuide is a
+  // self-contained full-screen portal overlay, and useOnboarding's gate works
+  // without a logged-in user (localStorage is the authoritative flag).
+  if (!user && showOnboarding) {
+    return <WelcomeGuide onClose={completeOnboarding} />;
+  }
+
   if (!user) {
     return <AuthForm />;
   }

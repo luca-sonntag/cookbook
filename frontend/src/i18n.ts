@@ -222,6 +222,12 @@ export const uiTranslations = {
         premiumActiveDesc: 'Du hast unbegrenzten Zugriff auf alle Premium-Features.',
         betaActive: 'Beta-Zugriff',
         betaActiveDesc: 'Du bist Beta-Tester! Du hast kostenlosen Zugriff auf alle Premium-Features während der Beta. Extraktionslimits gelten weiterhin.',
+        legal: {
+          section: 'Rechtliches',
+          privacy: 'Datenschutzerklärung',
+          terms: 'AGB',
+          imprint: 'Impressum',
+        },
       },
       dialog: {
         deleteAccount: {
@@ -310,6 +316,11 @@ export const uiTranslations = {
       unexpectedError: 'Ein unerwarteter Fehler ist aufgetreten.',
       signOut: 'Abmelden',
       signInWithGoogle: 'Mit Google anmelden',
+      consentPrefix: 'Mit der Anmeldung akzeptierst du unsere ',
+      consentTermsLink: 'AGB',
+      consentConjunction: ' und ',
+      consentPrivacyLink: 'Datenschutzerklärung',
+      consentSuffix: '.',
     },
     error: {
       title: 'Extraktion fehlgeschlagen',
@@ -624,6 +635,9 @@ export const uiTranslations = {
         ctaWithTrial: 'Kostenlose Testphase starten >',
         ctaWithoutTrial: 'Premium freischalten >',
         cancelSubtitle: 'Kein Risiko. Jederzeit kündbar.',
+        termsNoticePrefix: 'Mit dem Kauf stimmst du den ',
+        termsLink: 'AGB',
+        termsNoticeSuffix: ' zu.',
         timeline: {
           step1Title: 'Heute',
           step1Desc: 'Testphase starten. Vollzugriff.',
@@ -771,6 +785,12 @@ export const uiTranslations = {
         premiumActiveDesc: 'You have unlimited access to all premium features.',
         betaActive: 'Beta Access',
         betaActiveDesc: 'You are a beta tester! You have free access to all premium features during the beta. Extraction limits apply.',
+        legal: {
+          section: 'Legal',
+          privacy: 'Privacy Policy',
+          terms: 'Terms & Conditions',
+          imprint: 'Imprint',
+        },
       },
       dialog: {
         deleteAccount: {
@@ -859,6 +879,11 @@ export const uiTranslations = {
       unexpectedError: 'An unexpected error occurred.',
       signOut: 'Sign Out',
       signInWithGoogle: 'Sign in with Google',
+      consentPrefix: 'By signing in you accept our ',
+      consentTermsLink: 'Terms & Conditions',
+      consentConjunction: ' and ',
+      consentPrivacyLink: 'Privacy Policy',
+      consentSuffix: '.',
     },
     error: {
       title: 'Extraction Failed',
@@ -1173,6 +1198,9 @@ export const uiTranslations = {
         ctaWithTrial: 'Start Free Trial >',
         ctaWithoutTrial: 'Unlock Premium >',
         cancelSubtitle: 'No risk. Cancel anytime.',
+        termsNoticePrefix: 'By purchasing you agree to the ',
+        termsLink: 'Terms & Conditions',
+        termsNoticeSuffix: '.',
         timeline: {
           step1Title: 'Today',
           step1Desc: 'Start free trial. Full access.',

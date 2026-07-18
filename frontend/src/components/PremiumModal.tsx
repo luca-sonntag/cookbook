@@ -5,6 +5,7 @@ import { useI18n } from '../context/I18nContext';
 import { buyPremium, getSubscriptionOfferings } from '../utils/purchase';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
+import { LEGAL_URLS } from '../legal';
 
 interface PremiumModalProps {
   isOpen: boolean;
@@ -526,9 +527,24 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
               </button>
             )}
             {!isPremium && !loading && !isValidating && !isLoadingPackages && (
-              <p className="text-center text-[11px] text-emerald-100/50 mt-2 font-semibold">
-                {t('premium.modal.cancelSubtitle') || 'Kein Risiko. Jederzeit kündbar.'}
-              </p>
+              <>
+                <p className="text-center text-[11px] text-emerald-100/50 mt-2 font-semibold">
+                  {t('premium.modal.cancelSubtitle') || 'Kein Risiko. Jederzeit kündbar.'}
+                </p>
+                {/* Reference to the AGB (terms) shown before the in-app purchase. */}
+                <p className="text-center text-[10px] text-emerald-100/40 mt-1">
+                  {t('premium.modal.termsNoticePrefix') || 'Mit dem Kauf stimmst du den '}
+                  <a
+                    href={LEGAL_URLS.terms}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-amber-300 transition-colors"
+                  >
+                    {t('premium.modal.termsLink') || 'AGB'}
+                  </a>
+                  {t('premium.modal.termsNoticeSuffix') || ' zu.'}
+                </p>
+              </>
             )}
           </div>
 

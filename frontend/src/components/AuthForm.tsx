@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, Button } from '@heroui/react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
+import { LEGAL_URLS } from '../legal';
 
 export default function AuthForm() {
   const { signInWithGoogle, authError } = useAuth();
@@ -87,6 +88,30 @@ export default function AuthForm() {
               <span>{error || authError}</span>
             </div>
           )}
+
+          {/* Legal consent notice — shown before any data processing (incl. the
+              silent auto sign-in, which is gated on this having been seen). */}
+          <p className="text-[11px] leading-relaxed text-gray-400 dark:text-gray-500 max-w-[280px]">
+            {t('auth.consentPrefix')}
+            <a
+              href={LEGAL_URLS.terms}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-500 dark:text-gray-400 underline underline-offset-2 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            >
+              {t('auth.consentTermsLink')}
+            </a>
+            {t('auth.consentConjunction')}
+            <a
+              href={LEGAL_URLS.privacy}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-500 dark:text-gray-400 underline underline-offset-2 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            >
+              {t('auth.consentPrivacyLink')}
+            </a>
+            {t('auth.consentSuffix')}
+          </p>
         </div>
       </Card>
     </div>
