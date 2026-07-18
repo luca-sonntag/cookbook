@@ -69,48 +69,6 @@ async function syncBillingStatus(isPremium: boolean): Promise<void> {
 }
 
 export async function getSubscriptionOfferings(): Promise<any[]> {
-  const useMock = !Capacitor.isNativePlatform() || import.meta.env.VITE_USE_MOCK_BILLING === 'true';
-  if (useMock) {
-    // Return mock offerings for web testing
-    return [
-      {
-        identifier: '$rc_monthly',
-        packageType: 'MONTHLY',
-        product: {
-          identifier: 'premium_monthly',
-          title: 'Snagbite Premium Monthly',
-          description: 'Monthly subscription to Snagbite Premium',
-          price: 3.99,
-          priceString: '3,99 €',
-          currencyCode: 'EUR',
-          introPrice: null,
-          subscriptionPeriod: 'P1M',
-        }
-      },
-      {
-        identifier: '$rc_yearly',
-        packageType: 'ANNUAL',
-        product: {
-          identifier: 'premium_yearly',
-          title: 'Snagbite Premium Yearly',
-          description: 'Yearly subscription to Snagbite Premium',
-          price: 29.99,
-          priceString: '29,99 €',
-          currencyCode: 'EUR',
-          introPrice: {
-            price: 0,
-            priceString: '0,00 €',
-            cycles: 1,
-            period: 'P1W',
-            periodUnit: 'DAY',
-            periodNumberOfUnits: 7,
-          },
-          subscriptionPeriod: 'P1Y',
-        }
-      }
-    ];
-  }
-
   // Ensure initialized
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
@@ -132,15 +90,6 @@ export async function buyPremium(packageId?: string): Promise<boolean> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('User must be logged in to purchase Premium.');
-  }
-
-  const useMock = !Capacitor.isNativePlatform() || import.meta.env.VITE_USE_MOCK_BILLING === 'true';
-  if (useMock) {
-    // In web development, simulate a successful purchase
-    console.log('Simulating premium purchase on web/mock for package:', packageId);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    await syncBillingStatus(true);
-    return true;
   }
 
   await initBilling(user.id);

@@ -631,7 +631,8 @@ export const uiTranslations = {
         pricePeriod: '{price} / Monat',
         priceYearlyPeriod: '{price} / Jahr',
         priceMonthlyEquivalent: 'nur {price}/Monat',
-        freeTrialTitle: '7 Tage kostenlos testen',
+        freeTrialTitle: '{days} Tage kostenlos testen',
+        trialBadge: '{days} Tage gratis',
         ctaWithTrial: 'Kostenlose Testphase starten >',
         ctaWithoutTrial: 'Premium freischalten >',
         cancelSubtitle: 'Kein Risiko. Jederzeit kündbar.',
@@ -641,9 +642,9 @@ export const uiTranslations = {
         timeline: {
           step1Title: 'Heute',
           step1Desc: 'Testphase starten. Vollzugriff.',
-          step2Title: 'Tag 5',
-          step2Desc: 'Erinnerungs-Push erhalten.',
-          step3Title: 'Tag 7',
+          step2Title: 'Tag {reminderDay}',
+          step2Desc: 'Erinnerung vor Ende der Testphase.',
+          step3Title: 'Tag {days}',
           step3Desc: 'Abo beginnt. Jederzeit kündbar.'
         },
         comparison: {
@@ -1194,7 +1195,8 @@ export const uiTranslations = {
         pricePeriod: '{price} / month',
         priceYearlyPeriod: '{price} / year',
         priceMonthlyEquivalent: 'only {price}/month',
-        freeTrialTitle: '7-Day Free Trial',
+        freeTrialTitle: '{days}-Day Free Trial',
+        trialBadge: '{days} days free',
         ctaWithTrial: 'Start Free Trial >',
         ctaWithoutTrial: 'Unlock Premium >',
         cancelSubtitle: 'No risk. Cancel anytime.',
@@ -1204,9 +1206,9 @@ export const uiTranslations = {
         timeline: {
           step1Title: 'Today',
           step1Desc: 'Start free trial. Full access.',
-          step2Title: 'Day 5',
-          step2Desc: 'Get reminder notification.',
-          step3Title: 'Day 7',
+          step2Title: 'Day {reminderDay}',
+          step2Desc: 'Reminder before your trial ends.',
+          step3Title: 'Day {days}',
           step3Desc: 'Subscription starts. Cancel anytime.'
         },
         comparison: {

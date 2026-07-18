@@ -66,9 +66,10 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
           const offs = await getSubscriptionOfferings();
           setPackages(offs);
           if (offs.length > 0) {
-            // Auto-select Yearly package if present, otherwise first available
+            // Auto-select the plan that offers a free trial, then Yearly, then first available
+            const trialPkg = offs.find(p => p.product?.introPrice && p.product.introPrice.price === 0);
             const yearly = offs.find(p => p.packageType === 'ANNUAL');
-            setSelectedPackageId(yearly?.identifier || offs[0].identifier);
+            setSelectedPackageId(trialPkg?.identifier || yearly?.identifier || offs[0].identifier);
           }
         } catch (err) {
           console.error('PremiumModal: Failed to load subscription offerings:', err);
@@ -205,7 +206,9 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
   // Helper to determine trial info
   const selectedPackage = packages.find(p => p.identifier === selectedPackageId);
   const hasSelectedTrial = !!(selectedPackage?.product?.introPrice && selectedPackage?.product?.introPrice?.price === 0);
-  const trialDays = selectedPackage?.product?.introPrice?.periodNumberOfUnits || 7;
+  const trialDays = selectedPackage?.product?.introPrice?.periodNumberOfUnits || 3;
+  // Reminder day = the day before the subscription charges (Google Play sends the actual reminder).
+  const reminderDay = Math.max(1, trialDays - 1);
 
   // Render the Coffee Anchor Badge
   const renderCoffeeAnchor = () => {
@@ -337,7 +340,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
             <div className="flex flex-col gap-3 bg-white/5 border border-white/10 rounded-3xl p-4.5 shrink-0 backdrop-blur-md">
               <div className="text-xs font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 fill-amber-300" />
-                {t('premium.modal.freeTrialTitle') || '7 Tage kostenlos testen'}
+                {t('premium.modal.freeTrialTitle').replace('{days}', String(trialDays))}
               </div>
 
               <div className="relative pl-7 flex flex-col gap-4">
@@ -366,10 +369,10 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-xs font-extrabold text-white">
-                      {t('premium.modal.timeline.step2Title') || 'Tag 5'}
+                      {t('premium.modal.timeline.step2Title').replace('{reminderDay}', String(reminderDay))}
                     </span>
                     <span className="text-[11px] text-emerald-100/70">
-                      {t('premium.modal.timeline.step2Desc') || 'Erinnerungs-Push erhalten.'}
+                      {t('premium.modal.timeline.step2Desc')}
                     </span>
                   </div>
                 </div>
@@ -381,7 +384,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-xs font-extrabold text-white">
-                      {t('premium.modal.timeline.step3Title').replace('{days}', String(trialDays)) || 'Tag 7'}
+                      {t('premium.modal.timeline.step3Title').replace('{days}', String(trialDays))}
                     </span>
                     <span className="text-[11px] text-emerald-100/70">
                       {t('premium.modal.timeline.step3Desc') || 'Abo beginnt. Jederzeit kündbar.'}
@@ -429,6 +432,11 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                   monthlyPriceStr = t('premium.modal.priceMonthlyEquivalent').replace('{price}', monthlyEquiv);
                 }
 
+                // Free-trial length for this package (intro offer with price 0), if any
+                const pkgTrialDays = (pkg.product?.introPrice && pkg.product.introPrice.price === 0)
+                  ? (pkg.product.introPrice.periodNumberOfUnits || trialDays)
+                  : 0;
+
                 // If monthly package exists, we can show savings percentage on yearly
                 const hasSavings = isYearly && packages.some(p => p.packageType === 'MONTHLY');
                 let savingsPercent = 37;
@@ -466,6 +474,11 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                       {hasSavings && (
                         <span className="bg-emerald-400/20 text-emerald-400 font-extrabold text-[7.5px] px-1 py-0.5 rounded border border-emerald-500/20">
                           {t('premium.modal.savePercent').replace('{percent}', String(savingsPercent)) || `-${savingsPercent}%`}
+                        </span>
+                      )}
+                      {pkgTrialDays > 0 && (
+                        <span className="bg-amber-400/20 text-amber-300 font-extrabold text-[7.5px] px-1 py-0.5 rounded border border-amber-400/30">
+                          {t('premium.modal.trialBadge').replace('{days}', String(pkgTrialDays))}
                         </span>
                       )}
                     </div>
