@@ -154,10 +154,10 @@ async function run() {
       isEnabled: !!HEALTHCHECK_BACKEND_URL,
       run: async () => {
         const res = await fetch(HEALTHCHECK_BACKEND_URL, { signal: AbortSignal.timeout(10000) });
-        if (!res.ok) throw new Error(`HTTP Status ${res.status}`);
+        if (!res.ok) throw new Error(`HTTP Status ${res.status} (URL: ${HEALTHCHECK_BACKEND_URL})`);
         const data = (await res.json()) as any;
         if (data.status !== 'OK' && !data.dbConnected) {
-          throw new Error(`Degraded status: ${data.status || 'unknown'}`);
+          throw new Error(`Degraded status: ${data.status || 'unknown'} (URL: ${HEALTHCHECK_BACKEND_URL})`);
         }
       },
     },
@@ -166,7 +166,7 @@ async function run() {
       isEnabled: !!HEALTHCHECK_WEBSITE_URL,
       run: async () => {
         const res = await fetch(HEALTHCHECK_WEBSITE_URL, { signal: AbortSignal.timeout(10000) });
-        if (!res.ok) throw new Error(`HTTP Status ${res.status}`);
+        if (!res.ok) throw new Error(`HTTP Status ${res.status} (URL: ${HEALTHCHECK_WEBSITE_URL})`);
       },
     },
     {
