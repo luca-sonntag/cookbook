@@ -17,7 +17,7 @@ const getInitials = (email?: string) => {
 };
 
 export default function ProfileView({ onBack, limitStatus }: ProfileViewProps) {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const { user, isPremium } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
@@ -34,10 +34,10 @@ export default function ProfileView({ onBack, limitStatus }: ProfileViewProps) {
         </button>
         <div className="flex flex-col">
           <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-            {language === 'de' ? 'Mein Bereich' : 'My Space'}
+            {t('app.settings.mySpace') || 'My Space'}
           </span>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-none mt-0.5">
-            {language === 'de' ? 'Profil' : 'Profile'}
+            {t('app.settings.profile') || 'Profile'}
           </h2>
         </div>
       </div>
@@ -57,7 +57,7 @@ export default function ProfileView({ onBack, limitStatus }: ProfileViewProps) {
           </div>
           <div className="flex flex-col min-w-0 font-sans">
             <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-              {language === 'de' ? 'Konto' : 'Account'}
+              {t('app.settings.account') || 'Account'}
             </span>
             <span className="text-base font-bold text-gray-900 dark:text-white truncate mt-0.5">
               {user?.email}
@@ -75,7 +75,7 @@ export default function ProfileView({ onBack, limitStatus }: ProfileViewProps) {
                 </span>
               ) : (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-black/5 dark:border-white/5 uppercase tracking-wider">
-                  Free Member
+                  {t('app.settings.freeMember') || 'Free Member'}
                 </span>
               )}
             </div>

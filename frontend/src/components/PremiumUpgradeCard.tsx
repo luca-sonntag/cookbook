@@ -25,7 +25,7 @@ export default function PremiumUpgradeCard({ onUpgradeClick, className = '' }: P
           Snagbite Premium
         </h3>
         <p className="text-xs text-emerald-100/90 mt-1 max-w-sm">
-          Unlock unlimited recipe extractions, advanced remix capabilities, and priority processing.
+          {t('app.settings.premiumCardDesc') || 'Unlock unlimited recipe extractions, advanced remix capabilities, and priority processing.'}
         </p>
       </div>
       <div
