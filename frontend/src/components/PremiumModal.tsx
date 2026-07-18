@@ -113,23 +113,23 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
   };
 
   const featureItems = [
-    { 
-      title: t('premium.modal.features.extractions.title'), 
+    {
+      title: t('premium.modal.features.extractions.title'),
       desc: t('premium.modal.features.extractions.desc'),
       icon: <Video className="w-4 h-4 text-amber-400" />
     },
-    { 
-      title: t('premium.modal.features.remix.title'),        
+    {
+      title: t('premium.modal.features.remix.title'),
       desc: t('premium.modal.features.remix.desc'),
       icon: <MessageSquare className="w-4 h-4 text-amber-400" />
     },
-    { 
-      title: t('premium.modal.features.nutrition.title'),    
+    {
+      title: t('premium.modal.features.nutrition.title'),
       desc: t('premium.modal.features.nutrition.desc'),
       icon: <Flame className="w-4 h-4 text-amber-400" />
     },
-    { 
-      title: t('premium.modal.features.shoppingList.title'), 
+    {
+      title: t('premium.modal.features.shoppingList.title'),
       desc: t('premium.modal.features.shoppingList.desc'),
       icon: <ListTodo className="w-4 h-4 text-amber-400" />
     },
@@ -194,7 +194,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
         );
       }
     }
-    
+
     return (
       <span className={isPremiumCol ? 'text-amber-300 font-extrabold text-[11px]' : 'text-emerald-100/65 font-medium text-[11px]'}>
         {val}
@@ -315,7 +315,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
               </thead>
               <tbody className="divide-y divide-white/5">
                 {comparisonRows.map((row, index) => (
-                  <tr 
+                  <tr
                     key={index}
                     className={`hover:bg-white/5 transition-colors ${index % 2 === 0 ? 'bg-white/[0.01]' : 'bg-transparent'}`}
                   >
@@ -339,11 +339,11 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                 <Sparkles className="w-3.5 h-3.5 fill-amber-300" />
                 {t('premium.modal.freeTrialTitle') || '7 Tage kostenlos testen'}
               </div>
-              
+
               <div className="relative pl-7 flex flex-col gap-4">
                 {/* Connector Line */}
                 <div className="absolute left-[9px] top-2.5 bottom-2.5 w-0.5 bg-emerald-500/30" />
-                
+
                 {/* Step 1 */}
                 <div className="relative">
                   <div className="absolute -left-[23px] top-1 w-4 h-4 rounded-full bg-amber-400 border border-emerald-950 flex items-center justify-center">
@@ -358,7 +358,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Step 2 */}
                 <div className="relative">
                   <div className="absolute -left-[23px] top-1 w-4 h-4 rounded-full bg-emerald-600 border border-emerald-950 flex items-center justify-center">
@@ -373,7 +373,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Step 3 */}
                 <div className="relative">
                   <div className="absolute -left-[23px] top-1 w-4 h-4 rounded-full bg-emerald-600 border border-emerald-950 flex items-center justify-center">
@@ -408,7 +408,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
 
         {/* Sticky Pricing & CTA Block */}
         <div className="shrink-0 mt-3 pt-3 border-t border-white/10 flex flex-col gap-3.5">
-          
+
           {/* Pricing Options Cards */}
           {isLoadingPackages ? (
             <div className="flex flex-col items-center justify-center py-4 gap-2 shrink-0">
@@ -420,11 +420,11 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
               {packages.map((pkg) => {
                 const isSelected = selectedPackageId === pkg.identifier;
                 const isYearly = pkg.packageType === 'ANNUAL';
-                
+
                 // Format monthly equivalent for yearly (standard yearly price / 12)
                 let monthlyPriceStr = pkg.product.priceString;
                 if (isYearly) {
-                  const monthlyEquiv = pkg.product.pricePerMonthString || 
+                  const monthlyEquiv = pkg.product.pricePerMonthString ||
                     (pkg.product.price ? `${(pkg.product.price / 12).toFixed(2).replace('.', ',')} €` : '');
                   monthlyPriceStr = t('premium.modal.priceMonthlyEquivalent').replace('{price}', monthlyEquiv);
                 }
@@ -447,11 +447,10 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                   <div
                     key={pkg.identifier}
                     onClick={() => setSelectedPackageId(pkg.identifier)}
-                    className={`relative p-3.5 rounded-2xl flex flex-col gap-0.5 border-2 transition-all active:scale-[0.98] cursor-pointer ${
-                      isSelected
+                    className={`relative p-3.5 rounded-2xl flex flex-col gap-0.5 border-2 transition-all active:scale-[0.98] cursor-pointer ${isSelected
                         ? 'bg-gradient-to-b from-amber-400/20 to-amber-400/5 border-amber-400 shadow-xl shadow-amber-400/5'
                         : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/15'
-                    }`}
+                      }`}
                   >
                     {/* Bestseller Badge */}
                     {isYearly && (
@@ -476,7 +475,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                     </div>
 
                     <div className="text-[9px] text-emerald-100/60 mt-auto">
-                      {isYearly 
+                      {isYearly
                         ? t('premium.modal.priceYearlyPeriod').replace('{price}', pkg.product.priceString)
                         : t('premium.modal.pricePeriod').replace('{price}', pkg.product.priceString)
                       }
@@ -489,7 +488,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
             <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl shrink-0">
               <AlertCircle className="w-4 h-4 text-amber-300 shrink-0" />
               <span className="text-[10px] text-amber-200/80 leading-relaxed">
-                Keine Angebote geladen. Der Kauf wird über das Standard-Abo abgewickelt.
+                Keine Angebote verfügbar.
               </span>
             </div>
           )}
