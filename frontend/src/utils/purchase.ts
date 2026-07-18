@@ -6,36 +6,52 @@ import { apiUrl } from '../api';
 const REVENUECAT_ANDROID_API_KEY = import.meta.env.VITE_REVENUECAT_ANDROID_API_KEY as string | undefined;
 
 let isRCInitialized = false;
+/** Promise-based lock to prevent concurrent configure() calls (race condition). */
+let initPromise: Promise<void> | null = null;
 
 export async function initBilling(userId: string): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   if (isRCInitialized) return;
+
+  // If another caller is already initializing, wait for it instead of racing
+  if (initPromise) {
+    await initPromise;
+    return;
+  }
 
   if (!REVENUECAT_ANDROID_API_KEY) {
     console.warn('RevenueCat API Key is missing. Billing will not work.');
     return;
   }
 
-  try {
-    await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
-    await Purchases.configure({
-      apiKey: REVENUECAT_ANDROID_API_KEY,
-      appUserID: userId,
-    });
-    isRCInitialized = true;
-    console.log('RevenueCat configured successfully for user:', userId);
-
-    // Initial status sync on app launch to verify actual entitlements
+  initPromise = (async () => {
     try {
-      const { customerInfo } = await Purchases.getCustomerInfo();
-      const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
-      await syncBillingStatus(isPremium);
-    } catch (syncErr) {
-      console.warn('Initial billing status sync failed:', syncErr);
+      await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
+      await Purchases.configure({
+        apiKey: REVENUECAT_ANDROID_API_KEY,
+        appUserID: userId,
+      });
+      isRCInitialized = true;
+      console.log('[RevenueCat] Configured successfully for user:', userId);
+
+      // Initial status sync on app launch to verify actual entitlements
+      try {
+        const { customerInfo } = await Purchases.getCustomerInfo();
+        console.log('[RevenueCat] Initial customerInfo:', JSON.stringify(customerInfo, null, 2));
+        const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+        await syncBillingStatus(isPremium);
+      } catch (syncErr) {
+        console.warn('[RevenueCat] Initial billing status sync failed:', syncErr);
+      }
+    } catch (err) {
+      console.error('[RevenueCat] Failed to configure:', err);
+      throw err; // propagate so waiters know it failed
+    } finally {
+      initPromise = null; // release lock regardless of outcome
     }
-  } catch (err) {
-    console.error('Failed to configure RevenueCat:', err);
-  }
+  })();
+
+  await initPromise;
 }
 
 async function syncBillingStatus(isPremium: boolean): Promise<void> {
@@ -58,13 +74,13 @@ async function syncBillingStatus(isPremium: boolean): Promise<void> {
       if (error) {
         console.warn('Failed to refresh local Supabase session:', error.message);
       } else {
-        console.log('Billing status synced successfully with backend. Tier:', isPremium ? 'premium' : 'free');
+        console.log('[RevenueCat] Billing status synced successfully with backend. Tier:', isPremium ? 'premium' : 'free');
       }
     } else {
-      console.error('Failed to sync billing status with backend:', await response.text());
+      console.error('[RevenueCat] Failed to sync billing status with backend:', await response.text());
     }
   } catch (err) {
-    console.error('Error syncing billing status:', err);
+    console.error('[RevenueCat] Error syncing billing status:', err);
   }
 }
 
@@ -80,7 +96,7 @@ export async function getSubscriptionOfferings(): Promise<any[]> {
     const offerings = await Purchases.getOfferings();
     return offerings.current?.availablePackages || [];
   } catch (err) {
-    console.error('Failed to get offerings from RevenueCat:', err);
+    console.error('[RevenueCat] Failed to get offerings:', err);
     return [];
   }
 }
@@ -112,18 +128,48 @@ export async function buyPremium(packageId?: string): Promise<boolean> {
       if (found) {
         packageToBuy = found;
       } else {
-        console.warn(`Requested package '${packageId}' not found. Falling back to default package.`);
+        console.warn(`[RevenueCat] Requested package '${packageId}' not found. Falling back to default package.`);
       }
     }
+
+    console.log('[RevenueCat] Starting purchase for package:', packageToBuy.identifier, 'product:', packageToBuy.product?.identifier);
 
     const { customerInfo } = await Purchases.purchasePackage({
       aPackage: packageToBuy,
     });
 
+    console.log('[RevenueCat] Purchase completed. Full customerInfo:', JSON.stringify(customerInfo, null, 2));
+    console.log('[RevenueCat] Active entitlements:', JSON.stringify(customerInfo.entitlements.active));
+
     // Check if the user has active entitlements.
-    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+    let isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+
+    // If entitlement not immediately active, try a restore/refresh (important for test purchases)
+    if (!isPremium) {
+      console.log('[RevenueCat] Premium entitlement not immediately active. Trying restorePurchases...');
+      try {
+        const { customerInfo: restoredInfo } = await Purchases.restorePurchases();
+        console.log('[RevenueCat] Restored customerInfo:', JSON.stringify(restoredInfo, null, 2));
+        isPremium = restoredInfo.entitlements.active['premium'] !== undefined;
+      } catch (restoreErr) {
+        console.warn('[RevenueCat] restorePurchases failed:', restoreErr);
+      }
+    }
+
+    // If still not active, try one more getCustomerInfo refresh
+    if (!isPremium) {
+      console.log('[RevenueCat] Still not active after restore. Trying getCustomerInfo refresh...');
+      try {
+        const { customerInfo: refreshedInfo } = await Purchases.getCustomerInfo();
+        console.log('[RevenueCat] Refreshed customerInfo:', JSON.stringify(refreshedInfo, null, 2));
+        isPremium = refreshedInfo.entitlements.active['premium'] !== undefined;
+      } catch (refreshErr) {
+        console.warn('[RevenueCat] getCustomerInfo refresh failed:', refreshErr);
+      }
+    }
 
     if (isPremium) {
+      console.log('[RevenueCat] Premium entitlement confirmed. Syncing with backend...');
       await syncBillingStatus(true);
       return true;
     }
@@ -135,8 +181,10 @@ export async function buyPremium(packageId?: string): Promise<boolean> {
   } catch (err: any) {
     // If the user cancelled, return false silently
     if (err.userCancelled) {
+      console.log('[RevenueCat] User cancelled the purchase.');
       return false;
     }
+    console.error('[RevenueCat] Purchase error:', err);
     throw new Error(err.message || 'Purchase failed.');
   }
 }
