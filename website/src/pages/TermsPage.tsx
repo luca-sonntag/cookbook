@@ -58,10 +58,18 @@ export default function TermsPage() {
 
         <h2>3. Registrierung und Nutzerkonto</h2>
         <p>
-          Für die Nutzung is ein Nutzerkonto erforderlich. Du verpflichtest
+          Für die Nutzung ist ein Nutzerkonto erforderlich. Du verpflichtest
           dich, wahrheitsgemäße Angaben zu machen und deine Zugangsdaten geheim
           zu halten. Die Nutzung setzt ein Mindestalter von 14 Jahren voraus;
           Minderjährige benötigen die Zustimmung ihrer Erziehungsberechtigten.
+        </p>
+        <p>
+          Wir behalten uns das Recht vor, Nutzerkonten bei Verstößen gegen diese AGB,
+          missbräuchlicher Nutzung der App (z.&nbsp;B. Umgehung von Ratenbegrenzungen,
+          Einsatz von automatisierten Skripten oder Versuchen zur Systemmanipulation)
+          oder bei Verletzung von Rechten Dritter vorübergehend zu sperren oder
+          dauerhaft zu löschen. Im Falle einer berechtigten Sperrung oder Löschung
+          besteht kein Anspruch auf Rückerstattung bereits gezahlter Gebühren.
         </p>
 
         <h2>4. Nutzungsregeln und Verantwortung für Inhalte</h2>
