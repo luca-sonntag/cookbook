@@ -111,10 +111,10 @@ export default function PrivacyPolicyPage() {
         <ul>
           <li><strong>Supabase (Supabase Inc., USA / EU-Hosting):</strong> Authentifizierung, Datenbank- und Speicher-Hosting (Konto, Rezepte, Feedback, Bilder). <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Datenschutzhinweise</a>.</li>
           <li><strong>Google Gemini (Google Ireland Ltd. / Google LLC, USA):</strong> KI-gestützte Analyse der übermittelten Rezeptinhalte. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Datenschutzhinweise</a>.</li>
-          <li><strong>Apify (Apify Technologies s.r.o., Tschechien) und RapidAPI (SmartAPI/Nordic APIs, USA):</strong> Abruf öffentlich zugänglicher Social-Media-Inhalte zum übermittelten Link.</li>
+          <li><strong>Apify (Apify Technologies s.r.o., Tschechien) und RapidAPI (SmartAPI/Nordic APIs, USA):</strong> Abruf öffentlich zugänglicher Social-Media-Inhalte zum übermittelten Link. <a href="https://apify.com/privacy-policy" target="_blank" rel="noopener noreferrer">Datenschutzhinweise Apify</a> | <a href="https://rapidapi.com/terms-and-privacy" target="_blank" rel="noopener noreferrer">Datenschutzhinweise RapidAPI</a>.</li>
           <li><strong>RevenueCat (RevenueCat Inc., USA):</strong> Verwaltung und Verifizierung des Abo-Status. <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener noreferrer">Datenschutzhinweise</a>.</li>
           <li><strong>Google Play (Google Ireland Ltd.):</strong> Vertrieb der App und Abwicklung der Zahlungen. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Datenschutzhinweise</a>.</li>
-          <li><strong>Railway (Railway Corp., USA):</strong> Hosting der Server-Infrastruktur (Backend und Website).</li>
+          <li><strong>Railway (Railway Corp., USA):</strong> Hosting der Server-Infrastruktur (Backend und Website). <a href="https://railway.com/legal/privacy" target="_blank" rel="noopener noreferrer">Datenschutzhinweise</a>.</li>
         </ul>
 
         <h2>6. Übermittlung in Drittländer</h2>
