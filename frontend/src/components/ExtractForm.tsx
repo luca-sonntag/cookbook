@@ -9,6 +9,8 @@ import { isTrialBannerDismissed, TRIAL_BANNER_DISMISS_EVENT } from './TrialBanne
 import PremiumModal from './PremiumModal';
 import PremiumHint from './PremiumHint';
 import PremiumUpgradeCard from './PremiumUpgradeCard';
+import type { ProgressData } from '../types';
+import ExtractionAnimation from './ExtractionAnimation';
 
 import { InstagramIcon, ShareStep1Mockup, ShareStep2Mockup, ShareStep3Mockup } from './ShareMockups';
 
@@ -54,6 +56,8 @@ interface ExtractFormProps {
   isPending: boolean;
   handleFormSubmit: (e: React.FormEvent) => void;
   limitStatus?: { limit: number; used: number; remaining: number; windowDays: number; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null;
+  jobStatus: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed' | null;
+  progress: ProgressData | null;
 }
 
 export default function ExtractForm({
@@ -64,7 +68,9 @@ export default function ExtractForm({
   validateUrl,
   isPending,
   handleFormSubmit,
-  limitStatus
+  limitStatus,
+  jobStatus,
+  progress
 }: ExtractFormProps) {
   const { t } = useI18n();
   const { user, isPremium, isPremiumOverride, hasTrialAvailable, trialDays, trialLoading } = useAuth();
@@ -157,8 +163,16 @@ export default function ExtractForm({
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* Input Card */}
-      <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
+      {/* Input Card or Extraction Animation Card */}
+      {isPending ? (
+        <ExtractionAnimation
+          url={url}
+          isPending={isPending}
+          jobStatus={jobStatus}
+          progress={progress}
+        />
+      ) : (
+        <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
         <form
           onSubmit={(e) => {
             if (blockedByLimit) { e.preventDefault(); setIsPremiumModalOpen(true); return; }
@@ -303,9 +317,10 @@ export default function ExtractForm({
           </div>
         </form>
       </Card>
+      )}
 
       {/* Premium Upgrade Promotion — hidden when TrialBanner already covers it */}
-      {!hideUpgradeCard && (
+      {!hideUpgradeCard && !isPending && (
         <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
       )}
 
