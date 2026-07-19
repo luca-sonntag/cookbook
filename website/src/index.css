@@ -38,17 +38,17 @@
 
 /* Fluid responsive typography for headings with min/max bounds */
 h1, .prose h1 {
-  font-size: clamp(1.85rem, 4vw + 0.75rem, 2.75rem) !important;
+  font-size: clamp(1.6rem, 3vw + 0.6rem, 2.25rem) !important;
   line-height: 1.2;
 }
 
 h2, .prose h2 {
-  font-size: clamp(1.35rem, 2.5vw + 0.5rem, 1.85rem) !important;
+  font-size: clamp(1.25rem, 2vw + 0.5rem, 1.65rem) !important;
   line-height: 1.25;
 }
 
 h3, .prose h3 {
-  font-size: clamp(1.15rem, 1.5vw + 0.5rem, 1.45rem) !important;
+  font-size: clamp(1.1rem, 1.2vw + 0.4rem, 1.35rem) !important;
   line-height: 1.3;
 }
 
