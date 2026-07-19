@@ -88,12 +88,12 @@ export default function CookingMode({
   const getIngredientsForStep = (description: string) => {
     if (!description) return [];
     const mentioned: Ingredient[] = [];
-    
+
     const isMatch = (term: string | undefined, text: string) => {
       if (!term) return false;
       const lowerTerm = term.toLowerCase();
       const lowerText = text.toLowerCase();
-      
+
       if (term.length <= 3) {
         const escapedTerm = term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         const regex = new RegExp(`(?<=^|[\\s.,:;!?()\\[\\]{}'"\\-\\/])${escapedTerm}(?=$|[\\s.,:;!?()\\[\\]{}'"\\-\\/])`, 'i');
@@ -123,7 +123,6 @@ export default function CookingMode({
       {/* Top Bar */}
       <div className="flex justify-between items-center pb-4 border-b border-black/5 dark:border-white/5">
         <div className="flex items-center gap-2">
-          <img src="/icon-512.png" alt="App Logo" className="w-5 h-5 object-contain rounded-md" />
           <span className="text-sm font-semibold text-gray-900 dark:text-white">{t('recipe.cookingMode')}</span>
         </div>
         {/* Progress indicator */}
@@ -179,13 +178,11 @@ export default function CookingMode({
                       detail: { recipeId, stepNum }
                     }));
                   } : undefined}
-                  className={`w-full relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl shadow-lg overflow-hidden transition-all duration-300 ${
-                    isAssociated ? 'cursor-pointer active:scale-[0.98]' : ''
-                  } ${
-                    isFinished
+                  className={`w-full relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl shadow-lg overflow-hidden transition-all duration-300 ${isAssociated ? 'cursor-pointer active:scale-[0.98]' : ''
+                    } ${isFinished
                       ? 'bg-rose-600 dark:bg-rose-700 animate-pulse text-white'
                       : 'bg-blue-600 dark:bg-blue-700 text-white'
-                  }`}
+                    }`}
                 >
                   {/* Background progress track */}
                   {!isFinished && (
@@ -213,7 +210,7 @@ export default function CookingMode({
                       {countdownStr}
                     </p>
                   </div>
-                  
+
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -238,7 +235,7 @@ export default function CookingMode({
       <div className="flex-1 min-h-0 flex flex-col justify-center items-center my-2 sm:my-6 max-w-4xl mx-auto w-full px-4 text-center">
         {/* Step Number Badge */}
         {currentStep && (
-          <div className="w-12 h-12 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg mb-3 sm:mb-6 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)] flex-shrink-0">
+          <div className="w-12 h-12 rounded-full bg-emerald-600 dark:bg-emerald-500 text-white flex items-center justify-center font-bold text-lg mb-3 sm:mb-6 shadow-[0_0_15px_rgba(16,185,129,0.3)] flex-shrink-0">
             {currentStep.step}
           </div>
         )}
