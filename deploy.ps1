@@ -104,15 +104,29 @@ function Run-Git {
 # http(s)://localhost and dies). This guard is a hard pre-flight check.
 function Test-FrontendApiBaseUrl {
     $envFile = "frontend/.env"
-    if (-not (Test-Path $envFile)) {
-        throw "frontend/.env not found. Create it before building a native release."
+    $prodEnvFile = "frontend/.env.production"
+    $envPath = $envFile
+    
+    if (Test-Path $prodEnvFile) {
+        $content = Get-Content $prodEnvFile -Raw
+        $match = [regex]::Match($content, '(?im)^\s*(?:export\s+)?VITE_API_BASE_URL\s*=\s*(.*?)\s*$')
+        if ($match.Success) {
+            $val = ($match.Groups[1].Value -replace '\s*#.*$', '').Trim().Trim('"').Trim("'")
+            if (-not [string]::IsNullOrWhiteSpace($val)) {
+                $envPath = $prodEnvFile
+            }
+        }
     }
 
-    $content = Get-Content $envFile -Raw
+    if (-not (Test-Path $envPath)) {
+        throw "$envPath not found. Create it before building a native release."
+    }
+
+    $content = Get-Content $envPath -Raw
     # Match `VITE_API_BASE_URL=...`, tolerant to leading whitespace and an optional `export `.
     $match = [regex]::Match($content, '(?im)^\s*(?:export\s+)?VITE_API_BASE_URL\s*=\s*(.*?)\s*$')
     if (-not $match.Success) {
-        throw "VITE_API_BASE_URL is not defined in frontend/.env. Add it (e.g. `VITE_API_BASE_URL=https://api.example.com`) before building a native release."
+        throw "VITE_API_BASE_URL is not defined in $envPath. Add it (e.g. `VITE_API_BASE_URL=https://api.example.com`) before building a native release."
     }
 
     # Strip inline comments and surrounding quotes, then trim.
@@ -120,12 +134,12 @@ function Test-FrontendApiBaseUrl {
     $raw = $raw.Trim('"').Trim("'")
 
     if ([string]::IsNullOrWhiteSpace($raw)) {
-        throw "VITE_API_BASE_URL in frontend/.env is empty. Native (Capacitor) builds cannot use a same-origin / empty value. Set it to your production backend origin, e.g. `VITE_API_BASE_URL=https://api.example.com`."
+        throw "VITE_API_BASE_URL in $envPath is empty. Native (Capacitor) builds cannot use a same-origin / empty value. Set it to your production backend origin, e.g. `VITE_API_BASE_URL=https://api.example.com`."
     }
 
     $parsedUri = $null
     if (-not [Uri]::TryCreate($raw, [UriKind]::Absolute, [ref]$parsedUri) -or ($parsedUri.Scheme -ne 'http' -and $parsedUri.Scheme -ne 'https')) {
-        throw "VITE_API_BASE_URL in frontend/.env is not a valid http(s) URL: '$raw'. Use the form `VITE_API_BASE_URL=https://api.example.com`."
+        throw "VITE_API_BASE_URL in $envPath is not a valid http(s) URL: '$raw'. Use the form `VITE_API_BASE_URL=https://api.example.com`."
     }
 
     # Reject loopback / device-only addresses. System.Uri.IsLoopback already covers 'localhost'
@@ -135,10 +149,10 @@ function Test-FrontendApiBaseUrl {
     $hostName = $parsedUri.Host.ToLowerInvariant()
     $extraBlocked = @('0.0.0.0', '[0000:0000:0000:0000:0000:0000:0000:0000]')
     if ($parsedUri.IsLoopback -or $extraBlocked -contains $hostName) {
-        throw "VITE_API_BASE_URL in frontend/.env points to a loopback or unspecified address ('$($parsedUri.Host)'). This is unsafe for a native release because the device has no access to your dev machine. Use a publicly reachable backend origin, e.g. `VITE_API_BASE_URL=https://api.example.com`."
+        throw "VITE_API_BASE_URL in $envPath points to a loopback or unspecified address ('$($parsedUri.Host)'). This is unsafe for a native release because the device has no access to your dev machine. Use a publicly reachable backend origin, e.g. `VITE_API_BASE_URL=https://api.example.com`."
     }
 
-    Write-Host "  VITE_API_BASE_URL OK: $($parsedUri.Scheme)://$($parsedUri.Host)" -ForegroundColor DarkGray
+    Write-Host "  VITE_API_BASE_URL OK (from $envPath): $($parsedUri.Scheme)://$($parsedUri.Host)" -ForegroundColor Green
 }
 
 # --- Transaction Helper ---
