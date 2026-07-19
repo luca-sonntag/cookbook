@@ -164,7 +164,7 @@ export default function ShoppingList({
         <div className="sticky top-[env(safe-area-inset-top)] z-30 -mx-4 px-4 pt-2 pb-3 bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5">
           <div className="flex items-center justify-between gap-3 mb-2">
             <div className="flex items-baseline gap-2 min-w-0">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight truncate">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
                 {t('shopping.title')}
               </h2>
               <span className="text-sm font-semibold text-gray-400 dark:text-gray-500 tabular-nums flex-shrink-0">
