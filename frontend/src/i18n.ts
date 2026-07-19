@@ -481,6 +481,7 @@ export const uiTranslations = {
       premiumFeatureFlagsDesc: 'Erstelle eigene Labels und Tags, um Rezepte noch flexibler zu filtern.',
       bulkAddToCollection: 'Zu Sammlung hinzufügen',
       assignCollectionsTitle: 'Sammlungen zuweisen',
+      manageBulkCollectionsTitle: 'Sammlungen verwalten',
       manageRecipeFlagsTitle: 'Rezept-Labels verwalten',
     },
     shopping: {
@@ -1044,6 +1045,7 @@ export const uiTranslations = {
       premiumFeatureFlagsDesc: 'Create your own custom labels and tags to filter recipes even more flexibly.',
       bulkAddToCollection: 'Add to Collection',
       assignCollectionsTitle: 'Assign Collections',
+      manageBulkCollectionsTitle: 'Manage Collections',
       manageRecipeFlagsTitle: 'Manage Recipe Labels',
     },
     shopping: {

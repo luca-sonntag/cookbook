@@ -120,7 +120,7 @@ export default function SavedCatalog({
   const { collections, refreshCollections } = useCollections();
   const [isCollectionSheetOpen, setIsCollectionSheetOpen] = useState(false);
   const [collectionSheetJob, setCollectionSheetJob] = useState<Job | undefined>(undefined);
-  const [collectionSheetBulkIds, setCollectionSheetBulkIds] = useState<string[]>([]);
+  const [collectionSheetBulkJobs, setCollectionSheetBulkJobs] = useState<Job[]>([]);
 
   // FlagSheet states
   const [isFlagSheetOpen, setIsFlagSheetOpen] = useState(false);
@@ -142,7 +142,7 @@ export default function SavedCatalog({
       setIsPremiumModalOpen(true);
     } else {
       setCollectionSheetJob(undefined);
-      setCollectionSheetBulkIds([]);
+      setCollectionSheetBulkJobs([]);
       setIsCollectionSheetOpen(true);
     }
   };
@@ -152,7 +152,9 @@ export default function SavedCatalog({
       setIsPremiumModalOpen(true);
     } else {
       setCollectionSheetJob(undefined);
-      setCollectionSheetBulkIds(Array.from(selectedIds));
+      // Pass the FULL Job objects (not just IDs) so the sheet can pre-check the
+      // intersection of their memberships and support per-recipe add/remove.
+      setCollectionSheetBulkJobs(completedJobs.filter(j => selectedIds.has(j.id)));
       setIsCollectionSheetOpen(true);
     }
   };
@@ -162,7 +164,7 @@ export default function SavedCatalog({
       setIsPremiumModalOpen(true);
     } else {
       setCollectionSheetJob(job);
-      setCollectionSheetBulkIds([]);
+      setCollectionSheetBulkJobs([]);
       setIsCollectionSheetOpen(true);
     }
   };
@@ -364,7 +366,7 @@ export default function SavedCatalog({
         isOpen={isCollectionSheetOpen}
         onClose={() => setIsCollectionSheetOpen(false)}
         job={collectionSheetJob}
-        selectedJobIds={collectionSheetBulkIds}
+        selectedJobs={collectionSheetBulkJobs}
         onUpdated={() => {
           fetchHistory?.();
           refreshCollections();

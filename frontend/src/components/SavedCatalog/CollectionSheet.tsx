@@ -9,6 +9,8 @@ interface CollectionSheetProps {
   isOpen: boolean;
   onClose: () => void;
   job?: Job;
+  selectedJobs?: Job[];
+  /** @deprecated Use `selectedJobs` instead — kept for backward compatibility. */
   selectedJobIds?: string[];
   onUpdated?: () => void;
 }
@@ -19,10 +21,13 @@ export default function CollectionSheet({
   isOpen,
   onClose,
   job,
-  selectedJobIds = [],
+  selectedJobs = [],
+  // `selectedJobIds` is deprecated; we read from `selectedJobs` instead.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  selectedJobIds: _selectedJobIds = [],
   onUpdated
 }: CollectionSheetProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const {
     collections,
     refreshCollections,
@@ -40,8 +45,11 @@ export default function CollectionSheet({
   const [name, setName] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('');
 
-  // Memberships state for checkboxes
+  // Memberships state for checkboxes (single-recipe mode or shared-intersection for bulk mode)
   const [membershipIds, setMembershipIds] = useState<string[]>([]);
+  // Per-recipe initial membership for bulk mode: { jobId: collectionIds[] } so we can
+  // preserve existing memberships of selected recipes that aren't shared with all others.
+  const [bulkInitialMap, setBulkInitialMap] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
 
   // Load collections and current memberships on open
@@ -50,14 +58,30 @@ export default function CollectionSheet({
       refreshCollections();
       setMode('assign');
       setFormError(null);
-      
+
       if (job) {
         setMembershipIds(job.collectionIds ?? []);
+        setBulkInitialMap({});
       } else {
-        setMembershipIds([]);
+        // Bulk mode: pre-check the INTERSECTION of memberships across all selected jobs,
+        // so the user can either keep/uncheck them (remove) or add new collections.
+        const targetJobs = selectedJobs.length > 0
+          ? selectedJobs
+          : []; // Fallback if caller didn't pass full Job objects; intersection is then empty
+        if (targetJobs.length === 0) {
+          setMembershipIds([]);
+          setBulkInitialMap({});
+        } else {
+          const sets = targetJobs.map(j => new Set(j.collectionIds ?? []));
+          const intersection = Array.from(sets[0]).filter(id => sets.every(s => s.has(id)));
+          setMembershipIds(intersection);
+          const initialMap: Record<string, string[]> = {};
+          targetJobs.forEach(j => { initialMap[j.id] = j.collectionIds ?? []; });
+          setBulkInitialMap(initialMap);
+        }
       }
     }
-  }, [isOpen, job, refreshCollections]);
+  }, [isOpen, job, selectedJobs, refreshCollections]);
 
   const handleCreateOpen = () => {
     setName('');
@@ -120,9 +144,34 @@ export default function CollectionSheet({
   };
 
   const handleConfirmAssignment = async () => {
-    const targetJobIds = job ? [job.id] : selectedJobIds;
+    if (job) {
+      // Single-recipe mode: replace membership with the selected set (same as before).
+      await updateRecipeCollections(job.id, membershipIds);
+      onUpdated?.();
+      onClose();
+      return;
+    }
 
-    const promises = targetJobIds.map(id => updateRecipeCollections(id, membershipIds));
+    // Bulk mode: for each selected recipe, compute its new membership:
+    //   start from the recipe's INITIAL memberships (preserves non-shared ones),
+    //   then add/remove only the collections that are in `membershipIds`.
+    // This way, unchecking a partially-shared collection removes it ONLY from the
+    // recipes that had it (the others are unaffected); checking a new collection
+    // adds it to ALL selected recipes.
+    const targetJobs = selectedJobs.length > 0 ? selectedJobs : [];
+    const promises = targetJobs.map(async (j) => {
+      const initial = bulkInitialMap[j.id] ?? j.collectionIds ?? [];
+      const next = Array.from(new Set([
+        ...initial.filter(id => membershipIds.includes(id)),
+        ...membershipIds.filter(id => !initial.includes(id)),
+      ]));
+      // Skip no-op calls to reduce backend traffic
+      const same =
+        next.length === initial.length &&
+        next.every(id => initial.includes(id));
+      if (same) return;
+      await updateRecipeCollections(j.id, next);
+    });
     await Promise.all(promises);
 
     onUpdated?.();
@@ -145,12 +194,16 @@ export default function CollectionSheet({
                       <Folder className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <Drawer.Heading className="text-base font-bold">
-                      {mode === 'assign'
-                        ? (job ? t('catalog.assignCollectionsTitle') || 'Sammlungen zuweisen' : t('catalog.bulkAddToCollection') || 'Zu Sammlung hinzufügen')
-                        : mode === 'create'
-                        ? t('catalog.addCollection') || 'Neue Sammlung'
-                        : t('catalog.editCollection') || 'Sammlung bearbeiten'}
-                    </Drawer.Heading>
+                    {mode === 'assign'
+                      ? (job
+                        ? t('catalog.assignCollectionsTitle') || 'Sammlungen zuweisen'
+                        : (membershipIds.length > 0
+                          ? (t('catalog.manageBulkCollectionsTitle') || 'Sammlungen verwalten')
+                          : (t('catalog.bulkAddToCollection') || 'Zu Sammlung hinzufügen')))
+                      : mode === 'create'
+                      ? t('catalog.addCollection') || 'Neue Sammlung'
+                      : t('catalog.editCollection') || 'Sammlung bearbeiten'}
+                  </Drawer.Heading>
                   </div>
                   {mode !== 'assign' && (
                     <Button
@@ -182,23 +235,45 @@ export default function CollectionSheet({
                     ) : (
                       collections.map(col => {
                         const isChecked = membershipIds.includes(col.id);
+                        // In bulk mode, count how many selected recipes currently have this collection
+                        // so we can show an indeterminate (partial) state.
+                        let partialCount = 0;
+                        let totalBulk = 0;
+                        if (!job) {
+                          totalBulk = selectedJobs.length;
+                          if (totalBulk > 0) {
+                            partialCount = selectedJobs.filter(j =>
+                              (bulkInitialMap[j.id] ?? j.collectionIds ?? []).includes(col.id)
+                            ).length;
+                          }
+                        }
+                        const isPartial = !job && partialCount > 0 && partialCount < totalBulk;
                         return (
                           <div
                             key={col.id}
                             onClick={() => handleToggleMembership(col.id)}
                             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none active:scale-[0.99] ${
-                              isChecked
+                              isChecked || isPartial
                                 ? 'bg-emerald-500/5 border-emerald-500 dark:bg-emerald-500/10'
                                 : 'bg-black/5 dark:bg-white/5 border-transparent hover:border-black/10 dark:hover:border-white/10'
                             }`}
                           >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
                               {col.emoji && <span className="text-xl">{col.emoji}</span>}
-                              <span className="font-semibold text-sm text-gray-900 dark:text-white">
-                                {col.name}
-                              </span>
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                                  {col.name}
+                                </span>
+                                {isPartial && (
+                                  <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                    {language === 'de'
+                                      ? `${partialCount} von ${totalBulk} Rezepten`
+                                      : `${partialCount} of ${totalBulk} recipes`}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 shrink-0">
                               <Button
                                 isIconOnly
                                 variant="tertiary"
@@ -211,9 +286,14 @@ export default function CollectionSheet({
                                 <Edit2 className="w-3.5 h-3.5" />
                               </Button>
                               <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-all ${
-                                isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
+                                isChecked ? 'bg-emerald-500 border-emerald-500'
+                                  : isPartial ? 'bg-emerald-500/70 border-emerald-500'
+                                  : 'border-black/20 dark:border-white/20'
                               }`}>
                                 {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
+                                {isPartial && (
+                                  <span className="block w-2.5 h-0.5 bg-white rounded-full" />
+                                )}
                               </div>
                             </div>
                           </div>
