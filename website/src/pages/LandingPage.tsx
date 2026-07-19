@@ -130,7 +130,7 @@ export default function LandingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="flex flex-col items-center text-center p-6 bg-white/40 dark:bg-gray-900/40 rounded-2xl border border-gray-200/50 dark:border-gray-800/50">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-emerald-500 mb-4 font-bold text-lg">1</div>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 flex items-center justify-center mb-4 font-bold text-lg">1</div>
             <h3 className="font-semibold text-lg mb-2">Video finden</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
               Finde ein interessantes Rezept-Video auf Instagram, TikTok oder YouTube Shorts.
@@ -138,7 +138,7 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col items-center text-center p-6 bg-white/40 dark:bg-gray-900/40 rounded-2xl border border-gray-200/50 dark:border-gray-800/50">
-            <div className="w-12 h-12 rounded-2xl bg-teal-100 dark:bg-teal-950 flex items-center justify-center text-teal-500 mb-4 font-bold text-lg">2</div>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 flex items-center justify-center mb-4 font-bold text-lg">2</div>
             <h3 className="font-semibold text-lg mb-2">Teilen & Senden</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
               Tippe im Video auf "Teilen" (Share), wähle Snagbite aus oder kopiere den Link direkt.
@@ -146,7 +146,7 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col items-center text-center p-6 bg-white/40 dark:bg-gray-900/40 rounded-2xl border border-gray-200/50 dark:border-gray-800/50">
-            <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center text-blue-500 mb-4 font-bold text-lg">3</div>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 flex items-center justify-center mb-4 font-bold text-lg">3</div>
             <h3 className="font-semibold text-lg mb-2">Loskochen!</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
               Das strukturierte Rezept ist sofort bereit: übersichtliche Zutaten, Schritte und genaue Nährwerte.
@@ -165,7 +165,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="glass-panel border-none shadow-sm hover:-translate-y-1 transition-transform duration-300">
             <Card.Header className="flex gap-3 px-6 pt-6 pb-0">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-500">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 flex items-center justify-center">
                 <Smartphone className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
@@ -179,7 +179,7 @@ export default function LandingPage() {
 
           <Card className="glass-panel border-none shadow-sm hover:-translate-y-1 transition-transform duration-300">
             <Card.Header className="flex gap-3 px-6 pt-6 pb-0">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 flex items-center justify-center">
                 <ChefHat className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
@@ -193,7 +193,7 @@ export default function LandingPage() {
 
           <Card className="glass-panel border-none shadow-sm hover:-translate-y-1 transition-transform duration-300">
             <Card.Header className="flex gap-3 px-6 pt-6 pb-0">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-500">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 flex items-center justify-center">
                 <HeartPulse className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
