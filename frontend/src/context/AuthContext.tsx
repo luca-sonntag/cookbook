@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
 import { SocialLogin } from '@capgo/capacitor-social-login';
@@ -128,6 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [hasTrialAvailable, setHasTrialAvailable] = useState(false);
   const [trialDays, setTrialDays] = useState(0);
   const [trialLoading, setTrialLoading] = useState(true);
+  const trialLoadedRef = useRef(false);
 
   // Development-only Premium simulator state
   const [isPremiumOverride, setIsPremiumOverrideState] = useState<boolean>(() => {
@@ -203,7 +204,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * to decide whether to show itself and what "N Tage" label to render.
    */
   const refreshTrialInfo = useCallback(async () => {
-    setTrialLoading(true);
+    if (!trialLoadedRef.current) {
+      setTrialLoading(true);
+    }
     try {
       const { getSubscriptionOfferings } = await import('../utils/purchase');
       const packages = await getSubscriptionOfferings();
@@ -233,6 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTrialDays(0);
     } finally {
       setTrialLoading(false);
+      trialLoadedRef.current = true;
     }
   }, []);
 
