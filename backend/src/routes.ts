@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -417,6 +417,46 @@ apiRouter.get('/jobs/:id', async (req: Request, res: Response): Promise<void> =>
       success: false,
       error: 'Internal server error while retrieving job.',
     });
+  }
+});
+
+/**
+ * One-time transient hand-off of a recipe's video frames to the extracting device.
+ * GET /api/jobs/:id/frames
+ *
+ * Returns the frames as base64 data URLs, then deletes them from Storage once the
+ * response is delivered. This keeps frames off our servers long-term (they live
+ * only in the device's local IndexedDB cache afterwards), so we don't rehost
+ * third-party video content. If the device never calls this, sweepOldRecipeFrames
+ * removes the orphans as a backstop.
+ */
+apiRouter.get('/jobs/:id/frames', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
+    // Ownership check: getJob is scoped to the requesting user.
+    const job = await getJob(id, req.userId!);
+    if (!job) {
+      res.status(404).json({ success: false, error: 'Job not found.' });
+      return;
+    }
+
+    const frames = await getRecipeFrames(id);
+
+    // Delete the transient copies once the bytes have been delivered.
+    res.on('finish', () => {
+      if (frames.length === 0) return;
+      deleteRecipeFrames(id).catch(err =>
+        console.warn(`Failed to delete transient frames for job ${id}:`, err.message)
+      );
+    });
+
+    res.status(200).json({ success: true, frames });
+  } catch (error: any) {
+    console.error('Error delivering recipe frames:', error);
+    res.status(500).json({ success: false, error: 'Internal server error while retrieving frames.' });
   }
 });
 

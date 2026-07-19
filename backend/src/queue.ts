@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { claimNextJob, updateJob, getJob, getClient, reclaimExpiredJobs, heartbeatJob, uploadRecipeFrame, getMaxVideoDurationSeconds } from './db.js';
+import { claimNextJob, updateJob, getJob, getClient, reclaimExpiredJobs, heartbeatJob, uploadRecipeFrame, sweepOldRecipeFrames, getMaxVideoDurationSeconds } from './db.js';
 import { randomUUID } from 'node:crypto';
 import { getScraperForUrl } from './scrapers/index.js';
 import { downloadMedia } from './scrapers/download.js';
@@ -175,16 +175,19 @@ async function processJob(job: Job): Promise<void> {
           const bestIndices = await selectBestFoodFrame(framePaths, gridImagePath, runDir);
           console.log(`[Job ${jobId}] Best frames selected: indices ${bestIndices.join(', ')}`);
 
-          // Upload best frames to Supabase Storage (private bucket)
-          const savedUrls: string[] = [];
+          // Upload best frames to Supabase Storage as a transient hand-off: the
+          // extracting device pulls them once (GET /api/jobs/:id/frames) and they
+          // are deleted right after. The recipe stores only local references, so
+          // we never persist/rehost third-party video frames server-side.
+          const localRefs: string[] = [];
           for (let i = 0; i < bestIndices.length; i++) {
             const idx = bestIndices[i];
             const buffer = await fs.readFile(framePaths[idx]);
-            const signedUrl = await uploadRecipeFrame(jobId, i, buffer);
-            savedUrls.push(signedUrl);
+            await uploadRecipeFrame(jobId, i, buffer);
+            localRefs.push(`local:${jobId}:${i}`);
           }
 
-          return savedUrls;
+          return localRefs;
         } catch (err: any) {
           console.warn(`[Job ${jobId}] Frame selection failed (falling back to cover): ${err.message}`);
           return null;
@@ -326,6 +329,10 @@ export function startQueue(pollIntervalMs = 2000): void {
   const runCleanup = () => {
     cleanupOldRunDirs(30);
     void pruneOldGeminiLogs(90);
+    // Backstop for transient recipe frames the device never pulled (see db.ts).
+    sweepOldRecipeFrames(24)
+      .then(n => { if (n > 0) console.log(`[cleanup] Swept ${n} orphaned recipe frame(s).`); })
+      .catch(err => console.error('[cleanup] Frame sweep failed:', err));
   };
   runCleanup();
   cleanupInterval = setInterval(runCleanup, 12 * 60 * 60 * 1000);

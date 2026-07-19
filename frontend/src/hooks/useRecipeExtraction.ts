@@ -3,6 +3,33 @@ import type { Recipe, Job, ProgressData } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { apiUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { setCachedImage } from '../utils/imageStore';
+
+/**
+ * Pulls a completed job's recipe frames (a one-time, transient hand-off) and
+ * stores them in the device's local IndexedDB cache under their `local:` keys.
+ * The frames are deleted server-side once delivered, so this must run before the
+ * recipe is shown — otherwise the images are gone for good. Best-effort: any
+ * failure just means the recipe renders without images.
+ */
+async function pullAndCacheFrames(jobId: string, token: string): Promise<void> {
+  try {
+    const response = await fetch(apiUrl(`/api/jobs/${jobId}/frames`), {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) return;
+    const data = await response.json();
+    if (!data.success || !Array.isArray(data.frames)) return;
+
+    await Promise.all(
+      data.frames.map((f: { index: number; dataUrl: string }) =>
+        setCachedImage(`local:${jobId}:${f.index}`, f.dataUrl)
+      )
+    );
+  } catch (err) {
+    console.warn('Failed to pull recipe frames for local caching:', err);
+  }
+}
 
 // Tracks the currently in-flight extraction job across reloads/restarts, so a
 // still-running job can be resumed instead of the user re-submitting the same
@@ -138,6 +165,9 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
 
         if (job.status === 'completed') {
           clearInterval(interval);
+          // Pull the transient frames into the local cache before showing the
+          // recipe — they are deleted server-side once fetched.
+          await pullAndCacheFrames(job.id, token);
           setProgress(null);
           setIsPending(false);
           setUrl('');

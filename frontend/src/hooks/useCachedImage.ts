@@ -106,6 +106,18 @@ export function useCachedImage(originalUrl: string | null | undefined) {
           return;
         }
 
+        // Local-only references (`local:{jobId}:{i}`) are recipe video frames that
+        // live solely in this device's cache — we never rehost them. If they aren't
+        // cached (e.g. extracted on another device, or already purged), there is
+        // nothing to fetch; show no image rather than hitting the network.
+        if (originalUrl!.startsWith('local:')) {
+          if (isMounted) {
+            setSrc(null);
+            setIsLoading(false);
+          }
+          return;
+        }
+
         // 2. If not cached, fetch, compress, and convert to Base64
         const base64 = await compressAndConvertToBase64(originalUrl!);
         
