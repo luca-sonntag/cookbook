@@ -1,5 +1,128 @@
 import { Button, Card } from "@heroui/react";
-import { ArrowRight, Smartphone, ChefHat, HeartPulse, Sparkles, Check } from "lucide-react";
+import { ArrowRight, Smartphone, ChefHat, HeartPulse, Clock, Utensils } from "lucide-react";
+
+// --- Mockup Components from the App ---
+
+const ShareStep1Mockup = () => (
+  <div className="relative w-[150px] h-[120px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 p-2 flex items-center justify-center overflow-hidden shadow-inner select-none">
+    {/* Vertical Phone Screen Mockup representing a Reel */}
+    <div className="w-[64px] h-[100px] rounded-lg bg-black/[0.03] dark:bg-white/[0.03] relative border border-black/10 dark:border-white/10 overflow-hidden shadow-sm flex flex-col justify-between p-1">
+      {/* Video Content representation */}
+      <div className="absolute inset-0 bg-transparent flex items-center justify-center">
+        <ChefHat className="w-7 h-7 text-black/10 dark:text-white/10" />
+      </div>
+
+      {/* Top Status Bar mock */}
+      <div className="absolute top-1 left-0 right-0 px-1.5 flex justify-between items-center z-10 opacity-55">
+        <div className="w-1 h-1 rounded-full bg-black/35 dark:bg-white/35" />
+        <div className="flex gap-0.5">
+          <div className="w-1.5 h-0.5 bg-black/35 dark:bg-white/35 rounded-xs" />
+          <div className="w-2.5 h-0.5 bg-black/35 dark:bg-white/35 rounded-xs" />
+        </div>
+      </div>
+
+      {/* Bottom overlay: user profile and caption */}
+      <div className="absolute bottom-1 left-1 flex flex-col gap-0.5 z-10 w-[30px]">
+        <div className="flex items-center gap-0.5">
+          <div className="w-2 h-2 rounded-full bg-black/20 dark:bg-white/20 border border-black/10 dark:border-white/10 shrink-0" />
+          <div className="h-0.5 w-4 rounded bg-black/15 dark:bg-white/15" />
+        </div>
+        <div className="h-0.5 w-full rounded bg-black/10 dark:bg-white/10" />
+        <div className="h-0.5 w-2/3 rounded bg-black/10 dark:bg-white/10" />
+      </div>
+
+      {/* Right side overlays: Action icons stack */}
+      <div className="absolute right-1 bottom-1 flex flex-col items-center gap-1 z-10">
+        <div className="w-3 h-3 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center justify-center">
+          <svg className="w-2 h-2 text-black/50 dark:text-white/50" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+        <div className="w-3 h-3 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center justify-center">
+          <svg className="w-2 h-2 text-black/50 dark:text-white/50" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        {/* Active highlighted Share button */}
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75 duration-1000" />
+          <div className="relative w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white border border-emerald-400 shadow-md shadow-emerald-500/30">
+            <svg className="w-2.5 h-2.5 translate-x-[0.3px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const ShareStep3Mockup = () => (
+  <div className="relative w-[150px] h-[120px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 p-2 overflow-hidden shadow-inner flex flex-col justify-end select-none">
+    {/* Background share options sheet representation */}
+    <div className="flex-1 flex flex-col gap-1 opacity-25 px-0.5 pt-0.5">
+      <div className="h-2 w-1/3 rounded bg-black/40 dark:bg-white/40" />
+      <div className="h-1.5 w-full rounded bg-black/20 dark:bg-white/20" />
+      <div className="h-1.5 w-2/3 rounded bg-black/20 dark:bg-white/20" />
+    </div>
+
+    <div className="bg-gray-50 dark:bg-gray-800 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-md flex items-center gap-2">
+      <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5 opacity-40">
+        <div className="w-5 h-5 rounded bg-green-500 flex items-center justify-center shrink-0">
+          <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.739-1.446L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.858.002-2.634-1.02-5.11-2.884-6.974C16.592 1.89 14.12 1.865 11.99 1.865c-5.43 0-9.854 4.417-9.858 9.853-.002 1.773.465 3.5 1.353 5.03L2.43 21.65l5.06-1.33.157.08z"/></svg>
+        </div>
+        <span className="text-[5px] text-gray-500 truncate">WhatsApp</span>
+      </div>
+
+      {/* Snagbite App Option highlighted */}
+      <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75 duration-1000" />
+          <div className="relative w-5 h-5 rounded-full bg-emerald-500 border border-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/40 p-0.5">
+            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>
+            </svg>
+          </div>
+        </div>
+        <span className="text-[5px] font-bold text-emerald-600 dark:text-emerald-400 truncate">Snagbite</span>
+      </div>
+
+      <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5 opacity-40">
+        <div className="w-5 h-5 rounded bg-blue-505 flex items-center justify-center shrink-0" style={{ backgroundColor: '#2563eb' }}>
+          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.8z"/></svg>
+        </div>
+        <span className="text-[5px] text-gray-500 truncate">LinkedIn</span>
+      </div>
+    </div>
+  </div>
+);
+
+const RecipeCardMockup = () => (
+  <div className="relative w-[150px] h-[120px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 p-2 overflow-hidden shadow-inner flex items-center justify-center select-none">
+    {/* Recipe card mockup representation */}
+    <div className="relative w-[96px] rounded-lg bg-white dark:bg-gray-800 border border-black/10 dark:border-white/10 overflow-hidden shadow-sm">
+      {/* Image area with creator badge */}
+      <div className="relative h-[48px] bg-emerald-500/10 dark:bg-emerald-950/40 flex items-center justify-center">
+        <ChefHat className="w-6 h-6 text-emerald-500/35" />
+        <div className="absolute bottom-1 left-1.5 h-3 px-1 rounded bg-black/60 flex items-center gap-0.5">
+          <span className="w-1 h-1 rounded-full bg-pink-400" />
+          <span className="h-0.5 w-3 rounded bg-white/70" />
+        </div>
+      </div>
+      {/* Title + stat footer */}
+      <div className="p-2 flex flex-col gap-1">
+        <div className="h-1.5 w-full rounded bg-black/15 dark:bg-white/15" />
+        <div className="h-1.5 w-2/3 rounded bg-black/10 dark:bg-white/10" />
+        <div className="flex items-center gap-2 pt-1 border-t border-black/5 dark:border-white/5 mt-1">
+          <span className="flex items-center gap-0.5">
+            <Clock className="w-2 h-2 text-emerald-500" />
+            <span className="h-0.5 w-2.5 rounded bg-black/15 dark:bg-white/15" />
+          </span>
+          <span className="flex items-center gap-0.5">
+            <Utensils className="w-2 h-2 text-emerald-500" />
+            <span className="h-0.5 w-2.5 rounded bg-black/15 dark:bg-white/15" />
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// --- Main Page Component ---
 
 export default function LandingPage() {
   return (
@@ -13,7 +136,7 @@ export default function LandingPage() {
       <section className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
         {/* Left Text Column */}
         <div className="md:col-span-7 flex flex-col items-start text-left">
-          <div className="mb-6 shadow-xl shadow-emerald-500/10 rounded-2xl overflow-hidden inline-block p-1 bg-white/50 dark:bg-gray-800/50 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50">
+          <div className="mb-6 shadow-xl shadow-emerald-500/10 rounded-2xl overflow-hidden inline-block p-1 glass-panel">
             <img src="/icon-512.png" alt="Snagbite Logo" className="w-16 h-16 object-cover rounded-xl" />
           </div>
           
@@ -44,79 +167,30 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Right Preview Column (CSS Mockup transformation) */}
-        <div className="md:col-span-5 flex justify-center w-full relative">
-          <div className="w-full max-w-sm relative flex flex-col gap-4">
-            
-            {/* Source Social Reel Card */}
-            <div className="glass-panel rounded-2xl p-4 shadow-xl border border-white/25 relative z-10 transition-all hover:scale-[1.02] duration-300">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-yellow-500 to-purple-600 flex items-center justify-center text-[10px] text-white font-bold">IG</div>
-                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">@chef_cooker</span>
-                <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-auto">Original Reel</span>
-              </div>
-              <div className="aspect-video w-full rounded-lg bg-gray-200 dark:bg-gray-800 relative overflow-hidden mb-3 group flex items-center justify-center">
-                <div className="absolute inset-0 bg-[url('/icon-512.png')] bg-cover bg-center opacity-25 filter blur-xs"></div>
-                <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                  <div className="w-0 h-0 border-y-8 border-y-transparent border-l-12 border-l-white ml-1"></div>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                🔥 High Protein Smash Taco! 🌮 450 kcal | 40g Protein! Zuerst 150g Rinderhack anbraten auf der Tortilla, dann Cheddar drüber schmelzen...
-              </p>
+        {/* Right Preview Column (Staggered App Mockups) */}
+        <div className="md:col-span-5 flex justify-center w-full relative h-[380px] md:h-[400px]">
+          {/* Step 1: Reel Mockup */}
+          <div className="absolute top-4 left-4 sm:left-8 transform -rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-300 z-10">
+            <div className="shadow-lg rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-black/10 dark:border-white/10">
+              <ShareStep1Mockup />
             </div>
+            <p className="text-[10px] text-center mt-2 text-gray-500 font-extrabold uppercase tracking-wide">1. Reel teilen</p>
+          </div>
 
-            {/* Transition Arrow / Sparkle Indicator */}
-            <div className="flex justify-center my-[-8px] relative z-20">
-              <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg animate-bounce">
-                <Sparkles className="w-4 h-4" />
-              </div>
+          {/* Step 2: Share Mockup */}
+          <div className="absolute top-20 right-4 sm:right-8 transform rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-300 z-20">
+            <div className="shadow-lg rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-black/10 dark:border-white/10">
+              <ShareStep3Mockup />
             </div>
+            <p className="text-[10px] text-center mt-2 text-gray-500 font-extrabold uppercase tracking-wide">2. Snagbite wählen</p>
+          </div>
 
-            {/* Destination Structured Recipe Card */}
-            <div className="glass-panel rounded-2xl p-5 shadow-2xl border border-emerald-500/20 relative z-10 transition-all hover:scale-[1.02] duration-300 bg-white/95 dark:bg-gray-900/95">
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="font-bold text-sm text-gray-900 dark:text-white">High Protein Smash Taco</h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Snagbite Rezept</span>
-              </div>
-
-              {/* Nutrition Badges */}
-              <div className="grid grid-cols-4 gap-1.5 mb-4 text-center">
-                <div className="bg-emerald-50 dark:bg-emerald-950/40 p-1 rounded-md">
-                  <div className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold uppercase">Kcal</div>
-                  <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">450</div>
-                </div>
-                <div className="bg-blue-50 dark:bg-blue-950/40 p-1 rounded-md">
-                  <div className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold uppercase">Prot</div>
-                  <div className="text-xs font-bold text-blue-600 dark:text-blue-400">40g</div>
-                </div>
-                <div className="bg-amber-50 dark:bg-amber-950/40 p-1 rounded-md">
-                  <div className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold uppercase">Carb</div>
-                  <div className="text-xs font-bold text-amber-600 dark:text-amber-400">25g</div>
-                </div>
-                <div className="bg-rose-50 dark:bg-rose-950/40 p-1 rounded-md">
-                  <div className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold uppercase">Fett</div>
-                  <div className="text-xs font-bold text-rose-600 dark:text-rose-400">18g</div>
-                </div>
-              </div>
-
-              {/* Mini Ingredients checklist */}
-              <div className="flex flex-col gap-1.5 text-xs text-gray-700 dark:text-gray-300">
-                <div className="flex items-center gap-2">
-                  <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><Check className="w-2.5 h-2.5" /></div>
-                  <span>150g Rinderhackfleisch</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><Check className="w-2.5 h-2.5" /></div>
-                  <span>1 Tortilla-Wrap</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><Check className="w-2.5 h-2.5" /></div>
-                  <span>30g Cheddar-Käse</span>
-                </div>
-              </div>
+          {/* Step 3: Recipe Card Mockup */}
+          <div className="absolute bottom-6 left-12 sm:left-20 transform -rotate-3 hover:rotate-0 hover:scale-110 transition-all duration-300 z-30">
+            <div className="shadow-2xl rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-emerald-500/20">
+              <RecipeCardMockup />
             </div>
-
+            <p className="text-[10px] text-center mt-2 text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-wide">3. Rezept bereit!</p>
           </div>
         </div>
       </section>
@@ -129,7 +203,7 @@ export default function LandingPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="flex flex-col items-center text-center p-6 bg-white/40 dark:bg-gray-900/40 rounded-2xl border border-gray-200/50 dark:border-gray-800/50">
+          <div className="flex flex-col items-center text-center p-6 glass-panel rounded-2xl">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 flex items-center justify-center mb-4 font-bold text-lg">1</div>
             <h3 className="font-semibold text-lg mb-2">Video finden</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
@@ -137,7 +211,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="flex flex-col items-center text-center p-6 bg-white/40 dark:bg-gray-900/40 rounded-2xl border border-gray-200/50 dark:border-gray-800/50">
+          <div className="flex flex-col items-center text-center p-6 glass-panel rounded-2xl">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 flex items-center justify-center mb-4 font-bold text-lg">2</div>
             <h3 className="font-semibold text-lg mb-2">Teilen & Senden</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
@@ -145,7 +219,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="flex flex-col items-center text-center p-6 bg-white/40 dark:bg-gray-900/40 rounded-2xl border border-gray-200/50 dark:border-gray-800/50">
+          <div className="flex flex-col items-center text-center p-6 glass-panel rounded-2xl">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 flex items-center justify-center mb-4 font-bold text-lg">3</div>
             <h3 className="font-semibold text-lg mb-2">Loskochen!</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
