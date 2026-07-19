@@ -247,7 +247,7 @@ export default function CollectionSheet({
                       isIconOnly
                       variant="tertiary"
                       className="w-8 h-8 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-500"
-                      onPress={() => setMode(initialMode === 'manage' ? 'manage' : initialMode === 'create' ? 'create' : 'assign')}
+                      onPress={onClose}
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -493,7 +493,7 @@ export default function CollectionSheet({
                     <Button
                       variant="tertiary"
                       className="flex-1 py-3 rounded-xl text-sm font-semibold"
-                      onPress={handleBackToList}
+                      onPress={onClose}
                     >
                       {t('app.dialog.deleteRecipe.cancel') || 'Abbrechen'}
                     </Button>
