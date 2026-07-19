@@ -31,7 +31,7 @@ export default function ShoppingListItem({
   // Compact, dimmed row used inside the "Erledigt" drawer.
   if (isChecked) {
     return (
-      <li className={`flex items-center justify-between gap-2 py-1.5 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${animationClass}`}>
+      <li className={`flex items-center justify-between gap-2 py-1 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${animationClass}`}>
         <button
           type="button"
           onClick={onClick}
@@ -61,7 +61,7 @@ export default function ShoppingListItem({
   // Active (to-buy) row — big tap target, amount as a scannable chip.
   return (
     <li className={`rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors group ${animationClass}`}>
-      <div className="flex items-center justify-between gap-2 py-1.5 px-2 min-h-[40px]">
+      <div className="flex items-center justify-between gap-2 py-1 px-2 min-h-[36px]">
         <button
           type="button"
           onClick={onClick}
