@@ -221,6 +221,15 @@ export default function CollectionSheet({
                   </div>
                 )}
 
+                {mode === 'assign' && !job && collections.length > 0 && (
+                  <div className="mb-3 px-3.5 py-2.5 text-[11px] leading-snug rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/15">
+                    {t('catalog.bulkAssignHint') ||
+                      (language === 'de'
+                        ? 'Häkchen setzen = zu Sammlung hinzufügen · Häkchen entfernen = aus Sammlung entfernen.'
+                        : 'Tick a box to add to a collection · untick to remove.')}
+                  </div>
+                )}
+
                 {mode === 'assign' ? (
                   <div className="flex flex-col gap-2.5">
                     {collections.length === 0 ? (
