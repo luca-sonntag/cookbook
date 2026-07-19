@@ -482,7 +482,6 @@ export const uiTranslations = {
       bulkAddToCollection: 'Zu Sammlung hinzufügen',
       assignCollectionsTitle: 'Sammlungen zuweisen',
       manageBulkCollectionsTitle: 'Sammlungen verwalten',
-      bulkAssignHint: 'Häkchen setzen = zu Sammlung hinzufügen · Häkchen entfernen = aus Sammlung entfernen.',
       manageRecipeFlagsTitle: 'Rezept-Labels verwalten',
     },
     shopping: {
@@ -1047,7 +1046,6 @@ export const uiTranslations = {
       bulkAddToCollection: 'Add to Collection',
       assignCollectionsTitle: 'Assign Collections',
       manageBulkCollectionsTitle: 'Manage Collections',
-      bulkAssignHint: 'Tick a box to add to a collection · untick to remove.',
       manageRecipeFlagsTitle: 'Manage Recipe Labels',
     },
     shopping: {

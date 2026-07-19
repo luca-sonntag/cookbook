@@ -141,9 +141,12 @@ export default function SavedCatalog({
     if (!isPremium) {
       setIsPremiumModalOpen(true);
     } else {
+      // Open directly in "create" mode — no checkbox list, since there's no
+      // pre-existing recipe assignment context from a "+ Sammlung" filter chip.
       setCollectionSheetJob(undefined);
       setCollectionSheetBulkJobs([]);
       setIsCollectionSheetOpen(true);
+      // initialMode='create' is conveyed via the sheet prop below.
     }
   };
 
@@ -367,6 +370,7 @@ export default function SavedCatalog({
         onClose={() => setIsCollectionSheetOpen(false)}
         job={collectionSheetJob}
         selectedJobs={collectionSheetBulkJobs}
+        initialMode={!collectionSheetJob && collectionSheetBulkJobs.length === 0 ? 'create' : 'assign'}
         onUpdated={() => {
           fetchHistory?.();
           refreshCollections();

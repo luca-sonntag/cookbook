@@ -10,6 +10,12 @@ interface CollectionSheetProps {
   onClose: () => void;
   job?: Job;
   selectedJobs?: Job[];
+  /**
+   * Optional override for the initial mode:
+   * - `'assign'` (default): checkbox list (single-recipe or bulk)
+   * - `'create'`: jump straight to the "new collection" form (no checkboxes shown)
+   */
+  initialMode?: 'assign' | 'create';
   onUpdated?: () => void;
 }
 
@@ -20,6 +26,7 @@ export default function CollectionSheet({
   onClose,
   job,
   selectedJobs = [],
+  initialMode = 'assign',
   onUpdated
 }: CollectionSheetProps) {
   const { t, language } = useI18n();
@@ -33,7 +40,7 @@ export default function CollectionSheet({
   } = useCollections();
 
   // Mode: 'assign' (checkboxes) or 'create' (form) or 'edit' (form)
-  const [mode, setMode] = useState<'assign' | 'create' | 'edit'>('assign');
+  const [mode, setMode] = useState<'assign' | 'create' | 'edit'>(initialMode);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
 
   // Form states
@@ -51,13 +58,14 @@ export default function CollectionSheet({
   useEffect(() => {
     if (isOpen) {
       refreshCollections();
-      setMode('assign');
+      setMode(initialMode);
       setFormError(null);
 
-      if (job) {
-        setMembershipIds(job.collectionIds ?? []);
+      if (job || initialMode === 'create') {
+        // Single-recipe mode OR explicit "create new" mode: no membership table needed.
+        setMembershipIds([]);
         setBulkInitialMap({});
-      } else {
+      } else if (initialMode === 'assign') {
         // Bulk mode: pre-check the INTERSECTION of memberships across all selected jobs,
         // so the user can either keep/uncheck them (remove) or add new collections.
         const targetJobs = selectedJobs.length > 0
@@ -76,7 +84,7 @@ export default function CollectionSheet({
         }
       }
     }
-  }, [isOpen, job, selectedJobs, refreshCollections]);
+  }, [isOpen, job, selectedJobs, initialMode, refreshCollections]);
 
   const handleCreateOpen = () => {
     setName('');
@@ -220,13 +228,11 @@ export default function CollectionSheet({
                     {formError}
                   </div>
                 )}
-
-                {mode === 'assign' && !job && collections.length > 0 && (
+                {mode === 'assign' && !job && initialMode !== 'create' && collections.length > 0 && (
                   <div className="mb-3 px-3.5 py-2.5 text-[11px] leading-snug rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/15">
-                    {t('catalog.bulkAssignHint') ||
-                      (language === 'de'
-                        ? 'Häkchen setzen = zu Sammlung hinzufügen · Häkchen entfernen = aus Sammlung entfernen.'
-                        : 'Tick a box to add to a collection · untick to remove.')}
+                    {language === 'de'
+                      ? '1. Rezept auswählen (lange drücken) · 2. Sammlung wählen · 3. Häkchen setzen oder entfernen.'
+                      : '1. Select a recipe (long-press) · 2. Pick a collection · 3. Tick or untick to add or remove.'}
                   </div>
                 )}
 
