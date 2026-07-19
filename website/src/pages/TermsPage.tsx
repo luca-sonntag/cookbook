@@ -131,7 +131,7 @@ export default function TermsPage() {
               Bei Abschluss eines kostenpflichtigen Abonnements steht dir als Verbraucher ein gesetzliches Rücktrittsrecht (Widerrufsrecht) nach dem Fern- und Auswärtsgeschäfte-Gesetz (FAGG) zu.
             </p>
 
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 my-6 shadow-sm">
+            <div className="glass-panel rounded-2xl p-6 my-6 shadow-sm">
               <h3 className="text-lg font-bold mb-3 text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-2">Widerrufsbelehrung</h3>
               <p className="font-semibold mb-2">Widerrufsrecht</p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -153,7 +153,7 @@ export default function TermsPage() {
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
               (Wenn du den Vertrag widerrufen willst, kannst du dieses Formular ausfüllen und per E-Mail oder Post an uns senden):
             </p>
-            <blockquote className="border-l-4 border-emerald-500 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-r-lg text-sm italic text-gray-600 dark:text-gray-400 my-4">
+            <blockquote className="border border-emerald-500/15 bg-emerald-500/5 dark:bg-emerald-500/10 p-4 rounded-xl text-sm italic text-gray-600 dark:text-gray-400 my-4">
               An {legal.operatorName}, {legal.street}, {legal.city}, {legal.country}, E-Mail: {legal.email}:<br /><br />
               Hiermit widerrufe(n) ich/wir den von mir/uns abgeschlossenen Vertrag über die Erbringung der folgenden Dienstleistung: Snagbite Premium-Abonnement<br />
               Bestellt am / erhalten am: __________<br />
@@ -168,7 +168,7 @@ export default function TermsPage() {
             <p>
               Es gelten die gesetzlichen Gewährleistungsbestimmungen. Wir haften unbeschränkt für Schäden aus der Verletzung des Lebens, des Körpers oder der Gesundheit sowie für Schäden, die wir vorsätzlich oder grob fahrlässig verursacht haben. Für leicht fahrlässig verursachte Sachschäden haften wir nur bei Verletzung einer wesentlichen Vertragspflicht und begrenzt auf den vertragstypischen, vorhersehbaren Schaden. Eine weitergehende Haftung ist ausgeschlossen. Gesetzlich zwingende Haftungsbestimmungen, insbesondere nach dem Konsumentenschutzgesetz (KSchG) und dem Produkthaftungsgesetz, bleiben unberührt.
             </p>
-            <div className="p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-500/10 rounded-xl my-4 text-sm text-gray-700 dark:text-gray-300">
+            <div className="p-4 bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/15 rounded-xl my-4 text-sm text-gray-700 dark:text-gray-300">
               <strong>Allergien & Unverträglichkeiten:</strong> Wir übernehmen keine Haftung für Schäden, die aus der Verwendung fehlerhaft oder unvollständig extrahierter Rezepte, Mengen- oder Nährwertangaben entstehen. Prüfe alle Zutaten und Angaben stets eigenverantwortlich vor dem Verzehr.
             </div>
             <p>
