@@ -462,7 +462,7 @@ export default function App() {
           : isViewingRecipe || activeView === 'shopping-list' || (activeView === 'history' && isCatalogSelectMode)
             ? 'pb-48'
             : 'pb-24'
-      } ${(!isViewingRecipe && activeView !== 'extract') ? 'pt-4' : ''}`}>
+      } ${(activeView === 'extract' && !recipe) ? 'pt-6' : (!isViewingRecipe ? 'pt-4' : '')}`}>
 
         {/* One-time trial banner for free users */}
         <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
