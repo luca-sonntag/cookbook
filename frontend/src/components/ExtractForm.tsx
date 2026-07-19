@@ -96,7 +96,7 @@ export default function ExtractForm({
     && hasTrialAvailable
     && trialDays > 0
     && !trialDismissed;
-  const hideUpgradeCard = isRealPremium || trialBannerShowing;
+  const hideUpgradeCard = isRealPremium || trialLoading || trialBannerShowing;
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
