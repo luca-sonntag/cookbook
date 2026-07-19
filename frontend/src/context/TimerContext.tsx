@@ -181,6 +181,8 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   const alreadyFiredRef = useRef<Set<string>>(new Set());
   // Repeating alarm interval per timer ID — cleared on dismiss/remove
   const alarmIntervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
+  // Ref to track last time we did a native notification reconciliation in the main ticker
+  const lastReconcileTimeRef = useRef<number>(0);
 
   // Global ticker: runs every 500 ms for smooth countdown display
   useEffect(() => {
@@ -223,6 +225,31 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         }, 2500);
         alarmIntervalsRef.current.set(timer.id, repeatInterval);
       });
+
+      // ── Reconcile swiped/cleared notifications in foreground (native only) ──
+      if (isNative()) {
+        const finishedTimers = current.filter(t => t.isFinished && (now - t.endAt > 3000));
+        if (finishedTimers.length > 0 && (now - lastReconcileTimeRef.current > 2000)) {
+          lastReconcileTimeRef.current = now;
+          isTimerNotificationDelivered().then(stillDelivered => {
+            if (!stillDelivered) {
+              const finishedIds = finishedTimers.map(t => t.id);
+              finishedIds.forEach(id => {
+                alreadyFiredRef.current.delete(id);
+                const existing = alarmIntervalsRef.current.get(id);
+                if (existing !== undefined) {
+                  clearInterval(existing);
+                  alarmIntervalsRef.current.delete(id);
+                }
+              });
+              const clearedIds = new Set(finishedIds);
+              setTimers(prev => prev.filter(t => !clearedIds.has(t.id)));
+            }
+          }).catch(err => {
+            console.warn('isTimerNotificationDelivered failed in main ticker:', err);
+          });
+        }
+      }
 
       // ── State update: mark expired timers as finished AND/OR force re-render for countdown ──
       const hasRunning = current.some(t => !t.isFinished);
