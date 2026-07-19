@@ -42,15 +42,16 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   // On first launch (no explicit choice yet) detect the real OS/system
   // language via the native device API, which is more reliable than
   // navigator.language inside the WebView. Any non-German locale → English.
+  // Runs once on mount and is intentionally NOT tied to `user`: the metadata
+  // sync effect below owns the logged-in case. The localStorage re-check on
+  // resolution guarantees this late async result never overrides an explicit
+  // choice (manual selection or user metadata) that arrived while detecting.
   useEffect(() => {
-    const saved = localStorage.getItem('recipe_language');
-    if (saved === 'de' || saved === 'en') return; // user/metadata already chose
-    if (user?.user_metadata?.language) return; // handled by the sync effect below
-
+    if (localStorage.getItem('recipe_language')) return; // already chosen
     let cancelled = false;
     Device.getLanguageCode()
       .then(({ value }) => {
-        if (cancelled) return;
+        if (cancelled || localStorage.getItem('recipe_language')) return;
         setLanguageState(normalizeLanguage(value));
       })
       .catch(() => {
@@ -59,7 +60,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync state if user metadata has a language
   useEffect(() => {
