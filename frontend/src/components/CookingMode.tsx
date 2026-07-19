@@ -277,13 +277,13 @@ export default function CookingMode({
       )}
 
       {/* Central Instruction Step Card */}
-      <div 
+      <div
         key={cookingStepIndex}
         className="flex-1 min-h-0 flex flex-col justify-center items-center my-2 sm:my-6 max-w-4xl mx-auto w-full px-4 text-center animate-fade-in"
       >
         {/* Step Number Badge */}
         {currentStep && (
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 dark:from-emerald-500 dark:to-emerald-700 text-white flex items-center justify-center font-bold text-lg mb-3 sm:mb-6 shadow-[0_4px_12px_rgba(16,185,129,0.3)] flex-shrink-0 opacity-75">
+          <div className="w-12 h-12 rounded-full bg-emerald-600 dark:bg-emerald-500 text-white flex items-center justify-center font-bold text-lg mb-7 sm:mb-6 shadow-[0_4px_12px_rgba(16,185,129,0.3)] flex-shrink-0 opacity-75">
             {currentStep.step}
           </div>
         )}
@@ -439,8 +439,8 @@ export default function CookingMode({
           isOpen={isCopilotOpen}
           onClose={() => setIsCopilotOpen(false)}
           recipe={recipe}
-          onRemixSuccess={onRemixSuccess || (() => {})}
-          onReplaceCurrent={onReplaceCurrent || (() => {})}
+          onRemixSuccess={onRemixSuccess || (() => { })}
+          onReplaceCurrent={onReplaceCurrent || (() => { })}
         />
       )}
 
