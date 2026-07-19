@@ -67,7 +67,7 @@ export default function ExtractForm({
   limitStatus
 }: ExtractFormProps) {
   const { t } = useI18n();
-  const { user, isPremiumOverride, hasTrialAvailable, trialDays, trialLoading } = useAuth();
+  const { user, isPremium, isPremiumOverride, hasTrialAvailable, trialDays, trialLoading } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
   // React to TrialBanner dismissal so the upgrade card re-appears as soon
@@ -91,7 +91,7 @@ export default function ExtractForm({
   // disappears in exactly the same situations: premium users, while the
   // RevenueCat trial lookup is in-flight, or while the trial banner is on
   // screen (including after a previous dismiss on this device).
-  const trialBannerShowing = !isRealPremium
+  const trialBannerShowing = !isPremium
     && !trialLoading
     && hasTrialAvailable
     && trialDays > 0
