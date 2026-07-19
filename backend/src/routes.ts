@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isBetaActive, getBetaMaxExtractions, getBetaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -14,7 +14,7 @@ apiRouter.use(requireAuth);
 const SUPPORTED_URL_REGEX = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/i;
 
 /**
- * Helper to fetch a user by ID and automatically assign the beta tier if beta is active
+ * Helper to fetch a user by ID and automatically assign the alpha tier if alpha is active
  * and the user is currently on the free/unassigned tier.
  */
 async function fetchAndSyncUser(userId: string): Promise<any> {
@@ -25,35 +25,35 @@ async function fetchAndSyncUser(userId: string): Promise<any> {
 
   let user = data.user;
   const currentTier = user.app_metadata?.tier;
-  const betaActive = await isBetaActive();
+  const alphaActive = await isAlphaActive();
 
-  if (betaActive && currentTier !== 'premium' && currentTier !== 'beta') {
+  if (alphaActive && currentTier !== 'premium' && currentTier !== 'alpha') {
     try {
-      console.log(`Auto-assigning beta tier to user ${userId} (current: ${currentTier})`);
+      console.log(`Auto-assigning alpha tier to user ${userId} (current: ${currentTier})`);
       const { data: updatedData, error: updateError } = await getClient().auth.admin.updateUserById(userId, {
-        app_metadata: { ...user.app_metadata, tier: 'beta' }
+        app_metadata: { ...user.app_metadata, tier: 'alpha' }
       });
       if (updateError) {
-        console.error(`Failed to auto-assign beta tier to user ${userId}:`, updateError.message);
+        console.error(`Failed to auto-assign alpha tier to user ${userId}:`, updateError.message);
       } else if (updatedData?.user) {
         user = updatedData.user;
       }
     } catch (err) {
-      console.error(`Error auto-assigning beta tier to user ${userId}:`, err);
+      console.error(`Error auto-assigning alpha tier to user ${userId}:`, err);
     }
-  } else if (!betaActive && currentTier === 'beta') {
+  } else if (!alphaActive && currentTier === 'alpha') {
     try {
-      console.log(`Auto-reverting user ${userId} from beta to free tier because beta is inactive`);
+      console.log(`Auto-reverting user ${userId} from alpha to free tier because alpha is inactive`);
       const { data: updatedData, error: updateError } = await getClient().auth.admin.updateUserById(userId, {
         app_metadata: { ...user.app_metadata, tier: 'free' }
       });
       if (updateError) {
-        console.error(`Failed to auto-revert beta tier for user ${userId}:`, updateError.message);
+        console.error(`Failed to auto-revert alpha tier for user ${userId}:`, updateError.message);
       } else if (updatedData?.user) {
         user = updatedData.user;
       }
     } catch (err) {
-      console.error(`Error auto-reverting beta tier for user ${userId}:`, err);
+      console.error(`Error auto-reverting alpha tier for user ${userId}:`, err);
     }
   }
 
@@ -84,8 +84,8 @@ async function resolveUserRateLimit(user: any): Promise<number> {
   if (meta.tier === 'premium') {
     return await getPremiumMaxExtractions();
   }
-  if (meta.tier === 'beta') {
-    return await getBetaMaxExtractions();
+  if (meta.tier === 'alpha') {
+    return await getAlphaMaxExtractions();
   }
 
   // 3. Fallback to free tier
@@ -213,8 +213,8 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     // or upgrade to Premium before extracting more.
     if (!premium) {
       const savedCount = await countCompletedRecipesForUser(req.userId!);
-      const isBeta = user?.app_metadata?.tier === 'beta';
-      const limit = isBeta ? await getBetaMaxSavedRecipes() : await getFreeMaxSavedRecipes();
+      const isAlpha = user?.app_metadata?.tier === 'alpha';
+      const limit = isAlpha ? await getAlphaMaxSavedRecipes() : await getFreeMaxSavedRecipes();
       if (limit >= 0 && savedCount >= limit) {
         res.status(403).json({
           success: false,
@@ -330,7 +330,7 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
       if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
-                    meta.tier === 'beta' ||
+                    meta.tier === 'alpha' ||
                     meta.custom_extraction_limit === -1 ||
                     meta.max_extractions_per_window === -1;
       }
@@ -523,7 +523,7 @@ apiRouter.delete('/jobs/:id', async (req: Request, res: Response): Promise<void>
 apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise<void> => {
   try {
     let limit = await getFreeMaxExtractions();
-    let tier: 'free' | 'beta' | 'premium' = 'free';
+    let tier: 'free' | 'alpha' | 'premium' = 'free';
     let user: any = null;
     try {
       user = await fetchAndSyncUser(req.userId!);
@@ -542,7 +542,7 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
       limit = await resolveUserRateLimit(user);
       tier = user.app_metadata?.tier === 'premium' 
         ? 'premium' 
-        : (user.app_metadata?.tier === 'beta' ? 'beta' : 'free');
+        : (user.app_metadata?.tier === 'alpha' ? 'alpha' : 'free');
     }
 
     const windowDays = config.EXTRACTION_LIMIT_WINDOW_DAYS;
@@ -553,7 +553,7 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
     const savedRecipes = await countCompletedRecipesForUser(req.userId!);
     const maxSavedRecipes = premium 
       ? -1 
-      : (user?.app_metadata?.tier === 'beta' ? await getBetaMaxSavedRecipes() : await getFreeMaxSavedRecipes());
+      : (user?.app_metadata?.tier === 'alpha' ? await getAlphaMaxSavedRecipes() : await getFreeMaxSavedRecipes());
     const cookbookFull = maxSavedRecipes >= 0 && savedRecipes >= maxSavedRecipes;
 
     if (limit < 0) {
@@ -614,8 +614,8 @@ apiRouter.post('/billing/sync', async (req: Request, res: Response): Promise<voi
       // This preserves our local fallback but makes it highly secure in production.
       const clientTier = req.body.tier;
       if (clientTier === 'premium' || clientTier === 'free') {
-        const betaActive = await isBetaActive();
-        const finalTier = clientTier === 'free' && betaActive ? 'beta' : clientTier;
+        const alphaActive = await isAlphaActive();
+        const finalTier = clientTier === 'free' && alphaActive ? 'alpha' : clientTier;
         const { error } = await getClient().auth.admin.updateUserById(userId, {
           app_metadata: { tier: finalTier },
         });
@@ -623,8 +623,8 @@ apiRouter.post('/billing/sync', async (req: Request, res: Response): Promise<voi
         res.status(200).json({ success: true, tier: finalTier, fallback: true });
         return;
       }
-      const betaActive = await isBetaActive();
-      res.status(200).json({ success: true, tier: betaActive ? 'beta' : 'free', fallback: true });
+      const alphaActive = await isAlphaActive();
+      res.status(200).json({ success: true, tier: alphaActive ? 'alpha' : 'free', fallback: true });
       return;
     }
 
@@ -659,8 +659,8 @@ apiRouter.post('/billing/sync', async (req: Request, res: Response): Promise<voi
       }
     }
 
-    const betaActive = await isBetaActive();
-    const newTier = isPremium ? 'premium' : (betaActive ? 'beta' : 'free');
+    const alphaActive = await isAlphaActive();
+    const newTier = isPremium ? 'premium' : (alphaActive ? 'alpha' : 'free');
 
     // Update Supabase app_metadata
     const { error } = await getClient().auth.admin.updateUserById(userId, {
@@ -878,7 +878,7 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
-                    meta.tier === 'beta' ||
+                    meta.tier === 'alpha' ||
                     meta.custom_extraction_limit === -1 ||
                     meta.max_extractions_per_window === -1;
       }
@@ -991,7 +991,7 @@ async function checkPremium(req: Request): Promise<boolean> {
     if (user) {
       const meta = user.app_metadata || {};
       isPremium = meta.tier === 'premium' ||
-                  meta.tier === 'beta' ||
+                  meta.tier === 'alpha' ||
                   meta.custom_extraction_limit === -1 ||
                   meta.max_extractions_per_window === -1;
     }

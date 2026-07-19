@@ -600,16 +600,16 @@ export async function getGlobalSetting<T>(key: string, defaultValue: T): Promise
   return defaultValue;
 }
 
-export async function isBetaActive(): Promise<boolean> {
-  return getGlobalSetting('beta_active', config.BETA_ACTIVE);
+export async function isAlphaActive(): Promise<boolean> {
+  return getGlobalSetting('alpha_active', config.ALPHA_ACTIVE);
 }
 
-export async function getBetaMaxExtractions(): Promise<number> {
-  return getGlobalSetting('beta_max_extractions_per_window', config.BETA_MAX_EXTRACTIONS_PER_WINDOW);
+export async function getAlphaMaxExtractions(): Promise<number> {
+  return getGlobalSetting('alpha_max_extractions_per_window', config.ALPHA_MAX_EXTRACTIONS_PER_WINDOW);
 }
 
-export async function getBetaMaxSavedRecipes(): Promise<number> {
-  return getGlobalSetting('beta_max_saved_recipes', config.BETA_MAX_SAVED_RECIPES);
+export async function getAlphaMaxSavedRecipes(): Promise<number> {
+  return getGlobalSetting('alpha_max_saved_recipes', config.ALPHA_MAX_SAVED_RECIPES);
 }
 
 export async function getFreeMaxExtractions(): Promise<number> {
