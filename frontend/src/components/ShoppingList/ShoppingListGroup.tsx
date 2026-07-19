@@ -32,7 +32,7 @@ export default function ShoppingListGroup({
   if (groupedCategories.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {groupedCategories.map((group) => {
         const isGroupCollapsing = collapsingKeys.has(`group-${group.category}`);
         const icon = getCategoryIcon(group.category);
@@ -41,17 +41,17 @@ export default function ShoppingListGroup({
         return (
           <div
             key={group.category}
-            className={`flex flex-col p-2.5 rounded-2xl border border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] transition-all hover:border-emerald-500/20 ${
+            className={`flex flex-col p-2 rounded-2xl border border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] transition-all hover:border-emerald-500/20 ${
               isGroupCollapsing ? 'animate-group-collapse' : 'animate-group-expand'
             }`}
           >
-            <div className="flex items-center gap-2.5 px-1.5 pt-1 pb-2.5 mb-1 border-b border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-2 px-1 pt-0.5 pb-1.5 mb-0.5 border-b border-black/5 dark:border-white/5">
               <button
                 type="button"
                 onClick={() => onGroupHeaderClick(group.items)}
-                className="flex items-center gap-2.5 cursor-pointer select-none flex-1 min-w-0 text-left outline-none"
+                className="flex items-center gap-2 cursor-pointer select-none flex-1 min-w-0 text-left outline-none"
               >
-                <span className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-lg">
+                <span className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-base">
                   {icon}
                 </span>
                 <span className="flex flex-col min-w-0">
@@ -67,7 +67,7 @@ export default function ShoppingListGroup({
                 type="button"
                 onClick={() => onGroupHeaderClick(group.items)}
                 aria-label={t('shopping.checkGroup', { defaultValue: 'Gruppe abhaken' })}
-                className="flex-shrink-0 w-7 h-7 rounded-lg border-2 border-black/15 dark:border-white/20 hover:border-emerald-500 hover:bg-emerald-500/10 flex items-center justify-center transition-all cursor-pointer active:scale-95"
+                className="flex-shrink-0 w-5 h-5 rounded-md border-2 border-black/15 dark:border-white/20 hover:border-emerald-500 hover:bg-emerald-500/10 flex items-center justify-center transition-all cursor-pointer active:scale-95"
               />
             </div>
             <ul className="flex flex-col gap-0.5">
