@@ -2,7 +2,7 @@ import { legal } from '../legal';
 
 export default function TermsPage() {
   return (
-    <div className="w-full max-w-md mx-auto px-4 py-8 flex flex-col gap-6">
+    <div className="w-full max-w-3xl mx-auto px-4 py-8 flex flex-col gap-6">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Allgemeine Geschäftsbedingungen</h1>
       <div className="prose prose-emerald dark:prose-invert">
         <p>Stand: {legal.lastUpdated}</p>
