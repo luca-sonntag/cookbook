@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Button, Drawer } from '@heroui/react';
 import { Folder, Plus, Edit2, Trash2, Check, X } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
-import { useDialog } from '../../context/DialogContext';
 import { useCollections } from '../../hooks/useCollections';
 import type { Job, Collection } from '../../types';
 
@@ -32,7 +31,6 @@ export default function CollectionSheet({
   onUpdated
 }: CollectionSheetProps) {
   const { t, language } = useI18n();
-  const dialog = useDialog();
   const {
     collections,
     refreshCollections,
@@ -57,6 +55,13 @@ export default function CollectionSheet({
   // preserve existing memberships of selected recipes that aren't shared with all others.
   const [bulkInitialMap, setBulkInitialMap] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  // Inline delete confirmation. We can't use the global `dialog.confirm()` here:
+  // that dialog portals to <body>, i.e. OUTSIDE this HeroUI Drawer's modal overlay,
+  // so the drawer's focus/pointer containment swallows every click on it (it renders
+  // on top but is unclickable, trapping the user). Rendering the confirm INSIDE the
+  // drawer keeps it within the drawer's interaction scope, so it stays clickable.
+  const [pendingDelete, setPendingDelete] = useState<Collection | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load collections when the sheet opens; init mode/form state only on the
   // false→true transition so user-driven mode changes (e.g. clicking
@@ -100,6 +105,8 @@ export default function CollectionSheet({
       setName('');
       setSelectedEmoji('');
       setEditingCollection(null);
+      setPendingDelete(null);
+      setIsDeleting(false);
     }
     setPrevIsOpen(isOpen);
   }, [isOpen, prevIsOpen, job, selectedJobs, initialMode, refreshCollections]);
@@ -165,22 +172,23 @@ export default function CollectionSheet({
     }
   };
 
-  // Direct delete from the management overview — confirms via dialog then deletes.
-  const handleDirectDelete = async (col: Collection) => {
-    const confirmed = await dialog.confirm({
-      title: t('catalog.deleteCollection') || 'Sammlung löschen',
-      message: language === 'de'
-        ? `Soll „${col.name}" wirklich gelöscht werden?`
-        : `Really delete "${col.name}"?`,
-      confirmLabel: t('app.dialog.deleteRecipe.confirm') || 'Löschen',
-      cancelLabel: t('app.dialog.deleteRecipe.cancel') || 'Abbrechen',
-      status: 'danger',
-    });
-    if (!confirmed) return;
-    const res = await deleteCollection(col.id);
+  // Direct delete from the management overview — opens the inline confirmation
+  // (rendered inside the drawer, see `pendingDelete` above).
+  const handleDirectDelete = (col: Collection) => {
+    setFormError(null);
+    setPendingDelete(col);
+  };
+
+  const handleConfirmDirectDelete = async () => {
+    if (!pendingDelete) return;
+    setIsDeleting(true);
+    const res = await deleteCollection(pendingDelete.id);
+    setIsDeleting(false);
     if (res.success) {
+      setPendingDelete(null);
       onUpdated?.();
     } else {
+      setPendingDelete(null);
       setFormError(res.error || 'Fehler beim Löschen');
     }
   };
@@ -231,7 +239,7 @@ export default function CollectionSheet({
       <Drawer>
         <Drawer.Backdrop isOpen={isOpen} onOpenChange={(open) => { if (!open) onClose(); }} className="!z-[100]">
           <Drawer.Content placement="bottom" className="!z-[100]">
-            <Drawer.Dialog className="!bg-white dark:!bg-gray-900 max-h-[85vh] flex flex-col">
+            <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 max-h-[85vh] flex flex-col">
               <Drawer.Handle />
 
               {/* Header */}
@@ -519,6 +527,47 @@ export default function CollectionSheet({
                   </div>
                 )}
               </Drawer.Footer>
+
+              {/* Inline delete confirmation — rendered INSIDE the drawer so it stays
+                  within the drawer's modal interaction scope and is clickable. */}
+              {pendingDelete && (
+                <div className="absolute inset-0 z-10 flex items-end justify-center rounded-[inherit] bg-black/40 backdrop-blur-[2px] p-4">
+                  <div className="w-full rounded-2xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 shadow-2xl p-5 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="flex gap-3.5 items-start">
+                      <div className="p-2.5 rounded-xl border flex-shrink-0 flex items-center justify-center bg-rose-500/10 border-rose-500/20">
+                        <Trash2 className="w-5 h-5 text-rose-500" />
+                      </div>
+                      <div className="flex flex-col gap-1 min-w-0">
+                        <h3 className="text-base font-bold text-gray-900 dark:text-white leading-tight">
+                          {t('catalog.deleteCollection') || 'Sammlung löschen'}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                          {language === 'de'
+                            ? `Soll „${pendingDelete.name}" wirklich gelöscht werden?`
+                            : `Really delete "${pendingDelete.name}"?`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 w-full">
+                      <Button
+                        variant="tertiary"
+                        className="flex-1 py-3 rounded-xl text-sm font-semibold"
+                        onPress={() => setPendingDelete(null)}
+                        isDisabled={isDeleting}
+                      >
+                        {t('app.dialog.deleteRecipe.cancel') || 'Abbrechen'}
+                      </Button>
+                      <Button
+                        className="flex-1 py-3 rounded-xl text-sm font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-500/25 active:scale-[0.98] transition-all"
+                        onPress={handleConfirmDirectDelete}
+                        isDisabled={isDeleting}
+                      >
+                        {t('app.dialog.deleteRecipe.confirm') || 'Löschen'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </Drawer.Dialog>
           </Drawer.Content>
         </Drawer.Backdrop>
