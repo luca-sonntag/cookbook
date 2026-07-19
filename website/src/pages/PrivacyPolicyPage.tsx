@@ -131,7 +131,7 @@ export default function PrivacyPolicyPage() {
             <p>
               Zur Erstellung der Rezepte werden die von dir übermittelten Inhalte (Video-Frames, Beschreibungstexte) automatisiert durch das KI-Modell Google Gemini ausgewertet. Diese KI-Auswertung dient allein der Strukturierung des Rezepts. Eine ausschließlich automatisierte Entscheidung mit rechtlicher Wirkung oder ähnlich erheblicher Beeinträchtigung im Sinne des Art. 22 DSGVO findet nicht statt.
             </p>
-            <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-500/10 rounded-xl text-sm text-gray-700 dark:text-gray-300">
+            <div className="p-4 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 rounded-xl text-sm text-gray-700 dark:text-gray-300">
               Bitte beachte, dass KI-generierte Angaben (insbesondere Zutatenmengen und Nährwerte) fehlerhaft sein können und keine Ernährungs- oder Gesundheitsberatung darstellen.
             </div>
           </section>
@@ -143,19 +143,19 @@ export default function PrivacyPolicyPage() {
             </p>
             
             <div className="grid grid-cols-1 gap-4 mt-4">
-              <div className="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="p-4 rounded-xl glass-panel">
                 <strong>Supabase (Supabase Inc., USA / EU-Hosting)</strong>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-2">Authentifizierung, Datenbank- und Speicher-Hosting (Konto, Rezepte, Feedback, Bilder).</p>
                 <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-500 hover:underline">Datenschutzhinweise Supabase</a>
               </div>
 
-              <div className="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="p-4 rounded-xl glass-panel">
                 <strong>Google Gemini (Google Ireland Ltd. / Google LLC, USA)</strong>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-2">KI-gestützte Analyse der übermittelten Rezeptinhalte.</p>
                 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-500 hover:underline">Datenschutzhinweise Google</a>
               </div>
 
-              <div className="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="p-4 rounded-xl glass-panel">
                 <strong>Apify & RapidAPI (USA / Tschechien)</strong>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-2">Abruf öffentlich zugänglicher Social-Media-Inhalte zum übermittelten Link.</p>
                 <div className="flex gap-4">
@@ -164,7 +164,7 @@ export default function PrivacyPolicyPage() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="p-4 rounded-xl glass-panel">
                 <strong>RevenueCat & Google Play (USA / EU)</strong>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-2">Verwaltung und Verifizierung des Abo-Status sowie Abwicklung der Zahlungen.</p>
                 <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-500 hover:underline">Datenschutzhinweise RevenueCat</a>
@@ -204,10 +204,10 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">9. Deine Rechte</h2>
             <p>Dir stehen nach der DSGVO folgende Rechte zu:</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-4">
-              <div className="p-3 rounded-lg border border-gray-100 dark:border-gray-800 text-xs"><strong>Auskunft:</strong> Erhalte Infos über deine Daten</div>
-              <div className="p-3 rounded-lg border border-gray-100 dark:border-gray-800 text-xs"><strong>Berichtigung:</strong> Korrigiere unrichtige Daten</div>
-              <div className="p-3 rounded-lg border border-gray-100 dark:border-gray-800 text-xs"><strong>Löschung:</strong> Recht auf Vergessenwerden</div>
-              <div className="p-3 rounded-lg border border-gray-100 dark:border-gray-800 text-xs"><strong>Widerspruch:</strong> Gegen berechtigte Interessen</div>
+              <div className="p-3 rounded-lg glass-panel text-xs"><strong>Auskunft:</strong> Erhalte Infos über deine Daten</div>
+              <div className="p-3 rounded-lg glass-panel text-xs"><strong>Berichtigung:</strong> Korrigiere unrichtige Daten</div>
+              <div className="p-3 rounded-lg glass-panel text-xs"><strong>Löschung:</strong> Recht auf Vergessenwerden</div>
+              <div className="p-3 rounded-lg glass-panel text-xs"><strong>Widerspruch:</strong> Gegen berechtigte Interessen</div>
             </div>
             <p>
               Zur Ausübung deiner Rechte genügt eine einfache E-Mail an <a href={`mailto:${legal.email}`} className="text-emerald-500 hover:underline">{legal.email}</a>.
