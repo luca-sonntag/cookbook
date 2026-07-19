@@ -29,7 +29,7 @@ export default function DataDeletionPage() {
         
         {/* Step by step Card */}
         <div className="md:col-span-7 flex flex-col gap-6">
-          <Card className="p-6 border-none shadow-sm bg-white dark:bg-gray-900/50">
+          <Card className="p-6 border-none shadow-sm glass-panel">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
               <Smartphone className="w-5 h-5 text-emerald-500" />
               Löschung direkt in der App
@@ -37,7 +37,7 @@ export default function DataDeletionPage() {
             <div className="flex flex-col gap-4">
               {steps.map((step) => (
                 <div key={step.num} className="flex gap-4 items-start text-sm">
-                  <span className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                  <span className="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                     {step.num}
                   </span>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{step.text}</p>
@@ -47,7 +47,7 @@ export default function DataDeletionPage() {
           </Card>
 
           {/* Info callout: What happens */}
-          <div className="p-5 rounded-2xl border border-gray-150 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30 flex gap-4 items-start text-sm">
+          <div className="p-5 rounded-2xl border border-emerald-500/15 bg-emerald-500/5 dark:bg-emerald-500/10 flex gap-4 items-start text-sm">
             <ShieldCheck className="w-6 h-6 text-emerald-500 shrink-0 mt-0.5" />
             <div>
               <strong className="text-gray-800 dark:text-gray-200 block mb-1">Was passiert nach der Löschung?</strong>
@@ -61,7 +61,7 @@ export default function DataDeletionPage() {
         {/* Side columns / Notes */}
         <div className="md:col-span-5 flex flex-col gap-6">
           {/* Card: Subscriptions */}
-          <Card className="p-5 border-none shadow-sm bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 flex flex-col gap-3">
+          <Card className="p-5 border-none shadow-sm bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 flex flex-col gap-3">
             <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-sm">
               <CreditCard className="w-4 h-4 shrink-0" />
               <span>Abonnement kündigen</span>
@@ -72,7 +72,7 @@ export default function DataDeletionPage() {
           </Card>
 
           {/* Card: Email support deletion */}
-          <Card className="p-5 border-none shadow-sm bg-white dark:bg-gray-900/50 flex flex-col gap-3">
+          <Card className="p-5 border-none shadow-sm glass-panel flex flex-col gap-3">
             <div className="flex items-center gap-2 text-gray-950 dark:text-white font-bold text-sm">
               <Mail className="w-4 h-4 text-emerald-500 shrink-0" />
               <span>Löschung per E-Mail</span>
