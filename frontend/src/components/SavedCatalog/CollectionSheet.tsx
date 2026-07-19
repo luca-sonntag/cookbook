@@ -10,8 +10,6 @@ interface CollectionSheetProps {
   onClose: () => void;
   job?: Job;
   selectedJobs?: Job[];
-  /** @deprecated Use `selectedJobs` instead — kept for backward compatibility. */
-  selectedJobIds?: string[];
   onUpdated?: () => void;
 }
 
@@ -22,9 +20,6 @@ export default function CollectionSheet({
   onClose,
   job,
   selectedJobs = [],
-  // `selectedJobIds` is deprecated; we read from `selectedJobs` instead.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  selectedJobIds: _selectedJobIds = [],
   onUpdated
 }: CollectionSheetProps) {
   const { t, language } = useI18n();
