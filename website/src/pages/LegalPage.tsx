@@ -58,7 +58,7 @@ export default function LegalPage() {
       {/* Corporate Details & Disclaimers */}
       <div className="prose prose-emerald dark:prose-invert max-w-none flex flex-col gap-8 mt-4">
         
-        <section className="bg-white/40 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800 p-6 rounded-2xl">
+        <section className="glass-panel p-6 rounded-2xl">
           <h2 className="text-lg font-bold mb-3 text-gray-900 dark:text-white mt-0">Unternehmensdaten &amp; Behörden</h2>
           <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-400 flex flex-col gap-2">
             {legal.vatId && !legal.vatId.startsWith('AUSFÜLLEN') && (
@@ -90,7 +90,7 @@ export default function LegalPage() {
           </p>
         </section>
 
-        <section className="bg-amber-500/5 dark:bg-amber-500/15 border border-amber-500/10 p-5 rounded-2xl">
+        <section className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 p-5 rounded-2xl">
           <h2 className="text-lg font-bold mb-2 text-amber-700 dark:text-amber-400 mt-0 flex items-center gap-2">
             <ShieldAlert className="w-5 h-5 shrink-0" />
             Online-Streitbeilegung &amp; Verbraucherschlichtung
