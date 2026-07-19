@@ -370,7 +370,13 @@ export default function SavedCatalog({
         onClose={() => setIsCollectionSheetOpen(false)}
         job={collectionSheetJob}
         selectedJobs={collectionSheetBulkJobs}
-        initialMode={!collectionSheetJob && collectionSheetBulkJobs.length === 0 ? 'create' : 'assign'}
+        initialMode={
+          // No specific recipe / bulk context => open in management overview
+          // (no checkboxes); otherwise assign mode is default.
+          !collectionSheetJob && collectionSheetBulkJobs.length === 0
+            ? 'manage'
+            : 'assign'
+        }
         onUpdated={() => {
           fetchHistory?.();
           refreshCollections();

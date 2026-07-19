@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button, Drawer } from '@heroui/react';
 import { Folder, Plus, Edit2, Trash2, Check, X } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
+import { useDialog } from '../../context/DialogContext';
 import { useCollections } from '../../hooks/useCollections';
 import type { Job, Collection } from '../../types';
 
@@ -13,9 +14,10 @@ interface CollectionSheetProps {
   /**
    * Optional override for the initial mode:
    * - `'assign'` (default): checkbox list (single-recipe or bulk)
+   * - `'manage'`: collection-management overview (no checkboxes, edit/delete actions)
    * - `'create'`: jump straight to the "new collection" form (no checkboxes shown)
    */
-  initialMode?: 'assign' | 'create';
+  initialMode?: 'assign' | 'create' | 'manage';
   onUpdated?: () => void;
 }
 
@@ -30,6 +32,7 @@ export default function CollectionSheet({
   onUpdated
 }: CollectionSheetProps) {
   const { t, language } = useI18n();
+  const dialog = useDialog();
   const {
     collections,
     refreshCollections,
@@ -39,8 +42,9 @@ export default function CollectionSheet({
     updateRecipeCollections
   } = useCollections();
 
-  // Mode: 'assign' (checkboxes) or 'create' (form) or 'edit' (form)
-  const [mode, setMode] = useState<'assign' | 'create' | 'edit'>(initialMode);
+  // Mode: 'assign' (checkboxes) | 'manage' (collection overview, no recipes) |
+  //       'create' (form) | 'edit' (form)
+  const [mode, setMode] = useState<'assign' | 'manage' | 'create' | 'edit'>(initialMode);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
 
   // Form states
@@ -61,8 +65,9 @@ export default function CollectionSheet({
       setMode(initialMode);
       setFormError(null);
 
-      if (job || initialMode === 'create') {
-        // Single-recipe mode OR explicit "create new" mode: no membership table needed.
+      if (job || initialMode === 'create' || initialMode === 'manage') {
+        // Single-recipe mode, "create new" mode, or pure management mode:
+        // no membership table needed.
         setMembershipIds([]);
         setBulkInitialMap({});
       } else if (initialMode === 'assign') {
@@ -85,6 +90,13 @@ export default function CollectionSheet({
       }
     }
   }, [isOpen, job, selectedJobs, initialMode, refreshCollections]);
+
+  // After creating/editing/deleting within the form modes, return to whichever
+  // list view the user started from ('manage' if no recipes were involved,
+  // 'assign' otherwise) so the modal flow stays consistent.
+  const handleBackToList = () => {
+    setMode(initialMode === 'assign' && (job || selectedJobs.length > 0) ? 'assign' : 'manage');
+  };
 
   const handleCreateOpen = () => {
     setName('');
@@ -110,7 +122,7 @@ export default function CollectionSheet({
     if (mode === 'create') {
       const res = await createCollection(name, selectedEmoji || null);
       if (res.success) {
-        setMode('assign');
+        handleBackToList();
         onUpdated?.();
       } else {
         setFormError(res.error || 'Fehler beim Erstellen');
@@ -121,7 +133,7 @@ export default function CollectionSheet({
         emoji: selectedEmoji || null
       });
       if (res.success) {
-        setMode('assign');
+        handleBackToList();
         onUpdated?.();
       } else {
         setFormError(res.error || 'Fehler beim Aktualisieren');
@@ -133,7 +145,27 @@ export default function CollectionSheet({
     if (!editingCollection) return;
     const res = await deleteCollection(editingCollection.id);
     if (res.success) {
-      setMode('assign');
+      handleBackToList();
+      onUpdated?.();
+    } else {
+      setFormError(res.error || 'Fehler beim Löschen');
+    }
+  };
+
+  // Direct delete from the management overview — confirms via dialog then deletes.
+  const handleDirectDelete = async (col: Collection) => {
+    const confirmed = await dialog.confirm({
+      title: t('catalog.deleteCollection') || 'Sammlung löschen',
+      message: language === 'de'
+        ? `Soll „${col.name}" wirklich gelöscht werden?`
+        : `Really delete "${col.name}"?`,
+      confirmLabel: t('app.dialog.deleteRecipe.confirm') || 'Löschen',
+      cancelLabel: t('app.dialog.deleteRecipe.cancel') || 'Abbrechen',
+      status: 'danger',
+    });
+    if (!confirmed) return;
+    const res = await deleteCollection(col.id);
+    if (res.success) {
       onUpdated?.();
     } else {
       setFormError(res.error || 'Fehler beim Löschen');
@@ -203,17 +235,19 @@ export default function CollectionSheet({
                         : (membershipIds.length > 0
                           ? (t('catalog.manageBulkCollectionsTitle') || 'Sammlungen verwalten')
                           : (t('catalog.bulkAddToCollection') || 'Zu Sammlung hinzufügen')))
+                      : mode === 'manage'
+                      ? t('catalog.manageCollections') || 'Sammlungen verwalten'
                       : mode === 'create'
                       ? t('catalog.addCollection') || 'Neue Sammlung'
                       : t('catalog.editCollection') || 'Sammlung bearbeiten'}
                   </Drawer.Heading>
                   </div>
-                  {mode !== 'assign' && (
+                  {(mode === 'create' || mode === 'edit' || mode === 'manage') && (
                     <Button
                       isIconOnly
                       variant="tertiary"
                       className="w-8 h-8 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-500"
-                      onPress={() => setMode('assign')}
+                      onPress={() => setMode(initialMode === 'manage' ? 'manage' : initialMode === 'create' ? 'create' : 'assign')}
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -228,7 +262,7 @@ export default function CollectionSheet({
                     {formError}
                   </div>
                 )}
-                {mode === 'assign' && !job && initialMode !== 'create' && collections.length > 0 && (
+                {mode === 'assign' && !job && initialMode !== 'create' && initialMode !== 'manage' && collections.length > 0 && (
                   <div className="mb-3 px-3.5 py-2.5 text-[11px] leading-snug rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/15">
                     {language === 'de'
                       ? '1. Rezept auswählen (lange drücken) · 2. Sammlung wählen · 3. Häkchen setzen oder entfernen.'
@@ -320,6 +354,55 @@ export default function CollectionSheet({
                       {t('catalog.addCollection') || 'Neue Sammlung'}
                     </Button>
                   </div>
+                ) : mode === 'manage' ? (
+                  <div className="flex flex-col gap-2.5">
+                    {collections.length === 0 ? (
+                      <div className="text-center py-8 text-xs text-gray-400 dark:text-gray-500">
+                        {t('catalog.noCollections') || 'Keine Sammlungen erstellt'}
+                      </div>
+                    ) : (
+                      collections.map(col => (
+                        <div
+                          key={col.id}
+                          className="p-3.5 rounded-2xl border border-transparent bg-black/5 dark:bg-white/5 hover:border-black/10 dark:hover:border-white/10 transition-all flex items-center justify-between select-none"
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            {col.emoji && <span className="text-xl">{col.emoji}</span>}
+                            <span className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                              {col.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Button
+                              isIconOnly
+                              variant="tertiary"
+                              className="w-8 h-8 rounded-xl text-gray-400 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 shrink-0"
+                              onPress={() => handleEditOpen(col)}
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              isIconOnly
+                              variant="tertiary"
+                              className="w-8 h-8 rounded-xl text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 shrink-0"
+                              onPress={() => handleDirectDelete(col)}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+
+                    <Button
+                      variant="secondary"
+                      className="mt-2 py-3.5 rounded-2xl border border-dashed border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5 flex items-center justify-center gap-2 font-bold text-xs shrink-0"
+                      onPress={handleCreateOpen}
+                    >
+                      <Plus className="w-4 h-4" />
+                      {t('catalog.addCollection') || 'Neue Sammlung'}
+                    </Button>
+                  </div>
                 ) : (
                   /* Create / Edit Form */
                   <div className="flex flex-col gap-4">
@@ -377,7 +460,7 @@ export default function CollectionSheet({
 
               {/* Footer */}
               <Drawer.Footer className="border-t border-black/5 dark:border-white/5 pt-3">
-                {mode === 'assign' ? (
+                {mode === 'assign' || mode === 'manage' ? (
                   <div className="flex gap-3 w-full">
                     <Button
                       variant="tertiary"
@@ -388,10 +471,12 @@ export default function CollectionSheet({
                     </Button>
                     <Button
                       className="flex-[2] py-3 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white shadow-md shadow-emerald-500/25 active:scale-[0.98] transition-all"
-                      onPress={handleConfirmAssignment}
-                      isDisabled={collections.length === 0}
+                      onPress={mode === 'manage' ? onClose : handleConfirmAssignment}
+                      isDisabled={mode === 'assign' && collections.length === 0}
                     >
-                      {t('recipe.save') || 'Speichern'}
+                      {mode === 'manage'
+                        ? (t('catalog.closeButton') || (language === 'de' ? 'Schließen' : 'Close'))
+                        : (t('recipe.save') || 'Speichern')}
                     </Button>
                   </div>
                 ) : (
@@ -408,7 +493,7 @@ export default function CollectionSheet({
                     <Button
                       variant="tertiary"
                       className="flex-1 py-3 rounded-xl text-sm font-semibold"
-                      onPress={() => setMode('assign')}
+                      onPress={handleBackToList}
                     >
                       {t('app.dialog.deleteRecipe.cancel') || 'Abbrechen'}
                     </Button>
