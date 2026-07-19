@@ -485,7 +485,11 @@ export async function countCompletedRecipesForUser(userId: string): Promise<numb
   return count ?? 0;
 }
 
-/** Get all extraction jobs created by a user in the last N days (excluding remixes). */
+/**
+ * Get all extraction jobs created by a user in the last N days (excluding remixes).
+ * Failed extractions are excluded so they don't consume the user's rate-limit
+ * allowance — only in-flight (pending/scraping/processing) and completed jobs count.
+ */
 export async function getExtractionsForUserInTimeframe(userId: string, days: number): Promise<Job[]> {
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await getClient()
@@ -493,6 +497,7 @@ export async function getExtractionsForUserInTimeframe(userId: string, days: num
     .select()
     .eq('user_id', userId)
     .is('parent_job_id', null)
+    .neq('status', 'failed')
     .gte('created_at', cutoff)
     .order('created_at', { ascending: true })
     .returns<JobRow[]>();
