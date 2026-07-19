@@ -853,7 +853,7 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       res.status(403).json({
         success: false,
         code: 'PREMIUM_REQUIRED',
-        error: 'AI Kitchen Chef Chat is a premium feature. Please upgrade to Premium to chat with KochBuddy.',
+        error: 'AI Kitchen Chef Chat is a premium feature. Please upgrade to Premium to chat with Recipe Copilot.',
       });
       return;
     }
