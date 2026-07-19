@@ -59,6 +59,71 @@ html.dark body {
   animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+@keyframes radar-sweep {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.animate-radar {
+  animation: radar-sweep 2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+}
+
+@keyframes arrow-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.animate-bounce-arrow {
+  animation: arrow-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes scan-line {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(32px); opacity: 1; }
+}
+
+.animate-scan {
+  animation: scan-line 2s ease-in-out infinite;
+}
+
+@keyframes write-lines {
+  0% { width: 0%; opacity: 0; }
+  50% { width: 100%; opacity: 1; }
+  100% { width: 100%; opacity: 1; }
+}
+
+.animate-write {
+  animation: write-lines 2.5s ease-in-out infinite;
+}
+
+@keyframes checkmark-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* Premium scrollbar design */
 ::-webkit-scrollbar {
   width: 6px;
@@ -149,8 +214,12 @@ html.dark .glass-panel {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-tab-in-right,
-  .animate-tab-in-left {
-    animation: none;
+  .animate-tab-in-left,
+  .animate-radar,
+  .animate-bounce-arrow,
+  .animate-scan,
+  .animate-write {
+    animation: none !important;
   }
 }
 
