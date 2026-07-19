@@ -375,6 +375,7 @@ export default function CookingMode({
             </Button>
           )}
         </div>
+      </div>
       {/* Floating Action Buttons */}
       <div className="absolute right-4 bottom-28 md:right-8 md:bottom-32 z-[100] flex flex-col gap-3">
         {/* Timer Button */}
