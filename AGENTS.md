@@ -348,7 +348,7 @@ Railway hostet die containerisierte Express- und React-Anwendung stateless.
 Die App unterscheidet zwischen **Free**-, **Alpha**- und **Premium**-Nutzern. Premium-Status wird aus `user.app_metadata.tier === 'premium'` abgeleitet. Der Alpha-Status wird aus `user.app_metadata.tier === 'alpha'` abgeleitet. Beide Tiers sind in `AuthContext` über `isPremium` als `true` abgebildet, da sie vollen Zugriff auf alle Premium-Features erhalten (Ausnahme: Alpha-Nutzer unterliegen voreingestellten Extraktions- und Kochbuch-Limits).
 
 ### Tier-Erkennung & Dev-Override
-* **`AuthContext.tsx`:** Stellt `isPremium` (computed: `premium` oder `beta`) und `setIsPremiumOverride(value: boolean)` bereit.
+* **`AuthContext.tsx`:** Stellt `isPremium` (computed: `premium` oder `alpha`) und `setIsPremiumOverride(value: boolean)` bereit.
 * **Dev-Override:** Nur wenn `import.meta.env.DEV === true` wird ein `localStorage`-Key (`kb_simulate_premium`) gelesen/geschrieben, um den Premium-Status zu simulieren. In Production hat dies keine Wirkung.
 * **SettingsView:** Zeigt einen violetten "Simulate Premium"-Toggle (dashed border, Kolben-Icon) ausschließlich im Dev-Modus.
 

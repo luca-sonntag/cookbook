@@ -170,7 +170,7 @@ export default function SettingsView() {
         ) : null}
       </div>
 
-      {/* Premium Upgrade Promotion (only for free members and beta testers) */}
+      {/* Premium Upgrade Promotion (only for free members and alpha testers) */}
       <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} className="mx-2" />
 
       {/* Preferences Section */}
