@@ -36,10 +36,10 @@ export default function ShoppingCheckedDrawer({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex items-center gap-2.5 w-full px-3 py-3 text-left cursor-pointer outline-none select-none"
+        className="flex items-center gap-2.5 w-full px-2.5 py-2 text-left cursor-pointer outline-none select-none"
       >
-        <span className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 stroke-[3px]" />
+        <span className="w-5.5 h-5.5 rounded-md bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+          <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 stroke-[3px]" />
         </span>
         <span className="flex-1 text-sm font-bold text-gray-600 dark:text-gray-300">
           {t('shopping.doneCount', { count: items.length })}
