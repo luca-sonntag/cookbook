@@ -172,9 +172,9 @@ export default function LandingPage() {
                 <p className="text-md font-bold">Direkt im Teilen-Menü</p>
               </div>
             </Card.Header>
-            <Card.Body className="px-6 pb-6 text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <Card.Content className="px-6 pb-6 text-sm text-gray-500 dark:text-gray-400 mt-2">
               Kein lästiges Kopieren. Teile das Video einfach direkt aus deiner liebsten Social-Media-App mit Snagbite.
-            </Card.Body>
+            </Card.Content>
           </Card>
 
           <Card className="glass-panel border-none shadow-sm hover:-translate-y-1 transition-transform duration-300">
@@ -186,9 +186,9 @@ export default function LandingPage() {
                 <p className="text-md font-bold">KI-gestützte Extraktion</p>
               </div>
             </Card.Header>
-            <Card.Body className="px-6 pb-6 text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <Card.Content className="px-6 pb-6 text-sm text-gray-500 dark:text-gray-400 mt-2">
               Unsere moderne Multimodal-KI extrahiert Zutaten, Arbeitsschritte und Mengen fehlerfrei aus Video, Bild und Beschreibung.
-            </Card.Body>
+            </Card.Content>
           </Card>
 
           <Card className="glass-panel border-none shadow-sm hover:-translate-y-1 transition-transform duration-300">
@@ -200,9 +200,9 @@ export default function LandingPage() {
                 <p className="text-md font-bold">Nährwerte & Makros</p>
               </div>
             </Card.Header>
-            <Card.Body className="px-6 pb-6 text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <Card.Content className="px-6 pb-6 text-sm text-gray-500 dark:text-gray-400 mt-2">
               Erhalte automatisch berechnete Nährwerte (Kalorien, Eiweiß, Kohlenhydrate, Fett) für jedes Kochrezept.
-            </Card.Body>
+            </Card.Content>
           </Card>
         </div>
       </section>
