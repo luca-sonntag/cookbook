@@ -47,7 +47,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [url, setUrl] = useState('');
   const [urlError, setUrlError] = useState('');
-  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'beta' | 'premium'; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null>(null);
+  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'alpha' | 'premium'; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null>(null);
 
   const fetchLimitStatus = useCallback(async () => {
     try {
@@ -77,7 +77,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           cookbookFull: data.cookbookFull ?? false
         });
 
-        // Auto-refresh auth session on tier mismatch (e.g. after beta auto-assignment)
+        // Auto-refresh auth session on tier mismatch (e.g. after alpha auto-assignment)
         if (user && data.tier && user.app_metadata?.tier !== data.tier) {
           console.log(`Tier mismatch detected: local is '${user.app_metadata?.tier}', server is '${data.tier}'. Refreshing session...`);
           refreshSession().catch(err => console.warn('Failed to refresh session on tier change:', err));

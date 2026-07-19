@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const isPremium = isPremiumOverride || user?.app_metadata?.tier === 'premium' || user?.app_metadata?.tier === 'beta';
+  const isPremium = isPremiumOverride || user?.app_metadata?.tier === 'premium' || user?.app_metadata?.tier === 'alpha';
 
   const refreshSession = useCallback(async () => {
     const { data, error } = await supabase.auth.refreshSession();

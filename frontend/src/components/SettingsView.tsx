@@ -134,10 +134,10 @@ export default function SettingsView() {
               {user?.email}
             </span>
             <div className="flex items-center gap-2 mt-1.5">
-              {user?.app_metadata?.tier === 'beta' ? (
+              {user?.app_metadata?.tier === 'alpha' ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 uppercase tracking-wider">
                   <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500 animate-pulse" />
-                  {t('app.settings.betaActive') || 'Beta Access'}
+                  {t('app.settings.alphaActive') || 'Alpha Access'}
                 </span>
               ) : isPremium ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
@@ -153,11 +153,11 @@ export default function SettingsView() {
           </div>
         </div>
 
-        {user?.app_metadata?.tier === 'beta' ? (
+        {user?.app_metadata?.tier === 'alpha' ? (
           <div className="pt-3.5 border-t border-black/5 dark:border-white/5 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span>
-              {t('app.settings.betaActiveDesc') || 'You are a beta tester! You have free access to all premium features during the beta. Extraction limits apply.'}
+              {t('app.settings.alphaActiveDesc') || 'You are an alpha tester! You have free access to all premium features during the alpha. Extraction limits apply.'}
             </span>
           </div>
         ) : isPremium ? (
