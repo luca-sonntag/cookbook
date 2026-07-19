@@ -161,7 +161,7 @@ export default function ShoppingList({
     <div className="flex flex-col gap-4 relative">
       {/* Sticky overview toolbar: title, progress, and the overflow (clear) menu */}
       {totalCount > 0 && (
-        <div className="sticky top-[calc(52px+env(safe-area-inset-top))] z-30 -mx-4 px-4 pt-2 pb-3 bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+        <div className="sticky top-[env(safe-area-inset-top)] z-30 -mx-4 px-4 pt-2 pb-3 bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5">
           <div className="flex items-center justify-between gap-3 mb-2">
             <div className="flex items-baseline gap-2 min-w-0">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight truncate">

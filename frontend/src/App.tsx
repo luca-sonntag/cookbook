@@ -62,6 +62,8 @@ export default function App() {
       ? (history.find(j => j.id === subPath) ?? null)
       : null;
 
+  const isViewingRecipe = !!selectedJob || (activeView === 'extract' && !!recipe);
+
   // Setter for selected job — navigates via URL
   const setSelectedJob = useCallback((job: Job | null) => {
     if (job) {
@@ -472,10 +474,10 @@ export default function App() {
       <main className={`w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 ${
         activeView === 'admin'
           ? 'pb-12'
-          : selectedJob || (activeView === 'extract' && recipe) || activeView === 'shopping-list' || (activeView === 'history' && isCatalogSelectMode)
+          : isViewingRecipe || activeView === 'shopping-list' || (activeView === 'history' && isCatalogSelectMode)
             ? 'pb-48'
             : 'pb-24'
-      }`}>
+      } ${(!isViewingRecipe && activeView !== 'extract') ? 'pt-4' : ''}`}>
 
         {/* One-time trial banner for free users */}
         <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
