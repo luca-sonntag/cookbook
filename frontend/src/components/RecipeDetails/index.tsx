@@ -160,10 +160,10 @@ export default function RecipeDetails({
   // Helper to format nutrition values, optionally scaling them and appending units
   const getNutritionDisplayValue = (val: any, unit: string = 'g', isTotal: boolean = false, includeUnit: boolean = true) => {
     if (val === undefined || val === null || val === '') return '—';
-    
+
     let numericVal: number;
     let originalUnit = '';
-    
+
     if (typeof val === 'number') {
       numericVal = val;
     } else {
@@ -173,19 +173,19 @@ export default function RecipeDetails({
       originalUnit = match[2] || '';
       if (isNaN(numericVal)) return String(val);
     }
-    
+
     if (numericVal === 0) return '—';
-    
+
     // Scale value if total is requested: multiply the per-serving value by the selected servings
     const finalVal = isTotal ? numericVal * servings : numericVal;
-    
+
     const displayUnit = originalUnit || unit;
     const isKcal = displayUnit.toLowerCase() === 'kcal';
-    
-    const rounded = isKcal 
-      ? Math.round(finalVal) 
+
+    const rounded = isKcal
+      ? Math.round(finalVal)
       : Math.round(finalVal * 10) / 10;
-      
+
     if (includeUnit) {
       return `${rounded}${displayUnit}`;
     }
@@ -353,7 +353,7 @@ export default function RecipeDetails({
       setIsAdded(true);
       setTimeout(() => setIsAdded(false), 2000);
     }
-    
+
     // Always navigate
     onNavigateToShoppingList?.();
   };
@@ -482,12 +482,12 @@ export default function RecipeDetails({
 
     writeRichText().then(markCopied).catch(() => {
       // Last resort: plain text only
-      navigator.clipboard.writeText(text).then(markCopied).catch(() => {});
+      navigator.clipboard.writeText(text).then(markCopied).catch(() => { });
     });
   };
 
   return (
-    <article className="flex flex-col gap-6">
+    <article className="flex flex-col mt-3 gap-6">
       <Card className="glass-panel p-6 rounded-2xl overflow-hidden">
         {/* Recipe Title & Gallery */}
         <RecipeHeader
@@ -626,9 +626,9 @@ export default function RecipeDetails({
 
       {/* Recipe Copilot Chatbot */}
       {recipe.id && onRemixSuccess && (
-        <RecipeCopilot 
-          isOpen={isCopilotOpen} 
-          onClose={() => setIsCopilotOpen(false)} 
+        <RecipeCopilot
+          isOpen={isCopilotOpen}
+          onClose={() => setIsCopilotOpen(false)}
           recipe={recipe}
           onRemixSuccess={onRemixSuccess}
           onReplaceCurrent={onReplaceCurrent!}
@@ -636,9 +636,9 @@ export default function RecipeDetails({
       )}
 
       {/* Premium Upgrade Modal */}
-      <PremiumModal 
-        isOpen={isPremiumModalOpen} 
-        onOpenChange={setIsPremiumModalOpen} 
+      <PremiumModal
+        isOpen={isPremiumModalOpen}
+        onOpenChange={setIsPremiumModalOpen}
       />
     </article>
   );
