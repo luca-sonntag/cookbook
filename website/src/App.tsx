@@ -15,10 +15,6 @@ export default function App() {
             <img src="/icon-192.png" alt="Snagbite Logo" className="w-8 h-8 mr-2 rounded-lg" />
             <span className="font-bold text-inherit text-xl bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent dark:from-emerald-400 dark:to-teal-300">Snagbite</span>
           </Link>
-          <nav className="flex gap-6">
-            <Link to="/privacy" className="text-sm font-medium hover:text-emerald-500 transition-colors">Datenschutz</Link>
-            <Link to="/legal" className="text-sm font-medium hover:text-emerald-500 transition-colors">Impressum</Link>
-          </nav>
         </div>
       </header>
 
