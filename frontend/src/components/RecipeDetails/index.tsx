@@ -619,6 +619,8 @@ export default function RecipeDetails({
           toggleStep={toggleStep}
           formatAmount={formatAmount}
           initialStepOverride={initialStepOverride}
+          onRemixSuccess={onRemixSuccess}
+          onReplaceCurrent={onReplaceCurrent}
         />
       )}
 

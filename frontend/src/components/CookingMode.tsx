@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { Button } from '@heroui/react';
 import {
   X,
@@ -7,7 +7,8 @@ import {
   Check,
   Sparkles,
   Bell,
-  Timer
+  Timer,
+  MessageCircle
 } from 'lucide-react';
 import type { Recipe, Ingredient } from '../types';
 import { useCookingMode } from '../hooks/useCookingMode';
@@ -15,6 +16,37 @@ import RecipeInstructionText from './RecipeInstructionText';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
 import { useTimerManager } from '../hooks/useTimerManager';
+import { useAuth } from '../context/AuthContext';
+import TimerConfirmSheet from './TimerConfirmSheet';
+import RecipeCopilot from './RecipeDetails/RecipeCopilot';
+import PremiumModal from './PremiumModal';
+
+// ─── Time parsing helper ──────────────────────────────────────────────────────
+function parseTimeToSeconds(timeStr: string): number {
+  const s = timeStr.toLowerCase().trim();
+  const numMatch = s.match(/(\d+(?:[.,]\d+)?)/);
+  if (!numMatch) return 0;
+  const value = parseFloat(numMatch[1].replace(',', '.'));
+  const isHour = /stunden?|hours?|heures?|horas?|ore|uur|saat|std\.?|hrs?\.?|h\.?|godz\.?|godzin|godziny\b/.test(s);
+  const isMinute = /minuten?|minutes?|minutos?|minuti|minuts?|minuty|minute?|minuta|minuty|dakika|min\.?|mins?\.?|dk\.?\b/.test(s);
+  const isSecond = /sekunden?|seconds?|segundos?|secondes?|secondi|sekunda|sekundy|sekund|sekunde|saniye|sek\.?|secs?\.?|sec\.?|seg\.?|sn\.?\b/.test(s);
+  if (isHour) return Math.round(value * 3600);
+  if (isMinute) return Math.round(value * 60);
+  if (isSecond) return Math.round(value);
+  return Math.round(value * 60);
+}
+
+function extractFirstDuration(text: string): number {
+  if (!text) return 0;
+  const rangeSeparator = `(?:–|—|-|bis|to|a|al|et|and|or|ve)`;
+  const timePattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*${rangeSeparator}\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:Sekunden|segundos|secondes|Minuten|minutes|minutos|Stunden|godzina|godziny|seconds|secondi|sekunda|seconde|secondo|segundo|sekundy|minuti|dakika|minuts|minuta|minuto|minute|minuty|heures|godzin|stunde|saniye|sekund|second|minut|hours|horas|godz\\.|heure|min\\.|mins|hour|hora|std\\.|godz|uren|saat|sek\\.|secs|sec\\.|sec\\.|seg\\.|min|dk\\.|std|hrs|hr\\.|ore|ora|uur|sek|sec|seg|sn\\.|dk|hr|u\\.|h\\.|sn|u|h)(?![a-zA-Z0-9])`;
+  const regex = new RegExp(timePattern, 'gi');
+  const match = text.match(regex);
+  if (match && match[0]) {
+    return parseTimeToSeconds(match[0]);
+  }
+  return 0;
+}
 
 interface CookingModeProps {
   recipe: Recipe;
@@ -23,6 +55,8 @@ interface CookingModeProps {
   toggleStep: (stepNum: number) => void;
   formatAmount: (amount: number, unit?: string) => string;
   initialStepOverride?: number;
+  onRemixSuccess?: (newRecipe: Recipe, newJobId: string) => void;
+  onReplaceCurrent?: (newRecipe: Recipe) => void;
 }
 
 export default function CookingMode({
@@ -32,10 +66,21 @@ export default function CookingMode({
   toggleStep,
   formatAmount,
   initialStepOverride,
+  onRemixSuccess,
+  onReplaceCurrent,
 }: CookingModeProps) {
   const dialog = useDialog();
   const { t } = useI18n();
   const { timers, removeTimer, dismissFinished, setPendingNavigation } = useTimerManager();
+  const { isPremium } = useAuth();
+
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [timerSheet, setTimerSheet] = useState<{ isOpen: boolean; seconds: number; label: string }>({
+    isOpen: false,
+    seconds: 0,
+    label: '',
+  });
 
   // Find the first uncompleted step as initial step index
   const initialStepIndex = useMemo(() => {
@@ -330,10 +375,75 @@ export default function CookingMode({
             </Button>
           )}
         </div>
-        <div className="text-[10px] text-center text-gray-500 dark:text-gray-400">
-          {t('recipe.cookingModeTip')}
-        </div>
+      {/* Floating Action Buttons */}
+      <div className="fixed right-4 bottom-24 md:right-8 md:bottom-28 z-[95] flex flex-col gap-3">
+        {/* Timer Button */}
+        <Button
+          isIconOnly
+          size="lg"
+          className="rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white w-12 h-12 flex items-center justify-center transition-all active:scale-95"
+          onPress={() => {
+            if (!isPremium) {
+              setIsPremiumModalOpen(true);
+            } else {
+              const stepDuration = currentStep ? extractFirstDuration(currentStep.description) : 0;
+              const durationToUse = stepDuration > 0 ? stepDuration : 300;
+              setTimerSheet({
+                isOpen: true,
+                seconds: durationToUse,
+                label: currentStep ? `${t('recipe.step')} ${currentStep.step}` : 'Timer'
+              });
+            }
+          }}
+          aria-label={t('timer.start')}
+        >
+          <Timer className="w-5 h-5" />
+        </Button>
+
+        {/* Copilot Chat Button */}
+        <Button
+          isIconOnly
+          size="lg"
+          className="rounded-full shadow-lg bg-blue-600 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400 text-white w-12 h-12 flex items-center justify-center transition-all active:scale-95"
+          onPress={() => {
+            if (!isPremium) {
+              setIsPremiumModalOpen(true);
+            } else {
+              setIsCopilotOpen(true);
+            }
+          }}
+          aria-label={t('recipe.copilot')}
+        >
+          <MessageCircle className="w-5 h-5" />
+        </Button>
       </div>
+
+      {/* Sheets & Dialogs */}
+      {timerSheet.isOpen && (
+        <TimerConfirmSheet
+          isOpen={timerSheet.isOpen}
+          durationSeconds={timerSheet.seconds}
+          label={timerSheet.label}
+          onClose={() => setTimerSheet(prev => ({ ...prev, isOpen: false }))}
+          recipeId={recipe.id}
+          stepNum={currentStep?.step}
+        />
+      )}
+
+      {recipe.id && isCopilotOpen && (
+        <RecipeCopilot
+          isOpen={isCopilotOpen}
+          onClose={() => setIsCopilotOpen(false)}
+          recipe={recipe}
+          onRemixSuccess={onRemixSuccess || (() => {})}
+          onReplaceCurrent={onReplaceCurrent || (() => {})}
+        />
+      )}
+
+      <PremiumModal
+        isOpen={isPremiumModalOpen}
+        onOpenChange={setIsPremiumModalOpen}
+      />
     </div>
   );
 }
