@@ -58,9 +58,14 @@ export default function CollectionSheet({
   const [bulkInitialMap, setBulkInitialMap] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Load collections and current memberships on open
+  // Load collections when the sheet opens; init mode/form state only on the
+  // false→true transition so user-driven mode changes (e.g. clicking
+  // "+ Neue Sammlung" inside the manage overview) aren't reset by parent
+  // re-renders that change `refreshCollections`/`initialMode` reference identity.
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevIsOpen) {
+      // sheet just opened — seed everything from the caller
       refreshCollections();
       setMode(initialMode);
       setFormError(null);
@@ -73,9 +78,7 @@ export default function CollectionSheet({
       } else if (initialMode === 'assign') {
         // Bulk mode: pre-check the INTERSECTION of memberships across all selected jobs,
         // so the user can either keep/uncheck them (remove) or add new collections.
-        const targetJobs = selectedJobs.length > 0
-          ? selectedJobs
-          : []; // Fallback if caller didn't pass full Job objects; intersection is then empty
+        const targetJobs = selectedJobs.length > 0 ? selectedJobs : [];
         if (targetJobs.length === 0) {
           setMembershipIds([]);
           setBulkInitialMap({});
@@ -88,8 +91,18 @@ export default function CollectionSheet({
           setBulkInitialMap(initialMap);
         }
       }
+    } else if (!isOpen && prevIsOpen) {
+      // sheet just closed — reset transient form state for the next open
+      setMode(initialMode);
+      setMembershipIds([]);
+      setBulkInitialMap({});
+      setFormError(null);
+      setName('');
+      setSelectedEmoji('');
+      setEditingCollection(null);
     }
-  }, [isOpen, job, selectedJobs, initialMode, refreshCollections]);
+    setPrevIsOpen(isOpen);
+  }, [isOpen, prevIsOpen, job, selectedJobs, initialMode, refreshCollections]);
 
   // After creating/editing/deleting within the form modes, return to whichever
   // list view the user started from ('manage' if no recipes were involved,

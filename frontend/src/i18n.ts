@@ -482,6 +482,7 @@ export const uiTranslations = {
       bulkAddToCollection: 'Zu Sammlung hinzufügen',
       assignCollectionsTitle: 'Sammlungen zuweisen',
       manageBulkCollectionsTitle: 'Sammlungen verwalten',
+      closeButton: 'Schließen',
       manageRecipeFlagsTitle: 'Rezept-Labels verwalten',
     },
     shopping: {
@@ -1046,6 +1047,7 @@ export const uiTranslations = {
       bulkAddToCollection: 'Add to Collection',
       assignCollectionsTitle: 'Assign Collections',
       manageBulkCollectionsTitle: 'Manage Collections',
+      closeButton: 'Close',
       manageRecipeFlagsTitle: 'Manage Recipe Labels',
     },
     shopping: {
