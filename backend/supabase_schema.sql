@@ -20,9 +20,9 @@ CREATE POLICY "Allow public read access to global_settings"
 
 -- Insert initial values for the settings and limits
 INSERT INTO public.global_settings (key, value, description) VALUES
-  ('beta_active', 'false', 'Enable or disable the beta tier auto-assignment and access'),
-  ('beta_max_extractions_per_window', '10', 'Number of extractions beta users can perform in the rolling window'),
-  ('beta_max_saved_recipes', '20', 'Max number of saved recipes beta users can keep in their cookbook'),
+  ('alpha_active', 'false', 'Enable or disable the alpha tier auto-assignment and access'),
+  ('alpha_max_extractions_per_window', '10', 'Number of extractions alpha users can perform in the rolling window'),
+  ('alpha_max_saved_recipes', '20', 'Max number of saved recipes alpha users can keep in their cookbook'),
   ('free_max_extractions_per_window', '3', 'Number of extractions free users can perform in the rolling window'),
   ('free_max_saved_recipes', '5', 'Max number of saved recipes free users can keep in their cookbook'),
   ('premium_max_extractions_per_window', '50', 'Number of extractions premium users can perform in the rolling window'),
