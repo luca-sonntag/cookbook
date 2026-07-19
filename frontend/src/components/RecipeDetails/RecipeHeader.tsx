@@ -139,7 +139,7 @@ export default function RecipeHeader({
                   }}
                   className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
                 >
-                  <Tag className="w-4 h-4 text-amber-500" />
+                  <Tag className="w-4 h-4 text-emerald-500" />
                   <span>{t('catalog.manageRecipeFlagsTitle') || 'Labels verwalten'}</span>
                 </button>
               )}
@@ -158,7 +158,7 @@ export default function RecipeHeader({
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4" />
+                    <Copy className="w-4 h-4 text-emerald-500" />
                     <span>{t('recipe.copyRecipe')}</span>
                   </>
                 )}
