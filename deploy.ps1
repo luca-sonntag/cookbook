@@ -160,39 +160,12 @@ function Check-GitStatus {
         Write-Host "WARNING: You have uncommitted changes in the repository:" -ForegroundColor Yellow
         & git status -s
         Write-Host ""
-        Write-Host "Select an option:" -ForegroundColor Cyan
-        Write-Host "  1) Commit changes now (you will be prompted for a message)"
-        Write-Host "  2) Stash changes"
-        Write-Host "  3) Retry/Continue (Use this if you resolved/committed changes in another terminal)"
-        Write-Host "  4) Abort"
-        Write-Host ""
+        Write-Host "Please commit or stash your changes in another terminal before continuing." -ForegroundColor Yellow
+        Write-Host "Press Enter to check again, or type 'abort' to exit." -ForegroundColor Cyan
         
-        $choice = Read-Host "Enter option [1-4]"
-        switch ($choice) {
-            "1" {
-                $msg = Read-Host "Enter commit message"
-                if (-not [string]::IsNullOrWhiteSpace($msg)) {
-                    Run-Git -Arguments @("add", "-A")
-                    Run-Git -Arguments @("commit", "-m", $msg)
-                    Write-Host "Changes committed successfully." -ForegroundColor Green
-                } else {
-                    Write-Warning "Commit message cannot be empty."
-                }
-            }
-            "2" {
-                Run-Git -Arguments @("stash", "-u")
-                Write-Host "Changes stashed." -ForegroundColor Green
-            }
-            "3" {
-                # Loop will re-check at the top
-                continue
-            }
-            "4" {
-                throw "Deployment aborted due to uncommitted changes."
-            }
-            default {
-                Write-Warning "Invalid option. Please choose 1, 2, 3, or 4."
-            }
+        $input = Read-Host "Choice"
+        if ($input.Trim().ToLower() -eq "abort") {
+            throw "Deployment aborted due to uncommitted changes."
         }
     }
 }
