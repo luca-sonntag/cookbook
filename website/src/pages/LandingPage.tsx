@@ -166,9 +166,9 @@ export default function LandingPage() {
         </div>
 
         {/* Right Preview Column (Staggered App Mockups) */}
-        <div className="md:col-span-5 flex justify-center w-full relative h-[380px] md:h-[400px]">
+        <div className="md:col-span-5 flex flex-row md:relative overflow-x-auto md:overflow-visible gap-6 md:gap-0 justify-start md:justify-center w-full h-auto md:h-[400px] py-6 md:py-0 px-4 md:px-0 scrollbar-none snap-x snap-mandatory">
           {/* Step 1: Reel Mockup */}
-          <div className="absolute top-4 left-4 sm:left-8 transform -rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-300 z-10">
+          <div className="flex-none snap-center md:absolute md:top-4 md:left-4 md:sm:left-8 transform md:-rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-300 z-10 flex flex-col items-center">
             <div className="shadow-lg rounded-2xl overflow-hidden bg-white border border-black/10">
               <ShareStep1Mockup />
             </div>
@@ -176,7 +176,7 @@ export default function LandingPage() {
           </div>
 
           {/* Step 2: Share Mockup */}
-          <div className="absolute top-20 right-4 sm:right-8 transform rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-300 z-20">
+          <div className="flex-none snap-center md:absolute md:top-20 md:right-4 md:sm:right-8 transform md:rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-300 z-20 flex flex-col items-center">
             <div className="shadow-lg rounded-2xl overflow-hidden bg-white border border-black/10">
               <ShareStep3Mockup />
             </div>
@@ -184,7 +184,7 @@ export default function LandingPage() {
           </div>
 
           {/* Step 3: Recipe Card Mockup */}
-          <div className="absolute bottom-6 left-12 sm:left-20 transform -rotate-3 hover:rotate-0 hover:scale-110 transition-all duration-300 z-30">
+          <div className="flex-none snap-center md:absolute md:bottom-6 md:left-12 md:sm:left-20 transform md:-rotate-3 hover:rotate-0 hover:scale-110 transition-all duration-300 z-30 flex flex-col items-center">
             <div className="shadow-2xl rounded-2xl overflow-hidden bg-white border border-emerald-500/20">
               <RecipeCardMockup />
             </div>
