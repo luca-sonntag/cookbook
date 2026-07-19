@@ -277,7 +277,10 @@ export default function CookingMode({
       )}
 
       {/* Central Instruction Step Card */}
-      <div className="flex-1 min-h-0 flex flex-col justify-center items-center my-2 sm:my-6 max-w-4xl mx-auto w-full px-4 text-center">
+      <div 
+        key={cookingStepIndex}
+        className="flex-1 min-h-0 flex flex-col justify-center items-center my-2 sm:my-6 max-w-4xl mx-auto w-full px-4 text-center animate-fade-in"
+      >
         {/* Step Number Badge */}
         {currentStep && (
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 dark:from-emerald-500 dark:to-emerald-700 text-white flex items-center justify-center font-bold text-lg mb-3 sm:mb-6 shadow-[0_4px_12px_rgba(16,185,129,0.3)] flex-shrink-0">
@@ -287,7 +290,7 @@ export default function CookingMode({
 
         {/* Step Description */}
         {currentStep && (
-          <h1 className="text-xl sm:text-2xl md:text-3.5xl font-bold text-gray-900 dark:text-white leading-relaxed mb-4 sm:mb-8 max-h-[40dvh] overflow-y-auto px-2 flex-shrink-0">
+          <h1 className="text-xl sm:text-2xl md:text-3.5xl font-bold text-gray-900 dark:text-white tracking-tight leading-loose md:leading-[1.7] mb-4 sm:mb-8 max-h-[40dvh] overflow-y-auto px-2 flex-shrink-0">
             <RecipeInstructionText text={currentStep.description} recipe={recipe} formatAmount={formatAmount} stepNum={currentStep.step} />
           </h1>
         )}

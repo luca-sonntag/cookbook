@@ -157,9 +157,9 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
             return (
               <span
                 key={index}
-                className="inline mx-0.5 font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 transition-colors cursor-default"
+                className="inline-flex items-center gap-0.5 px-2 py-0.5 mx-0.5 rounded-lg text-[0.9em] font-semibold bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 border border-orange-200/50 dark:border-orange-500/20 hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors cursor-default select-none"
               >
-                <Thermometer className="inline w-3.5 h-3.5 mr-0.5 text-orange-500 dark:text-orange-400" style={{ verticalAlign: 'middle' }} />
+                <Thermometer className="w-3.5 h-3.5 text-orange-500 dark:text-orange-400 shrink-0" />
                 {part}
               </span>
             );
@@ -182,14 +182,14 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                   }
                   setTimerSheet({ isOpen: true, seconds, label: text });
                 } : undefined}
-                className={`inline mx-0.5 font-semibold text-blue-600 dark:text-blue-400 transition-colors ${
+                className={`inline-flex items-center gap-0.5 px-2 py-0.5 mx-0.5 rounded-lg text-[0.9em] font-semibold transition-all select-none ${
                   canTimer
-                    ? 'cursor-pointer hover:text-blue-500 dark:hover:text-blue-300 underline decoration-dotted underline-offset-2'
-                    : 'cursor-default hover:text-blue-500 dark:hover:text-blue-300'
+                    ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-950/50 cursor-pointer shadow-sm active:scale-95'
+                    : 'bg-gray-50 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400 border border-gray-200/50 dark:border-gray-700/20 cursor-default'
                 }`}
                 title={canTimer ? 'Timer starten / Start timer' : undefined}
               >
-                <Clock className="inline w-3.5 h-3.5 mr-0.5 text-blue-500 dark:text-blue-400" style={{ verticalAlign: 'middle' }} />
+                <Clock className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 shrink-0" />
                 {part}
               </span>
             );
@@ -207,17 +207,14 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
 
             // Equipment: always plain text, no popover, no underline
             if (!isIng) {
-              return <span key={index} className="font-semibold text-amber-600 dark:text-amber-400">{part}</span>;
+              return <span key={index} className="inline-flex items-center px-2 py-0.5 mx-0.5 rounded-lg text-[0.9em] font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/20">{part}</span>;
             }
 
             return (
-              <span key={index} onClick={(e) => e.stopPropagation()}>
+              <span key={index} onClick={(e) => e.stopPropagation()} className="inline-block">
                 <Popover>
                   <Popover.Trigger>
-                    <span className={`inline-block font-semibold decoration-dotted underline underline-offset-4 cursor-pointer transition-all outline-none ${isIng
-                      ? 'text-emerald-600 dark:text-emerald-400 decoration-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-300'
-                      : 'text-amber-600 dark:text-amber-400 decoration-amber-500 hover:text-amber-500 dark:hover:text-amber-300'
-                      }`}>
+                    <span className="inline-flex items-center px-2 py-0.5 mx-0.5 rounded-lg text-[0.9em] font-semibold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 cursor-pointer transition-all outline-none shadow-sm active:scale-95">
                       {part}
                     </span>
                   </Popover.Trigger>
