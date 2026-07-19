@@ -26,7 +26,8 @@ INSERT INTO public.global_settings (key, value, description) VALUES
   ('free_max_extractions_per_window', '3', 'Number of extractions free users can perform in the rolling window'),
   ('free_max_saved_recipes', '5', 'Max number of saved recipes free users can keep in their cookbook'),
   ('premium_max_extractions_per_window', '50', 'Number of extractions premium users can perform in the rolling window'),
-  ('premium_max_saved_recipes', '-1', 'Max number of saved recipes premium users can keep in their cookbook (-1 for unlimited)')
+  ('premium_max_saved_recipes', '-1', 'Max number of saved recipes premium users can keep in their cookbook (-1 for unlimited)'),
+  ('max_video_duration_seconds', '90', 'Reject videos longer than this many seconds before downloading (0 disables the check)')
 ON CONFLICT (key) DO UPDATE 
 SET value = EXCLUDED.value, description = EXCLUDED.description;
 

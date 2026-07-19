@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { claimNextJob, updateJob, getJob, getClient, reclaimExpiredJobs, heartbeatJob, uploadRecipeFrame } from './db.js';
+import { claimNextJob, updateJob, getJob, getClient, reclaimExpiredJobs, heartbeatJob, uploadRecipeFrame, getMaxVideoDurationSeconds } from './db.js';
 import { randomUUID } from 'node:crypto';
 import { getScraperForUrl } from './scrapers/index.js';
 import { downloadMedia } from './scrapers/download.js';
@@ -115,7 +115,8 @@ async function processJob(job: Job): Promise<void> {
     // 2b. Enforce the video-length cap *before* downloading — the duration is known from
     // scrape metadata (RapidAPI / yt-dlp), so we reject over-limit videos without spending
     // any download bandwidth. 0 disables the check; results without a reported duration pass.
-    const maxDuration = config.MAX_VIDEO_DURATION_SECONDS;
+    // Prioritise the DB-backed `max_video_duration_seconds` global setting over the env default.
+    const maxDuration = await getMaxVideoDurationSeconds();
     if (maxDuration > 0 && scrapeResult.durationSeconds && scrapeResult.durationSeconds > maxDuration) {
       const actualSec = Math.round(scrapeResult.durationSeconds);
       throw new Error(`Video too long: ${actualSec}s exceeds the ${maxDuration}s limit.`);
