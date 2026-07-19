@@ -139,6 +139,40 @@ export async function sendNativeNotification(
 }
 
 /**
+ * Check whether our timer notification is still sitting in the system tray.
+ * Returns `true` if present, `false` if the user has cleared/dismissed it — or
+ * on web, where there is no persistent tray. Used to reconcile timer state when
+ * the app returns to the foreground: a notification the user swiped away means
+ * "end the timer".
+ */
+export async function isTimerNotificationDelivered(): Promise<boolean> {
+  if (!isNative()) return false;
+  try {
+    const { notifications } = await LocalNotifications.getDeliveredNotifications();
+    return notifications.some((n) => n.id === TIMER_NOTIFICATION_ID);
+  } catch (err) {
+    console.warn('getDeliveredNotifications failed:', err);
+    // Assume it's still there so we don't dismiss a timer on a transient error.
+    return true;
+  }
+}
+
+/**
+ * Remove our timer notification from the system tray (if present). Called when
+ * a finished timer is dismissed inside the app so the tray stays in sync — the
+ * app only ever posts this single timer notification, so clearing all delivered
+ * ones is safe. No-op on web.
+ */
+export async function clearTimerNotification(): Promise<void> {
+  if (!isNative()) return;
+  try {
+    await LocalNotifications.removeAllDeliveredNotifications();
+  } catch (err) {
+    console.warn('removeAllDeliveredNotifications failed:', err);
+  }
+}
+
+/**
  * Register a handler for taps on native local notifications. Invokes `onTap`
  * with the recipe/step stored in the notification's `extra`. Returns a cleanup
  * function. No-op on web.

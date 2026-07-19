@@ -49,7 +49,7 @@ export default function App() {
   const [initialSyncDone, setInitialSyncDone] = useState(false);
   const [isCatalogSelectMode, setIsCatalogSelectMode] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
-  const { pendingNavigation } = useTimerManager();
+  const { pendingNavigation, dismissAllFinished } = useTimerManager();
 
   // First-launch onboarding gate (also re-openable from Settings)
   const {
@@ -308,8 +308,10 @@ export default function App() {
           })
         );
       }
+      // Tapping the notification ends the finished timer(s) and stops the alarm.
+      dismissAllFinished();
     });
-  }, []);
+  }, [dismissAllFinished]);
 
   // Allow Settings to re-open the onboarding guide via a decoupled event,
   // avoiding threading the hook's state through props into SettingsView.
