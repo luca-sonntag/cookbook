@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Crown, X, Sparkles } from 'lucide-react';
+import { Crown, X, Gift } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,9 +20,7 @@ export default function TrialBanner({ onOpenPremium }: TrialBannerProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Never show for premium/beta users
     if (isPremium) return;
-    // Already dismissed
     if (localStorage.getItem(STORAGE_KEY) === '1') return;
     setVisible(true);
   }, [isPremium]);
@@ -35,48 +33,46 @@ export default function TrialBanner({ onOpenPremium }: TrialBannerProps) {
   if (!visible) return null;
 
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-br from-amber-500 via-amber-400 to-yellow-500 dark:from-amber-600 dark:via-amber-500 dark:to-yellow-600 shadow-lg shadow-amber-500/20 border border-amber-300/30 animate-in fade-in slide-in-from-top-2 duration-500">
-      {/* Ambient glow spots */}
-      <div className="absolute -top-6 -right-6 w-24 h-24 bg-white/20 rounded-full blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-amber-200/30 rounded-full blur-xl pointer-events-none" />
-
-      <div className="relative px-4 py-3.5">
+    <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 border border-emerald-500/20 shadow-md shadow-emerald-900/10 animate-in fade-in slide-in-from-top-2 duration-500">
+      <div className="relative px-4 py-3">
         {/* Dismiss button */}
         <button
           type="button"
           onClick={dismiss}
-          className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 active:scale-90 transition-all z-10"
+          className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/15 hover:bg-black/25 active:scale-90 transition-all z-10"
           aria-label={t('premium.modal.trialBanner.dismiss')}
         >
-          <X className="w-3.5 h-3.5 text-amber-900/70" />
+          <X className="w-3.5 h-3.5 text-emerald-50/80" />
         </button>
 
-        <div className="flex items-start gap-3 pr-6">
-          {/* Icon */}
-          <div className="w-9 h-9 rounded-xl bg-white/25 flex items-center justify-center shrink-0 mt-0.5">
-            <Sparkles className="w-5 h-5 text-amber-900" />
+        <div className="flex items-center gap-3 pr-8">
+          {/* Icon: amber crown in soft ring — matches PremiumHint language */}
+          <div className="w-9 h-9 rounded-xl bg-emerald-900/30 flex items-center justify-center shrink-0">
+            <Crown className="w-5 h-5 text-amber-300 fill-amber-300" />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-extrabold text-amber-950 dark:text-amber-950 leading-tight">
-              {t('premium.modal.trialBanner.title')}
-            </h3>
-            <p className="text-[11px] text-amber-900/80 dark:text-amber-950/80 mt-1 leading-relaxed">
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-sm font-extrabold text-white leading-tight">
+                {t('premium.modal.trialBanner.title')}
+              </h3>
+              <Gift className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+            </div>
+            <p className="text-[11px] text-emerald-50/80 mt-0.5 leading-snug">
               {t('premium.modal.trialBanner.body')}
             </p>
 
-            {/* CTA */}
+            {/* CTA — same gold-on-emerald pattern as PremiumHint */}
             <button
               type="button"
               onClick={() => {
                 dismiss();
                 onOpenPremium();
               }}
-              className="mt-2.5 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-amber-950 text-amber-100 text-xs font-bold hover:bg-amber-900 active:scale-[0.97] transition-all shadow-sm"
+              className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-extrabold text-emerald-950 bg-amber-400 hover:bg-amber-300 active:scale-[0.97] transition-all shadow-sm"
             >
-              <Crown className="w-3 h-3" />
-              {t('premium.modal.trialBanner.cta')}
+              {t('premium.modal.trialBanner.cta')} ›
             </button>
           </div>
         </div>
