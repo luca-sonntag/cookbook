@@ -163,13 +163,6 @@ export default function ExtractForm({
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* Premium Upgrade Promotion — moved to top so free users see it before
-          committing to an extraction. Hidden when TrialBanner already covers it
-          and during an active extraction. */}
-      {!hideUpgradeCard && !isPending && (
-        <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
-      )}
-
       {/* Input Card or Extraction Animation Card */}
       {isPending ? (
         <ExtractionAnimation
@@ -324,6 +317,11 @@ export default function ExtractForm({
           </div>
         </form>
       </Card>
+      )}
+
+      {/* Premium Upgrade Promotion — hidden when TrialBanner already covers it */}
+      {!hideUpgradeCard && !isPending && (
+        <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
       )}
 
       {/* Share Directly Accordion */}
