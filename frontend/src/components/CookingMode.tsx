@@ -382,7 +382,7 @@ export default function CookingMode({
         <Button
           isIconOnly
           size="lg"
-          className="rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white w-12 h-12 flex items-center justify-center transition-all active:scale-95"
+          className="rounded-full shadow-lg bg-blue-600 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400 text-white w-12 h-12 flex items-center justify-center transition-all active:scale-95"
           onPress={() => {
             if (!isPremium) {
               setIsPremiumModalOpen(true);
@@ -405,7 +405,7 @@ export default function CookingMode({
         <Button
           isIconOnly
           size="lg"
-          className="rounded-full shadow-lg bg-blue-600 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400 text-white w-12 h-12 flex items-center justify-center transition-all active:scale-95"
+          className="rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white w-12 h-12 flex items-center justify-center transition-all active:scale-95"
           onPress={() => {
             if (!isPremium) {
               setIsPremiumModalOpen(true);
