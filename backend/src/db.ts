@@ -566,6 +566,10 @@ export async function getPremiumMaxSavedRecipes(): Promise<number> {
   return getGlobalSetting('premium_max_saved_recipes', -1);
 }
 
+export async function getMaxVideoDurationSeconds(): Promise<number> {
+  return getGlobalSetting('max_video_duration_seconds', config.MAX_VIDEO_DURATION_SECONDS);
+}
+
 export interface GlobalSetting {
   key: string;
   value: string;
