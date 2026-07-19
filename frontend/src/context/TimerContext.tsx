@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { isNative, sendNativeNotification, requestNativeNotificationPermission } from '../native';
+import {
+  isNative,
+  sendNativeNotification,
+  requestNativeNotificationPermission,
+  isTimerNotificationDelivered,
+  clearTimerNotification,
+} from '../native';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +29,7 @@ interface TimerContextValue {
   addTimer: (durationSeconds: number, label: string, recipeId?: string, stepNum?: number) => string;
   removeTimer: (id: string) => void;
   dismissFinished: (id: string) => void;
+  dismissAllFinished: () => void;
   pendingNavigation: PendingTimerNavigation | null;
   setPendingNavigation: (nav: PendingTimerNavigation | null) => void;
 }
@@ -236,11 +243,19 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   // Catch-up handler: when the screen is off on Android, setInterval is throttled
   // to ~1 tick per minute. This fires immediately when the user wakes the phone.
   useEffect(() => {
-    const handleVisibility = () => {
+    const handleVisibility = async () => {
       if (document.visibilityState !== 'visible') return;
 
       const now = Date.now();
       const current = timersRef.current;
+
+      // Snapshot timers that were ALREADY finished before this wake. If the
+      // user cleared their notification from the tray while the app was in the
+      // background, we end these timers below (see reconciliation block).
+      const previouslyFinishedIds = current
+        .filter(t => t.isFinished)
+        .map(t => t.id);
+
       const missedExpiry = current.filter(
         t => !t.isFinished && now >= t.endAt && !alreadyFiredRef.current.has(t.id)
       );
@@ -276,6 +291,28 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         setTimers(prev =>
           prev.map(t => expiredIds.has(t.id) ? { ...t, isFinished: true } : t)
         );
+      }
+
+      // ── Reconcile cleared notifications (native only) ──
+      // A finished timer keeps ringing until dismissed. If the user swiped its
+      // notification away while the app was backgrounded, treat that as "end
+      // the timer": stop the alarm and remove it. We only reconcile timers that
+      // were already finished on wake — freshly expired ones (above) just got a
+      // new notification posted, which may not be in the tray yet.
+      if (isNative() && previouslyFinishedIds.length > 0) {
+        const stillDelivered = await isTimerNotificationDelivered();
+        if (!stillDelivered) {
+          previouslyFinishedIds.forEach(id => {
+            alreadyFiredRef.current.delete(id);
+            const existing = alarmIntervalsRef.current.get(id);
+            if (existing !== undefined) {
+              clearInterval(existing);
+              alarmIntervalsRef.current.delete(id);
+            }
+          });
+          const clearedIds = new Set(previouslyFinishedIds);
+          setTimers(prev => prev.filter(t => !clearedIds.has(t.id)));
+        }
       }
     };
 
@@ -331,10 +368,35 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       alarmIntervalsRef.current.delete(id);
     }
     setTimers(prev => prev.filter(t => t.id !== id));
+    // Keep the system tray in sync: dismissing inside the app clears the
+    // notification too (no-op on web).
+    clearTimerNotification();
+  }, []);
+
+  // End every finished (ringing) timer at once. Called when the user taps or
+  // clears the timer notification — a single native notification represents all
+  // currently-finished timers, so interacting with it silences them all.
+  const dismissAllFinished = useCallback(() => {
+    const finishedIds = timersRef.current
+      .filter(t => t.isFinished)
+      .map(t => t.id);
+    if (finishedIds.length === 0) return;
+
+    finishedIds.forEach(id => {
+      alreadyFiredRef.current.delete(id);
+      const existing = alarmIntervalsRef.current.get(id);
+      if (existing !== undefined) {
+        clearInterval(existing);
+        alarmIntervalsRef.current.delete(id);
+      }
+    });
+    const idSet = new Set(finishedIds);
+    setTimers(prev => prev.filter(t => !idSet.has(t.id)));
+    clearTimerNotification();
   }, []);
 
   return (
-    <TimerContext.Provider value={{ timers, addTimer, removeTimer, dismissFinished, pendingNavigation, setPendingNavigation }}>
+    <TimerContext.Provider value={{ timers, addTimer, removeTimer, dismissFinished, dismissAllFinished, pendingNavigation, setPendingNavigation }}>
       {children}
     </TimerContext.Provider>
   );
