@@ -12,6 +12,14 @@ const GOOGLE_WEB_CLIENT_ID = import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID as string
 // Cleared again once the user signs in (any method) of their own accord.
 const AUTO_SIGNIN_DISABLED_KEY = 'kb_auto_signin_disabled';
 
+// Set once the user has given consent to the privacy policy / terms by
+// explicitly signing in from the AuthForm (which displays the consent notice).
+// The silent on-device Google sign-in is gated on this flag so that NO data
+// processing happens before the user has seen the legal notice — required for
+// an Austrian sole proprietorship. Persists across sign-out (consent stays
+// valid); only cleared by wiping app storage (e.g. reinstall).
+const LEGAL_CONSENT_KEY = 'kb_legal_consent_v1';
+
 // Lazily initialize the native Google Sign-In plugin exactly once. Safe to call
 // repeatedly; only the first call hits the plugin.
 let socialLoginInitialized: Promise<void> | null = null;
@@ -33,6 +41,10 @@ async function attemptSilentGoogleSignIn(): Promise<{ success: boolean; error?: 
   if (Capacitor.getPlatform() !== 'android') return { success: false };
   if (!GOOGLE_WEB_CLIENT_ID) return { success: false };
   if (localStorage.getItem(AUTO_SIGNIN_DISABLED_KEY)) return { success: false };
+  // No silent sign-in before the user has seen the legal notice and consented
+  // (by signing in explicitly at least once). This must be the first guard: it
+  // prevents any Google/Supabase data processing on a fresh install.
+  if (!localStorage.getItem(LEGAL_CONSENT_KEY)) return { success: false };
 
   try {
     console.log('attemptSilentGoogleSignIn: Initializing social login');
@@ -85,6 +97,14 @@ interface AuthState {
   isPremium: boolean;
   isPremiumOverride: boolean;
   isAdmin: boolean;
+  /** True when RevenueCat offerings include at least one package with a free trial (introPrice.price === 0). */
+  hasTrialAvailable: boolean;
+  /** Trial length in days, derived from RevenueCat introPrice.periodNumberOfUnits. */
+  trialDays: number;
+  /** True until the initial trial lookup has completed (success or failure). */
+  trialLoading: boolean;
+  /** Re-fetch trial info from RevenueCat (e.g. after the user dismisses the banner). */
+  refreshTrialInfo: () => Promise<void>;
   setIsPremiumOverride: (value: boolean) => void;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
@@ -105,6 +125,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [autoSignedIn, setAutoSignedIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [hasTrialAvailable, setHasTrialAvailable] = useState(false);
+  const [trialDays, setTrialDays] = useState(0);
+  const [trialLoading, setTrialLoading] = useState(true);
 
   // Development-only Premium simulator state
   const [isPremiumOverride, setIsPremiumOverrideState] = useState<boolean>(() => {
@@ -173,6 +196,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  /**
+   * Load RevenueCat offerings to detect whether any subscription package
+   * has a free trial (introPrice.price === 0). If so, extract the trial
+   * length in days from the longest available trial. Used by TrialBanner
+   * to decide whether to show itself and what "N Tage" label to render.
+   */
+  const refreshTrialInfo = useCallback(async () => {
+    setTrialLoading(true);
+    try {
+      const { getSubscriptionOfferings } = await import('../utils/purchase');
+      const packages = await getSubscriptionOfferings();
+      if (!packages || packages.length === 0) {
+        setHasTrialAvailable(false);
+        setTrialDays(0);
+        return;
+      }
+      const trialPkgs = packages.filter(
+        (p: any) => p.product?.introPrice && p.product.introPrice.price === 0
+      );
+      if (trialPkgs.length === 0) {
+        setHasTrialAvailable(false);
+        setTrialDays(0);
+        return;
+      }
+      setHasTrialAvailable(true);
+      // Use the longest trial across all packages so the banner reads "X Tage" honestly
+      const maxDays = Math.max(
+        ...trialPkgs.map((p: any) => p.product.introPrice.periodNumberOfUnits || 0)
+      );
+      setTrialDays(maxDays);
+      console.log('[Auth] Trial available, longest trial days:', maxDays);
+    } catch (err) {
+      console.warn('[Auth] Failed to load trial info:', err);
+      setHasTrialAvailable(false);
+      setTrialDays(0);
+    } finally {
+      setTrialLoading(false);
+    }
+  }, []);
+
+  // Load trial info once a session exists (and refresh when it changes).
+  useEffect(() => {
+    if (!session) {
+      setHasTrialAvailable(false);
+      setTrialDays(0);
+      setTrialLoading(false);
+      return;
+    }
+    refreshTrialInfo();
+  }, [session, refreshTrialInfo]);
+
   const checkAdminStatus = useCallback(async (token: string | null) => {
     if (!token) {
       setIsAdmin(false);
@@ -209,6 +283,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
+    localStorage.setItem(LEGAL_CONSENT_KEY, '1');
     setAutoSignedIn(false);
     return {};
   }, []);
@@ -220,6 +295,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // If user is immediately confirmed (no email confirmation), session is available
     if (data.session) {
       localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
+      localStorage.setItem(LEGAL_CONSENT_KEY, '1');
       setAutoSignedIn(false);
       return {};
     }
@@ -261,6 +337,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         console.log('signInWithGoogle: Supabase sign-in successful');
         localStorage.removeItem(AUTO_SIGNIN_DISABLED_KEY);
+        localStorage.setItem(LEGAL_CONSENT_KEY, '1');
         setAutoSignedIn(false);
         return {};
       } catch (e) {
@@ -273,6 +350,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Web: the redirect-based OAuth flow (opens the provider in the browser).
+    // Record consent before the redirect navigates away — the user clicked
+    // "sign in" on the AuthForm, which carries the legal notice.
+    localStorage.setItem(LEGAL_CONSENT_KEY, '1');
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -335,7 +415,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [getAccessToken, signOut]);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, isPremiumOverride, isAdmin, setIsPremiumOverride, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount, refreshSession }}>
+    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, isPremiumOverride, isAdmin, hasTrialAvailable, trialDays, trialLoading, refreshTrialInfo, setIsPremiumOverride, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );

@@ -52,6 +52,25 @@ export default function SavedCatalog({
   const { isPremium } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
+  // Per-day date key (local time) used to group recipes by their created date
+  const dateKey = (createdAt?: string) => {
+    const d = new Date(createdAt ?? '');
+    if (isNaN(d.getTime())) return '';
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  };
+
+  // Human-readable separator label: Today / Yesterday / full date
+  const formatDateSeparator = (createdAt?: string) => {
+    const d = new Date(createdAt ?? '');
+    if (isNaN(d.getTime())) return '';
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    if (dateKey(createdAt) === dateKey(today.toISOString())) return t('catalog.dateToday');
+    if (dateKey(createdAt) === dateKey(yesterday.toISOString())) return t('catalog.dateYesterday');
+    return d.toLocaleDateString(language, { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
   const FREE_RECIPE_LIMIT = 5;
 
   // Custom hook for swipe-to-go-back and mobile back button handling
@@ -101,7 +120,7 @@ export default function SavedCatalog({
   const { collections, refreshCollections } = useCollections();
   const [isCollectionSheetOpen, setIsCollectionSheetOpen] = useState(false);
   const [collectionSheetJob, setCollectionSheetJob] = useState<Job | undefined>(undefined);
-  const [collectionSheetBulkIds, setCollectionSheetBulkIds] = useState<string[]>([]);
+  const [collectionSheetBulkJobs, setCollectionSheetBulkJobs] = useState<Job[]>([]);
 
   // FlagSheet states
   const [isFlagSheetOpen, setIsFlagSheetOpen] = useState(false);
@@ -122,9 +141,12 @@ export default function SavedCatalog({
     if (!isPremium) {
       setIsPremiumModalOpen(true);
     } else {
+      // Open directly in "create" mode — no checkbox list, since there's no
+      // pre-existing recipe assignment context from a "+ Sammlung" filter chip.
       setCollectionSheetJob(undefined);
-      setCollectionSheetBulkIds([]);
+      setCollectionSheetBulkJobs([]);
       setIsCollectionSheetOpen(true);
+      // initialMode='create' is conveyed via the sheet prop below.
     }
   };
 
@@ -133,7 +155,9 @@ export default function SavedCatalog({
       setIsPremiumModalOpen(true);
     } else {
       setCollectionSheetJob(undefined);
-      setCollectionSheetBulkIds(Array.from(selectedIds));
+      // Pass the FULL Job objects (not just IDs) so the sheet can pre-check the
+      // intersection of their memberships and support per-recipe add/remove.
+      setCollectionSheetBulkJobs(completedJobs.filter(j => selectedIds.has(j.id)));
       setIsCollectionSheetOpen(true);
     }
   };
@@ -143,7 +167,7 @@ export default function SavedCatalog({
       setIsPremiumModalOpen(true);
     } else {
       setCollectionSheetJob(job);
-      setCollectionSheetBulkIds([]);
+      setCollectionSheetBulkJobs([]);
       setIsCollectionSheetOpen(true);
     }
   };
@@ -247,7 +271,18 @@ export default function SavedCatalog({
               ) : viewMode === 'card' ? (
                 /* CARD GRID VIEW */
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                  {filteredJobs.map((job) => (
+                  {filteredJobs.map((job, index) => {
+                    const showDateSeparator =
+                      activeFilter === 'all' &&
+                      sortBy === 'newest' &&
+                      (index === 0 || dateKey(filteredJobs[index - 1].createdAt) !== dateKey(job.createdAt));
+                    return (
+                    <React.Fragment key={job.id}>
+                    {showDateSeparator && (
+                      <div className="col-span-1 md:col-span-2 text-center text-xs text-gray-400 dark:text-gray-500 pt-2 first:pt-0">
+                        {formatDateSeparator(job.createdAt)}
+                      </div>
+                    )}
                     <RecipeCard
                       key={job.id}
                       job={job}
@@ -267,12 +302,25 @@ export default function SavedCatalog({
                         toggleFavorite(job);
                       }}
                     />
-                  ))}
+                    </React.Fragment>
+                    );
+                  })}
                 </div>
               ) : (
                 /* COMPACT LIST VIEW */
                 <div className="flex flex-col gap-2.5 mt-2">
-                  {filteredJobs.map((job) => (
+                  {filteredJobs.map((job, index) => {
+                    const showDateSeparator =
+                      activeFilter === 'all' &&
+                      sortBy === 'newest' &&
+                      (index === 0 || dateKey(filteredJobs[index - 1].createdAt) !== dateKey(job.createdAt));
+                    return (
+                    <React.Fragment key={job.id}>
+                    {showDateSeparator && (
+                      <div className="text-center text-xs text-gray-400 dark:text-gray-500 pt-1.5 first:pt-0">
+                        {formatDateSeparator(job.createdAt)}
+                      </div>
+                    )}
                     <RecipeListItem
                       key={job.id}
                       job={job}
@@ -292,7 +340,9 @@ export default function SavedCatalog({
                         toggleFavorite(job);
                       }}
                     />
-                  ))}
+                    </React.Fragment>
+                    );
+                  })}
                 </div>
               )}
             </>
@@ -319,7 +369,14 @@ export default function SavedCatalog({
         isOpen={isCollectionSheetOpen}
         onClose={() => setIsCollectionSheetOpen(false)}
         job={collectionSheetJob}
-        selectedJobIds={collectionSheetBulkIds}
+        selectedJobs={collectionSheetBulkJobs}
+        initialMode={
+          // No specific recipe / bulk context => open in management overview
+          // (no checkboxes); otherwise assign mode is default.
+          !collectionSheetJob && collectionSheetBulkJobs.length === 0
+            ? 'manage'
+            : 'assign'
+        }
         onUpdated={() => {
           fetchHistory?.();
           refreshCollections();

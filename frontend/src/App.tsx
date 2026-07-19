@@ -16,6 +16,8 @@ import SettingsView from './components/SettingsView';
 import TimerBanner from './components/TimerBanner';
 import WelcomeGuide from './components/WelcomeGuide';
 import AdminView from './components/AdminView';
+import TrialBanner from './components/TrialBanner';
+import PremiumModal from './components/PremiumModal';
 
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
 import { useShoppingList } from './hooks/useShoppingList';
@@ -46,6 +48,7 @@ export default function App() {
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [initialSyncDone, setInitialSyncDone] = useState(false);
   const [isCatalogSelectMode, setIsCatalogSelectMode] = useState(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const { pendingNavigation } = useTimerManager();
 
   // First-launch onboarding gate (also re-openable from Settings)
@@ -443,6 +446,13 @@ export default function App() {
     );
   }
 
+  // First-launch onboarding is shown BEFORE the login screen. WelcomeGuide is a
+  // self-contained full-screen portal overlay, and useOnboarding's gate works
+  // without a logged-in user (localStorage is the authoritative flag).
+  if (!user && showOnboarding) {
+    return <WelcomeGuide onClose={completeOnboarding} />;
+  }
+
   if (!user) {
     return <AuthForm />;
   }
@@ -481,6 +491,9 @@ export default function App() {
             ? 'pb-48'
             : 'pb-24'
       }`}>
+
+        {/* One-time trial banner for free users */}
+        <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
 
         {/* CONDITIONAL RENDERING OF VIEWS */}
         {activeView === 'extract' ? (
@@ -591,6 +604,9 @@ export default function App() {
           <SettingsView />
         )}
       </main>
+
+      {/* Global Premium Modal (shared by TrialBanner and other components) */}
+      <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
 
       {/* Mobile Bottom Navigation Bar */}
       {(() => {

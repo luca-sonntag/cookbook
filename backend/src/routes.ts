@@ -853,7 +853,7 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       res.status(403).json({
         success: false,
         code: 'PREMIUM_REQUIRED',
-        error: 'AI Kitchen Chef Chat is a premium feature. Please upgrade to Premium to chat with KochBuddy.',
+        error: 'AI Kitchen Chef Chat is a premium feature. Please upgrade to Premium to chat with Recipe Copilot.',
       });
       return;
     }
@@ -1050,7 +1050,7 @@ apiRouter.get('/collections', async (req: Request, res: Response): Promise<void>
  */
 apiRouter.post('/collections', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, emoji, color, position } = req.body;
+    const { name, emoji, position } = req.body;
 
     if (!name || typeof name !== 'string') {
       res.status(400).json({ success: false, error: 'Field name must be a non-empty string.' });
@@ -1067,7 +1067,7 @@ apiRouter.post('/collections', async (req: Request, res: Response): Promise<void
       return;
     }
 
-    const collection = await createCollection(req.userId!, { name, emoji, color, position });
+    const collection = await createCollection(req.userId!, { name, emoji, position });
     res.status(201).json({ success: true, collection });
   } catch (error: any) {
     console.error('Error creating collection:', error);
@@ -1141,7 +1141,7 @@ apiRouter.post('/feedback', async (req: Request, res: Response): Promise<void> =
 apiRouter.patch('/collections/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, emoji, color, position } = req.body;
+    const { name, emoji, position } = req.body;
 
     const isPremium = await checkPremium(req);
     if (!isPremium) {
@@ -1153,7 +1153,7 @@ apiRouter.patch('/collections/:id', async (req: Request, res: Response): Promise
       return;
     }
 
-    const collection = await updateCollection(id, req.userId!, { name, emoji, color, position });
+    const collection = await updateCollection(id, req.userId!, { name, emoji, position });
     res.status(200).json({ success: true, collection });
   } catch (error: any) {
     console.error('Error updating collection:', error);

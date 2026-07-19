@@ -147,6 +147,7 @@ export const rapidApiProvider: SocialScrapeProvider = {
       caption,
       imageUrl: (data.thumbnail ?? '').toString(),
       authorHandle: authorHandle || undefined,
+      durationSeconds: typeof data.duration === 'number' ? data.duration : undefined,
       media: {
         kind: 'direct',
         videoUrl: video.url,

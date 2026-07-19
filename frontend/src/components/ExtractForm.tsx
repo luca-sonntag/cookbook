@@ -5,8 +5,10 @@ import { Clipboard as CapClipboard } from '@capacitor/clipboard';
 import { Capacitor } from '@capacitor/core';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
+import { isTrialBannerDismissed, TRIAL_BANNER_DISMISS_EVENT } from './TrialBanner';
 import PremiumModal from './PremiumModal';
 import PremiumHint from './PremiumHint';
+import PremiumUpgradeCard from './PremiumUpgradeCard';
 
 import { InstagramIcon, ShareStep1Mockup, ShareStep2Mockup, ShareStep3Mockup } from './ShareMockups';
 
@@ -65,9 +67,18 @@ export default function ExtractForm({
   limitStatus
 }: ExtractFormProps) {
   const { t } = useI18n();
-  const { user, isPremiumOverride } = useAuth();
+  const { user, isPremiumOverride, hasTrialAvailable, trialDays, trialLoading } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
+  // React to TrialBanner dismissal so the upgrade card re-appears as soon
+  // as the banner is closed.
+  const [trialDismissed, setTrialDismissed] = useState(isTrialBannerDismissed);
+
+  useEffect(() => {
+    const onDismiss = () => setTrialDismissed(true);
+    window.addEventListener(TRIAL_BANNER_DISMISS_EVENT, onDismiss);
+    return () => window.removeEventListener(TRIAL_BANNER_DISMISS_EVENT, onDismiss);
+  }, []);
 
   // Cookbook is full → block new extractions and steer to upgrade.
   // Premium/Unlimited users (including overrides) never get capped.
@@ -75,6 +86,17 @@ export default function ExtractForm({
   const cookbookFull = !isRealPremium && !!limitStatus?.cookbookFull;
   const extractionLimitReached = !isRealPremium && !cookbookFull && !!limitStatus && limitStatus.limit >= 0 && limitStatus.remaining <= 0;
   const blockedByLimit = cookbookFull || extractionLimitReached;
+
+  // Mirror TrialBanner's own visibility logic so the redundant UpgradeCard
+  // disappears in exactly the same situations: premium users, while the
+  // RevenueCat trial lookup is in-flight, or while the trial banner is on
+  // screen (including after a previous dismiss on this device).
+  const trialBannerShowing = !isRealPremium
+    && !trialLoading
+    && hasTrialAvailable
+    && trialDays > 0
+    && !trialDismissed;
+  const hideUpgradeCard = isRealPremium || trialBannerShowing;
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -281,6 +303,11 @@ export default function ExtractForm({
           </div>
         </form>
       </Card>
+
+      {/* Premium Upgrade Promotion — hidden when TrialBanner already covers it */}
+      {!hideUpgradeCard && (
+        <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
+      )}
 
       {/* Share Directly Accordion */}
       {!url && (

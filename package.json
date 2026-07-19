@@ -5,7 +5,8 @@
   "type": "module",
   "workspaces": [
     "backend",
-    "frontend"
+    "frontend",
+    "healthcheck"
   ],
   "scripts": {
     "dev": "concurrently -n \"backend,frontend\" -c \"blue,green\" \"npm run dev -w backend\" \"npm run dev -w frontend\"",
@@ -13,7 +14,8 @@
     "start": "npm run start -w backend",
     "preview": "npm run preview -w backend",
     "deploy": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
-    "deploy:all:internal": "powershell -ExecutionPolicy Bypass -File deploy.ps1 -All -Bump patch -Track internal"
+    "deploy:all:internal": "powershell -ExecutionPolicy Bypass -File deploy.ps1 -All -Bump patch -Track internal",
+    "healthcheck": "npm run start --prefix healthcheck"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"

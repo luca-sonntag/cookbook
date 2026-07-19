@@ -105,6 +105,7 @@ function parseItems(items: unknown[]): ScrapingResult {
     caption: (item.caption || '') as string,
     imageUrl: (item.imageUrl || '') as string,
     authorHandle: authorHandle || undefined,
+    durationSeconds: typeof item.duration === 'number' ? item.duration : undefined,
     media: {
       kind: 'direct',
       videoUrl: appendToken(rawVideoUrl),

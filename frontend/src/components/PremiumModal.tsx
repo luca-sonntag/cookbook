@@ -5,6 +5,7 @@ import { useI18n } from '../context/I18nContext';
 import { buyPremium, getSubscriptionOfferings } from '../utils/purchase';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
+import { LEGAL_URLS } from '../legal';
 
 interface PremiumModalProps {
   isOpen: boolean;
@@ -65,9 +66,10 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
           const offs = await getSubscriptionOfferings();
           setPackages(offs);
           if (offs.length > 0) {
-            // Auto-select Yearly package if present, otherwise first available
+            // Auto-select the plan that offers a free trial, then Yearly, then first available
+            const trialPkg = offs.find(p => p.product?.introPrice && p.product.introPrice.price === 0);
             const yearly = offs.find(p => p.packageType === 'ANNUAL');
-            setSelectedPackageId(yearly?.identifier || offs[0].identifier);
+            setSelectedPackageId(trialPkg?.identifier || yearly?.identifier || offs[0].identifier);
           }
         } catch (err) {
           console.error('PremiumModal: Failed to load subscription offerings:', err);
@@ -112,23 +114,23 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
   };
 
   const featureItems = [
-    { 
-      title: t('premium.modal.features.extractions.title'), 
+    {
+      title: t('premium.modal.features.extractions.title'),
       desc: t('premium.modal.features.extractions.desc'),
       icon: <Video className="w-4 h-4 text-amber-400" />
     },
-    { 
-      title: t('premium.modal.features.remix.title'),        
+    {
+      title: t('premium.modal.features.remix.title'),
       desc: t('premium.modal.features.remix.desc'),
       icon: <MessageSquare className="w-4 h-4 text-amber-400" />
     },
-    { 
-      title: t('premium.modal.features.nutrition.title'),    
+    {
+      title: t('premium.modal.features.nutrition.title'),
       desc: t('premium.modal.features.nutrition.desc'),
       icon: <Flame className="w-4 h-4 text-amber-400" />
     },
-    { 
-      title: t('premium.modal.features.shoppingList.title'), 
+    {
+      title: t('premium.modal.features.shoppingList.title'),
       desc: t('premium.modal.features.shoppingList.desc'),
       icon: <ListTodo className="w-4 h-4 text-amber-400" />
     },
@@ -193,7 +195,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
         );
       }
     }
-    
+
     return (
       <span className={isPremiumCol ? 'text-amber-300 font-extrabold text-[11px]' : 'text-emerald-100/65 font-medium text-[11px]'}>
         {val}
@@ -204,7 +206,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
   // Helper to determine trial info
   const selectedPackage = packages.find(p => p.identifier === selectedPackageId);
   const hasSelectedTrial = !!(selectedPackage?.product?.introPrice && selectedPackage?.product?.introPrice?.price === 0);
-  const trialDays = selectedPackage?.product?.introPrice?.periodNumberOfUnits || 7;
+  const trialDays = selectedPackage?.product?.introPrice?.periodNumberOfUnits || 3;
 
   // Render the Coffee Anchor Badge
   const renderCoffeeAnchor = () => {
@@ -314,7 +316,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
               </thead>
               <tbody className="divide-y divide-white/5">
                 {comparisonRows.map((row, index) => (
-                  <tr 
+                  <tr
                     key={index}
                     className={`hover:bg-white/5 transition-colors ${index % 2 === 0 ? 'bg-white/[0.01]' : 'bg-transparent'}`}
                   >
@@ -330,66 +332,6 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
               </tbody>
             </table>
           </div>
-
-          {/* Blinkist Step-by-Step Trial Timeline */}
-          {!isLoadingPackages && hasSelectedTrial && (
-            <div className="flex flex-col gap-3 bg-white/5 border border-white/10 rounded-3xl p-4.5 shrink-0 backdrop-blur-md">
-              <div className="text-xs font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 fill-amber-300" />
-                {t('premium.modal.freeTrialTitle') || '7 Tage kostenlos testen'}
-              </div>
-              
-              <div className="relative pl-7 flex flex-col gap-4">
-                {/* Connector Line */}
-                <div className="absolute left-[9px] top-2.5 bottom-2.5 w-0.5 bg-emerald-500/30" />
-                
-                {/* Step 1 */}
-                <div className="relative">
-                  <div className="absolute -left-[23px] top-1 w-4 h-4 rounded-full bg-amber-400 border border-emerald-950 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-950" />
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-extrabold text-white">
-                      {t('premium.modal.timeline.step1Title') || 'Heute'}
-                    </span>
-                    <span className="text-[11px] text-emerald-100/70">
-                      {t('premium.modal.timeline.step1Desc') || 'Testphase starten. Vollzugriff.'}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Step 2 */}
-                <div className="relative">
-                  <div className="absolute -left-[23px] top-1 w-4 h-4 rounded-full bg-emerald-600 border border-emerald-950 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-extrabold text-white">
-                      {t('premium.modal.timeline.step2Title') || 'Tag 5'}
-                    </span>
-                    <span className="text-[11px] text-emerald-100/70">
-                      {t('premium.modal.timeline.step2Desc') || 'Erinnerungs-Push erhalten.'}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Step 3 */}
-                <div className="relative">
-                  <div className="absolute -left-[23px] top-1 w-4 h-4 rounded-full bg-emerald-600 border border-emerald-950 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-extrabold text-white">
-                      {t('premium.modal.timeline.step3Title').replace('{days}', String(trialDays)) || 'Tag 7'}
-                    </span>
-                    <span className="text-[11px] text-emerald-100/70">
-                      {t('premium.modal.timeline.step3Desc') || 'Abo beginnt. Jederzeit kündbar.'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
         </div>
 
@@ -407,7 +349,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
 
         {/* Sticky Pricing & CTA Block */}
         <div className="shrink-0 mt-3 pt-3 border-t border-white/10 flex flex-col gap-3.5">
-          
+
           {/* Pricing Options Cards */}
           {isLoadingPackages ? (
             <div className="flex flex-col items-center justify-center py-4 gap-2 shrink-0">
@@ -419,14 +361,19 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
               {packages.map((pkg) => {
                 const isSelected = selectedPackageId === pkg.identifier;
                 const isYearly = pkg.packageType === 'ANNUAL';
-                
+
                 // Format monthly equivalent for yearly (standard yearly price / 12)
                 let monthlyPriceStr = pkg.product.priceString;
                 if (isYearly) {
-                  const monthlyEquiv = pkg.product.pricePerMonthString || 
+                  const monthlyEquiv = pkg.product.pricePerMonthString ||
                     (pkg.product.price ? `${(pkg.product.price / 12).toFixed(2).replace('.', ',')} €` : '');
                   monthlyPriceStr = t('premium.modal.priceMonthlyEquivalent').replace('{price}', monthlyEquiv);
                 }
+
+                // Free-trial length for this package (intro offer with price 0), if any
+                const pkgTrialDays = (pkg.product?.introPrice && pkg.product.introPrice.price === 0)
+                  ? (pkg.product.introPrice.periodNumberOfUnits || trialDays)
+                  : 0;
 
                 // If monthly package exists, we can show savings percentage on yearly
                 const hasSavings = isYearly && packages.some(p => p.packageType === 'MONTHLY');
@@ -446,11 +393,10 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                   <div
                     key={pkg.identifier}
                     onClick={() => setSelectedPackageId(pkg.identifier)}
-                    className={`relative p-3.5 rounded-2xl flex flex-col gap-0.5 border-2 transition-all active:scale-[0.98] cursor-pointer ${
-                      isSelected
+                    className={`relative p-3.5 rounded-2xl flex flex-col gap-0.5 border-2 transition-all active:scale-[0.98] cursor-pointer ${isSelected
                         ? 'bg-gradient-to-b from-amber-400/20 to-amber-400/5 border-amber-400 shadow-xl shadow-amber-400/5'
                         : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/15'
-                    }`}
+                      }`}
                   >
                     {/* Bestseller Badge */}
                     {isYearly && (
@@ -468,6 +414,11 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                           {t('premium.modal.savePercent').replace('{percent}', String(savingsPercent)) || `-${savingsPercent}%`}
                         </span>
                       )}
+                      {pkgTrialDays > 0 && (
+                        <span className="bg-amber-400/20 text-amber-300 font-extrabold text-[7.5px] px-1 py-0.5 rounded border border-amber-400/30">
+                          {t('premium.modal.trialBadge').replace('{days}', String(pkgTrialDays))}
+                        </span>
+                      )}
                     </div>
 
                     <div className="text-base font-extrabold text-white leading-tight">
@@ -475,7 +426,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
                     </div>
 
                     <div className="text-[9px] text-emerald-100/60 mt-auto">
-                      {isYearly 
+                      {isYearly
                         ? t('premium.modal.priceYearlyPeriod').replace('{price}', pkg.product.priceString)
                         : t('premium.modal.pricePeriod').replace('{price}', pkg.product.priceString)
                       }
@@ -488,7 +439,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
             <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl shrink-0">
               <AlertCircle className="w-4 h-4 text-amber-300 shrink-0" />
               <span className="text-[10px] text-amber-200/80 leading-relaxed">
-                Keine Angebote geladen. Der Kauf wird über das Standard-Abo abgewickelt.
+                Keine Angebote verfügbar.
               </span>
             </div>
           )}
@@ -497,7 +448,7 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
           <div>
             {user?.app_metadata?.tier === 'beta' ? (
               <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
-                <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.betaOwned') || 'Beta-Zugriff Aktiv'}
+                <Check className="w-5 h-5 text-amber-300" /> {t('premium.modal.betaOwned') || 'Käufe während der Beta deaktiviert'}
               </button>
             ) : isPremium ? (
               <button className="w-full h-14 rounded-2xl bg-white/15 border border-white/20 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-default">
@@ -526,9 +477,24 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
               </button>
             )}
             {!isPremium && !loading && !isValidating && !isLoadingPackages && (
-              <p className="text-center text-[11px] text-emerald-100/50 mt-2 font-semibold">
-                {t('premium.modal.cancelSubtitle') || 'Kein Risiko. Jederzeit kündbar.'}
-              </p>
+              <>
+                <p className="text-center text-[11px] text-emerald-100/50 mt-2 font-semibold">
+                  {t('premium.modal.cancelSubtitle') || 'Kein Risiko. Jederzeit kündbar.'}
+                </p>
+                {/* Reference to the AGB (terms) shown before the in-app purchase. */}
+                <p className="text-center text-[10px] text-emerald-100/40 mt-1">
+                  {t('premium.modal.termsNoticePrefix') || 'Mit dem Kauf stimmst du den '}
+                  <a
+                    href={LEGAL_URLS.terms}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-amber-300 transition-colors"
+                  >
+                    {t('premium.modal.termsLink') || 'AGB'}
+                  </a>
+                  {t('premium.modal.termsNoticeSuffix') || ' zu.'}
+                </p>
+              </>
             )}
           </div>
 

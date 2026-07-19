@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare, Shield } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare, Shield, ScrollText, Building2, ExternalLink } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
@@ -9,6 +9,8 @@ import { useHashRouter } from '../hooks/useHashRouter';
 import PremiumModal from './PremiumModal';
 import { FeedbackDrawer } from './FeedbackDrawer';
 import { APP_VERSION_LABEL } from '../version';
+import { LEGAL_URLS } from '../legal';
+import PremiumUpgradeCard from './PremiumUpgradeCard';
 
 function SettingInfo({ text }: { text: string }) {
   return (
@@ -40,7 +42,7 @@ const getInitials = (email?: string) => {
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
-  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, isPremiumOverride, setIsPremiumOverride, isAdmin } = useAuth();
+  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, setIsPremiumOverride, isAdmin } = useAuth();
   const dialog = useDialog();
   const { navigate } = useHashRouter();
   const [theme, setTheme] = useTheme();
@@ -169,28 +171,7 @@ export default function SettingsView() {
       </div>
 
       {/* Premium Upgrade Promotion (only for free members and beta testers) */}
-      {!(user?.app_metadata?.tier === 'premium' || isPremiumOverride) && (
-        <div
-          onClick={() => setIsPremiumModalOpen(true)}
-          className="mx-2 cursor-pointer p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-md text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:brightness-[1.02] active:scale-[0.99] transition-all relative overflow-hidden group"
-        >
-          <div className="z-10">
-            <h3 className="text-base font-bold flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
-              Snagbite Premium
-            </h3>
-            <p className="text-xs text-emerald-100/90 mt-1 max-w-sm">
-              Unlock unlimited recipe extractions, advanced remix capabilities, and priority processing.
-            </p>
-          </div>
-          <div
-            className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs h-9 px-4 rounded-xl shadow-md active:scale-95 transition-all self-start sm:self-auto flex items-center gap-1.5 shrink-0 z-10"
-          >
-            <Crown className="w-3.5 h-3.5" />
-            {t('app.settings.upgradePremium') || 'Upgrade to Premium'}
-          </div>
-        </div>
-      )}
+      <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} className="mx-2" />
 
       {/* Preferences Section */}
       <div className="flex flex-col gap-2">
@@ -434,6 +415,43 @@ export default function SettingsView() {
             </div>
             <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
           </button>
+        </div>
+      </div>
+
+      {/* Section: Legal (Datenschutz / AGB / Impressum) */}
+      <div className="flex flex-col gap-2">
+        <h3 className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+          {t('app.settings.legal.section') || 'Rechtliches'}
+        </h3>
+
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+          {[
+            { href: LEGAL_URLS.privacy, icon: Shield, label: t('app.settings.legal.privacy') || 'Datenschutzerklärung' },
+            { href: LEGAL_URLS.terms, icon: ScrollText, label: t('app.settings.legal.terms') || 'AGB' },
+            { href: LEGAL_URLS.imprint, icon: Building2, label: t('app.settings.legal.imprint') || 'Impressum' },
+          ].map(({ href, icon: Icon, label }, idx, arr) => (
+            <a
+              key={href}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`w-full p-4 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group ${
+                idx < arr.length - 1 ? 'border-b border-black/5 dark:border-white/5' : ''
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-950 dark:text-white text-sm">
+                    {label}
+                  </p>
+                </div>
+              </div>
+              <ExternalLink className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+            </a>
+          ))}
         </div>
       </div>
 

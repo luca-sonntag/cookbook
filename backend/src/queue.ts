@@ -112,6 +112,15 @@ async function processJob(job: Job): Promise<void> {
     const scrapeResult = await scraper.scrape(url, jobId);
     console.log(`[Job ${jobId}] Scraped successfully. Caption/Title length: ${scrapeResult.caption.length}`);
 
+    // 2b. Enforce the video-length cap *before* downloading — the duration is known from
+    // scrape metadata (RapidAPI / yt-dlp), so we reject over-limit videos without spending
+    // any download bandwidth. 0 disables the check; results without a reported duration pass.
+    const maxDuration = config.MAX_VIDEO_DURATION_SECONDS;
+    if (maxDuration > 0 && scrapeResult.durationSeconds && scrapeResult.durationSeconds > maxDuration) {
+      const actualSec = Math.round(scrapeResult.durationSeconds);
+      throw new Error(`Video too long: ${actualSec}s exceeds the ${maxDuration}s limit.`);
+    }
+
     // 3. Mark job as processing
     await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 50, stage: 'downloading_media' } as any });
 
@@ -319,6 +328,7 @@ export function startQueue(pollIntervalMs = 2000): void {
   };
   runCleanup();
   cleanupInterval = setInterval(runCleanup, 12 * 60 * 60 * 1000);
+
 }
 
 /**

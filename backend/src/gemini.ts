@@ -789,7 +789,7 @@ export async function chatAboutRecipe(
 
     const targetLanguage = userPrefs?.recipeLanguage || config.RECIPE_LANGUAGE;
 
-    const systemInstruction = `You are "KochBuddy AI", a friendly, helpful, and professional sous-chef in the kitchen.
+    const systemInstruction = `You are "Recipe Copilot", a friendly, helpful, and professional sous-chef in the kitchen.
 You are helping the user with the following recipe:
 
 Title: ${recipe.title}

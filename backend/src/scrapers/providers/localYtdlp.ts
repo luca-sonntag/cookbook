@@ -37,6 +37,7 @@ export const localYtdlpProvider: SocialScrapeProvider = {
       caption: metadata.description || metadata.title || '',
       imageUrl: metadata.thumbnail || '',
       authorHandle: metadata.uploader_id || metadata.uploader || metadata.channel || '',
+      durationSeconds: typeof metadata.duration === 'number' ? metadata.duration : undefined,
       media: { kind: 'ytdlp', sourceUrl: url },
     };
   },

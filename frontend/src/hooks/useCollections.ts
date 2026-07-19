@@ -43,13 +43,13 @@ export function useCollections() {
     }
   }, [getHeaders]);
 
-  const createCollection = async (name: string, emoji?: string | null, color?: string | null, position?: number) => {
+  const createCollection = async (name: string, emoji?: string | null, position?: number) => {
     try {
       const headers = await getHeaders();
       const response = await fetch(apiUrl('/api/collections'), {
         method: 'POST',
         headers,
-        body: JSON.stringify({ name, emoji, color, position }),
+        body: JSON.stringify({ name, emoji, position }),
       });
       const data = await response.json();
       if (response.ok && data.success) {

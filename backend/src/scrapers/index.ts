@@ -20,6 +20,8 @@ export interface ScrapingResult {
   imageUrl?: string;
   authorHandle?: string;
   htmlContent?: string; // For text-based websites
+  /** Video length in seconds when the provider reports it; used to enforce a length cap before downloading. */
+  durationSeconds?: number;
   /** Media source + download strategy; `{ kind: 'none' }` for text-only results. */
   media: MediaDownload;
 }

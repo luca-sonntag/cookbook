@@ -222,6 +222,13 @@ export const uiTranslations = {
         premiumActiveDesc: 'Du hast unbegrenzten Zugriff auf alle Premium-Features.',
         betaActive: 'Beta-Zugriff',
         betaActiveDesc: 'Du bist Beta-Tester! Du hast kostenlosen Zugriff auf alle Premium-Features während der Beta. Extraktionslimits gelten weiterhin.',
+        premiumCardDesc: 'Schalte unbegrenzte Rezept-Extraktionen, KI-Chat & Remix und smarte Einkaufslisten frei.',
+        legal: {
+          section: 'Rechtliches',
+          privacy: 'Datenschutzerklärung',
+          terms: 'AGB',
+          imprint: 'Impressum',
+        },
       },
       dialog: {
         deleteAccount: {
@@ -310,6 +317,11 @@ export const uiTranslations = {
       unexpectedError: 'Ein unerwarteter Fehler ist aufgetreten.',
       signOut: 'Abmelden',
       signInWithGoogle: 'Mit Google anmelden',
+      consentPrefix: 'Mit der Anmeldung akzeptierst du unsere ',
+      consentTermsLink: 'AGB',
+      consentConjunction: ' und ',
+      consentPrivacyLink: 'Datenschutzerklärung',
+      consentSuffix: '.',
     },
     error: {
       title: 'Extraktion fehlgeschlagen',
@@ -360,7 +372,6 @@ export const uiTranslations = {
       }
     },
     recipe: {
-      copyMarkdown: 'Rezept als Markdown kopieren',
       copyRecipe: 'Rezept kopieren',
       copied: 'Kopiert!',
       delete: 'Rezept löschen',
@@ -448,13 +459,14 @@ export const uiTranslations = {
       sortNewest: 'Neueste',
       sortTitle: 'Name A–Z',
       sortTime: 'Zubereitungszeit',
+      dateToday: 'Heute',
+      dateYesterday: 'Gestern',
       collectionsTitle: 'Sammlungen',
       addCollection: 'Neue Sammlung',
       editCollection: 'Sammlung bearbeiten',
       deleteCollection: 'Sammlung löschen',
       collectionName: 'Name der Sammlung',
       collectionEmoji: 'Symbol / Emoji',
-      collectionColor: 'Farbe',
       collectionPlaceholder: 'z.B. Sonntagsbrunch',
       collectionNameRequired: 'Name der Sammlung ist erforderlich',
       flagsTitle: 'Labels / Tags',
@@ -469,6 +481,8 @@ export const uiTranslations = {
       premiumFeatureFlagsDesc: 'Erstelle eigene Labels und Tags, um Rezepte noch flexibler zu filtern.',
       bulkAddToCollection: 'Zu Sammlung hinzufügen',
       assignCollectionsTitle: 'Sammlungen zuweisen',
+      manageBulkCollectionsTitle: 'Sammlungen verwalten',
+      closeButton: 'Schließen',
       manageRecipeFlagsTitle: 'Rezept-Labels verwalten',
     },
     shopping: {
@@ -609,7 +623,7 @@ export const uiTranslations = {
         error: 'Fehler bei der Zahlung. Bitte versuche es erneut.',
         close: 'Schließen',
         owned: 'Du hast Premium',
-        betaOwned: 'Beta-Zugriff Aktiv',
+        betaOwned: 'Käufe während der Beta deaktiviert',
         verifying: 'Verifiziere Status...',
         footer: 'Jederzeit kündbar · Sicher über Google Play',
         monthly: 'Monatlich',
@@ -620,17 +634,19 @@ export const uiTranslations = {
         pricePeriod: '{price} / Monat',
         priceYearlyPeriod: '{price} / Jahr',
         priceMonthlyEquivalent: 'nur {price}/Monat',
-        freeTrialTitle: '7 Tage kostenlos testen',
+        trialBadge: '{days} Tage gratis',
         ctaWithTrial: 'Kostenlose Testphase starten >',
         ctaWithoutTrial: 'Premium freischalten >',
         cancelSubtitle: 'Kein Risiko. Jederzeit kündbar.',
-        timeline: {
-          step1Title: 'Heute',
-          step1Desc: 'Testphase starten. Vollzugriff.',
-          step2Title: 'Tag 5',
-          step2Desc: 'Erinnerungs-Push erhalten.',
-          step3Title: 'Tag 7',
-          step3Desc: 'Abo beginnt. Jederzeit kündbar.'
+        termsNoticePrefix: 'Mit dem Kauf stimmst du den ',
+        termsLink: 'AGB',
+        termsNoticeSuffix: ' zu.',
+        trialBanner: {
+          title: 'Premium kostenlos testen',
+          body: 'Alle Premium-Features freischalten — danach automatisch Free.',
+          cta: 'Jetzt starten',
+          dismiss: 'Später',
+          days: 'Tage',
         },
         comparison: {
           tableTitle: 'Free vs. Premium im Vergleich',
@@ -638,13 +654,13 @@ export const uiTranslations = {
           headerFree: 'Kostenlos',
           headerPremium: 'Premium',
           rowExtractions: 'Rezept-Extraktion',
-          rowExtractionsFree: '3 / Tag',
+          rowExtractionsFree: '1 / Tag',
           rowExtractionsPremium: 'Unbegrenzt',
           rowCookbook: 'Kochbuch (Speichern)',
           rowCookbookFree: 'Max. 5 Rezepte',
           rowCookbookPremium: 'Unbegrenzt',
           rowShoppingList: 'Einkaufsliste',
-          rowShoppingListFree: 'Lokal, 1 Rezept',
+          rowShoppingListFree: '1 Rezept',
           rowShoppingListPremium: 'Smarte Kombi',
           rowAiChat: 'Rezept-KI-Chat',
           rowAiChatFree: '❌ Nein',
@@ -771,6 +787,13 @@ export const uiTranslations = {
         premiumActiveDesc: 'You have unlimited access to all premium features.',
         betaActive: 'Beta Access',
         betaActiveDesc: 'You are a beta tester! You have free access to all premium features during the beta. Extraction limits apply.',
+        premiumCardDesc: 'Unlock unlimited recipe extractions, advanced remix capabilities, and smart shopping lists.',
+        legal: {
+          section: 'Legal',
+          privacy: 'Privacy Policy',
+          terms: 'Terms & Conditions',
+          imprint: 'Imprint',
+        },
       },
       dialog: {
         deleteAccount: {
@@ -859,6 +882,11 @@ export const uiTranslations = {
       unexpectedError: 'An unexpected error occurred.',
       signOut: 'Sign Out',
       signInWithGoogle: 'Sign in with Google',
+      consentPrefix: 'By signing in you accept our ',
+      consentTermsLink: 'Terms & Conditions',
+      consentConjunction: ' and ',
+      consentPrivacyLink: 'Privacy Policy',
+      consentSuffix: '.',
     },
     error: {
       title: 'Extraction Failed',
@@ -909,7 +937,6 @@ export const uiTranslations = {
       }
     },
     recipe: {
-      copyMarkdown: 'Copy Recipe Markdown',
       copyRecipe: 'Copy Recipe',
       copied: 'Copied!',
       delete: 'Delete Recipe',
@@ -997,13 +1024,14 @@ export const uiTranslations = {
       sortNewest: 'Newest',
       sortTitle: 'Name A–Z',
       sortTime: 'Cooking Time',
+      dateToday: 'Today',
+      dateYesterday: 'Yesterday',
       collectionsTitle: 'Collections',
       addCollection: 'New Collection',
       editCollection: 'Edit Collection',
       deleteCollection: 'Delete Collection',
       collectionName: 'Collection Name',
       collectionEmoji: 'Icon / Emoji',
-      collectionColor: 'Color',
       collectionPlaceholder: 'e.g. Sunday Brunch',
       collectionNameRequired: 'Collection name is required',
       flagsTitle: 'Labels & Flags',
@@ -1018,6 +1046,8 @@ export const uiTranslations = {
       premiumFeatureFlagsDesc: 'Create your own custom labels and tags to filter recipes even more flexibly.',
       bulkAddToCollection: 'Add to Collection',
       assignCollectionsTitle: 'Assign Collections',
+      manageBulkCollectionsTitle: 'Manage Collections',
+      closeButton: 'Close',
       manageRecipeFlagsTitle: 'Manage Recipe Labels',
     },
     shopping: {
@@ -1158,7 +1188,7 @@ export const uiTranslations = {
         error: 'Payment failed. Please try again.',
         close: 'Close',
         owned: 'You have Premium',
-        betaOwned: 'Beta Access Active',
+        betaOwned: 'Purchases disabled during beta',
         verifying: 'Verifying Status...',
         footer: 'Cancel anytime · Secure via Google Play',
         monthly: 'Monthly',
@@ -1169,17 +1199,19 @@ export const uiTranslations = {
         pricePeriod: '{price} / month',
         priceYearlyPeriod: '{price} / year',
         priceMonthlyEquivalent: 'only {price}/month',
-        freeTrialTitle: '7-Day Free Trial',
+        trialBadge: '{days} days free',
         ctaWithTrial: 'Start Free Trial >',
         ctaWithoutTrial: 'Unlock Premium >',
         cancelSubtitle: 'No risk. Cancel anytime.',
-        timeline: {
-          step1Title: 'Today',
-          step1Desc: 'Start free trial. Full access.',
-          step2Title: 'Day 5',
-          step2Desc: 'Get reminder notification.',
-          step3Title: 'Day 7',
-          step3Desc: 'Subscription starts. Cancel anytime.'
+        termsNoticePrefix: 'By purchasing you agree to the ',
+        termsLink: 'Terms & Conditions',
+        termsNoticeSuffix: '.',
+        trialBanner: {
+          title: 'Try Premium free',
+          body: 'Unlock all premium features — auto-reverts to Free afterwards.',
+          cta: 'Start now',
+          dismiss: 'Later',
+          days: 'days',
         },
         comparison: {
           tableTitle: 'Free vs. Premium Comparison',
@@ -1187,13 +1219,13 @@ export const uiTranslations = {
           headerFree: 'Free',
           headerPremium: 'Premium',
           rowExtractions: 'Recipe Extraction',
-          rowExtractionsFree: '3 / day',
+          rowExtractionsFree: '1 / day',
           rowExtractionsPremium: 'Unlimited',
           rowCookbook: 'Cookbook (Save)',
           rowCookbookFree: 'Max 5 recipes',
           rowCookbookPremium: 'Unlimited',
           rowShoppingList: 'Shopping List',
-          rowShoppingListFree: 'Local, 1 recipe',
+          rowShoppingListFree: '1 recipe',
           rowShoppingListPremium: 'Smart Combined',
           rowAiChat: 'Recipe AI Chat',
           rowAiChatFree: '❌ No',
@@ -1404,6 +1436,29 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
     return lang === 'de'
       ? 'Fehler beim Abrufen des Instagram Reels. Bitte überprüfe, ob das Video öffentlich und der Link korrekt ist.'
       : 'Failed to retrieve the Instagram Reel. Please make sure the video is public and the link is correct.';
+  }
+
+  if (lowerMsg.includes('video too long')) {
+    const limitMatch = errorMsg.match(/the\s+(\d+)\s*s limit/i);
+    const limitSec = limitMatch ? parseInt(limitMatch[1], 10) : null;
+    // Whole minutes read as "X min"; anything else stays in seconds (e.g. 90s).
+    const limitLabel =
+      limitSec != null && limitSec % 60 === 0
+        ? lang === 'de'
+          ? `${limitSec / 60} Minuten`
+          : `${limitSec / 60} minutes`
+        : limitSec != null
+          ? lang === 'de'
+            ? `${limitSec} Sekunden`
+            : `${limitSec} seconds`
+          : null;
+    return lang === 'de'
+      ? limitLabel
+        ? `Das Video ist zu lang. Es sind maximal ${limitLabel} erlaubt.`
+        : 'Das Video ist zu lang.'
+      : limitLabel
+        ? `The video is too long. The maximum allowed length is ${limitLabel}.`
+        : 'The video is too long.';
   }
 
   if (lowerMsg.includes('could not find any recipe details')) {

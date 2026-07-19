@@ -653,7 +653,6 @@ export async function listCollections(userId: string): Promise<Collection[]> {
     userId: row.user_id,
     name: row.name,
     emoji: row.emoji,
-    color: row.color,
     position: row.position,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -673,7 +672,6 @@ export async function createCollection(userId: string, col: Partial<Collection>)
       user_id: userId,
       name: col.name!,
       emoji: col.emoji || null,
-      color: col.color || null,
       position,
       created_at: now,
       updated_at: now
@@ -688,7 +686,6 @@ export async function createCollection(userId: string, col: Partial<Collection>)
     userId: data.user_id,
     name: data.name,
     emoji: data.emoji,
-    color: data.color,
     position: data.position,
     createdAt: data.created_at,
     updatedAt: data.updated_at
@@ -701,7 +698,6 @@ export async function updateCollection(id: string, userId: string, col: Partial<
   const updates: Record<string, any> = { updated_at: now };
   if (col.name !== undefined) updates.name = col.name;
   if (col.emoji !== undefined) updates.emoji = col.emoji;
-  if (col.color !== undefined) updates.color = col.color;
   if (col.position !== undefined) updates.position = col.position;
 
   const { data, error } = await getClient()
@@ -719,7 +715,6 @@ export async function updateCollection(id: string, userId: string, col: Partial<
     userId: data.user_id,
     name: data.name,
     emoji: data.emoji,
-    color: data.color,
     position: data.position,
     createdAt: data.created_at,
     updatedAt: data.updated_at

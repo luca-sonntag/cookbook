@@ -1,41 +1,141 @@
 import { Purchases, LOG_LEVEL } from '@revenuecat/purchases-capacitor';
 import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { supabase } from '../supabase';
 import { apiUrl } from '../api';
 
 const REVENUECAT_ANDROID_API_KEY = import.meta.env.VITE_REVENUECAT_ANDROID_API_KEY as string | undefined;
 
 let isRCInitialized = false;
+/** Promise-based lock to prevent concurrent configure() calls (race condition). */
+let initPromise: Promise<void> | null = null;
+/** Interval handle for the 60s polling refresh. */
+let pollInterval: ReturnType<typeof setInterval> | null = null;
+/** Whether the App-resume listener has been registered. */
+let resumeListenerRegistered = false;
 
 export async function initBilling(userId: string): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   if (isRCInitialized) return;
+
+  // If another caller is already initializing, wait for it instead of racing
+  if (initPromise) {
+    await initPromise;
+    return;
+  }
 
   if (!REVENUECAT_ANDROID_API_KEY) {
     console.warn('RevenueCat API Key is missing. Billing will not work.');
     return;
   }
 
-  try {
-    await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
-    await Purchases.configure({
-      apiKey: REVENUECAT_ANDROID_API_KEY,
-      appUserID: userId,
-    });
-    isRCInitialized = true;
-    console.log('RevenueCat configured successfully for user:', userId);
+  initPromise = (async () => {
+    try {
+      await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
+      await Purchases.configure({
+        apiKey: REVENUECAT_ANDROID_API_KEY,
+        appUserID: userId,
+      });
+      isRCInitialized = true;
+      console.log('[RevenueCat] Configured successfully for user:', userId);
 
-    // Initial status sync on app launch to verify actual entitlements
+      // Register App-resume listener to refresh on foreground
+      registerResumeListener();
+
+      // Start 60-second polling to catch entitlement expiry
+      startPolling();
+
+      // Register a listener that fires whenever the subscription status changes
+      // (expiry, renewal, refund, cross-device restore, etc.)
+      try {
+        await Purchases.addCustomerInfoUpdateListener(async (info) => {
+          console.log('[RevenueCat] CustomerInfo updated (listener):', JSON.stringify(info, null, 2));
+          const isPremium = info.entitlements.active['premium'] !== undefined;
+          await syncBillingStatus(isPremium);
+        });
+        console.log('[RevenueCat] CustomerInfoUpdateListener registered.');
+      } catch (listenerErr) {
+        console.warn('[RevenueCat] Failed to register CustomerInfoUpdateListener:', listenerErr);
+      }
+
+      // Initial status sync on app launch to verify actual entitlements
+      try {
+        const { customerInfo } = await Purchases.getCustomerInfo();
+        console.log('[RevenueCat] Initial customerInfo:', JSON.stringify(customerInfo, null, 2));
+        const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+        await syncBillingStatus(isPremium);
+      } catch (syncErr) {
+        console.warn('[RevenueCat] Initial billing status sync failed:', syncErr);
+      }
+    } catch (err) {
+      console.error('[RevenueCat] Failed to configure:', err);
+      throw err; // propagate so waiters know it failed
+    } finally {
+      initPromise = null; // release lock regardless of outcome
+    }
+  })();
+
+  await initPromise;
+}
+
+/**
+ * Poll RevenueCat every 60 seconds to catch entitlement expiry.
+ * The CustomerInfoUpdateListener only fires on server-side events
+ * (refund, renewal, cancellation) — not on pure time-based expiry.
+ */
+function startPolling(): void {
+  if (pollInterval) return; // already running
+  console.log('[RevenueCat] Starting 60s entitlement poll...');
+  pollInterval = setInterval(async () => {
+    if (!isRCInitialized) return;
     try {
       const { customerInfo } = await Purchases.getCustomerInfo();
       const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+      // Only log & sync if there's a change (avoid noise)
       await syncBillingStatus(isPremium);
-    } catch (syncErr) {
-      console.warn('Initial billing status sync failed:', syncErr);
+    } catch (err) {
+      // Silently ignore — will retry next interval
     }
-  } catch (err) {
-    console.error('Failed to configure RevenueCat:', err);
+  }, 60_000);
+}
+
+export function stopPolling(): void {
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+    console.log('[RevenueCat] Polling stopped.');
   }
+}
+
+/**
+ * Refresh customerInfo from RevenueCat and sync with backend.
+ * Called on App-resume.
+ */
+async function refreshCustomerInfo(): Promise<void> {
+  if (!isRCInitialized) return;
+  try {
+    const { customerInfo } = await Purchases.getCustomerInfo();
+    console.log('[RevenueCat] Refreshed customerInfo (resume):', JSON.stringify(customerInfo, null, 2));
+    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+    await syncBillingStatus(isPremium);
+  } catch (err) {
+    console.warn('[RevenueCat] Resume refresh failed:', err);
+  }
+}
+
+/**
+ * Register the App-resume listener once. When the user returns to the app,
+ * we refresh customerInfo to catch any entitlement changes that happened
+ * while the app was backgrounded.
+ */
+function registerResumeListener(): void {
+  if (resumeListenerRegistered) return;
+  resumeListenerRegistered = true;
+
+  App.addListener('resume', () => {
+    console.log('[RevenueCat] App resumed — refreshing customerInfo...');
+    refreshCustomerInfo();
+  });
 }
 
 async function syncBillingStatus(isPremium: boolean): Promise<void> {
@@ -58,59 +158,17 @@ async function syncBillingStatus(isPremium: boolean): Promise<void> {
       if (error) {
         console.warn('Failed to refresh local Supabase session:', error.message);
       } else {
-        console.log('Billing status synced successfully with backend. Tier:', isPremium ? 'premium' : 'free');
+        console.log('[RevenueCat] Billing status synced successfully with backend. Tier:', isPremium ? 'premium' : 'free');
       }
     } else {
-      console.error('Failed to sync billing status with backend:', await response.text());
+      console.error('[RevenueCat] Failed to sync billing status with backend:', await response.text());
     }
   } catch (err) {
-    console.error('Error syncing billing status:', err);
+    console.error('[RevenueCat] Error syncing billing status:', err);
   }
 }
 
 export async function getSubscriptionOfferings(): Promise<any[]> {
-  const useMock = !Capacitor.isNativePlatform() || import.meta.env.VITE_USE_MOCK_BILLING === 'true';
-  if (useMock) {
-    // Return mock offerings for web testing
-    return [
-      {
-        identifier: '$rc_monthly',
-        packageType: 'MONTHLY',
-        product: {
-          identifier: 'premium_monthly',
-          title: 'Snagbite Premium Monthly',
-          description: 'Monthly subscription to Snagbite Premium',
-          price: 3.99,
-          priceString: '3,99 €',
-          currencyCode: 'EUR',
-          introPrice: null,
-          subscriptionPeriod: 'P1M',
-        }
-      },
-      {
-        identifier: '$rc_yearly',
-        packageType: 'ANNUAL',
-        product: {
-          identifier: 'premium_yearly',
-          title: 'Snagbite Premium Yearly',
-          description: 'Yearly subscription to Snagbite Premium',
-          price: 29.99,
-          priceString: '29,99 €',
-          currencyCode: 'EUR',
-          introPrice: {
-            price: 0,
-            priceString: '0,00 €',
-            cycles: 1,
-            period: 'P1W',
-            periodUnit: 'DAY',
-            periodNumberOfUnits: 7,
-          },
-          subscriptionPeriod: 'P1Y',
-        }
-      }
-    ];
-  }
-
   // Ensure initialized
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
@@ -122,7 +180,7 @@ export async function getSubscriptionOfferings(): Promise<any[]> {
     const offerings = await Purchases.getOfferings();
     return offerings.current?.availablePackages || [];
   } catch (err) {
-    console.error('Failed to get offerings from RevenueCat:', err);
+    console.error('[RevenueCat] Failed to get offerings:', err);
     return [];
   }
 }
@@ -132,15 +190,6 @@ export async function buyPremium(packageId?: string): Promise<boolean> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('User must be logged in to purchase Premium.');
-  }
-
-  const useMock = !Capacitor.isNativePlatform() || import.meta.env.VITE_USE_MOCK_BILLING === 'true';
-  if (useMock) {
-    // In web development, simulate a successful purchase
-    console.log('Simulating premium purchase on web/mock for package:', packageId);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    await syncBillingStatus(true);
-    return true;
   }
 
   await initBilling(user.id);
@@ -163,18 +212,48 @@ export async function buyPremium(packageId?: string): Promise<boolean> {
       if (found) {
         packageToBuy = found;
       } else {
-        console.warn(`Requested package '${packageId}' not found. Falling back to default package.`);
+        console.warn(`[RevenueCat] Requested package '${packageId}' not found. Falling back to default package.`);
       }
     }
+
+    console.log('[RevenueCat] Starting purchase for package:', packageToBuy.identifier, 'product:', packageToBuy.product?.identifier);
 
     const { customerInfo } = await Purchases.purchasePackage({
       aPackage: packageToBuy,
     });
 
+    console.log('[RevenueCat] Purchase completed. Full customerInfo:', JSON.stringify(customerInfo, null, 2));
+    console.log('[RevenueCat] Active entitlements:', JSON.stringify(customerInfo.entitlements.active));
+
     // Check if the user has active entitlements.
-    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+    let isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+
+    // If entitlement not immediately active, try a restore/refresh (important for test purchases)
+    if (!isPremium) {
+      console.log('[RevenueCat] Premium entitlement not immediately active. Trying restorePurchases...');
+      try {
+        const { customerInfo: restoredInfo } = await Purchases.restorePurchases();
+        console.log('[RevenueCat] Restored customerInfo:', JSON.stringify(restoredInfo, null, 2));
+        isPremium = restoredInfo.entitlements.active['premium'] !== undefined;
+      } catch (restoreErr) {
+        console.warn('[RevenueCat] restorePurchases failed:', restoreErr);
+      }
+    }
+
+    // If still not active, try one more getCustomerInfo refresh
+    if (!isPremium) {
+      console.log('[RevenueCat] Still not active after restore. Trying getCustomerInfo refresh...');
+      try {
+        const { customerInfo: refreshedInfo } = await Purchases.getCustomerInfo();
+        console.log('[RevenueCat] Refreshed customerInfo:', JSON.stringify(refreshedInfo, null, 2));
+        isPremium = refreshedInfo.entitlements.active['premium'] !== undefined;
+      } catch (refreshErr) {
+        console.warn('[RevenueCat] getCustomerInfo refresh failed:', refreshErr);
+      }
+    }
 
     if (isPremium) {
+      console.log('[RevenueCat] Premium entitlement confirmed. Syncing with backend...');
       await syncBillingStatus(true);
       return true;
     }
@@ -186,8 +265,10 @@ export async function buyPremium(packageId?: string): Promise<boolean> {
   } catch (err: any) {
     // If the user cancelled, return false silently
     if (err.userCancelled) {
+      console.log('[RevenueCat] User cancelled the purchase.');
       return false;
     }
+    console.error('[RevenueCat] Purchase error:', err);
     throw new Error(err.message || 'Purchase failed.');
   }
 }
