@@ -62,8 +62,6 @@ export default function App() {
       ? (history.find(j => j.id === subPath) ?? null)
       : null;
 
-  const isViewingRecipe = !!selectedJob || (activeView === 'extract' && !!recipe);
-
   // Setter for selected job — navigates via URL
   const setSelectedJob = useCallback((job: Job | null) => {
     if (job) {
@@ -140,6 +138,8 @@ export default function App() {
     limitStatus,
     fetchLimitStatus
   } = useRecipeExtraction(getAccessToken, handleExtractionSuccess, isPremiumOverride);
+
+  const isViewingRecipe = !!selectedJob || (activeView === 'extract' && !!recipe);
 
   // Mobile back button & swipe gestures for newly extracted recipe details
   useMobileNavigationBack(activeView === 'extract' && !!recipe, () => {
