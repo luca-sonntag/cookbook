@@ -6,7 +6,6 @@ import { apiUrl } from './api';
 import { registerShareIntent, registerNotificationTap, hideSplashScreen, registerBackButtonHandler } from './native';
 import { parseSharedUrl } from './utils/shareUrl';
 import ExtractForm from './components/ExtractForm';
-import ProgressTracker from './components/ProgressTracker';
 import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog/index';
@@ -541,10 +540,9 @@ export default function App() {
                 isPending={isPending}
                 handleFormSubmit={handleFormSubmit}
                 limitStatus={limitStatus}
+                jobStatus={jobStatus}
+                progress={progress}
               />
-
-              {/* Processing State Tracker */}
-              <ProgressTracker isPending={isPending} jobStatus={jobStatus} statusDetails={statusDetails} progress={progress} />
 
               {/* Error State Banner */}
               <ErrorBanner
