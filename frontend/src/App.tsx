@@ -450,7 +450,7 @@ export default function App() {
         <div className="w-full h-[env(safe-area-inset-top)] bg-[#064e3b]" />
 
         <header className="w-full bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md transition-colors duration-300">
-          <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
+          <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-start items-center">
             <div className="flex items-center gap-2">
               <div className="flex-shrink-0">
                 <img src="/logo-login.png" alt="App Logo" className="w-7 h-7 object-contain" />
