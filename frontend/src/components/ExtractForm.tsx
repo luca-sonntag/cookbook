@@ -5,6 +5,7 @@ import { Clipboard as CapClipboard } from '@capacitor/clipboard';
 import { Capacitor } from '@capacitor/core';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
+import { isTrialBannerDismissed, TRIAL_BANNER_DISMISS_EVENT } from './TrialBanner';
 import PremiumModal from './PremiumModal';
 import PremiumHint from './PremiumHint';
 import PremiumUpgradeCard from './PremiumUpgradeCard';
@@ -69,6 +70,15 @@ export default function ExtractForm({
   const { user, isPremiumOverride, hasTrialAvailable, trialDays, trialLoading } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
+  // React to TrialBanner dismissal so the upgrade card re-appears as soon
+  // as the banner is closed.
+  const [trialDismissed, setTrialDismissed] = useState(isTrialBannerDismissed);
+
+  useEffect(() => {
+    const onDismiss = () => setTrialDismissed(true);
+    window.addEventListener(TRIAL_BANNER_DISMISS_EVENT, onDismiss);
+    return () => window.removeEventListener(TRIAL_BANNER_DISMISS_EVENT, onDismiss);
+  }, []);
 
   // Cookbook is full → block new extractions and steer to upgrade.
   // Premium/Unlimited users (including overrides) never get capped.
@@ -81,8 +91,6 @@ export default function ExtractForm({
   // disappears in exactly the same situations: premium users, while the
   // RevenueCat trial lookup is in-flight, or while the trial banner is on
   // screen (including after a previous dismiss on this device).
-  const trialDismissed = typeof window !== 'undefined'
-    && localStorage.getItem('snagbite_trial_banner_dismissed') === '1';
   const trialBannerShowing = !isRealPremium
     && !trialLoading
     && hasTrialAvailable

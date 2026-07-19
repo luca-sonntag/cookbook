@@ -1,8 +1,18 @@
+import { useState } from 'react';
 import { Crown, X, ChevronRight, Timer } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 
-const STORAGE_KEY = 'snagbite_trial_banner_dismissed';
+/** Custom event name fired whenever the banner is dismissed on this device. */
+export const TRIAL_BANNER_DISMISS_EVENT = 'snagbite:trial-banner-dismissed';
+/** localStorage key shared with ExtractForm so the upgrade card can react. */
+export const TRIAL_BANNER_STORAGE_KEY = 'snagbite_trial_banner_dismissed';
+
+/** Read the current dismiss state from localStorage. Safe to call during SSR. */
+export const isTrialBannerDismissed = (): boolean => {
+  return typeof window !== 'undefined'
+    && localStorage.getItem(TRIAL_BANNER_STORAGE_KEY) === '1';
+};
 
 interface TrialBannerProps {
   onOpenPremium: () => void;
@@ -13,25 +23,33 @@ interface TrialBannerProps {
  * Renders only when RevenueCat reports a free-trial offering; the
  * displayed "N Tage" badge is derived from the longest trial length
  * across all packages (no hardcoded value). Dismissed state is
- * persisted in localStorage — once dismissed, it never reappears
- * for that user.
+ * persisted in localStorage and broadcast via a CustomEvent so other
+ * components (e.g. ExtractForm's UpgradeCard) can react synchronously.
  */
 export default function TrialBanner({ onOpenPremium }: TrialBannerProps) {
   const { t } = useI18n();
   const { isPremium, hasTrialAvailable, trialDays, trialLoading } = useAuth();
+  // Local dismiss state so the component can immediately unmount itself
+  // without waiting for a re-render driven by AuthContext or storage events.
+  const [dismissed, setDismissed] = useState(isTrialBannerDismissed);
 
   const dismiss = () => {
-    localStorage.setItem(STORAGE_KEY, '1');
+    localStorage.setItem(TRIAL_BANNER_STORAGE_KEY, '1');
+    setDismissed(true);
+    // Notify other components on the same page (storage events don't fire
+    // in the originating tab/window).
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(TRIAL_BANNER_DISMISS_EVENT));
+    }
   };
 
   // Show the banner only when RevenueCat has confirmed a trial offering
   // exists, the user hasn't dismissed it, and they aren't already premium.
   const show = !trialLoading
     && !isPremium
+    && !dismissed
     && hasTrialAvailable
-    && trialDays > 0
-    && typeof window !== 'undefined'
-    && localStorage.getItem(STORAGE_KEY) !== '1';
+    && trialDays > 0;
 
   if (!show) return null;
 
