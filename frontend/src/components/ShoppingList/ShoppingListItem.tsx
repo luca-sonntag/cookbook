@@ -31,7 +31,7 @@ export default function ShoppingListItem({
   // Compact, dimmed row used inside the "Erledigt" drawer.
   if (isChecked) {
     return (
-      <li className={`flex items-center justify-between gap-2 py-2 px-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${animationClass}`}>
+      <li className={`flex items-center justify-between gap-2 py-1.5 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${animationClass}`}>
         <button
           type="button"
           onClick={onClick}
@@ -49,7 +49,7 @@ export default function ShoppingListItem({
         </button>
         <button
           onClick={onDelete}
-          className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
+          className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
           aria-label={t('shopping.deleteItem')}
         >
           <Trash2 className="w-4 h-4" />
@@ -61,20 +61,20 @@ export default function ShoppingListItem({
   // Active (to-buy) row — big tap target, amount as a scannable chip.
   return (
     <li className={`rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors group ${animationClass}`}>
-      <div className="flex items-center justify-between gap-2 py-2 px-2.5 min-h-[52px]">
+      <div className="flex items-center justify-between gap-2 py-1.5 px-2 min-h-[40px]">
         <button
           type="button"
           onClick={onClick}
-          className="flex items-center gap-3 cursor-pointer flex-1 min-w-0 text-left outline-none"
+          className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 text-left outline-none"
           aria-label={item.name}
         >
-          <span className="w-7 h-7 rounded-lg border-2 border-black/15 dark:border-white/20 group-hover:border-emerald-500/60 flex items-center justify-center flex-shrink-0 transition-colors" />
+          <span className="w-5 h-5 rounded-md border-2 border-black/15 dark:border-white/20 group-hover:border-emerald-500/60 flex items-center justify-center flex-shrink-0 transition-colors" />
           {amountStr && (
-            <span className="flex-shrink-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold tabular-nums rounded-lg px-2 py-1 text-xs whitespace-nowrap">
+            <span className="flex-shrink-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold tabular-nums rounded-md px-1.5 py-0.5 text-[11px] whitespace-nowrap">
               {amountStr}
             </span>
           )}
-          <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100 min-w-0 leading-tight">
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-100 min-w-0 leading-tight">
             <span className="break-words">{item.name}</span>
             {item.modifier && (
               <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
@@ -92,7 +92,7 @@ export default function ShoppingListItem({
                 e.stopPropagation();
                 setShowSources((s) => !s);
               }}
-              className="inline-flex items-center gap-1 pl-2 pr-1.5 h-7 rounded-full text-[11px] font-semibold text-gray-500 dark:text-gray-400 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1 pl-2 pr-1.5 h-6 rounded-full text-[10px] font-semibold text-gray-500 dark:text-gray-400 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all cursor-pointer"
               aria-label={t('shopping.recipeCount', { count: sourceCount })}
               aria-expanded={showSources}
             >
@@ -102,7 +102,7 @@ export default function ShoppingListItem({
           )}
           <button
             onClick={onDelete}
-            className="text-gray-400 hover:text-red-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer"
+            className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer"
             aria-label={t('shopping.deleteItem')}
           >
             <Trash2 className="w-4 h-4" />
@@ -112,7 +112,7 @@ export default function ShoppingListItem({
 
       {/* Per-recipe breakdown — only rendered for merged items and only when expanded */}
       {hasMultipleSources && showSources && (
-        <div className="pl-[52px] pr-3 pb-2.5 -mt-0.5 flex flex-col gap-1 animate-item-expand">
+        <div className="pl-[38px] pr-3 pb-2 -mt-0.5 flex flex-col gap-1 animate-item-expand">
           {item.sources.map((src, sIdx) => (
             <div
               key={sIdx}
