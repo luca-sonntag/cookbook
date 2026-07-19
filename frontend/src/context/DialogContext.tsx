@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@heroui/react';
 import { AlertTriangle, Info, CheckCircle2, X } from 'lucide-react';
 import { useI18n } from './I18nContext';
@@ -131,10 +132,10 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     <DialogContext.Provider value={{ alert, confirm }}>
       {children}
 
-      {state.isOpen && (
+      {state.isOpen && createPortal(
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
             onClick={() => state.type === 'confirm' ? null : handleClose(false)}
           />
@@ -188,7 +189,8 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </DialogContext.Provider>
   );
