@@ -56,6 +56,61 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# --- Git Pre-flight checks (only if run standalone) ---
+if ($env:SNAGBITE_DEPLOY_ORCHESTRATOR -ne "true") {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    Push-Location $repoRoot
+    try {
+        while ($true) {
+            $status = & git status --porcelain
+            if (-not $status) {
+                break
+            }
+
+            Write-Host ""
+            Write-Host "WARNING: You have uncommitted changes in the repository:" -ForegroundColor Yellow
+            & git status -s
+            Write-Host ""
+            Write-Host "Select an option:" -ForegroundColor Cyan
+            Write-Host "  1) Commit changes now (you will be prompted for a message)"
+            Write-Host "  2) Stash changes"
+            Write-Host "  3) Retry/Continue (Use this if you resolved/committed changes in another terminal)"
+            Write-Host "  4) Abort"
+            Write-Host ""
+            
+            $choice = Read-Host "Enter option [1-4]"
+            switch ($choice) {
+                "1" {
+                    $msg = Read-Host "Enter commit message"
+                    if (-not [string]::IsNullOrWhiteSpace($msg)) {
+                        & git add -A
+                        & git commit -m $msg
+                        Write-Host "Changes committed successfully." -ForegroundColor Green
+                    } else {
+                        Write-Warning "Commit message cannot be empty."
+                    }
+                }
+                "2" {
+                    & git stash -u
+                    Write-Host "Changes stashed." -ForegroundColor Green
+                }
+                "3" {
+                    # Loop will re-check at the top
+                    continue
+                }
+                "4" {
+                    throw "Deployment aborted due to uncommitted changes."
+                }
+                default {
+                    Write-Warning "Invalid option. Please choose 1, 2, 3, or 4."
+                }
+            }
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
 $frontendDir = Split-Path -Parent $PSScriptRoot
 $androidDir  = Join-Path $frontendDir 'android'
 $fastlaneDir = Join-Path $androidDir 'fastlane'
@@ -108,3 +163,28 @@ Write-Host ""
 Write-Host "  [OK] Uploaded $($aab.Name) to the $Track track." -ForegroundColor Green
 Write-Host "  URL: https://play.google.com/console" -ForegroundColor DarkGray
 Write-Host ""
+
+# --- 6. Commit and Push version.properties (only if run standalone) ---
+if ($env:SNAGBITE_DEPLOY_ORCHESTRATOR -ne "true" -and -not $SkipBuild) {
+    $repoRoot = Split-Path -Parent $frontendDir
+    Push-Location $repoRoot
+    try {
+        $versionFileRel = "frontend/android/version.properties"
+        $diff = & git diff --name-only $versionFileRel
+        if ($diff) {
+            $versionContent = Get-Content $versionFileRel -Raw
+            $versionName = [regex]::Match($versionContent, 'VERSION_NAME=(.+)').Groups[1].Value.Trim()
+            $versionCode = [regex]::Match($versionContent, 'VERSION_CODE=(\d+)').Groups[1].Value.Trim()
+
+            Write-Host "Committing version bump..." -ForegroundColor Yellow
+            & git add $versionFileRel
+            & git commit -m "chore(version): bump app version to $versionName ($versionCode)"
+            
+            $currentBranch = (& git branch --show-current).Trim()
+            Write-Host "Pushing version bump to origin $currentBranch..." -ForegroundColor Yellow
+            & git push origin $currentBranch
+        }
+    } finally {
+        Pop-Location
+    }
+}

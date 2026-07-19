@@ -149,13 +149,57 @@ $global:originalDevelopCommit = $null
 $global:rollbackNeeded = $false
 $global:rollbackTag = $null
 
-function Initialize-GitState {
-    # Check if working directory is clean
-    $status = Get-GitOutput -Arguments @("status", "--porcelain")
-    if ($status) {
-        Write-Error "Cannot deploy: you have uncommitted changes. Please commit or stash them first."
-        exit 1
+function Check-GitStatus {
+    while ($true) {
+        $status = Get-GitOutput -Arguments @("status", "--porcelain")
+        if (-not $status) {
+            break
+        }
+
+        Write-Host ""
+        Write-Host "WARNING: You have uncommitted changes in the repository:" -ForegroundColor Yellow
+        & git status -s
+        Write-Host ""
+        Write-Host "Select an option:" -ForegroundColor Cyan
+        Write-Host "  1) Commit changes now (you will be prompted for a message)"
+        Write-Host "  2) Stash changes"
+        Write-Host "  3) Retry/Continue (Use this if you resolved/committed changes in another terminal)"
+        Write-Host "  4) Abort"
+        Write-Host ""
+        
+        $choice = Read-Host "Enter option [1-4]"
+        switch ($choice) {
+            "1" {
+                $msg = Read-Host "Enter commit message"
+                if (-not [string]::IsNullOrWhiteSpace($msg)) {
+                    Run-Git -Arguments @("add", "-A")
+                    Run-Git -Arguments @("commit", "-m", $msg)
+                    Write-Host "Changes committed successfully." -ForegroundColor Green
+                } else {
+                    Write-Warning "Commit message cannot be empty."
+                }
+            }
+            "2" {
+                Run-Git -Arguments @("stash", "-u")
+                Write-Host "Changes stashed." -ForegroundColor Green
+            }
+            "3" {
+                # Loop will re-check at the top
+                continue
+            }
+            "4" {
+                throw "Deployment aborted due to uncommitted changes."
+            }
+            default {
+                Write-Warning "Invalid option. Please choose 1, 2, 3, or 4."
+            }
+        }
     }
+}
+
+function Initialize-GitState {
+    # Check if working directory is clean, prompting the user if it isn't
+    Check-GitStatus
 
     $global:originalBranch = (Get-GitOutput -Arguments @("branch", "--show-current")).ToString().Trim()
     $global:originalMasterCommit = (Get-GitOutput -Arguments @("rev-parse", "master")).ToString().Trim()
@@ -226,8 +270,14 @@ function Build-AndUploadApp {
     $params.Keys | ForEach-Object { Write-Host "  $_ : $($params[$_])" -ForegroundColor DarkGray }
 
     # Run script and ensure it fails scripting-wise if exit code is non-zero
-    & "frontend/scripts/deploy-playstore.ps1" @params
-    if ($LASTEXITCODE -ne 0) { throw "App release script returned non-zero exit code $LASTEXITCODE" }
+    $oldOrchestrator = $env:SNAGBITE_DEPLOY_ORCHESTRATOR
+    $env:SNAGBITE_DEPLOY_ORCHESTRATOR = "true"
+    try {
+        & "frontend/scripts/deploy-playstore.ps1" @params
+        if ($LASTEXITCODE -ne 0) { throw "App release script returned non-zero exit code $LASTEXITCODE" }
+    } finally {
+        $env:SNAGBITE_DEPLOY_ORCHESTRATOR = $oldOrchestrator
+    }
 }
 
 function Merge-AndDeployBackend {
@@ -332,6 +382,26 @@ try {
 
     if ($runBackend) {
         Merge-AndDeployBackend
+    } else {
+        # If we ran the app build (which bumps the version) but didn't deploy the backend,
+        # commit and push the version bump on the current branch.
+        if ($runApp -and -not $SkipBuild) {
+            $versionFile = "frontend/android/version.properties"
+            $diff = Get-GitOutput -Arguments @("diff", "--name-only", $versionFile)
+            if ($diff) {
+                # Read version details
+                $versionContent = Get-Content $versionFile -Raw
+                $versionName = [regex]::Match($versionContent, 'VERSION_NAME=(.+)').Groups[1].Value.Trim()
+                $versionCode = [regex]::Match($versionContent, 'VERSION_CODE=(\d+)').Groups[1].Value.Trim()
+
+                Write-Host "Committing version bump to current branch ($global:originalBranch)..." -ForegroundColor Yellow
+                Run-Git -Arguments @("add", $versionFile)
+                Run-Git -Arguments @("commit", "-m", "chore(version): bump app version to $versionName ($versionCode)")
+                
+                Write-Host "Pushing version bump to origin $global:originalBranch..." -ForegroundColor Yellow
+                Run-Git -Arguments @("push", "origin", $global:originalBranch)
+            }
+        }
     }
 
     # If we reached here, deploy was completely successful, no rollback needed
