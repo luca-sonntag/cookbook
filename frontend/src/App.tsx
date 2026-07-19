@@ -453,7 +453,7 @@ export default function App() {
           <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
             <div className="flex items-center gap-2">
               <div className="flex-shrink-0">
-                <img src="/icon-512.png" alt="App Logo" className="w-7 h-7 object-contain rounded-lg" />
+                <img src="/logo-login.png" alt="App Logo" className="w-7 h-7 object-contain" />
               </div>
               <div>
                 <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">{t('app.title')}</h1>
