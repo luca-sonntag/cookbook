@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Crown, X, Gift } from 'lucide-react';
+import { Crown, X, ChevronRight, Timer } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -30,49 +30,56 @@ export default function TrialBanner({ onOpenPremium }: TrialBannerProps) {
     setVisible(false);
   };
 
-  if (!visible) return null;
+//   if (!visible) return null;
 
   return (
     <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 border border-emerald-500/20 shadow-md shadow-emerald-900/10 animate-in fade-in slide-in-from-top-2 duration-500">
-      <div className="relative px-4 py-3">
-        {/* Dismiss button */}
+      <div className="relative px-3.5 py-3">
+        {/* Dismiss button — subtle white-tinted, matches emerald surface */}
         <button
           type="button"
           onClick={dismiss}
-          className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/15 hover:bg-black/25 active:scale-90 transition-all z-10"
+          className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:scale-90 transition-all z-10"
           aria-label={t('premium.modal.trialBanner.dismiss')}
         >
-          <X className="w-3.5 h-3.5 text-emerald-50/80" />
+          <X className="w-3 h-3 text-white/70" />
         </button>
 
-        <div className="flex items-center gap-3 pr-8">
-          {/* Icon: amber crown in soft ring — matches PremiumHint language */}
+        <div className="flex items-center gap-3 pr-7">
+          {/* Crown icon — same language as PremiumHint */}
           <div className="w-9 h-9 rounded-xl bg-emerald-900/30 flex items-center justify-center shrink-0">
             <Crown className="w-5 h-5 text-amber-300 fill-amber-300" />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h3 className="text-sm font-extrabold text-white leading-tight">
+            {/* Headline row — clear hierarchy: "3 Tage" badge + title */}
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-200 text-[10px] font-bold uppercase tracking-wider shrink-0">
+                <Timer className="w-2.5 h-2.5" />
+                3 Tage
+              </span>
+              <h3 className="text-sm font-bold text-white leading-tight truncate">
                 {t('premium.modal.trialBanner.title')}
               </h3>
-              <Gift className="w-3.5 h-3.5 text-amber-300 shrink-0" />
             </div>
+
+            {/* Body — single line, trusts the user */}
             <p className="text-[11px] text-emerald-50/80 mt-0.5 leading-snug">
               {t('premium.modal.trialBanner.body')}
             </p>
 
-            {/* CTA — same gold-on-emerald pattern as PremiumHint */}
+            {/* Inline CTA — matches the action language of PremiumModal */}
             <button
               type="button"
               onClick={() => {
                 dismiss();
                 onOpenPremium();
               }}
-              className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-extrabold text-emerald-950 bg-amber-400 hover:bg-amber-300 active:scale-[0.97] transition-all shadow-sm"
+              className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 hover:text-amber-200 active:scale-[0.97] transition-all"
             >
-              {t('premium.modal.trialBanner.cta')} ›
+              {t('premium.modal.trialBanner.cta')}
+              <ChevronRight className="w-3 h-3" />
             </button>
           </div>
         </div>

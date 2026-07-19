@@ -640,9 +640,9 @@ export const uiTranslations = {
         termsLink: 'AGB',
         termsNoticeSuffix: ' zu.',
         trialBanner: {
-          title: '🎉 3 Tage Premium gratis',
-          body: 'Teste alle Premium-Features: unbegrenzte Rezepte, KI-Chat, Kochmodus & mehr. Danach automatisch Free – kein Abo-Zwang.',
-          cta: 'Premium entdecken',
+          title: 'Premium kostenlos testen',
+          body: 'Alle Premium-Features freischalten — danach automatisch Free.',
+          cta: 'Jetzt starten',
           dismiss: 'Später',
         },
         comparison: {
@@ -1202,9 +1202,9 @@ export const uiTranslations = {
         termsLink: 'Terms & Conditions',
         termsNoticeSuffix: '.',
         trialBanner: {
-          title: '🎉 3 Days Premium Free',
-          body: 'Try all premium features: unlimited recipes, AI chat, cooking mode & more. Automatically reverts to Free — no subscription required.',
-          cta: 'Explore Premium',
+          title: 'Try Premium free',
+          body: 'Unlock all premium features — auto-reverts to Free afterwards.',
+          cta: 'Start now',
           dismiss: 'Later',
         },
         comparison: {
