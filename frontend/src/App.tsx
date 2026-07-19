@@ -444,27 +444,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col items-center transition-colors duration-300">
-      {/* Sticky top region: header + banners share one sticky container so the
-          status-bar safe-area inset is applied once and they stack without a gap
-          or overlapping each other when pinned. */}
+      {/* Sticky top region: safe-area inset + timer banner share one sticky
+          container so they stack without a gap or overlapping each other when
+          pinned. */}
       <div className="sticky top-0 z-40 w-full">
         {/* Status bar background filler for devices with safe-area-inset-top (e.g. Android 15 Edge-to-Edge) */}
         <div className="w-full h-[env(safe-area-inset-top)] bg-[#064e3b]" />
-
-        {activeView === 'extract' && !recipe && (
-          <header className="w-full bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md transition-colors duration-300">
-            <div className="relative w-full max-w-md mx-auto px-4 py-3 flex justify-center items-center">
-              <div className="flex items-center gap-2">
-                <div className="flex-shrink-0">
-                  <img src="/logo-login.png" alt="App Logo" className="w-7 h-7 object-contain" />
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white m-0 leading-none">{t('app.title')}</h1>
-                </div>
-              </div>
-            </div>
-          </header>
-        )}
 
         {/* Active Cooking Timers Banner */}
         <TimerBanner />
