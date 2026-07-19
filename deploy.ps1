@@ -286,14 +286,9 @@ function Merge-AndDeployBackend {
     # Store version name for potential tag deletion in rollback
     $global:rollbackTag = $versionName
 
-    # Commit version bump to develop if version was updated locally
-    # Check if version.properties is modified
-    $diff = Get-GitOutput -Arguments @("diff", "--name-only", "frontend/android/version.properties")
-    if ($diff) {
-        Write-Host "Committing version bump to develop branch..." -ForegroundColor Yellow
-        Run-Git -Arguments @("add", "frontend/android/version.properties")
-        Run-Git -Arguments @("commit", "-m", "chore(version): bump app version to $versionName ($versionCode)")
-    }
+    # Discard any build-generated modifications to tracked files to ensure clean checkout
+    Write-Host "Discarding build-generated file modifications to ensure clean checkout..." -ForegroundColor Yellow
+    Run-Git -Arguments @("checkout", "--", ".")
 
     # Switch to master
     Write-Host "Switching to master branch..." -ForegroundColor Yellow
@@ -365,14 +360,9 @@ try {
     # Reorder operations if All is specified: App first (more failure prone), then Backend
     if ($runApp) {
         Build-AndUploadApp
-    }
-
-    if ($runBackend) {
-        Merge-AndDeployBackend
-    } else {
-        # If we ran the app build (which bumps the version) but didn't deploy the backend,
-        # commit and push the version bump on the current branch.
-        if ($runApp -and -not $SkipBuild) {
+        
+        # Commit version bump immediately so it is not lost if the backend step fails
+        if (-not $SkipBuild) {
             $versionFile = "frontend/android/version.properties"
             $diff = Get-GitOutput -Arguments @("diff", "--name-only", $versionFile)
             if ($diff) {
@@ -387,8 +377,15 @@ try {
                 
                 Write-Host "Pushing version bump to origin $global:originalBranch..." -ForegroundColor Yellow
                 Run-Git -Arguments @("push", "origin", $global:originalBranch)
+                
+                # Update rollback target to this commit so we don't roll past it
+                $global:originalDevelopCommit = (Get-GitOutput -Arguments @("rev-parse", "develop")).ToString().Trim()
             }
         }
+    }
+
+    if ($runBackend) {
+        Merge-AndDeployBackend
     }
 
     # If we reached here, deploy was completely successful, no rollback needed
