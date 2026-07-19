@@ -22,7 +22,6 @@ import { useRecipeExtraction } from './hooks/useRecipeExtraction';
 import { useShoppingList } from './hooks/useShoppingList';
 import { useDialog } from './context/DialogContext';
 import { useI18n } from './context/I18nContext';
-import { resolveJobError } from './i18n';
 import { useAuth } from './context/AuthContext';
 import { useHashRouter } from './hooks/useHashRouter';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
@@ -36,7 +35,7 @@ let isWebShareProcessed = false;
 
 export default function App() {
   const dialog = useDialog();
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const { user, loading: authLoading, getAccessToken, isPremiumOverride } = useAuth();
 
   // ── URL-based routing ────────────────────────────────────────────────────
@@ -419,24 +418,7 @@ export default function App() {
     triggerExtraction(url);
   };
 
-  const getStatusDetails = () => {
-    switch (jobStatus) {
-      case 'pending':
-        return { text: t('job.status.pending.text'), sub: t('job.status.pending.sub') };
-      case 'scraping':
-        return { text: t('job.status.scraping.text'), sub: t('job.status.scraping.sub') };
-      case 'processing':
-        return { text: t('job.status.processing.text'), sub: t('job.status.processing.sub') };
-      case 'completed':
-        return { text: t('job.status.completed.text'), sub: t('job.status.completed.sub') };
-      case 'failed':
-        return { text: t('job.status.failed.text'), sub: resolveJobError(jobError, language) || t('job.status.failed.sub') };
-      default:
-        return null;
-    }
-  };
 
-  const statusDetails = getStatusDetails();
 
   // ── Auth gate ────────────────────────────────────────────────────────────
   if (authLoading || !initialSyncDone) {

@@ -283,7 +283,7 @@ export default function CookingMode({
       >
         {/* Step Number Badge */}
         {currentStep && (
-          <div className="w-12 h-12 rounded-full bg-emerald-600 dark:bg-emerald-500 text-white flex items-center justify-center font-bold text-lg mb-7 sm:mb-6 shadow-[0_4px_12px_rgba(16,185,129,0.3)] flex-shrink-0 opacity-75">
+          <div className="w-12 h-12 rounded-full bg-emerald-600 dark:bg-emerald-500 text-white flex items-center justify-center font-bold text-lg mb-7 sm:mb-6 shadow-[0_4px_12px_rgba(16,185,129,0.3)] flex-shrink-0 opacity-85">
             {currentStep.step}
           </div>
         )}

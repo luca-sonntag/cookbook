@@ -165,7 +165,7 @@ const detectPlatform = (urlStr: string): 'instagram' | 'tiktok' | 'youtube' | 'f
   return 'generic';
 };
 
-export default function ExtractionAnimation({ url, isPending, jobStatus, progress }: ExtractionAnimationProps) {
+export default function ExtractionAnimation({ url, jobStatus, progress }: ExtractionAnimationProps) {
   const { t, language } = useI18n();
   const [displayedIndex, setDisplayedIndex] = useState(0);
   const [funnyText, setFunnyText] = useState('');

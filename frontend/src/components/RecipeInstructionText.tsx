@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Popover } from '@heroui/react';
-import { Thermometer, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import type { Recipe } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
