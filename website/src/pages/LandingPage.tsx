@@ -1,5 +1,5 @@
-import { Button, Card } from "@heroui/react";
-import { ArrowRight, Smartphone, ChefHat, HeartPulse, Clock, Utensils } from "lucide-react";
+import { Button, Card, Accordion } from "@heroui/react";
+import { ArrowRight, Smartphone, ChefHat, HeartPulse, Clock, Utensils, HelpCircle } from "lucide-react";
 
 // --- Mockup Components from the App ---
 
@@ -277,6 +277,92 @@ export default function LandingPage() {
             </Card.Content>
           </Card>
         </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="flex flex-col gap-10 max-w-3xl mx-auto w-full">
+        <div className="text-center max-w-lg mx-auto">
+          <h2 className="text-3xl font-bold tracking-tight mb-4 flex items-center justify-center gap-2">
+            <HelpCircle className="w-8 h-8 text-emerald-500 shrink-0" />
+            Häufig gestellte Fragen
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">Hier findest du Antworten auf die am häufigsten gestellten Fragen zu Snagbite.</p>
+        </div>
+
+        <Accordion 
+          variant="surface"
+          className="w-full bg-transparent flex flex-col gap-3 p-0 border-none"
+        >
+          <Accordion.Item className="border-none glass-panel rounded-2xl overflow-hidden shadow-sm" id="1">
+            <Accordion.Heading>
+              <Accordion.Trigger className="px-6 py-4 flex items-center justify-between text-gray-900 dark:text-white font-semibold text-base hover:bg-black/5">
+                Welche Plattformen werden unterstützt?
+                <Accordion.Indicator className="text-emerald-500 shrink-0" />
+              </Accordion.Trigger>
+            </Accordion.Heading>
+            <Accordion.Panel>
+              <Accordion.Body className="px-6 pb-5 pt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed border-t border-black/5">
+                Snagbite unterstützt das direkte Teilen und Extrahieren von Instagram Reels, TikTok Videos und YouTube Shorts. Du kannst einfach den Share-Button in der jeweiligen App nutzen oder den Link kopieren und direkt in Snagbite einfügen.
+              </Accordion.Body>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item className="border-none glass-panel rounded-2xl overflow-hidden shadow-sm" id="2">
+            <Accordion.Heading>
+              <Accordion.Trigger className="px-6 py-4 flex items-center justify-between text-gray-900 dark:text-white font-semibold text-base hover:bg-black/5">
+                Kostet Snagbite Geld?
+                <Accordion.Indicator className="text-emerald-500 shrink-0" />
+              </Accordion.Trigger>
+            </Accordion.Heading>
+            <Accordion.Panel>
+              <Accordion.Body className="px-6 pb-5 pt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed border-t border-black/5">
+                Die Basis-Extraktionen sind kostenlos. Für Power-User, die viele Rezepte täglich konvertieren oder erweiterte Features wie den interaktiven Rezept-Copiloten nutzen möchten, bieten wir ein kostengünstiges Premium-Abonnement an.
+              </Accordion.Body>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item className="border-none glass-panel rounded-2xl overflow-hidden shadow-sm" id="3">
+            <Accordion.Heading>
+              <Accordion.Trigger className="px-6 py-4 flex items-center justify-between text-gray-900 dark:text-white font-semibold text-base hover:bg-black/5">
+                Werden meine Rezepte vertraulich behandelt?
+                <Accordion.Indicator className="text-emerald-500 shrink-0" />
+              </Accordion.Trigger>
+            </Accordion.Heading>
+            <Accordion.Panel>
+              <Accordion.Body className="px-6 pb-5 pt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed border-t border-black/5">
+                Ja, absolut. Deine extrahierten Rezepte werden sicher in deiner persönlichen Datenbank gespeichert und sind durch Zugriffskontrollen auf Datenbankebene (Row-Level-Security) geschützt. Das bedeutet, dass ausschließlich du Zugriff auf deine eigenen Inhalte hast. Wir verkaufen deine Daten niemals weiter.
+              </Accordion.Body>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item className="border-none glass-panel rounded-2xl overflow-hidden shadow-sm" id="4">
+            <Accordion.Heading>
+              <Accordion.Trigger className="px-6 py-4 flex items-center justify-between text-gray-900 dark:text-white font-semibold text-base hover:bg-black/5">
+                Kann ich Rezepte anpassen oder ändern?
+                <Accordion.Indicator className="text-emerald-500 shrink-0" />
+              </Accordion.Trigger>
+            </Accordion.Heading>
+            <Accordion.Panel>
+              <Accordion.Body className="px-6 pb-5 pt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed border-t border-black/5">
+                Ja! Du kannst das Rezept jederzeit über den integrierten Chat-Assistenten (Rezept-Copilot) verfeinern. Du kannst ihn beispielsweise bitten, Mengenangaben umzurechnen, Zutaten zu ersetzen oder Zubereitungsschritte anzupassen, und die Änderungen dann direkt übernehmen.
+              </Accordion.Body>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item className="border-none glass-panel rounded-2xl overflow-hidden shadow-sm" id="5">
+            <Accordion.Heading>
+              <Accordion.Trigger className="px-6 py-4 flex items-center justify-between text-gray-900 dark:text-white font-semibold text-base hover:bg-black/5">
+                Wie funktioniert das Einkaufslisten-Feature?
+                <Accordion.Indicator className="text-emerald-500 shrink-0" />
+              </Accordion.Trigger>
+            </Accordion.Heading>
+            <Accordion.Panel>
+              <Accordion.Body className="px-6 pb-5 pt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed border-t border-black/5">
+                Sobald du ein Rezept in deinen Einkaufswagen legst, extrahiert die App alle benötigten Zutaten. Sie bereinigt diese von ungenauen Angaben und sortiert sie vollautomatisch nach Supermarkt-Kategorien (wie Obst & Gemüse, Molkereiprodukte, Konserven), um dir den Einkauf so stressfrei wie möglich zu machen.
+              </Accordion.Body>
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
       </section>
       
       <div className="h-4"></div>
