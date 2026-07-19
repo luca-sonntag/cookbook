@@ -72,10 +72,8 @@ const ShareStep3Mockup = () => (
       <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5">
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75 duration-1000" />
-          <div className="relative w-5 h-5 rounded-full bg-emerald-500 border border-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/40 p-0.5">
-            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>
-            </svg>
+          <div className="relative w-5 h-5 rounded-full bg-emerald-500 border border-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/40 p-0.5 overflow-hidden">
+            <img src="/icon-192.png" className="w-full h-full object-cover rounded-full" alt="Snagbite" />
           </div>
         </div>
         <span className="text-[5px] font-bold text-emerald-600 truncate">Snagbite</span>
