@@ -157,9 +157,8 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
             return (
               <span
                 key={index}
-                className="inline-flex items-center gap-0.5 px-2 py-0.5 mx-0.5 rounded-lg text-[0.9em] font-semibold bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 border border-orange-200/50 dark:border-orange-500/20 hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors cursor-default select-none"
+                className="inline-flex items-center px-2 py-0.5 mx-0.5 rounded-lg text-[0.9em] font-semibold bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 border border-orange-200/50 dark:border-orange-500/20 hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors cursor-default select-none"
               >
-                <Thermometer className="w-3.5 h-3.5 text-orange-500 dark:text-orange-400 shrink-0" />
                 {part}
               </span>
             );
