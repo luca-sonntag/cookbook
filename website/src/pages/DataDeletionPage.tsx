@@ -1,6 +1,6 @@
 import { legal } from '../legal';
 import { Card } from '@heroui/react';
-import { Trash2, Smartphone, ShieldCheck, Mail, CreditCard } from 'lucide-react';
+import { Smartphone, ShieldCheck, Mail, CreditCard } from 'lucide-react';
 
 export default function DataDeletionPage() {
   const steps = [
