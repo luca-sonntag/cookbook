@@ -66,7 +66,7 @@ export default function ExtractForm({
   limitStatus
 }: ExtractFormProps) {
   const { t } = useI18n();
-  const { user, isPremiumOverride } = useAuth();
+  const { user, isPremiumOverride, hasTrialAvailable, trialDays, trialLoading } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
 
@@ -76,6 +76,19 @@ export default function ExtractForm({
   const cookbookFull = !isRealPremium && !!limitStatus?.cookbookFull;
   const extractionLimitReached = !isRealPremium && !cookbookFull && !!limitStatus && limitStatus.limit >= 0 && limitStatus.remaining <= 0;
   const blockedByLimit = cookbookFull || extractionLimitReached;
+
+  // Mirror TrialBanner's own visibility logic so the redundant UpgradeCard
+  // disappears in exactly the same situations: premium users, while the
+  // RevenueCat trial lookup is in-flight, or while the trial banner is on
+  // screen (including after a previous dismiss on this device).
+  const trialDismissed = typeof window !== 'undefined'
+    && localStorage.getItem('snagbite_trial_banner_dismissed') === '1';
+  const trialBannerShowing = !isRealPremium
+    && !trialLoading
+    && hasTrialAvailable
+    && trialDays > 0
+    && !trialDismissed;
+  const hideUpgradeCard = isRealPremium || trialBannerShowing;
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -283,8 +296,10 @@ export default function ExtractForm({
         </form>
       </Card>
 
-      {/* Premium Upgrade Promotion */}
-      <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
+      {/* Premium Upgrade Promotion — hidden when TrialBanner already covers it */}
+      {!hideUpgradeCard && (
+        <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
+      )}
 
       {/* Share Directly Accordion */}
       {!url && (

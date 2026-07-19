@@ -644,6 +644,7 @@ export const uiTranslations = {
           body: 'Alle Premium-Features freischalten — danach automatisch Free.',
           cta: 'Jetzt starten',
           dismiss: 'Später',
+          days: 'Tage',
         },
         comparison: {
           tableTitle: 'Free vs. Premium im Vergleich',
@@ -1206,6 +1207,7 @@ export const uiTranslations = {
           body: 'Unlock all premium features — auto-reverts to Free afterwards.',
           cta: 'Start now',
           dismiss: 'Later',
+          days: 'days',
         },
         comparison: {
           tableTitle: 'Free vs. Premium Comparison',

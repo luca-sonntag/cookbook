@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Crown, X, ChevronRight, Timer } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
@@ -11,26 +10,30 @@ interface TrialBannerProps {
 
 /**
  * One-time trial banner shown to free users after login.
- * Dismissed state is persisted in localStorage — once dismissed,
- * it never reappears for that user.
+ * Renders only when RevenueCat reports a free-trial offering; the
+ * displayed "N Tage" badge is derived from the longest trial length
+ * across all packages (no hardcoded value). Dismissed state is
+ * persisted in localStorage — once dismissed, it never reappears
+ * for that user.
  */
 export default function TrialBanner({ onOpenPremium }: TrialBannerProps) {
   const { t } = useI18n();
-  const { isPremium } = useAuth();
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (isPremium) return;
-    if (localStorage.getItem(STORAGE_KEY) === '1') return;
-    setVisible(true);
-  }, [isPremium]);
+  const { isPremium, hasTrialAvailable, trialDays, trialLoading } = useAuth();
 
   const dismiss = () => {
     localStorage.setItem(STORAGE_KEY, '1');
-    setVisible(false);
   };
 
-//   if (!visible) return null;
+  // Show the banner only when RevenueCat has confirmed a trial offering
+  // exists, the user hasn't dismissed it, and they aren't already premium.
+  const show = !trialLoading
+    && !isPremium
+    && hasTrialAvailable
+    && trialDays > 0
+    && typeof window !== 'undefined'
+    && localStorage.getItem(STORAGE_KEY) !== '1';
+
+  if (!show) return null;
 
   return (
     <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 border border-emerald-500/20 shadow-md shadow-emerald-900/10 animate-in fade-in slide-in-from-top-2 duration-500">
@@ -53,15 +56,15 @@ export default function TrialBanner({ onOpenPremium }: TrialBannerProps) {
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            {/* Headline row — clear hierarchy: "3 Tage" badge + title */}
+            {/* Headline row — clear hierarchy: "N Tage" badge + title */}
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-200 text-[10px] font-bold uppercase tracking-wider shrink-0">
-                <Timer className="w-2.5 h-2.5" />
-                3 Tage
-              </span>
               <h3 className="text-sm font-bold text-white leading-tight truncate">
                 {t('premium.modal.trialBanner.title')}
               </h3>
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-200 text-[10px] font-bold uppercase tracking-wider shrink-0">
+                <Timer className="w-2.5 h-2.5" />
+                {trialDays} {t('premium.modal.trialBanner.days')}
+              </span>
             </div>
 
             {/* Body — single line, trusts the user */}
