@@ -9,8 +9,8 @@ const REVENUECAT_ANDROID_API_KEY = import.meta.env.VITE_REVENUECAT_ANDROID_API_K
 let isRCInitialized = false;
 /** Promise-based lock to prevent concurrent configure() calls (race condition). */
 let initPromise: Promise<void> | null = null;
-/** Timer handle for the expiration-based refresh. */
-let expiryTimer: ReturnType<typeof setTimeout> | null = null;
+/** Interval handle for the 60s polling refresh. */
+let pollInterval: ReturnType<typeof setInterval> | null = null;
 /** Whether the App-resume listener has been registered. */
 let resumeListenerRegistered = false;
 
@@ -42,6 +42,9 @@ export async function initBilling(userId: string): Promise<void> {
       // Register App-resume listener to refresh on foreground
       registerResumeListener();
 
+      // Start 60-second polling to catch entitlement expiry
+      startPolling();
+
       // Register a listener that fires whenever the subscription status changes
       // (expiry, renewal, refund, cross-device restore, etc.)
       try {
@@ -49,8 +52,6 @@ export async function initBilling(userId: string): Promise<void> {
           console.log('[RevenueCat] CustomerInfo updated (listener):', JSON.stringify(info, null, 2));
           const isPremium = info.entitlements.active['premium'] !== undefined;
           await syncBillingStatus(isPremium);
-          // Re-schedule expiry timer with fresh data
-          scheduleExpiryRefresh(info);
         });
         console.log('[RevenueCat] CustomerInfoUpdateListener registered.');
       } catch (listenerErr) {
@@ -63,8 +64,6 @@ export async function initBilling(userId: string): Promise<void> {
         console.log('[RevenueCat] Initial customerInfo:', JSON.stringify(customerInfo, null, 2));
         const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
         await syncBillingStatus(isPremium);
-        // Schedule a refresh around the entitlement expiry time
-        scheduleExpiryRefresh(customerInfo);
       } catch (syncErr) {
         console.warn('[RevenueCat] Initial billing status sync failed:', syncErr);
       }
@@ -80,52 +79,37 @@ export async function initBilling(userId: string): Promise<void> {
 }
 
 /**
- * Schedule a getCustomerInfo() refresh shortly after the premium entitlement
- * is expected to expire. This covers the case where the CustomerInfoUpdateListener
- * does NOT fire on time-based expiry (the SDK caches the old CustomerInfo).
+ * Poll RevenueCat every 60 seconds to catch entitlement expiry.
+ * The CustomerInfoUpdateListener only fires on server-side events
+ * (refund, renewal, cancellation) — not on pure time-based expiry.
  */
-function scheduleExpiryRefresh(customerInfo: any): void {
-  // Clear any previously scheduled timer
-  if (expiryTimer) {
-    clearTimeout(expiryTimer);
-    expiryTimer = null;
-  }
-
-  const premiumEntitlement = customerInfo.entitlements.active['premium'];
-  if (!premiumEntitlement) return;
-
-  const expiresAtMs = premiumEntitlement.expirationDateMillis;
-  if (!expiresAtMs) return; // lifetime — no expiry to watch
-
-  const nowMs = Date.now();
-  // Fire 30 seconds after the expected expiry to give the server a moment
-  const delayMs = Math.max(0, expiresAtMs - nowMs + 30_000);
-
-  // Cap at 24 hours to avoid absurdly long timers
-  const cappedDelayMs = Math.min(delayMs, 24 * 60 * 60 * 1000);
-
-  console.log(`[RevenueCat] Scheduling expiry refresh in ${Math.round(cappedDelayMs / 1000)}s (entitlement expires at ${new Date(expiresAtMs).toISOString()})`);
-
-  expiryTimer = setTimeout(async () => {
-    console.log('[RevenueCat] Expiry timer fired — refreshing customerInfo...');
+function startPolling(): void {
+  if (pollInterval) return; // already running
+  console.log('[RevenueCat] Starting 60s entitlement poll...');
+  pollInterval = setInterval(async () => {
+    if (!isRCInitialized) return;
     try {
-      const { customerInfo: freshInfo } = await Purchases.getCustomerInfo();
-      console.log('[RevenueCat] Post-expiry customerInfo:', JSON.stringify(freshInfo, null, 2));
-      const isPremium = freshInfo.entitlements.active['premium'] !== undefined;
+      const { customerInfo } = await Purchases.getCustomerInfo();
+      const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+      // Only log & sync if there's a change (avoid noise)
       await syncBillingStatus(isPremium);
-      // If still premium, schedule the next expiry check
-      if (isPremium) {
-        scheduleExpiryRefresh(freshInfo);
-      }
     } catch (err) {
-      console.warn('[RevenueCat] Post-expiry refresh failed:', err);
+      // Silently ignore — will retry next interval
     }
-  }, cappedDelayMs);
+  }, 60_000);
+}
+
+export function stopPolling(): void {
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+    console.log('[RevenueCat] Polling stopped.');
+  }
 }
 
 /**
  * Refresh customerInfo from RevenueCat and sync with backend.
- * Called on App-resume and by the expiry timer.
+ * Called on App-resume.
  */
 async function refreshCustomerInfo(): Promise<void> {
   if (!isRCInitialized) return;
@@ -134,8 +118,6 @@ async function refreshCustomerInfo(): Promise<void> {
     console.log('[RevenueCat] Refreshed customerInfo (resume):', JSON.stringify(customerInfo, null, 2));
     const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
     await syncBillingStatus(isPremium);
-    // Re-schedule expiry timer with fresh data
-    scheduleExpiryRefresh(customerInfo);
   } catch (err) {
     console.warn('[RevenueCat] Resume refresh failed:', err);
   }
@@ -253,10 +235,6 @@ export async function buyPremium(packageId?: string): Promise<boolean> {
         const { customerInfo: restoredInfo } = await Purchases.restorePurchases();
         console.log('[RevenueCat] Restored customerInfo:', JSON.stringify(restoredInfo, null, 2));
         isPremium = restoredInfo.entitlements.active['premium'] !== undefined;
-        if (isPremium) {
-          // Use the restored info for expiry scheduling
-          scheduleExpiryRefresh(restoredInfo);
-        }
       } catch (restoreErr) {
         console.warn('[RevenueCat] restorePurchases failed:', restoreErr);
       }
@@ -269,9 +247,6 @@ export async function buyPremium(packageId?: string): Promise<boolean> {
         const { customerInfo: refreshedInfo } = await Purchases.getCustomerInfo();
         console.log('[RevenueCat] Refreshed customerInfo:', JSON.stringify(refreshedInfo, null, 2));
         isPremium = refreshedInfo.entitlements.active['premium'] !== undefined;
-        if (isPremium) {
-          scheduleExpiryRefresh(refreshedInfo);
-        }
       } catch (refreshErr) {
         console.warn('[RevenueCat] getCustomerInfo refresh failed:', refreshErr);
       }
@@ -280,8 +255,6 @@ export async function buyPremium(packageId?: string): Promise<boolean> {
     if (isPremium) {
       console.log('[RevenueCat] Premium entitlement confirmed. Syncing with backend...');
       await syncBillingStatus(true);
-      // Schedule expiry refresh for the newly purchased entitlement
-      scheduleExpiryRefresh(customerInfo);
       return true;
     }
 
