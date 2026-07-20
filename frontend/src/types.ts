@@ -11,6 +11,7 @@ export interface Ingredient {
   protein?: number | null;
   carbs?: number | null;
   fat?: number | null;
+  isStaple?: boolean;
 }
 
 export interface IngredientGroup {
@@ -40,6 +41,7 @@ export interface Recipe {
   id?: string;
   title: string;
   description: string;
+  emoji?: string | null;
   prepTime: number | null;
   cookTime: number | null;
   servings: number;

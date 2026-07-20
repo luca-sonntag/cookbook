@@ -17,7 +17,7 @@ function SettingInfo({ text }: { text: string }) {
     <Popover>
       <Popover.Trigger>
         <button
-          className="inline-flex align-middle ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors w-5 h-5 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none focus:ring-1 focus:ring-gray-400/30 cursor-pointer"
+          className="inline-flex align-middle ml-1 shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors w-5 h-5 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none focus:ring-1 focus:ring-gray-400/30 cursor-pointer"
           aria-label={text}
         >
           <Info className="w-3.5 h-3.5" />
@@ -181,13 +181,13 @@ export default function SettingsView() {
         
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
           {/* Language Option */}
-          <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl">
+          <div className="p-4 flex items-center justify-between gap-3 border-b border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0">
                 <Globe className="w-5 h-5" />
               </div>
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white text-sm">
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
                   {t('app.settings.language') || 'Language'}
                 </p>
               </div>
@@ -196,7 +196,7 @@ export default function SettingsView() {
               variant="secondary"
               selectedKey={language}
               onSelectionChange={(key) => setLanguage(key as 'en' | 'de')}
-              className="w-24"
+              className="w-24 shrink-0"
               aria-label="Language"
             >
               <Select.Trigger className="h-9 py-1.5 px-3 flex items-center leading-none rounded-xl bg-black/5 dark:bg-white/5 border-none shadow-none hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
@@ -219,14 +219,14 @@ export default function SettingsView() {
           </div>
 
           {/* Temperature Unit Option */}
-          <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl">
+          <div className="p-4 flex items-center justify-between gap-3 border-b border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0">
                 <Thermometer className="w-5 h-5" />
               </div>
-              <div>
-                <div className="font-semibold text-gray-900 dark:text-white text-sm flex items-center">
-                  {t('app.settings.tempUnit') || 'Temperature Unit'}
+              <div className="min-w-0">
+                <div className="font-semibold text-gray-900 dark:text-white text-sm flex items-center min-w-0">
+                  <span className="truncate">{t('app.settings.tempUnit') || 'Temperature Unit'}</span>
                   <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
                 </div>
               </div>
@@ -236,7 +236,7 @@ export default function SettingsView() {
               selectedKey={preferredTempUnit}
               onSelectionChange={(key) => handleUpdateSetting('preferred_temperature_unit', key as string)}
               isDisabled={isSaving}
-              className="w-36"
+              className="w-36 shrink-0"
               aria-label="Temperature Unit"
             >
               <Select.Trigger className="h-9 py-1.5 px-3 flex items-center leading-none rounded-xl bg-black/5 dark:bg-white/5 border-none shadow-none hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
@@ -263,14 +263,14 @@ export default function SettingsView() {
           </div>
 
           {/* Unit System Option */}
-          <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl">
+          <div className="p-4 flex items-center justify-between gap-3 border-b border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0">
                 <Scale className="w-5 h-5" />
               </div>
-              <div>
-                <div className="font-semibold text-gray-900 dark:text-white text-sm flex items-center">
-                  {t('app.settings.unitSystem') || 'Unit System'}
+              <div className="min-w-0">
+                <div className="font-semibold text-gray-900 dark:text-white text-sm flex items-center min-w-0">
+                  <span className="truncate">{t('app.settings.unitSystem') || 'Unit System'}</span>
                   <SettingInfo text={t('app.settings.settingInfoTooltip') || 'This setting only affects newly extracted recipes.'} />
                 </div>
               </div>
@@ -280,7 +280,7 @@ export default function SettingsView() {
               selectedKey={preferredUnitSystem}
               onSelectionChange={(key) => handleUpdateSetting('preferred_unit_system', key as string)}
               isDisabled={isSaving}
-              className="w-40"
+              className="w-40 shrink-0"
               aria-label="Unit System"
             >
               <Select.Trigger className="h-9 py-1.5 px-3 flex items-center leading-none rounded-xl bg-black/5 dark:bg-white/5 border-none shadow-none hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
@@ -303,38 +303,38 @@ export default function SettingsView() {
           </div>
 
           {/* Theme Option */}
-          <div className="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 last:border-b-0">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl">
+          <div className="p-4 flex items-center justify-between gap-3 border-b border-black/5 dark:border-white/5 last:border-b-0">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0">
                 {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </div>
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white text-sm">
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
                   {t('app.settings.theme') || 'Appearance'}
                 </p>
               </div>
             </div>
-            <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+            <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl shrink-0">
               <button
                 onClick={() => setTheme('light')}
-                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   theme === 'light'
                     ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                 }`}
               >
-                <Sun className="w-3.5 h-3.5" />
+                <Sun className="w-3.5 h-3.5 shrink-0" />
                 Light
               </button>
               <button
                 onClick={() => setTheme('dark')}
-                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   theme === 'dark'
                     ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                 }`}
               >
-                <Moon className="w-3.5 h-3.5" />
+                <Moon className="w-3.5 h-3.5 shrink-0" />
                 Dark
               </button>
             </div>
@@ -356,8 +356,8 @@ export default function SettingsView() {
               onClick={() => navigate('admin')}
               className="w-full p-4 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform shrink-0">
                   <Shield className="w-5 h-5" />
                 </div>
                 <div>
@@ -369,7 +369,7 @@ export default function SettingsView() {
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-4 h-4 shrink-0 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </div>
@@ -396,7 +396,7 @@ export default function SettingsView() {
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="w-4 h-4 shrink-0 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
           </button>
 
           <button
@@ -413,7 +413,7 @@ export default function SettingsView() {
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="w-4 h-4 shrink-0 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>
@@ -439,8 +439,8 @@ export default function SettingsView() {
                 idx < arr.length - 1 ? 'border-b border-black/5 dark:border-white/5' : ''
               }`}
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform shrink-0">
                   <Icon className="w-5 h-5" />
                 </div>
                 <div>
@@ -449,7 +449,7 @@ export default function SettingsView() {
                   </p>
                 </div>
               </div>
-              <ExternalLink className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+              <ExternalLink className="w-4 h-4 shrink-0 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
             </a>
           ))}
         </div>
@@ -468,8 +468,8 @@ export default function SettingsView() {
               onClick={() => signOut()}
               className="w-full p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform shrink-0">
                   <LogOut className="w-5 h-5" />
                 </div>
                 <div>
@@ -478,7 +478,7 @@ export default function SettingsView() {
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-4 h-4 shrink-0 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
           )}
 
@@ -488,8 +488,8 @@ export default function SettingsView() {
             disabled={isSaving}
             className="w-full p-4 flex items-center justify-between hover:bg-rose-500/5 dark:hover:bg-rose-500/10 transition-all active:scale-[0.99] text-left cursor-pointer group disabled:opacity-50 disabled:pointer-events-none"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-rose-500/10 text-rose-500 dark:bg-rose-500/20 dark:text-rose-400 rounded-xl group-hover:scale-105 transition-transform">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="p-2 bg-rose-500/10 text-rose-500 dark:bg-rose-500/20 dark:text-rose-400 rounded-xl group-hover:scale-105 transition-transform shrink-0">
                 <UserMinus className="w-5 h-5" />
               </div>
               <div>
@@ -498,7 +498,7 @@ export default function SettingsView() {
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-rose-500/60 dark:text-rose-400/60 group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="w-4 h-4 shrink-0 text-rose-500/60 dark:text-rose-400/60 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>

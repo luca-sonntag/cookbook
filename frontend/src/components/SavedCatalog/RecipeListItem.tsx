@@ -55,15 +55,14 @@ export default function RecipeListItem({
       )}
 
       {/* Thumbnail Image */}
-      {r.imageUrl && (
-        <div className="w-16 h-16 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 shrink-0 relative">
-          <CachedImage
-            src={r.imageUrl}
-            alt={r.title}
-            className="w-full h-full object-cover object-center pointer-events-none select-none"
-          />
-        </div>
-      )}
+      <div className="w-16 h-16 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 shrink-0 relative">
+        <CachedImage
+          src={r.imageUrl}
+          emoji={r.emoji}
+          alt={r.title}
+          className="w-full h-full object-cover object-center pointer-events-none select-none"
+        />
+      </div>
 
       {/* Metadata */}
       <div className="flex-1 min-w-0 flex flex-col justify-center">

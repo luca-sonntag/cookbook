@@ -42,6 +42,9 @@ export function useImageGallery(images: string[]) {
       setScale(1);
       setOffset({ x: 0, y: 0 });
       setSwipeTranslation(0);
+      if (window.history.state && window.history.state.galleryOpen) {
+        window.history.back();
+      }
     }
     return () => {
       document.body.style.overflow = 'unset';

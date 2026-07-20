@@ -1,5 +1,6 @@
 import { config } from '../../config.js';
 import type { ScrapingResult } from '../index.js';
+import { normalizeDurationToSeconds } from '../index.js';
 import { fetchMetadata } from '../youtubeDescription.js';
 import type { SocialScrapeContext, SocialScrapeProvider } from './types.js';
 
@@ -147,7 +148,7 @@ export const rapidApiProvider: SocialScrapeProvider = {
       caption,
       imageUrl: (data.thumbnail ?? '').toString(),
       authorHandle: authorHandle || undefined,
-      durationSeconds: typeof data.duration === 'number' ? data.duration : undefined,
+      durationSeconds: normalizeDurationToSeconds(data.duration),
       media: {
         kind: 'direct',
         videoUrl: video.url,

@@ -194,6 +194,19 @@ export const uiTranslations = {
         },
       },
     },
+    alphaWelcome: {
+      badge: 'Alpha-Test',
+      title: 'Willkommen zum Alpha-Test!',
+      intro: 'Schön, dass du dabei bist! Du gehörst zu den Ersten, die Snagbite ausprobieren. Als Alpha-Tester hast du kostenlosen Zugriff auf alle Premium-Features.',
+      info: {
+        heading: 'Wichtige Infos für Alpha-Tester',
+        early: 'Die App steckt noch in einer frühen Phase – einzelne Funktionen können sich ändern oder noch nicht rundlaufen.',
+        keepInstalled: 'Google gibt den Test erst nach 14 Tagen frei – dafür muss die App installiert bleiben und ab und zu geöffnet werden.',
+        feedback: 'Bugs, Feedback oder Feature-Wünsche? Gehen direkt in der App über „Fehler melden / Feedback“ in den',
+        settingsPath: 'Einstellungen',
+      },
+      cta: "Los geht's",
+    },
     app: {
       title: 'Snagbite',
       subtitle: 'Rezept-Assistent',
@@ -272,27 +285,34 @@ export const uiTranslations = {
           sub: 'KI analysiert Audio und Text...',
         },
         completed: {
-          text: 'Extraktion abgeschlossen!',
+          text: 'Rezept bereit!',
           sub: 'Das Rezept wird geladen...',
         },
         failed: {
-          text: 'Extraktion fehlgeschlagen',
-          sub: 'Das Rezept konnte nicht extrahiert werden.',
+          text: 'Erstellung fehlgeschlagen',
+          sub: 'Das Rezept konnte nicht erstellt werden.',
         }
       },
       progress: {
         stages: {
           queued: 'Warteschlange',
-          scraping: 'Instagram-Daten laden',
+          scraping: 'Video-Daten laden',
           downloading_media: 'Audio & Video herunterladen',
           extracting_frames: 'Videobilder extrahieren',
-          extracting_recipe: 'Rezept extrahieren',
+          extracting_recipe: 'Rezept vorbereiten',
           finalizing: 'Speichern & Fertigstellen'
         }
-      }
+      },
+      backgroundNotice: 'Dein Rezept wird im Hintergrund vorbereitet. Du kannst die App verlassen oder schließen – du wirst benachrichtigt, sobald das Rezept fertig ist.'
     },
     theme: {
       toggle: 'Theme umschalten',
+    },
+    notification: {
+      recipeReady: {
+        title: 'Rezept bereit',
+        body: 'Dein Rezept „{title}“ ist bereit zum Kochen!',
+      }
     },
     api: {
       title: 'Backend-Zugriffseinstellungen',
@@ -324,7 +344,7 @@ export const uiTranslations = {
       consentSuffix: '.',
     },
     error: {
-      title: 'Extraktion fehlgeschlagen',
+      title: 'Rezept-Erstellung fehlgeschlagen',
       default: 'Beim Analysieren des Links ist ein unbekannter Fehler aufgetreten.',
       retry: 'Wiederholen',
     },
@@ -363,7 +383,7 @@ export const uiTranslations = {
         invalid: 'Es muss eine gültige URL sein (z.B. Instagram, TikTok, Facebook, Website).',
         youtubeShortsOnly: 'Nur YouTube Shorts werden unterstützt, keine regulären YouTube-Videos.',
         failedCheck: 'Statusüberprüfung vom Server fehlgeschlagen.',
-        failedExtraction: 'Die Rezept-Extraktion ist fehlgeschlagen.',
+        failedExtraction: 'Die Rezept-Erstellung ist fehlgeschlagen.',
         lostConnection: 'Verbindung zum Backend-Server verloren.',
         unauthorized: 'Nicht autorisiert. Bitte überprüfe deinen API-Schlüssel in den Einstellungen.',
         submitFailed: 'Auftrag konnte nicht übermittelt werden.',
@@ -399,6 +419,7 @@ export const uiTranslations = {
       tabInstructions: 'Zubereitung',
       ingredientsTitle: 'Zutaten-Checkliste',
       ingredientsSubtitle: 'Bereits vorhandene Zutaten abhaken',
+      staplePillLabel: 'Vorrat',
       showNutritionPerIngredient: 'Nährwerte pro Zutat',
       addedToShopping: 'In Einkaufsliste hinzugefügt!',
       addToShopping: 'Zur Einkaufsliste hinzufügen',
@@ -760,6 +781,19 @@ export const uiTranslations = {
         },
       },
     },
+    alphaWelcome: {
+      badge: 'Alpha Test',
+      title: 'Welcome to the Alpha Test!',
+      intro: "Glad to have you on board! You're one of the first to try Snagbite. As an alpha tester you get free access to all premium features.",
+      info: {
+        heading: 'Important info for alpha testers',
+        early: 'The app is still in an early stage — some features may change or not work perfectly yet.',
+        keepInstalled: 'Google only approves the test after 14 days — so the app needs to stay installed and be opened now and then.',
+        feedback: 'Bugs, feedback or feature requests? Go straight through “Report a bug / Feedback” in',
+        settingsPath: 'Settings',
+      },
+      cta: "Let's go",
+    },
     app: {
       title: 'Snagbite',
       subtitle: 'Recipe Assistant',
@@ -831,34 +865,41 @@ export const uiTranslations = {
         },
         scraping: {
           text: 'Retrieving source...',
-          sub: 'Extracting Instagram data...',
+          sub: 'Fetching Instagram data...',
         },
         processing: {
           text: 'Generating recipe...',
           sub: 'AI is analyzing audio and description...',
         },
         completed: {
-          text: 'Extraction completed!',
+          text: 'Recipe ready!',
           sub: 'Loading recipe details...',
         },
         failed: {
-          text: 'Extraction failed',
-          sub: 'Could not extract recipe from link.',
+          text: 'Failed to create recipe',
+          sub: 'Could not create recipe from link.',
         }
       },
       progress: {
         stages: {
           queued: 'Queue',
-          scraping: 'Fetching Instagram data',
+          scraping: 'Fetching video data',
           downloading_media: 'Downloading audio & video',
           extracting_frames: 'Extracting video frames',
-          extracting_recipe: 'Extracting recipe',
+          extracting_recipe: 'Preparing recipe',
           finalizing: 'Saving & Finalizing'
         }
-      }
+      },
+      backgroundNotice: 'Your recipe is being prepared in the background. You can navigate away or close the app — you will be notified once the recipe is ready.'
     },
     theme: {
       toggle: 'Toggle Theme',
+    },
+    notification: {
+      recipeReady: {
+        title: 'Recipe Ready',
+        body: 'Your recipe "{title}" is ready to cook!',
+      }
     },
     api: {
       title: 'Backend Access Settings',
@@ -890,7 +931,7 @@ export const uiTranslations = {
       consentSuffix: '.',
     },
     error: {
-      title: 'Extraction Failed',
+      title: 'Failed to create recipe',
       default: 'An unknown error occurred while analyzing the link.',
       retry: 'Retry',
     },
@@ -899,7 +940,7 @@ export const uiTranslations = {
       urlPlaceholder: 'https://www.instagram.com/reel/...',
       urlPlaceholderShort: 'Paste link…',
       btnPending: 'Reading recipe...',
-      btnSubmit: 'Extract Recipe',
+      btnSubmit: 'Import Recipe',
       pasteTooltip: 'Paste link from clipboard',
       pasteFailed: 'Could not read from clipboard. Please paste manually.',
       demoTitle: 'Try a Demo',
@@ -929,7 +970,7 @@ export const uiTranslations = {
         invalid: 'Must be a valid URL (e.g., Instagram, TikTok, Facebook, Website).',
         youtubeShortsOnly: 'Only YouTube Shorts are supported, not regular YouTube videos.',
         failedCheck: 'Failed to check status from server.',
-        failedExtraction: 'The recipe extraction failed.',
+        failedExtraction: 'The recipe creation failed.',
         lostConnection: 'Lost connection to backend server.',
         unauthorized: 'Unauthorized. Please verify your API Key in Settings.',
         submitFailed: 'Failed to submit extraction job.',
@@ -965,6 +1006,7 @@ export const uiTranslations = {
       tabInstructions: 'Instructions',
       ingredientsTitle: 'Ingredients Checklist',
       ingredientsSubtitle: 'Check ingredients you already have',
+      staplePillLabel: 'staple',
       showNutritionPerIngredient: 'Nutrition per ingredient',
       addedToShopping: 'Added to shopping list!',
       addToShopping: 'Add to shopping list',

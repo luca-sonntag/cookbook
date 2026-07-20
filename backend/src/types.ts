@@ -11,6 +11,7 @@ export interface Ingredient {
   protein?: number | null;
   carbs?: number | null;
   fat?: number | null;
+  isStaple?: boolean;
 }
 
 export interface IngredientGroup {
@@ -41,6 +42,7 @@ export interface Recipe {
   isRecipe?: boolean;
   title: string;
   description: string;
+  emoji?: string | null;
 
   prepTime: number | null; // prep time in minutes
   cookTime: number | null; // cook time in minutes

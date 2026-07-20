@@ -14,6 +14,7 @@ import AuthForm from './components/AuthForm';
 import SettingsView from './components/SettingsView';
 import TimerBanner from './components/TimerBanner';
 import WelcomeGuide from './components/WelcomeGuide';
+import AlphaWelcome from './components/AlphaWelcome';
 import AdminView from './components/AdminView';
 import TrialBanner from './components/TrialBanner';
 import PremiumModal from './components/PremiumModal';
@@ -28,6 +29,7 @@ import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
 import { useTimerManager } from './hooks/useTimerManager';
 import { useOnboarding } from './hooks/useOnboarding';
+import { useAlphaWelcome } from './hooks/useAlphaWelcome';
 
 // Module-level flag to ensure the Web Share Target is only processed once per page load.
 // This prevents re-triggering the interceptor when the user's auth state or metadata updates.
@@ -55,6 +57,12 @@ export default function App() {
     complete: completeOnboarding,
     replay: replayOnboarding,
   } = useOnboarding();
+
+  // Alpha tester welcome — shown once after first login (post-auth gate).
+  const {
+    shouldShow: showAlphaWelcome,
+    complete: completeAlphaWelcome,
+  } = useAlphaWelcome();
 
   // Derived: which saved job is currently open (from URL sub-path)
   const selectedJob: Job | null =
@@ -85,6 +93,12 @@ export default function App() {
   // Tracks the jobId of a just-completed extraction so the history validity
   // effect doesn't clear its subPath before the history state catches up.
   const newlyExtractedJobIdRef = useRef<string | null>(null);
+
+  // Tracks auth transitions so we can land on the catalog after an interactive
+  // login without hijacking cold-start deep links (notification taps, shared
+  // recipe URLs). `authSettledRef` guards the very first settled auth state.
+  const authSettledRef = useRef(false);
+  const prevUserIdRef = useRef<string | null>(null);
 
   // Fetch recipe extraction history (using JWT).
   // Bounded with a timeout: on a cold app start the access token may be
@@ -157,6 +171,11 @@ export default function App() {
   //   4. root (history, no job)   → return false → Capacitor calls exitApp()
   useEffect(() => {
     return registerBackButtonHandler(() => {
+      // If a fullscreen image gallery is open, let the popstate handler close it
+      if (window.history.state && window.history.state.galleryOpen) {
+        window.history.back();
+        return true;
+      }
       if (activeView === 'history' && selectedJob) {
         navigate('history');
         return true;
@@ -221,6 +240,34 @@ export default function App() {
     sync();
     return () => { active = false; };
   }, [authLoading, user, fetchLimitStatus]);
+
+  // After an interactive login, always land on the catalog (history) tab.
+  // Only fires on a genuine logged-out → logged-in transition, not on the
+  // initial session restore at cold start — so deep links (shared recipe
+  // URLs, notification taps) still resolve to their target. A pending Web
+  // Share deep link takes precedence and is left to its own handler below.
+  useEffect(() => {
+    if (authLoading) return;
+    const currentId = user?.id ?? null;
+
+    if (!authSettledRef.current) {
+      // First settled auth state (cold start): record without redirecting.
+      authSettledRef.current = true;
+      prevUserIdRef.current = currentId;
+      return;
+    }
+
+    const prevId = prevUserIdRef.current;
+    prevUserIdRef.current = currentId;
+
+    if (!prevId && currentId) {
+      const params = new URLSearchParams(window.location.search);
+      const hasSharePayload = params.get('text') || params.get('url') || params.get('title');
+      if (!hasSharePayload) {
+        replace('history');
+      }
+    }
+  }, [authLoading, user, replace]);
 
   // Fetch rate limit status when entering the extract tab (refresh)
   useEffect(() => {
@@ -674,6 +721,11 @@ export default function App() {
             navigate('extract');
           }}
         />
+      )}
+
+      {/* Alpha tester welcome overlay — after onboarding so they don't stack */}
+      {!showOnboarding && showAlphaWelcome && (
+        <AlphaWelcome onClose={completeAlphaWelcome} />
       )}
     </div>
   );
