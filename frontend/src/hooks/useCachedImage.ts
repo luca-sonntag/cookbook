@@ -77,7 +77,7 @@ async function compressAndConvertToBase64(url: string): Promise<string> {
  * Custom hook to manage client-side image caching.
  * Checks IndexedDB first, falls back to fetching, compressing, and caching.
  */
-export function useCachedImage(originalUrl: string | null | undefined, options?: { cacheOnly?: boolean }) {
+export function useCachedImage(originalUrl: string | null | undefined) {
   const [src, setSrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -101,15 +101,6 @@ export function useCachedImage(originalUrl: string | null | undefined, options?:
         if (cached) {
           if (isMounted) {
             setSrc(cached);
-            setIsLoading(false);
-          }
-          return;
-        }
-
-        // If cacheOnly is active, don't fetch or download the image
-        if (options?.cacheOnly) {
-          if (isMounted) {
-            setSrc(null);
             setIsLoading(false);
           }
           return;
