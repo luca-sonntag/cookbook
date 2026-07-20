@@ -103,6 +103,7 @@ export async function sendNativeNotification(
   body: string,
   recipeId?: string,
   stepNum?: number,
+  notificationId: number = TIMER_NOTIFICATION_ID,
 ): Promise<boolean> {
   if (!isNative()) return false;
   try {
@@ -114,7 +115,7 @@ export async function sendNativeNotification(
     await LocalNotifications.schedule({
       notifications: [
         {
-          id: TIMER_NOTIFICATION_ID,
+          id: notificationId,
           title,
           body,
           channelId: TIMER_CHANNEL_ID,
