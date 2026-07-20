@@ -4,6 +4,7 @@ import { useI18n } from '../context/I18nContext';
 import { apiUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { setCachedImage } from '../utils/imageStore';
+import { sendNativeNotification, requestNativeNotificationPermission, isNative } from '../native';
 
 /**
  * Pulls a completed job's recipe frames (a one-time, transient hand-off) and
@@ -172,6 +173,13 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setIsPending(false);
           setUrl('');
           localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
+          
+          // Send notification when recipe is ready
+          const recipeTitle = job.recipe?.title || t('recipe.recipe') || 'Recipe';
+          const notifTitle = t('notification.recipeReady.title');
+          const notifBody = t('notification.recipeReady.body', { title: recipeTitle });
+          sendNativeNotification(notifTitle, notifBody, job.id, undefined, Math.floor(Date.now() / 1000));
+
           onExtractionSuccess(job.id);
         } else if (job.status === 'failed') {
           clearInterval(interval);
@@ -191,11 +199,16 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
       }
     }, 2000);
-  }, [getAccessToken, onExtractionSuccess]);
+  }, [getAccessToken, onExtractionSuccess, t]);
 
   const triggerExtraction = useCallback(async (targetUrl: string) => {
     const cleanUrl = targetUrl.trim();
     if (!validateUrl(cleanUrl)) return;
+
+    // Proactively request local notification permissions on native startup of extraction
+    if (isNative()) {
+      requestNativeNotificationPermission().catch(err => console.warn('Failed to request notifications permission:', err));
+    }
 
     setIsPending(true);
     setJobStatus('pending');
