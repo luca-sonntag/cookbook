@@ -32,7 +32,7 @@ export default function CachedImage({ src: originalUrl, fallbackComponent, emoji
     return fallbackComponent ? (
       <>{fallbackComponent}</>
     ) : (
-      <div className={`flex items-center justify-center bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] shadow-[0_0_15px_rgba(99,102,241,0.05)] ${className}`}>
+      <div className={`flex items-center justify-center bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] ${className}`}>
         {emoji ? (
           <span className="text-3xl select-none" role="img" aria-label="recipe emoji">
             {emoji}
