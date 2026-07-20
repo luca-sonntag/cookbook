@@ -194,6 +194,19 @@ export const uiTranslations = {
         },
       },
     },
+    alphaWelcome: {
+      badge: 'Alpha-Test',
+      title: 'Willkommen zum Alpha-Test!',
+      intro: 'Schön, dass du dabei bist! Du gehörst zu den Ersten, die Snagbite ausprobieren. Als Alpha-Tester hast du kostenlosen Zugriff auf alle Premium-Features.',
+      info: {
+        heading: 'Wichtige Infos für Alpha-Tester',
+        early: 'Die App steckt noch in einer frühen Phase – einzelne Funktionen können sich ändern oder noch nicht rundlaufen.',
+        limits: 'Extraktionslimits gelten weiterhin, auch während der Alpha.',
+        feedback: 'Wenn Fehler auftreten oder du Ideen hast: Melde Bugs und Feature-Wünsche jederzeit über „Fehler melden / Feedback“ in den',
+        settingsPath: 'Einstellungen',
+      },
+      cta: "Los geht's",
+    },
     app: {
       title: 'Snagbite',
       subtitle: 'Rezept-Assistent',
@@ -767,6 +780,19 @@ export const uiTranslations = {
           desc: 'Step-by-step cooking mode, built-in timers and an AI copilot that answers questions and adapts recipes.',
         },
       },
+    },
+    alphaWelcome: {
+      badge: 'Alpha Test',
+      title: 'Welcome to the Alpha Test!',
+      intro: "Glad to have you on board! You're one of the first to try Snagbite. As an alpha tester you get free access to all premium features.",
+      info: {
+        heading: 'Important info for alpha testers',
+        early: 'The app is still in an early stage — some features may change or not work perfectly yet.',
+        limits: 'Extraction limits still apply, even during the alpha.',
+        feedback: 'If bugs come up or you have ideas: report bugs and feature requests anytime via “Report a bug / Feedback” in',
+        settingsPath: 'Settings',
+      },
+      cta: "Let's go",
     },
     app: {
       title: 'Snagbite',

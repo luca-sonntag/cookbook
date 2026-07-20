@@ -14,6 +14,7 @@ import AuthForm from './components/AuthForm';
 import SettingsView from './components/SettingsView';
 import TimerBanner from './components/TimerBanner';
 import WelcomeGuide from './components/WelcomeGuide';
+import AlphaWelcome from './components/AlphaWelcome';
 import AdminView from './components/AdminView';
 import TrialBanner from './components/TrialBanner';
 import PremiumModal from './components/PremiumModal';
@@ -28,6 +29,7 @@ import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
 import { useTimerManager } from './hooks/useTimerManager';
 import { useOnboarding } from './hooks/useOnboarding';
+import { useAlphaWelcome } from './hooks/useAlphaWelcome';
 
 // Module-level flag to ensure the Web Share Target is only processed once per page load.
 // This prevents re-triggering the interceptor when the user's auth state or metadata updates.
@@ -55,6 +57,12 @@ export default function App() {
     complete: completeOnboarding,
     replay: replayOnboarding,
   } = useOnboarding();
+
+  // Alpha tester welcome — shown once after first login (post-auth gate).
+  const {
+    shouldShow: showAlphaWelcome,
+    complete: completeAlphaWelcome,
+  } = useAlphaWelcome();
 
   // Derived: which saved job is currently open (from URL sub-path)
   const selectedJob: Job | null =
@@ -679,6 +687,11 @@ export default function App() {
             navigate('extract');
           }}
         />
+      )}
+
+      {/* Alpha tester welcome overlay — after onboarding so they don't stack */}
+      {!showOnboarding && showAlphaWelcome && (
+        <AlphaWelcome onClose={completeAlphaWelcome} />
       )}
     </div>
   );
