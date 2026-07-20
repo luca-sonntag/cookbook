@@ -295,6 +295,12 @@ export const uiTranslations = {
     theme: {
       toggle: 'Theme umschalten',
     },
+    notification: {
+      recipeReady: {
+        title: 'Rezept bereit! 👨‍🍳',
+        body: 'Dein Rezept „{title}“ wurde erfolgreich extrahiert.',
+      }
+    },
     api: {
       title: 'Backend-Zugriffseinstellungen',
       desc: 'Konfiguriere deinen geheimen API-Schlüssel, um mit den Backend-Endpunkten des Servers zu kommunizieren.',
@@ -861,6 +867,12 @@ export const uiTranslations = {
     },
     theme: {
       toggle: 'Toggle Theme',
+    },
+    notification: {
+      recipeReady: {
+        title: 'Recipe Ready! 👨‍🍳',
+        body: 'Your recipe "{title}" has been successfully extracted.',
+      }
     },
     api: {
       title: 'Backend Access Settings',
