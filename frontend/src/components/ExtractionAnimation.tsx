@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ChefHat, Sparkles, Globe, Video } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ChefHat, Sparkles, Video } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import type { SupportedLanguage } from '../i18n';
 import type { ProgressData, ProgressStage } from '../types';
@@ -120,7 +120,7 @@ const SCENE_TARGET_PERCENT: Record<ProgressStage, number> = {
   finalizing: 90,
 };
 
-export default function ExtractionAnimation({ url, jobStatus, progress }: ExtractionAnimationProps) {
+export default function ExtractionAnimation({ url: _url, jobStatus, progress }: ExtractionAnimationProps) {
   const { t, language } = useI18n();
   const [displayedIndex, setDisplayedIndex] = useState(0);
   const [funnyText, setFunnyText] = useState('');
