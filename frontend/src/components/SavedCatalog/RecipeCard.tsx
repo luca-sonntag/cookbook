@@ -3,7 +3,6 @@ import { Card } from '@heroui/react';
 import { Clock, Utensils, ShoppingCart, Check, Trash2, Star, Tag } from 'lucide-react';
 import type { Job } from '../../types';
 import CachedImage from '../CachedImage';
-import { useCachedImage } from '../../hooks/useCachedImage';
 
 // Custom SVG component for Instagram icon
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -140,8 +139,6 @@ export default function RecipeCard({
   onToggleFavorite
 }: RecipeCardProps) {
   const r = job.recipe!;
-  const { src: cachedSrc } = useCachedImage(r.imageUrl, { cacheOnly: true });
-  const hasImage = !!cachedSrc;
   const platform = detectPlatform(job.url);
   const iconColor = PLATFORM_ICON_COLOR[platform];
 
@@ -151,67 +148,43 @@ export default function RecipeCard({
       onClick={onClick}
       {...bindLongPress}
     >
-      {/* Fallback Checkbox overlay in select mode when no image exists */}
-      {isSelectMode && !hasImage && (
-        <div className={`${styles.fallbackCheckbox} ${isSelected ? styles.fallbackCheckboxSelected : styles.fallbackCheckboxUnselected}`}>
-          {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
-        </div>
-      )}
-
-      {/* Fallback Favorite star overlay when no image exists */}
-      {!isSelectMode && !hasImage && onToggleFavorite && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite(e);
-          }}
-          className="absolute top-4 right-4 z-10 w-9 h-9 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-500 hover:text-emerald-500 hover:bg-black/10 dark:hover:bg-white/10 active:scale-90 transition-all flex items-center justify-center cursor-pointer"
-          aria-label="Toggle favorite"
-        >
-          <Star className={`w-4 h-4 ${job.isFavorite ? 'text-amber-500 fill-amber-500 stroke-amber-500' : 'text-gray-400 dark:text-gray-500'}`} />
-        </button>
-      )}
-
       <div className="flex-1 flex flex-col">
         {/* Thumbnail Image Container */}
-        {hasImage && (
-          <div className={styles.imageContainer}>
-            <CachedImage
-              src={r.imageUrl}
-              alt={r.title}
-              className={styles.image}
-              cacheOnly={true}
-            />
-            {/* Checkbox overlay inside the thumbnail container */}
-            {isSelectMode && (
-              <div className={`${styles.imageCheckbox} ${isSelected ? styles.imageCheckboxSelected : styles.imageCheckboxUnselected}`}>
-                {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
-              </div>
-            )}
-            {/* Favorite star overlay inside the thumbnail container */}
-            {!isSelectMode && onToggleFavorite && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleFavorite(e);
-                }}
-                className="absolute top-2.5 right-2.5 z-10 w-9 h-9 rounded-xl bg-black/40 backdrop-blur-sm border border-white/20 text-white hover:bg-black/60 active:scale-90 transition-all flex items-center justify-center cursor-pointer"
-                aria-label="Toggle favorite"
-              >
-                <Star className={`w-4 h-4 ${job.isFavorite ? 'text-amber-400 fill-amber-400 stroke-amber-400' : 'text-white'}`} />
-              </button>
-            )}
-            {/* Creator Badge Overlay */}
-            {r.instagramHandle && (
-              <div className={styles.instagramBadge}>
-                <PlatformIcon platform={platform} className={`w-3.5 h-3.5 ${iconColor}`} />
-                <span>{r.instagramHandle}</span>
-              </div>
-            )}
-          </div>
-        )}
+        <div className={styles.imageContainer}>
+          <CachedImage
+            src={r.imageUrl}
+            emoji={r.emoji}
+            alt={r.title}
+            className={styles.image}
+          />
+          {/* Checkbox overlay inside the thumbnail container */}
+          {isSelectMode && (
+            <div className={`${styles.imageCheckbox} ${isSelected ? styles.imageCheckboxSelected : styles.imageCheckboxUnselected}`}>
+              {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
+            </div>
+          )}
+          {/* Favorite star overlay inside the thumbnail container */}
+          {!isSelectMode && onToggleFavorite && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite(e);
+              }}
+              className="absolute top-2.5 right-2.5 z-10 w-9 h-9 rounded-xl bg-black/40 backdrop-blur-sm border border-white/20 text-white hover:bg-black/60 active:scale-90 transition-all flex items-center justify-center cursor-pointer"
+              aria-label="Toggle favorite"
+            >
+              <Star className={`w-4 h-4 ${job.isFavorite ? 'text-amber-400 fill-amber-400 stroke-amber-400' : 'text-white'}`} />
+            </button>
+          )}
+          {/* Creator Badge Overlay */}
+          {r.instagramHandle && (
+            <div className={styles.instagramBadge}>
+              <PlatformIcon platform={platform} className={`w-3.5 h-3.5 ${iconColor}`} />
+              <span>{r.instagramHandle}</span>
+            </div>
+          )}
+        </div>
 
         {/* Title */}
         <div className={styles.titleContainer}>
