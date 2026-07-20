@@ -297,8 +297,8 @@ export const uiTranslations = {
     },
     notification: {
       recipeReady: {
-        title: 'Rezept bereit! 👨‍🍳',
-        body: 'Dein Rezept „{title}“ wurde erfolgreich extrahiert.',
+        title: 'Rezept bereit',
+        body: 'Dein Rezept „{title}“ ist bereit zum Kochen!',
       }
     },
     api: {
@@ -870,8 +870,8 @@ export const uiTranslations = {
     },
     notification: {
       recipeReady: {
-        title: 'Recipe Ready! 👨‍🍳',
-        body: 'Your recipe "{title}" has been successfully extracted.',
+        title: 'Recipe Ready',
+        body: 'Your recipe "{title}" is ready to cook!',
       }
     },
     api: {
