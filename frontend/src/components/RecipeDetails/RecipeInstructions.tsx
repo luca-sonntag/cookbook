@@ -39,7 +39,7 @@ export default function RecipeInstructions({
           <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">{t('recipe.requiredEquipment')}</h3>
           <ul className="grid grid-cols-2 gap-2">
             {recipe.equipment.map((item, idx) => (
-              <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
+              <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] shadow-[0_0_15px_rgba(99,102,241,0.05)] rounded-lg border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
                 <ChevronRight className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
                 <span>{item}</span>
               </li>
