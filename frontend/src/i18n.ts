@@ -289,7 +289,8 @@ export const uiTranslations = {
           extracting_recipe: 'Rezept extrahieren',
           finalizing: 'Speichern & Fertigstellen'
         }
-      }
+      },
+      backgroundNotice: 'Die Extraktion läuft im Hintergrund weiter. Du kannst die App verlassen oder schließen – du wirst benachrichtigt, sobald das Rezept fertig ist.'
     },
     theme: {
       toggle: 'Theme umschalten',
@@ -855,7 +856,8 @@ export const uiTranslations = {
           extracting_recipe: 'Extracting recipe',
           finalizing: 'Saving & Finalizing'
         }
-      }
+      },
+      backgroundNotice: 'Extraction continues in the background. You can navigate away or close the app — you will be notified once the recipe is ready.'
     },
     theme: {
       toggle: 'Toggle Theme',
