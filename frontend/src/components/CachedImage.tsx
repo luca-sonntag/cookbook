@@ -5,15 +5,15 @@ import { useCachedImage } from '../hooks/useCachedImage';
 interface CachedImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> {
   src: string | null | undefined;
   fallbackComponent?: React.ReactNode;
-  cacheOnly?: boolean;
+  emoji?: string | null;
 }
 
 /**
  * Drop-in replacement for <img> that automatically compresses and caches
  * images in IndexedDB on the client side.
  */
-export default function CachedImage({ src: originalUrl, fallbackComponent, cacheOnly, className, alt, ...props }: CachedImageProps) {
-  const { src, isLoading } = useCachedImage(originalUrl, { cacheOnly });
+export default function CachedImage({ src: originalUrl, fallbackComponent, emoji, className, alt, ...props }: CachedImageProps) {
+  const { src, isLoading } = useCachedImage(originalUrl);
   const [hasError, setHasError] = React.useState(false);
 
   React.useEffect(() => {
@@ -33,7 +33,13 @@ export default function CachedImage({ src: originalUrl, fallbackComponent, cache
       <>{fallbackComponent}</>
     ) : (
       <div className={`flex items-center justify-center bg-gradient-to-br from-emerald-600/10 to-teal-600/15 dark:from-emerald-950/20 dark:to-teal-950/20 ${className}`}>
-        <ChefHat className="w-8 h-8 text-emerald-500/30 dark:text-emerald-400/25" />
+        {emoji ? (
+          <span className="text-3xl select-none" role="img" aria-label="recipe emoji">
+            {emoji}
+          </span>
+        ) : (
+          <ChefHat className="w-8 h-8 text-emerald-500/30 dark:text-emerald-400/25" />
+        )}
       </div>
     );
   }
