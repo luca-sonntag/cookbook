@@ -93,7 +93,8 @@ export default function PrivacyPolicyPage() {
             <h3 className="text-base font-bold mt-6">b) Nutzungs- und Inhaltsdaten</h3>
             <ul className="list-disc pl-5">
               <li>von dir geteilte bzw. eingegebene Links zu Social-Media-Inhalten (Instagram, TikTok, YouTube, Facebook u.&nbsp;a.)</li>
-              <li>die daraus generierten Rezepte samt Zutaten, Zubereitungsschritten, Nährwertschätzungen und extrahierten Vorschaubildern</li>
+              <li>die daraus generierten Rezepte samt Zutaten, Zubereitungsschritten und Nährwertschätzungen</li>
+              <li>aus den Videos extrahierte Rezeptbilder – diese werden ausschließlich lokal auf deinem Gerät gespeichert (siehe Abschnitt 5 und 7)</li>
               <li>von dir angelegte Sammlungen, Favoriten, Labels und Einkaufslisten</li>
               <li>persönliche Präferenzen (Rezeptsprache, Maßsystem, Temperatureinheit)</li>
               <li>Anzahl und Zeitpunkt deiner Extraktionen (zur Durchsetzung von Nutzungslimits)</li>
@@ -145,7 +146,7 @@ export default function PrivacyPolicyPage() {
             <div className="grid grid-cols-1 gap-4 mt-4">
               <div className="p-4 rounded-xl glass-panel">
                 <strong>Supabase (Supabase Inc., USA / EU-Hosting)</strong>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-2">Authentifizierung, Datenbank- und Speicher-Hosting (Konto, Rezepte, Feedback, Bilder).</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-2">Authentifizierung und Datenbank-Hosting (Konto, Rezepte, Feedback). Rezeptbilder werden dort nur kurzzeitig (in der Regel wenige Sekunden, längstens 24 Stunden) zwischengespeichert, bis sie auf dein Gerät übertragen wurden – nicht dauerhaft.</p>
                 <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-500 hover:underline">Datenschutzhinweise Supabase</a>
               </div>
 
@@ -184,6 +185,7 @@ export default function PrivacyPolicyPage() {
             <p>Wir speichern deine Daten nur so lange, wie es für die genannten Zwecke erforderlich ist:</p>
             <ul className="list-disc pl-5">
               <li><strong>Konto-, Nutzungs- und Inhaltsdaten:</strong> bis zur Löschung deines Kontos.</li>
+              <li><strong>Rezeptbilder:</strong> werden ausschließlich lokal auf deinem Gerät gespeichert; auf unseren Servern liegen sie nur kurzzeitig während der Verarbeitung (längstens 24 Stunden).</li>
               <li><strong>Feedback/Fehlerberichte:</strong> bis zur Erledigung bzw. Fehlerbehebung.</li>
               <li><strong>Server-Logs:</strong> in der Regel wenige Tage.</li>
               <li><strong>Gesetzliche Aufbewahrungspflichten:</strong> Belege werden gemäß § 132 BAO für 7 Jahre aufbewahrt.</li>

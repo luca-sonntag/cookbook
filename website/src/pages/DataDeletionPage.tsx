@@ -52,7 +52,7 @@ export default function DataDeletionPage() {
             <div>
               <strong className="text-gray-800 dark:text-gray-200 block mb-1">Was passiert nach der Löschung?</strong>
               <p className="text-gray-600 dark:text-gray-450 leading-relaxed m-0">
-                Dein Konto, alle gespeicherten Rezepte, Sammlungen, Einkaufslisten und zugehörigen Medien (z.&nbsp;B. Vorschaubilder) werden unwiderruflich von unseren Servern entfernt. Diese Aktion ist endgültig.
+                Dein Konto, alle gespeicherten Rezepte, Sammlungen und Einkaufslisten werden unwiderruflich von unseren Servern entfernt. Rezeptbilder liegen ohnehin nur lokal auf deinem Gerät und werden mit den App-Daten bzw. bei einer Deinstallation automatisch mitentfernt. Diese Aktion ist endgültig.
               </p>
             </div>
           </div>

@@ -50,7 +50,7 @@ export const legal = {
   priceYearly: '29,99 €',
 
   /** Datum der letzten Aktualisierung der Rechtstexte. */
-  lastUpdated: '18. Juli 2026',
+  lastUpdated: '20. Juli 2026',
 };
 
 /** Formatiert die vollständige Anschrift als einzeiligen String. */
