@@ -94,6 +94,12 @@ export default function App() {
   // effect doesn't clear its subPath before the history state catches up.
   const newlyExtractedJobIdRef = useRef<string | null>(null);
 
+  // Tracks auth transitions so we can land on the catalog after an interactive
+  // login without hijacking cold-start deep links (notification taps, shared
+  // recipe URLs). `authSettledRef` guards the very first settled auth state.
+  const authSettledRef = useRef(false);
+  const prevUserIdRef = useRef<string | null>(null);
+
   // Fetch recipe extraction history (using JWT).
   // Bounded with a timeout: on a cold app start the access token may be
   // expired, so getAccessToken() can trigger a network refresh before the
@@ -234,6 +240,34 @@ export default function App() {
     sync();
     return () => { active = false; };
   }, [authLoading, user, fetchLimitStatus]);
+
+  // After an interactive login, always land on the catalog (history) tab.
+  // Only fires on a genuine logged-out → logged-in transition, not on the
+  // initial session restore at cold start — so deep links (shared recipe
+  // URLs, notification taps) still resolve to their target. A pending Web
+  // Share deep link takes precedence and is left to its own handler below.
+  useEffect(() => {
+    if (authLoading) return;
+    const currentId = user?.id ?? null;
+
+    if (!authSettledRef.current) {
+      // First settled auth state (cold start): record without redirecting.
+      authSettledRef.current = true;
+      prevUserIdRef.current = currentId;
+      return;
+    }
+
+    const prevId = prevUserIdRef.current;
+    prevUserIdRef.current = currentId;
+
+    if (!prevId && currentId) {
+      const params = new URLSearchParams(window.location.search);
+      const hasSharePayload = params.get('text') || params.get('url') || params.get('title');
+      if (!hasSharePayload) {
+        replace('history');
+      }
+    }
+  }, [authLoading, user, replace]);
 
   // Fetch rate limit status when entering the extract tab (refresh)
   useEffect(() => {
