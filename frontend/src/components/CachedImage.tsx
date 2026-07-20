@@ -5,14 +5,15 @@ import { useCachedImage } from '../hooks/useCachedImage';
 interface CachedImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> {
   src: string | null | undefined;
   fallbackComponent?: React.ReactNode;
+  cacheOnly?: boolean;
 }
 
 /**
  * Drop-in replacement for <img> that automatically compresses and caches
  * images in IndexedDB on the client side.
  */
-export default function CachedImage({ src: originalUrl, fallbackComponent, className, alt, ...props }: CachedImageProps) {
-  const { src, isLoading } = useCachedImage(originalUrl);
+export default function CachedImage({ src: originalUrl, fallbackComponent, cacheOnly, className, alt, ...props }: CachedImageProps) {
+  const { src, isLoading } = useCachedImage(originalUrl, { cacheOnly });
   const [hasError, setHasError] = React.useState(false);
 
   React.useEffect(() => {

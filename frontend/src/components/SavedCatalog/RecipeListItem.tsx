@@ -3,6 +3,7 @@ import { Card } from '@heroui/react';
 import { Clock, Utensils, ShoppingCart, Check, Trash2, Star, Tag } from 'lucide-react';
 import type { Job } from '../../types';
 import CachedImage from '../CachedImage';
+import { useCachedImage } from '../../hooks/useCachedImage';
 
 interface RecipeListItemProps {
   job: Job;
@@ -36,6 +37,8 @@ export default function RecipeListItem({
   onToggleFavorite
 }: RecipeListItemProps) {
   const r = job.recipe!;
+  const { src: cachedSrc } = useCachedImage(r.imageUrl, { cacheOnly: true });
+  const hasImage = !!cachedSrc;
 
   return (
     <Card
@@ -55,12 +58,13 @@ export default function RecipeListItem({
       )}
 
       {/* Thumbnail Image */}
-      {r.imageUrl && (
+      {hasImage && (
         <div className="w-16 h-16 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 shrink-0 relative">
           <CachedImage
             src={r.imageUrl}
             alt={r.title}
             className="w-full h-full object-cover object-center pointer-events-none select-none"
+            cacheOnly={true}
           />
         </div>
       )}

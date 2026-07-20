@@ -3,6 +3,7 @@ import { Card } from '@heroui/react';
 import { Clock, Utensils, ShoppingCart, Check, Trash2, Star, Tag } from 'lucide-react';
 import type { Job } from '../../types';
 import CachedImage from '../CachedImage';
+import { useCachedImage } from '../../hooks/useCachedImage';
 
 // Custom SVG component for Instagram icon
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -139,6 +140,8 @@ export default function RecipeCard({
   onToggleFavorite
 }: RecipeCardProps) {
   const r = job.recipe!;
+  const { src: cachedSrc } = useCachedImage(r.imageUrl, { cacheOnly: true });
+  const hasImage = !!cachedSrc;
   const platform = detectPlatform(job.url);
   const iconColor = PLATFORM_ICON_COLOR[platform];
 
@@ -149,14 +152,14 @@ export default function RecipeCard({
       {...bindLongPress}
     >
       {/* Fallback Checkbox overlay in select mode when no image exists */}
-      {isSelectMode && !r.imageUrl && (
+      {isSelectMode && !hasImage && (
         <div className={`${styles.fallbackCheckbox} ${isSelected ? styles.fallbackCheckboxSelected : styles.fallbackCheckboxUnselected}`}>
           {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
         </div>
       )}
 
       {/* Fallback Favorite star overlay when no image exists */}
-      {!isSelectMode && !r.imageUrl && onToggleFavorite && (
+      {!isSelectMode && !hasImage && onToggleFavorite && (
         <button
           type="button"
           onClick={(e) => {
@@ -172,12 +175,13 @@ export default function RecipeCard({
 
       <div className="flex-1 flex flex-col">
         {/* Thumbnail Image Container */}
-        {r.imageUrl && (
+        {hasImage && (
           <div className={styles.imageContainer}>
             <CachedImage
               src={r.imageUrl}
               alt={r.title}
               className={styles.image}
+              cacheOnly={true}
             />
             {/* Checkbox overlay inside the thumbnail container */}
             {isSelectMode && (
