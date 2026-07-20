@@ -130,6 +130,9 @@ html.dark body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+html.dark ::-webkit-scrollbar-track {
   background: #1a1917;
 }
 ::-webkit-scrollbar-thumb {

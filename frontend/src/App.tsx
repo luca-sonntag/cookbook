@@ -157,6 +157,11 @@ export default function App() {
   //   4. root (history, no job)   → return false → Capacitor calls exitApp()
   useEffect(() => {
     return registerBackButtonHandler(() => {
+      // If a fullscreen image gallery is open, let the popstate handler close it
+      if (window.history.state && window.history.state.galleryOpen) {
+        window.history.back();
+        return true;
+      }
       if (activeView === 'history' && selectedJob) {
         navigate('history');
         return true;

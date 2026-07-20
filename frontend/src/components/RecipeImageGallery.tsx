@@ -1,3 +1,4 @@
+import React from 'react';
 import { Button } from '@heroui/react';
 import { createPortal } from 'react-dom';
 import {
@@ -11,6 +12,7 @@ import type { Recipe } from '../types';
 import { useImageGallery } from '../hooks/useImageGallery';
 import { useI18n } from '../context/I18nContext';
 import CachedImage from './CachedImage';
+import { getCachedImage } from '../utils/imageStore';
 
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -115,10 +117,43 @@ interface RecipeImageGalleryProps {
 export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeImageGalleryProps) {
   const { t } = useI18n();
 
-  // Derive images list
-  const images = recipe.imageUrls && recipe.imageUrls.length > 0
+  // Derive initial list (excluding local: URLs since they need to be verified asynchronously)
+  const initialImages = (recipe.imageUrls && recipe.imageUrls.length > 0
     ? recipe.imageUrls
-    : (recipe.imageUrl ? [recipe.imageUrl] : []);
+    : (recipe.imageUrl ? [recipe.imageUrl] : [])
+  ).filter(url => !url.startsWith('local:'));
+
+  const [availableImages, setAvailableImages] = React.useState<string[]>(initialImages);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    async function checkLocalImages() {
+      const urls = recipe.imageUrls && recipe.imageUrls.length > 0
+        ? recipe.imageUrls
+        : (recipe.imageUrl ? [recipe.imageUrl] : []);
+
+      const checks = await Promise.all(
+        urls.map(async (url) => {
+          if (url.startsWith('local:')) {
+            const cached = await getCachedImage(url);
+            return cached ? url : null;
+          }
+          return url;
+        })
+      );
+
+      const valid = checks.filter((url): url is string => url !== null);
+      if (isMounted) {
+        setAvailableImages(valid);
+      }
+    }
+    checkLocalImages();
+    return () => {
+      isMounted = false;
+    };
+  }, [recipe.imageUrls, recipe.imageUrl]);
+
+  const images = availableImages;
 
   const {
     fullscreenIndex,
@@ -213,7 +248,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
   return (
     <>
       {/* Inline Gallery */}
-      {recipe.imageUrls && recipe.imageUrls.length > 0 ? (
+      {availableImages.length > 1 ? (
         <div className="-mt-6 -mx-6 mb-6 relative group">
           {overlayButtons}
           <div
@@ -225,11 +260,12 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
             className={`flex overflow-x-auto ${isDragging ? 'cursor-grabbing' : 'md:cursor-pointer cursor-grab snap-x snap-mandatory'}`}
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {recipe.imageUrls.map((img, idx) => {
+            {availableImages.map((img, idx) => {
               return (
                 <div key={idx} className="w-full shrink-0 snap-center snap-always relative">
                   <CachedImage
                     src={img}
+                    emoji={recipe.emoji}
                     draggable={false}
                     alt={`${recipe.title} - view ${idx + 1}`}
                     className={`w-full h-56 object-cover object-center transition-transform duration-300 ${isDragging ? 'cursor-grabbing' : 'cursor-pointer'
@@ -237,18 +273,19 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
                     onClick={() => handleImageClick(idx)}
                   />
                   <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full pointer-events-none opacity-80 backdrop-blur-sm">
-                    {idx + 1} / {recipe.imageUrls?.length}
+                    {idx + 1} / {availableImages.length}
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
-      ) : recipe.imageUrl ? (
+      ) : availableImages.length === 1 ? (
         <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5 relative group">
           {overlayButtons}
           <CachedImage
-            src={recipe.imageUrl}
+            src={availableImages[0]}
+            emoji={recipe.emoji}
             alt={recipe.title}
             className="w-full h-56 object-cover object-center cursor-pointer"
             onClick={() => {
@@ -257,9 +294,15 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
           />
         </div>
       ) : (
-        <div className="-mt-6 -mx-6 mb-6 h-36 bg-gradient-to-br from-emerald-600/10 to-teal-600/15 dark:from-emerald-950/20 dark:to-teal-950/20 border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
+        <div className="-mt-6 -mx-6 mb-6 h-48 bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
           {overlayButtons}
-          <ChefHat className="w-12 h-12 text-emerald-500/20 dark:text-emerald-400/15 animate-pulse" />
+          {recipe.emoji ? (
+            <span className="text-5xl select-none" role="img" aria-label="recipe emoji">
+              {recipe.emoji}
+            </span>
+          ) : (
+            <ChefHat className="w-12 h-12 text-emerald-500/20 dark:text-emerald-400/15 animate-pulse" />
+          )}
         </div>
       )}
 
@@ -316,6 +359,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
                   >
                     <CachedImage
                       src={imgUrl}
+                      emoji={recipe.emoji}
                       alt={`Fullscreen view ${idx + 1}`}
                       draggable={false}
                       className="max-w-[80%] max-h-[80dvh] object-contain select-none pointer-events-auto"

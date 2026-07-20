@@ -40,6 +40,7 @@ export interface Recipe {
   id?: string;
   title: string;
   description: string;
+  emoji?: string | null;
   prepTime: number | null;
   cookTime: number | null;
   servings: number;

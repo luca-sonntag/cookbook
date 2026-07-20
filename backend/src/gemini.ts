@@ -205,6 +205,10 @@ const recipeSchema = {
       description: '1-2 relevant, concise tags (e.g. "Vegan", "High-Protein"). Exclude time-based tags.',
       items: { type: FunctionDeclarationSchemaType.STRING },
     },
+    emoji: {
+      type: FunctionDeclarationSchemaType.STRING,
+      description: 'A single, highly relevant emoji that best represents the recipe (e.g. 🥔 if potatoes are the main ingredient/title, 🍕 for pizza, 🍔 for burgers, 🥗 for salad, 🍝 for pasta, 🥞 for pancakes, 🍰 for cake, 🍞 for bread, ☕ for coffee, 🍹 for cocktail, 🍗 for chicken, 🥩 for steak, 🐟 for fish, etc.). Choose the single most fitting emoji.',
+    },
   },
   required: [
     'isRecipe',
@@ -219,6 +223,7 @@ const recipeSchema = {
     'hasExplicitNutritionalValues',
     'transcript',
     'tags',
+    'emoji',
   ],
 };
 

@@ -272,12 +272,12 @@ export const uiTranslations = {
           sub: 'KI analysiert Audio und Text...',
         },
         completed: {
-          text: 'Extraktion abgeschlossen!',
+          text: 'Rezept bereit!',
           sub: 'Das Rezept wird geladen...',
         },
         failed: {
-          text: 'Extraktion fehlgeschlagen',
-          sub: 'Das Rezept konnte nicht extrahiert werden.',
+          text: 'Erstellung fehlgeschlagen',
+          sub: 'Das Rezept konnte nicht erstellt werden.',
         }
       },
       progress: {
@@ -286,13 +286,20 @@ export const uiTranslations = {
           scraping: 'Instagram-Daten laden',
           downloading_media: 'Audio & Video herunterladen',
           extracting_frames: 'Videobilder extrahieren',
-          extracting_recipe: 'Rezept extrahieren',
+          extracting_recipe: 'Rezept vorbereiten',
           finalizing: 'Speichern & Fertigstellen'
         }
-      }
+      },
+      backgroundNotice: 'Dein Rezept wird im Hintergrund vorbereitet. Du kannst die App verlassen oder schließen – du wirst benachrichtigt, sobald das Rezept fertig ist.'
     },
     theme: {
       toggle: 'Theme umschalten',
+    },
+    notification: {
+      recipeReady: {
+        title: 'Rezept bereit',
+        body: 'Dein Rezept „{title}“ ist bereit zum Kochen!',
+      }
     },
     api: {
       title: 'Backend-Zugriffseinstellungen',
@@ -324,7 +331,7 @@ export const uiTranslations = {
       consentSuffix: '.',
     },
     error: {
-      title: 'Extraktion fehlgeschlagen',
+      title: 'Rezept-Erstellung fehlgeschlagen',
       default: 'Beim Analysieren des Links ist ein unbekannter Fehler aufgetreten.',
       retry: 'Wiederholen',
     },
@@ -363,7 +370,7 @@ export const uiTranslations = {
         invalid: 'Es muss eine gültige URL sein (z.B. Instagram, TikTok, Facebook, Website).',
         youtubeShortsOnly: 'Nur YouTube Shorts werden unterstützt, keine regulären YouTube-Videos.',
         failedCheck: 'Statusüberprüfung vom Server fehlgeschlagen.',
-        failedExtraction: 'Die Rezept-Extraktion ist fehlgeschlagen.',
+        failedExtraction: 'Die Rezept-Erstellung ist fehlgeschlagen.',
         lostConnection: 'Verbindung zum Backend-Server verloren.',
         unauthorized: 'Nicht autorisiert. Bitte überprüfe deinen API-Schlüssel in den Einstellungen.',
         submitFailed: 'Auftrag konnte nicht übermittelt werden.',
@@ -831,19 +838,19 @@ export const uiTranslations = {
         },
         scraping: {
           text: 'Retrieving source...',
-          sub: 'Extracting Instagram data...',
+          sub: 'Fetching Instagram data...',
         },
         processing: {
           text: 'Generating recipe...',
           sub: 'AI is analyzing audio and description...',
         },
         completed: {
-          text: 'Extraction completed!',
+          text: 'Recipe ready!',
           sub: 'Loading recipe details...',
         },
         failed: {
-          text: 'Extraction failed',
-          sub: 'Could not extract recipe from link.',
+          text: 'Failed to create recipe',
+          sub: 'Could not create recipe from link.',
         }
       },
       progress: {
@@ -852,13 +859,20 @@ export const uiTranslations = {
           scraping: 'Fetching Instagram data',
           downloading_media: 'Downloading audio & video',
           extracting_frames: 'Extracting video frames',
-          extracting_recipe: 'Extracting recipe',
+          extracting_recipe: 'Preparing recipe',
           finalizing: 'Saving & Finalizing'
         }
-      }
+      },
+      backgroundNotice: 'Your recipe is being prepared in the background. You can navigate away or close the app — you will be notified once the recipe is ready.'
     },
     theme: {
       toggle: 'Toggle Theme',
+    },
+    notification: {
+      recipeReady: {
+        title: 'Recipe Ready',
+        body: 'Your recipe "{title}" is ready to cook!',
+      }
     },
     api: {
       title: 'Backend Access Settings',
@@ -890,7 +904,7 @@ export const uiTranslations = {
       consentSuffix: '.',
     },
     error: {
-      title: 'Extraction Failed',
+      title: 'Failed to create recipe',
       default: 'An unknown error occurred while analyzing the link.',
       retry: 'Retry',
     },
@@ -899,7 +913,7 @@ export const uiTranslations = {
       urlPlaceholder: 'https://www.instagram.com/reel/...',
       urlPlaceholderShort: 'Paste link…',
       btnPending: 'Reading recipe...',
-      btnSubmit: 'Extract Recipe',
+      btnSubmit: 'Import Recipe',
       pasteTooltip: 'Paste link from clipboard',
       pasteFailed: 'Could not read from clipboard. Please paste manually.',
       demoTitle: 'Try a Demo',
@@ -929,7 +943,7 @@ export const uiTranslations = {
         invalid: 'Must be a valid URL (e.g., Instagram, TikTok, Facebook, Website).',
         youtubeShortsOnly: 'Only YouTube Shorts are supported, not regular YouTube videos.',
         failedCheck: 'Failed to check status from server.',
-        failedExtraction: 'The recipe extraction failed.',
+        failedExtraction: 'The recipe creation failed.',
         lostConnection: 'Lost connection to backend server.',
         unauthorized: 'Unauthorized. Please verify your API Key in Settings.',
         submitFailed: 'Failed to submit extraction job.',

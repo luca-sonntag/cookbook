@@ -41,6 +41,7 @@ export interface Recipe {
   isRecipe?: boolean;
   title: string;
   description: string;
+  emoji?: string | null;
 
   prepTime: number | null; // prep time in minutes
   cookTime: number | null; // cook time in minutes
