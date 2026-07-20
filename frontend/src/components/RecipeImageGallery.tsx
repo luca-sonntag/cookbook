@@ -294,7 +294,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
           />
         </div>
       ) : (
-        <div className="-mt-6 -mx-6 mb-6 h-36 bg-gradient-to-br from-gray-100 to-gray-200/50 dark:from-gray-900/60 dark:to-gray-950/60 border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
+        <div className="-mt-6 -mx-6 mb-6 h-48 bg-gradient-to-br from-gray-100 to-gray-200/50 dark:from-gray-900/60 dark:to-gray-950/60 border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
           {overlayButtons}
           {recipe.emoji ? (
             <span className="text-5xl select-none" role="img" aria-label="recipe emoji">
