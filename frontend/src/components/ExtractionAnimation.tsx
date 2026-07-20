@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card } from '@heroui/react';
 import { ChefHat, Sparkles, Globe } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import type { SupportedLanguage } from '../i18n';
