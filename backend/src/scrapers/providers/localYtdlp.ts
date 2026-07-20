@@ -1,6 +1,7 @@
 import yt from 'youtube-dl-exec';
 import { getYtdlpCookieOptions } from '../../config.js';
 import type { ScrapingResult } from '../index.js';
+import { normalizeDurationToSeconds } from '../index.js';
 import type { SocialScrapeProvider } from './types.js';
 
 const youtubedl: any = (yt as any).default || yt;
@@ -37,7 +38,7 @@ export const localYtdlpProvider: SocialScrapeProvider = {
       caption: metadata.description || metadata.title || '',
       imageUrl: metadata.thumbnail || '',
       authorHandle: metadata.uploader_id || metadata.uploader || metadata.channel || '',
-      durationSeconds: typeof metadata.duration === 'number' ? metadata.duration : undefined,
+      durationSeconds: normalizeDurationToSeconds(metadata.duration),
       media: { kind: 'ytdlp', sourceUrl: url },
     };
   },

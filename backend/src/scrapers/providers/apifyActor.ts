@@ -3,6 +3,7 @@ import { config } from '../../config.js';
 import { updateJob } from '../../db.js';
 import { withRetry } from '../../retry.js';
 import type { ScrapingResult } from '../index.js';
+import { normalizeDurationToSeconds } from '../index.js';
 import type { SocialScrapeContext, SocialScrapeProvider } from './types.js';
 
 /**
@@ -105,7 +106,7 @@ function parseItems(items: unknown[]): ScrapingResult {
     caption: (item.caption || '') as string,
     imageUrl: (item.imageUrl || '') as string,
     authorHandle: authorHandle || undefined,
-    durationSeconds: typeof item.duration === 'number' ? item.duration : undefined,
+    durationSeconds: normalizeDurationToSeconds(item.duration),
     media: {
       kind: 'direct',
       videoUrl: appendToken(rawVideoUrl),
