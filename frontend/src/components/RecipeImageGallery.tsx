@@ -230,6 +230,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
                 <div key={idx} className="w-full shrink-0 snap-center snap-always relative">
                   <CachedImage
                     src={img}
+                    emoji={recipe.emoji}
                     draggable={false}
                     alt={`${recipe.title} - view ${idx + 1}`}
                     className={`w-full h-56 object-cover object-center transition-transform duration-300 ${isDragging ? 'cursor-grabbing' : 'cursor-pointer'
@@ -249,6 +250,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
           {overlayButtons}
           <CachedImage
             src={recipe.imageUrl}
+            emoji={recipe.emoji}
             alt={recipe.title}
             className="w-full h-56 object-cover object-center cursor-pointer"
             onClick={() => {
@@ -259,7 +261,13 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
       ) : (
         <div className="-mt-6 -mx-6 mb-6 h-36 bg-gradient-to-br from-emerald-600/10 to-teal-600/15 dark:from-emerald-950/20 dark:to-teal-950/20 border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
           {overlayButtons}
-          <ChefHat className="w-12 h-12 text-emerald-500/20 dark:text-emerald-400/15 animate-pulse" />
+          {recipe.emoji ? (
+            <span className="text-5xl select-none" role="img" aria-label="recipe emoji">
+              {recipe.emoji}
+            </span>
+          ) : (
+            <ChefHat className="w-12 h-12 text-emerald-500/20 dark:text-emerald-400/15 animate-pulse" />
+          )}
         </div>
       )}
 
@@ -316,6 +324,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
                   >
                     <CachedImage
                       src={imgUrl}
+                      emoji={recipe.emoji}
                       alt={`Fullscreen view ${idx + 1}`}
                       draggable={false}
                       className="max-w-[80%] max-h-[80dvh] object-contain select-none pointer-events-auto"
