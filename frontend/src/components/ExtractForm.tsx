@@ -173,150 +173,150 @@ export default function ExtractForm({
         />
       ) : (
         <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
-        <form
-          onSubmit={(e) => {
-            if (blockedByLimit) { e.preventDefault(); setIsPremiumModalOpen(true); return; }
-            handleFormSubmit(e);
-          }}
-          className="flex flex-col gap-3"
-        >
-          <TextField
-            fullWidth
-            name="url"
-            value={url}
-            onChange={(val) => {
-              setUrl(val);
-              if (urlError) validateUrl(val);
+          <form
+            onSubmit={(e) => {
+              if (blockedByLimit) { e.preventDefault(); setIsPremiumModalOpen(true); return; }
+              handleFormSubmit(e);
             }}
-            isInvalid={!!urlError}
+            className="flex flex-col gap-3"
           >
-            <Label className="sr-only">{t('form.urlLabel')}</Label>
-            <div className="relative">
-              <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 dark:text-gray-500 pointer-events-none" />
-              <Input
-                placeholder={t('form.urlPlaceholderShort')}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl pl-11 !pr-12 py-4 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                disabled={isPending}
-              />
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                {url && (
-                  <button
-                    type="button"
-                    className="text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                    onClick={() => setUrl('')}
-                    disabled={isPending}
-                  >
-                    ×
-                  </button>
-                )}
-                {canPaste && !url && (
-                  <button
-                    type="button"
-                    className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 w-8 h-8 flex items-center justify-center rounded-full hover:bg-emerald-500/10 transition-colors"
-                    onClick={handlePaste}
-                    disabled={isPending}
-                    title={t('form.pasteTooltip')}
-                  >
-                    <Clipboard className="w-4 h-4" />
-                  </button>
+            <TextField
+              fullWidth
+              name="url"
+              value={url}
+              onChange={(val) => {
+                setUrl(val);
+                if (urlError) validateUrl(val);
+              }}
+              isInvalid={!!urlError}
+            >
+              <Label className="sr-only">{t('form.urlLabel')}</Label>
+              <div className="relative">
+                <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 dark:text-gray-500 pointer-events-none" />
+                <Input
+                  placeholder={t('form.urlPlaceholderShort')}
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl pl-11 !pr-12 py-4 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                  disabled={isPending}
+                />
+                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  {url && (
+                    <button
+                      type="button"
+                      className="text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                      onClick={() => setUrl('')}
+                      disabled={isPending}
+                    >
+                      ×
+                    </button>
+                  )}
+                  {canPaste && !url && (
+                    <button
+                      type="button"
+                      className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 w-8 h-8 flex items-center justify-center rounded-full hover:bg-emerald-500/10 transition-colors"
+                      onClick={handlePaste}
+                      disabled={isPending}
+                      title={t('form.pasteTooltip')}
+                    >
+                      <Clipboard className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              {urlError && <FieldError className="text-xs text-red-500 mt-1">{urlError}</FieldError>}
+            </TextField>
+
+            <Button
+              type="submit"
+              fullWidth
+              isPending={isPending}
+              isDisabled={blockedByLimit}
+              className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${blockedByLimit
+                ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-70 shadow-none'
+                : isPending
+                  ? 'bg-emerald-800 shadow-none'
+                  : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all'
+                }`}
+            >
+              {({ isPending }) => (
+                <span className="flex items-center gap-2 justify-center">
+                  {isPending ? (
+                    <>
+                      <Spinner color="current" size="sm" />
+                      <span>{t('form.btnPending')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <BookOpen className="w-4 h-4" />
+                      <span>{t('form.btnSubmit')}</span>
+                    </>
+                  )}
+                </span>
+              )}
+            </Button>
+
+            {cookbookFull ? (
+              <div className="flex flex-col gap-1.5 -mt-1">
+                <PremiumHint
+                  variant="banner"
+                  onClick={() => setIsPremiumModalOpen(true)}
+                  label={t('premium.hint.catalogFull', {
+                    count: limitStatus?.savedRecipes ?? 0,
+                    limit: limitStatus?.maxSavedRecipes ?? 5
+                  })}
+                  cta={t('premium.hint.upgrade')}
+                />
+              </div>
+            ) : extractionLimitReached ? (
+              <div className="flex flex-col gap-1.5 -mt-1">
+                <PremiumHint
+                  variant="banner"
+                  onClick={() => setIsPremiumModalOpen(true)}
+                  label={t('premium.hint.extractionLimitReached', {
+                    used: limitStatus?.used ?? 0,
+                    limit: limitStatus?.limit ?? 0
+                  })}
+                  cta={t('premium.hint.upgrade')}
+                />
+              </div>
+            ) : limitStatus && limitStatus.limit >= 0 ? (
+              <div className="flex flex-col items-center gap-1.5 -mt-1">
+                <p className="text-center text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors">
+                  {t('form.remainingExtractions', {
+                    remaining: limitStatus.remaining,
+                    limit: limitStatus.limit,
+                    days: limitStatus.windowDays === 1
+                      ? t('form.remainingExtractionsToday')
+                      : t('form.remainingExtractionsDays', { days: limitStatus.windowDays })
+                  })}
+                </p>
+                {!isRealPremium && (
+                  <PremiumHint
+                    variant="inline"
+                    onClick={() => setIsPremiumModalOpen(true)}
+                    label={t('premium.hint.extractUnlimited')}
+                  />
                 )}
               </div>
-            </div>
-            {urlError && <FieldError className="text-xs text-red-500 mt-1">{urlError}</FieldError>}
-          </TextField>
+            ) : null}
 
-          <Button
-            type="submit"
-            fullWidth
-            isPending={isPending}
-            isDisabled={blockedByLimit}
-            className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${blockedByLimit
-              ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-70 shadow-none'
-              : isPending
-                ? 'bg-emerald-800 shadow-none'
-                : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all'
-              }`}
-          >
-            {({ isPending }) => (
-              <span className="flex items-center gap-2 justify-center">
-                {isPending ? (
-                  <>
-                    <Spinner color="current" size="sm" />
-                    <span>{t('form.btnPending')}</span>
-                  </>
-                ) : (
-                  <>
-                    <BookOpen className="w-4 h-4" />
-                    <span>{t('form.btnSubmit')}</span>
-                  </>
-                )}
+            {/* Premium Modal */}
+            <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
+
+            {/* Supported Platforms */}
+            <div className="flex items-center justify-center gap-2 pt-1">
+              <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                {t('form.platformsTitle')}
               </span>
-            )}
-          </Button>
-
-          {cookbookFull ? (
-            <div className="flex flex-col gap-1.5 -mt-1">
-              <PremiumHint
-                variant="banner"
-                onClick={() => setIsPremiumModalOpen(true)}
-                label={t('premium.hint.catalogFull', {
-                  count: limitStatus?.savedRecipes ?? 0,
-                  limit: limitStatus?.maxSavedRecipes ?? 5
-                })}
-                cta={t('premium.hint.upgrade')}
-              />
+              <div className="flex items-center gap-3">
+                <InstagramIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                <TikTokIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                <YoutubeIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                <FacebookIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                <Globe className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+              </div>
             </div>
-          ) : extractionLimitReached ? (
-            <div className="flex flex-col gap-1.5 -mt-1">
-              <PremiumHint
-                variant="banner"
-                onClick={() => setIsPremiumModalOpen(true)}
-                label={t('premium.hint.extractionLimitReached', {
-                  used: limitStatus?.used ?? 0,
-                  limit: limitStatus?.limit ?? 0
-                })}
-                cta={t('premium.hint.upgrade')}
-              />
-            </div>
-          ) : limitStatus && limitStatus.limit >= 0 ? (
-            <div className="flex flex-col items-center gap-1.5 -mt-1">
-              <p className="text-center text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors">
-                {t('form.remainingExtractions', {
-                  remaining: limitStatus.remaining,
-                  limit: limitStatus.limit,
-                  days: limitStatus.windowDays === 1
-                    ? t('form.remainingExtractionsToday')
-                    : t('form.remainingExtractionsDays', { days: limitStatus.windowDays })
-                })}
-              </p>
-              {!isRealPremium && (
-                <PremiumHint
-                  variant="inline"
-                  onClick={() => setIsPremiumModalOpen(true)}
-                  label={t('premium.hint.extractUnlimited')}
-                />
-              )}
-            </div>
-          ) : null}
-
-          {/* Premium Modal */}
-          <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
-
-          {/* Supported Platforms */}
-          <div className="flex items-center justify-center gap-2 pt-1">
-            <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-              {t('form.platformsTitle')}
-            </span>
-            <div className="flex items-center gap-3">
-              <InstagramIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-              <TikTokIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-              <YoutubeIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-              <FacebookIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-              <Globe className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-            </div>
-          </div>
-        </form>
-      </Card>
+          </form>
+        </Card>
       )}
 
       {/* Premium Upgrade Promotion — hidden when TrialBanner already covers it */}
@@ -344,7 +344,7 @@ export default function ExtractForm({
             <Accordion.Panel>
               <Accordion.Body className="px-5 pb-5 pt-3 text-xs text-gray-600 dark:text-gray-400 flex flex-col gap-4 border-t border-black/5 dark:border-white/5">
                 <p className="leading-relaxed">{t('form.helpShareDesc')}</p>
-                
+
                 {/* Visual Step-by-Step Guide */}
                 <div className="flex flex-col gap-3 pt-1">
                   {/* Step 1 */}
@@ -359,7 +359,7 @@ export default function ExtractForm({
                     </div>
                     <ShareStep1Mockup />
                   </div>
-                  
+
                   {/* Step 2 */}
                   <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
                     <div className="flex-1 flex flex-col gap-1">
@@ -464,7 +464,7 @@ export default function ExtractForm({
 
       {/* Demo Recipes Card */}
       {!url && (
-        <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-md flex flex-col gap-3">
+        <Card className="glass-panel p-5 mb-3 rounded-2xl border border-black/5 dark:border-white/5 shadow-md flex flex-col gap-3">
           <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
             {t('form.demoTitle')}
           </span>
