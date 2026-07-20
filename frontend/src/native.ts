@@ -124,9 +124,6 @@ export async function sendNativeNotification(
           // app's own mark, not a generic glyph. No largeIcon: we intentionally
           // don't want a big icon on the right of the notification.
           smallIcon: 'ic_stat_icon',
-          // Brand green accent: fills the circle behind the small icon (like
-          // YouTube's red / Gmail's blue), so the left icon reads as our logo.
-          iconColor: '#009966',
           ongoing: false,
           extra: { recipeId, stepNum },
         },
@@ -181,7 +178,7 @@ export async function clearTimerNotification(): Promise<void> {
 export function registerNotificationTap(
   onTap: (recipeId?: string, stepNum?: number) => void,
 ): () => void {
-  if (!isNative()) return () => {};
+  if (!isNative()) return () => { };
 
   const handlePromise = LocalNotifications.addListener(
     'localNotificationActionPerformed',
@@ -195,7 +192,7 @@ export function registerNotificationTap(
   );
 
   return () => {
-    handlePromise.then((handle) => handle.remove()).catch(() => {});
+    handlePromise.then((handle) => handle.remove()).catch(() => { });
   };
 }
 
@@ -216,7 +213,7 @@ export function registerNotificationTap(
 export function registerBackButtonHandler(
   onBack: () => boolean,
 ): () => void {
-  if (!isNative()) return () => {};
+  if (!isNative()) return () => { };
 
   const handlePromise = App.addListener('backButton', (_ev) => {
     const handled = onBack();
@@ -227,7 +224,7 @@ export function registerBackButtonHandler(
   });
 
   return () => {
-    handlePromise.then((handle) => handle.remove()).catch(() => {});
+    handlePromise.then((handle) => handle.remove()).catch(() => { });
   };
 }
 
@@ -239,7 +236,7 @@ let lastProcessedPayload: string | null = null;
  * shares received while the app is already running. Returns a cleanup function.
  */
 export function registerShareIntent(onUrl: (url: string) => void): () => void {
-  if (!isNative()) return () => {};
+  if (!isNative()) return () => { };
 
   const handle = async (isNewIntentEvent: boolean) => {
     try {
