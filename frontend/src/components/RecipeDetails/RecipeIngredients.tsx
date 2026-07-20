@@ -106,6 +106,11 @@ export default function RecipeIngredients({
                             ({ing.modifier})
                           </span>
                         )}
+                        {ing.isStaple && (
+                          <span className="inline-flex items-center ml-2 text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full uppercase tracking-wide select-none align-middle whitespace-nowrap no-underline">
+                            {t('recipe.staplePillLabel')}
+                          </span>
+                        )}
                         {showIngredientNutrition && (() => {
                           const parts = [];
                           if (ing.calories) parts.push(`${Math.round(ing.calories * scaleFactor)} kcal`);

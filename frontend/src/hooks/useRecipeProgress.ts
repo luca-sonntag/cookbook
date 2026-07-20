@@ -6,15 +6,35 @@ export function useRecipeProgress(recipe: Recipe) {
   const ingredientsKey = `recipe_ingredients_${recipeId}`;
   const stepsKey = `recipe_steps_${recipeId}`;
 
-  // Initial load
-  const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>(() => {
+  // Pre-check common pantry staples (salt, water, oil, ...) that the user likely already has.
+  // The id formula MUST match RecipeIngredients.tsx (`${name}-${originalIdx}-${idx}`), where
+  // originalIdx is the group's index in the original recipe.ingredients array.
+  const buildStapleDefaults = (): Record<string, boolean> => {
+    const defaults: Record<string, boolean> = {};
+    recipe.ingredients?.forEach((group, groupIdx) => {
+      group.items?.forEach((ing, idx) => {
+        if (ing.isStaple) {
+          defaults[`${ing.name}-${groupIdx}-${idx}`] = true;
+        }
+      });
+    });
+    return defaults;
+  };
+
+  const loadCheckedIngredients = (): Record<string, boolean> => {
+    let saved: Record<string, boolean> = {};
     try {
-      const saved = localStorage.getItem(ingredientsKey);
-      return saved ? JSON.parse(saved) : {};
+      const raw = localStorage.getItem(ingredientsKey);
+      if (raw) saved = JSON.parse(raw);
     } catch {
-      return {};
+      saved = {};
     }
-  });
+    // Staples start checked, but explicit user choices (incl. unchecking a staple) win.
+    return { ...buildStapleDefaults(), ...saved };
+  };
+
+  // Initial load
+  const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>(loadCheckedIngredients);
 
   const [checkedSteps, setCheckedSteps] = useState<Record<number, boolean>>(() => {
     try {
@@ -27,12 +47,7 @@ export function useRecipeProgress(recipe: Recipe) {
 
   // Sync state when recipe changes
   useEffect(() => {
-    try {
-      const savedIngredients = localStorage.getItem(ingredientsKey);
-      setCheckedIngredients(savedIngredients ? JSON.parse(savedIngredients) : {});
-    } catch {
-      setCheckedIngredients({});
-    }
+    setCheckedIngredients(loadCheckedIngredients());
 
     try {
       const savedSteps = localStorage.getItem(stepsKey);

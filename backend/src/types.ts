@@ -11,6 +11,7 @@ export interface Ingredient {
   protein?: number | null;
   carbs?: number | null;
   fat?: number | null;
+  isStaple?: boolean;
 }
 
 export interface IngredientGroup {
