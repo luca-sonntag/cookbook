@@ -283,7 +283,7 @@ export const uiTranslations = {
       progress: {
         stages: {
           queued: 'Warteschlange',
-          scraping: 'Instagram-Daten laden',
+          scraping: 'Video-Daten laden',
           downloading_media: 'Audio & Video herunterladen',
           extracting_frames: 'Videobilder extrahieren',
           extracting_recipe: 'Rezept vorbereiten',
@@ -857,7 +857,7 @@ export const uiTranslations = {
       progress: {
         stages: {
           queued: 'Queue',
-          scraping: 'Fetching Instagram data',
+          scraping: 'Fetching video data',
           downloading_media: 'Downloading audio & video',
           extracting_frames: 'Extracting video frames',
           extracting_recipe: 'Preparing recipe',
