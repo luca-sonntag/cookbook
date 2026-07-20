@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChefHat, Sparkles, Video } from 'lucide-react';
+import { ChefHat, Video } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import type { SupportedLanguage } from '../i18n';
 import type { ProgressData, ProgressStage } from '../types';
