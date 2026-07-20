@@ -201,8 +201,8 @@ export const uiTranslations = {
       info: {
         heading: 'Wichtige Infos für Alpha-Tester',
         early: 'Die App steckt noch in einer frühen Phase – einzelne Funktionen können sich ändern oder noch nicht rundlaufen.',
-        limits: 'Extraktionslimits gelten weiterhin, auch während der Alpha.',
-        feedback: 'Wenn Fehler auftreten oder du Ideen hast: Melde Bugs und Feature-Wünsche jederzeit über „Fehler melden / Feedback“ in den',
+        keepInstalled: 'Bitte lass die App mind. 14 Tage installiert und öffne sie zwischendurch immer mal kurz – Google erkennt den Test nur bei regelmäßiger Aktivität an.',
+        feedback: 'Bugs, Feedback oder ein Feature-Wunsch? Ich habe ein Formular direkt eingebaut – schick mir deine Gedanken über „Fehler melden / Feedback“ in den',
         settingsPath: 'Einstellungen',
       },
       cta: "Los geht's",
@@ -788,8 +788,8 @@ export const uiTranslations = {
       info: {
         heading: 'Important info for alpha testers',
         early: 'The app is still in an early stage — some features may change or not work perfectly yet.',
-        limits: 'Extraction limits still apply, even during the alpha.',
-        feedback: 'If bugs come up or you have ideas: report bugs and feature requests anytime via “Report a bug / Feedback” in',
+        keepInstalled: 'Please keep the app installed for at least 14 days and open it briefly now and then — Google only recognizes the test with regular activity.',
+        feedback: 'Bugs, feedback or a feature wish? I built a form right in — send me your thoughts via “Report a bug / Feedback” in',
         settingsPath: 'Settings',
       },
       cta: "Let's go",

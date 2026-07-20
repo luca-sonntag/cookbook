@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FlaskConical, Sparkles, Settings, MessageSquare, Check } from 'lucide-react';
+import { FlaskConical, Sparkles, Settings, MessageSquare, CalendarCheck, Check } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 
 interface AlphaWelcomeProps {
@@ -32,7 +32,7 @@ export default function AlphaWelcome({ onClose }: AlphaWelcomeProps) {
 
   const infoItems = [
     { icon: FlaskConical, text: t('alphaWelcome.info.early') },
-    { icon: Sparkles, text: t('alphaWelcome.info.limits') },
+    { icon: CalendarCheck, text: t('alphaWelcome.info.keepInstalled') },
   ];
 
   const overlay = (
