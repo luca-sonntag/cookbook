@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChefHat } from 'lucide-react';
 import { useCachedImage } from '../hooks/useCachedImage';
 
 interface CachedImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> {
@@ -30,7 +31,9 @@ export default function CachedImage({ src: originalUrl, fallbackComponent, class
     return fallbackComponent ? (
       <>{fallbackComponent}</>
     ) : (
-      <div className={`bg-black/5 dark:bg-white/5 ${className}`} />
+      <div className={`flex items-center justify-center bg-gradient-to-br from-emerald-600/10 to-teal-600/15 dark:from-emerald-950/20 dark:to-teal-950/20 ${className}`}>
+        <ChefHat className="w-8 h-8 text-emerald-500/30 dark:text-emerald-400/25" />
+      </div>
     );
   }
 
