@@ -124,7 +124,7 @@ export default function ExtractionAnimation({ url: _url, jobStatus, progress }: 
   const { t, language } = useI18n();
   const [displayedIndex, setDisplayedIndex] = useState(0);
   const [funnyText, setFunnyText] = useState('');
-  
+
   // Track when the scene was displayed
   const shownAtRef = useRef<number>(Date.now());
 
@@ -213,8 +213,8 @@ export default function ExtractionAnimation({ url: _url, jobStatus, progress }: 
           <div className="relative flex items-center justify-center h-28">
             <div className="w-16 h-24 rounded-xl border border-black/15 dark:border-white/15 bg-black/10 dark:bg-white/5 relative overflow-hidden flex items-center justify-center">
               {/* Shimmer overlay */}
-              <div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full" 
+              <div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full"
                 style={{ animation: 'shimmer 1.5s infinite' }}
               />
               <div className="w-8 h-8 rounded-full bg-black/20 dark:bg-white/10 flex items-center justify-center">
@@ -233,13 +233,12 @@ export default function ExtractionAnimation({ url: _url, jobStatus, progress }: 
           <div className="relative flex flex-col items-center justify-center h-28">
             <div className="flex gap-1.5 p-2 bg-gray-100 dark:bg-gray-900 rounded-lg shadow-sm border border-black/10 dark:border-white/10 relative overflow-hidden">
               <div className="absolute inset-x-0 h-1 bg-emerald-400 dark:bg-emerald-500 shadow-[0_0_8px_#34d399] animate-scan z-10" />
-              
+
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="w-10 h-10 rounded bg-gray-200 dark:bg-gray-800 flex items-center justify-center relative overflow-hidden mt-1 mb-1">
                   <div className="w-6 h-6 rounded bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
-                    <div className={`w-3 h-3 rounded-full bg-emerald-500/30 dark:bg-emerald-500/20 ${
-                      i === 0 ? 'animate-pulse' : i === 1 ? 'animate-pulse [animation-delay:0.3s]' : 'animate-pulse [animation-delay:0.6s]'
-                    }`} />
+                    <div className={`w-3 h-3 rounded-full bg-emerald-500/30 dark:bg-emerald-500/20 ${i === 0 ? 'animate-pulse' : i === 1 ? 'animate-pulse [animation-delay:0.3s]' : 'animate-pulse [animation-delay:0.6s]'
+                      }`} />
                   </div>
                 </div>
               ))}
@@ -251,11 +250,8 @@ export default function ExtractionAnimation({ url: _url, jobStatus, progress }: 
           <div className="relative flex flex-col items-center justify-center gap-2.5 h-28">
             <div className="relative">
               <ChefHat className="w-10 h-10 text-emerald-600 dark:text-emerald-400 animate-bounce" />
-              <div className="absolute -top-1 -right-1">
-                <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
-              </div>
             </div>
-            
+
             <div className="flex flex-col gap-1 w-24 items-center">
               <div className="h-1 bg-emerald-500/30 rounded-full animate-write w-full" style={{ animationDelay: '0s' }} />
               <div className="h-1 bg-emerald-500/20 rounded-full animate-write w-full" style={{ animationDelay: '0.4s' }} />
