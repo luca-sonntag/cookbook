@@ -341,19 +341,19 @@ export default function ExtractionAnimation({ url, jobStatus, progress }: Extrac
   };
 
   return (
-    <Card className="glass-panel p-6 rounded-2xl border border-emerald-500/20 bg-emerald-50/80 dark:bg-emerald-950/20 shadow-xl w-full min-h-[300px] flex flex-col justify-between">
+    <div className="flex flex-col items-center justify-center flex-1 min-h-[55dvh] w-full text-center py-6 px-4 gap-6">
       {/* Infographic Area */}
-      <div className="flex-1 flex items-center justify-center w-full py-4">
+      <div className="flex items-center justify-center w-full py-4">
         <div key={displayedIndex} className="animate-fade-in flex flex-col items-center justify-center w-full">
           {renderInfographic(displayedStage)}
         </div>
       </div>
 
       {/* Progress & Status Area */}
-      <div className="flex flex-col gap-4 mt-auto">
+      <div className="flex flex-col gap-4 w-full max-w-xs">
         {/* Stage details */}
         <div className="flex justify-between items-center text-xs font-semibold">
-          <span className="text-emerald-950 dark:text-emerald-100/90 tracking-wide uppercase">
+          <span className="text-gray-950 dark:text-white/95 tracking-wide uppercase">
             {t(`job.progress.stages.${displayedStage}`)}
           </span>
           <span className="text-emerald-600 dark:text-emerald-400 tabular-nums">
@@ -372,15 +372,22 @@ export default function ExtractionAnimation({ url, jobStatus, progress }: Extrac
         </div>
 
         {/* Funny Rotating Copy */}
-        <div className="pt-3 border-t border-emerald-500/15 min-h-[40px] flex items-center justify-center text-center">
+        <div className="pt-3 border-t border-black/5 dark:border-white/5 min-h-[40px] flex items-center justify-center text-center">
           <p
             key={funnyText}
-            className="text-xs text-emerald-800/80 dark:text-emerald-200/70 italic opacity-95 animate-fade-in max-w-xs"
+            className="text-xs text-gray-500 dark:text-gray-400 italic opacity-95 animate-fade-in max-w-xs"
           >
             {funnyText}
           </p>
         </div>
       </div>
-    </Card>
+
+      {/* Background Notification Notice */}
+      <div className="max-w-xs text-center px-4 pt-3 border-t border-black/5 dark:border-white/5">
+        <p className="text-[11px] leading-relaxed text-gray-400 dark:text-gray-500">
+          {t('job.backgroundNotice')}
+        </p>
+      </div>
+    </div>
   );
 }
