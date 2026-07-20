@@ -124,7 +124,6 @@ export async function sendNativeNotification(
           // app's own mark, not a generic glyph. No largeIcon: we intentionally
           // don't want a big icon on the right of the notification.
           smallIcon: 'ic_stat_icon',
-          color: '#059669',
           ongoing: false,
           extra: { recipeId, stepNum },
         },
