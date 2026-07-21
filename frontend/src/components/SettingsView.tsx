@@ -181,7 +181,7 @@ export default function SettingsView() {
         
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
           {/* Language Option */}
-          <div className="p-4 flex items-center justify-between gap-3 border-b border-black/5 dark:border-white/5">
+          <div className="p-4 flex items-center justify-between gap-3 max-[400px]:flex-col max-[400px]:items-stretch max-[400px]:gap-2.5 border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0">
                 <Globe className="w-5 h-5" />
@@ -196,7 +196,7 @@ export default function SettingsView() {
               variant="secondary"
               selectedKey={language}
               onSelectionChange={(key) => setLanguage(key as 'en' | 'de')}
-              className="w-24 shrink-0"
+              className="w-24 shrink-0 max-[400px]:w-full"
               aria-label="Language"
             >
               <Select.Trigger className="h-9 py-1.5 px-3 flex items-center leading-none rounded-xl bg-black/5 dark:bg-white/5 border-none shadow-none hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
@@ -219,7 +219,7 @@ export default function SettingsView() {
           </div>
 
           {/* Temperature Unit Option */}
-          <div className="p-4 flex items-center justify-between gap-3 border-b border-black/5 dark:border-white/5">
+          <div className="p-4 flex items-center justify-between gap-3 max-[400px]:flex-col max-[400px]:items-stretch max-[400px]:gap-2.5 border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0">
                 <Thermometer className="w-5 h-5" />
@@ -236,7 +236,7 @@ export default function SettingsView() {
               selectedKey={preferredTempUnit}
               onSelectionChange={(key) => handleUpdateSetting('preferred_temperature_unit', key as string)}
               isDisabled={isSaving}
-              className="w-36 shrink-0"
+              className="w-36 shrink-0 max-[400px]:w-full"
               aria-label="Temperature Unit"
             >
               <Select.Trigger className="h-9 py-1.5 px-3 flex items-center leading-none rounded-xl bg-black/5 dark:bg-white/5 border-none shadow-none hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
@@ -263,7 +263,7 @@ export default function SettingsView() {
           </div>
 
           {/* Unit System Option */}
-          <div className="p-4 flex items-center justify-between gap-3 border-b border-black/5 dark:border-white/5">
+          <div className="p-4 flex items-center justify-between gap-3 max-[400px]:flex-col max-[400px]:items-stretch max-[400px]:gap-2.5 border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0">
                 <Scale className="w-5 h-5" />
@@ -280,7 +280,7 @@ export default function SettingsView() {
               selectedKey={preferredUnitSystem}
               onSelectionChange={(key) => handleUpdateSetting('preferred_unit_system', key as string)}
               isDisabled={isSaving}
-              className="w-40 shrink-0"
+              className="w-40 shrink-0 max-[400px]:w-full"
               aria-label="Unit System"
             >
               <Select.Trigger className="h-9 py-1.5 px-3 flex items-center leading-none rounded-xl bg-black/5 dark:bg-white/5 border-none shadow-none hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
@@ -303,7 +303,7 @@ export default function SettingsView() {
           </div>
 
           {/* Theme Option */}
-          <div className="p-4 flex items-center justify-between gap-3 border-b border-black/5 dark:border-white/5 last:border-b-0">
+          <div className="p-4 flex items-center justify-between gap-3 max-[400px]:flex-col max-[400px]:items-stretch max-[400px]:gap-2.5 border-b border-black/5 dark:border-white/5 last:border-b-0">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0">
                 {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
@@ -314,10 +314,10 @@ export default function SettingsView() {
                 </p>
               </div>
             </div>
-            <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl shrink-0">
+            <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl shrink-0 max-[400px]:w-full">
               <button
                 onClick={() => setTheme('light')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer max-[400px]:flex-1 ${
                   theme === 'light'
                     ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
@@ -328,7 +328,7 @@ export default function SettingsView() {
               </button>
               <button
                 onClick={() => setTheme('dark')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer max-[400px]:flex-1 ${
                   theme === 'dark'
                     ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
