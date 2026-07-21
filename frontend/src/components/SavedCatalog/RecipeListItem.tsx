@@ -66,12 +66,12 @@ export default function RecipeListItem({
 
       {/* Metadata */}
       <div className="flex-1 min-w-0 flex flex-col justify-center">
-        <h4 className="text-base font-bold text-gray-900 dark:text-white truncate pr-4">
+        <h4 className="text-base font-bold text-gray-900 dark:text-white truncate">
           {r.title}
         </h4>
         {/* Tag pills under the name */}
         {(durationBadge || recipeTags.length > 0 || (job.flags && job.flags.length > 0)) && (
-          <div className="flex flex-wrap gap-1 mt-1 pr-20">
+          <div className="flex flex-wrap gap-1 mt-1">
             {durationBadge && (
               <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap">
                 {durationBadge}
@@ -90,27 +90,29 @@ export default function RecipeListItem({
             ))}
           </div>
         )}
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2 pr-20">
-          <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-emerald-500" /> {formattedPrepTime}
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center flex-wrap gap-x-2 gap-y-0.5">
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> {formattedPrepTime}
           </span>
-          <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
-          <span className="flex items-center gap-1">
-            <Utensils className="w-3.5 h-3.5 text-emerald-500" /> {formattedCookTime}
+          <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700 shrink-0" />
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <Utensils className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> {formattedCookTime}
           </span>
         </p>
       </div>
 
-      {/* Actions */}
+      {/* Actions — a flex sibling (not absolutely positioned) so they can never
+          overlap the metadata text; the metadata column shrinks/truncates to
+          make room on narrow screens. */}
       {!isSelectMode && (
-        <div className="absolute right-3 bottom-2 flex items-center gap-1">
+        <div className="flex items-center gap-0.5 shrink-0 self-center -mr-1">
           {onToggleFavorite && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleFavorite(e);
               }}
-              className="text-gray-500 hover:text-amber-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+              className="text-gray-500 hover:text-amber-500 p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
               aria-label="Toggle favorite"
             >
               <Star className={`w-4 h-4 ${job.isFavorite ? 'text-amber-500 fill-amber-500 stroke-amber-500' : 'text-gray-400 dark:text-gray-500'}`} />
@@ -120,7 +122,7 @@ export default function RecipeListItem({
             className={`active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
               isAdded
                 ? 'w-9 h-9 rounded-xl bg-emerald-500 text-white hover:bg-emerald-500 scale-110 shadow-emerald-500/25 shadow-md border-transparent text-xs'
-                : 'text-gray-500 hover:text-emerald-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors'
+                : 'text-gray-500 hover:text-emerald-500 p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors'
             }`}
             onClick={onDirectAdd}
             aria-label="Direct add"
@@ -133,7 +135,7 @@ export default function RecipeListItem({
           </button>
           <button
             onClick={onDelete}
-            className="text-gray-500 hover:text-red-500 p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+            className="text-gray-500 hover:text-red-500 p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
             aria-label="Delete recipe"
           >
             <Trash2 className="w-4 h-4" />

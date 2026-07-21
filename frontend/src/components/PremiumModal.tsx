@@ -237,8 +237,8 @@ export default function PremiumModal({ isOpen, onOpenChange }: PremiumModalProps
       <div
         className="relative flex flex-col h-full w-full max-w-md mx-auto px-5 select-none"
         style={{
-          paddingTop: 'max(env(safe-area-inset-top, 0px), 52px)',
-          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 28px)'
+          paddingTop: 'max(var(--safe-area-inset-top, 0px), 52px)',
+          paddingBottom: 'max(var(--safe-area-inset-bottom, 0px), 28px)'
         }}
       >
 

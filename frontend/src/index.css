@@ -34,6 +34,16 @@
 :root {
   font-family: 'Outfit', system-ui, -apple-system, sans-serif;
   color-scheme: light dark;
+
+  /* Safe-area insets exposed as CSS variables so the whole app can reference a
+     single source of truth. They default to the CSS env() values (which work on
+     iOS and most Android WebViews), but the native Android layer overrides them
+     with the real WindowInsets on devices where env() reports 0 (some Samsung /
+     older WebViews in Android edge-to-edge mode). See MainActivity.java. */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
 }
 
 body {

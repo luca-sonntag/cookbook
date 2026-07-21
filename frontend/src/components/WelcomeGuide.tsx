@@ -202,8 +202,8 @@ export default function WelcomeGuide({ onClose }: WelcomeGuideProps) {
       <div
         className="relative flex flex-col h-full w-full max-w-md mx-auto px-6 select-none"
         style={{
-          paddingTop: 'max(env(safe-area-inset-top, 0px), 20px)',
-          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 24px)',
+          paddingTop: 'max(var(--safe-area-inset-top, 0px), 20px)',
+          paddingBottom: 'max(var(--safe-area-inset-bottom, 0px), 24px)',
         }}
       >
         {/* Top bar: Skip */}

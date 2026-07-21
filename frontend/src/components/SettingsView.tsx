@@ -96,7 +96,7 @@ export default function SettingsView() {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
       {/* Title */}
-      <div className="sticky top-[env(safe-area-inset-top)] z-30 -mx-4 px-4 pt-2 pb-3 bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 flex items-center justify-between">
+      <div className="sticky top-[var(--safe-area-inset-top)] z-30 -mx-4 px-4 pt-2 pb-3 bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
           {t('app.nav.settings') || 'Settings'}
         </h2>

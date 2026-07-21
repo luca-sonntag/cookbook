@@ -49,26 +49,26 @@ export default function AlphaWelcome({ onClose }: AlphaWelcomeProps) {
       <div
         className="relative flex flex-col h-full w-full max-w-md mx-auto px-6 select-none overflow-y-auto"
         style={{
-          paddingTop: 'max(env(safe-area-inset-top, 0px), 20px)',
-          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 24px)',
+          paddingTop: 'max(var(--safe-area-inset-top, 0px), 20px)',
+          paddingBottom: 'max(var(--safe-area-inset-bottom, 0px), 24px)',
         }}
       >
         {/* Body */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-8 py-8">
-          <div className="w-full flex flex-col items-center gap-8 animate-fade-in-up">
+        <div className="flex-1 flex flex-col items-center justify-center gap-5 py-4">
+          <div className="w-full flex flex-col items-center gap-5 animate-fade-in-up">
             {/* Icon */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <div className="absolute inset-0 rounded-[2rem] bg-amber-500/25 blur-2xl" />
-              <div className="relative w-24 h-24 rounded-[2rem] bg-white dark:bg-gray-900 border border-black/5 dark:border-white/10 flex items-center justify-center shadow-xl">
-                <FlaskConical className="w-11 h-11 text-amber-500" strokeWidth={1.75} />
+              <div className="relative w-20 h-20 rounded-[2rem] bg-white dark:bg-gray-900 border border-black/5 dark:border-white/10 flex items-center justify-center shadow-xl">
+                <FlaskConical className="w-10 h-10 text-amber-500" strokeWidth={1.75} />
               </div>
-              <div className="absolute -top-2 -right-2 w-9 h-9 rounded-full bg-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                <Sparkles className="w-5 h-5 text-white fill-white" />
+              <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                <Sparkles className="w-4.5 h-4.5 text-white fill-white" />
               </div>
             </div>
 
             {/* Title + intro */}
-            <div className="flex flex-col items-center text-center gap-3">
+            <div className="flex flex-col items-center text-center gap-2.5">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 uppercase tracking-wider">
                 {t('alphaWelcome.badge')}
               </span>
@@ -81,7 +81,7 @@ export default function AlphaWelcome({ onClose }: AlphaWelcomeProps) {
             </div>
 
             {/* Info card */}
-            <div className="w-full rounded-2xl bg-white dark:bg-gray-900 border border-black/5 dark:border-white/10 shadow-sm p-4 flex flex-col gap-3.5">
+            <div className="w-full rounded-2xl bg-white dark:bg-gray-900 border border-black/5 dark:border-white/10 shadow-sm p-4 flex flex-col gap-3">
               <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
                 {t('alphaWelcome.info.heading')}
               </p>
@@ -96,7 +96,7 @@ export default function AlphaWelcome({ onClose }: AlphaWelcomeProps) {
                 </div>
               ))}
               {/* Feedback pointer — highlighted */}
-              <div className="flex items-start gap-3 pt-3.5 border-t border-black/5 dark:border-white/5">
+              <div className="flex items-start gap-3 pt-3 border-t border-black/5 dark:border-white/5">
                 <div className="p-1.5 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-lg shrink-0">
                   <MessageSquare className="w-4 h-4" />
                 </div>
@@ -114,7 +114,7 @@ export default function AlphaWelcome({ onClose }: AlphaWelcomeProps) {
         </div>
 
         {/* Footer CTA */}
-        <div className="shrink-0 pt-4">
+        <div className="shrink-0 pt-3">
           <button
             onClick={onClose}
             className="w-full flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-white text-sm font-semibold px-6 py-3.5 rounded-xl shadow-lg shadow-amber-500/25 transition-all cursor-pointer"

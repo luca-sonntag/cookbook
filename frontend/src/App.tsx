@@ -496,7 +496,7 @@ export default function App() {
           pinned. */}
       <div className="sticky top-0 z-40 w-full">
         {/* Status bar background filler for devices with safe-area-inset-top (e.g. Android 15 Edge-to-Edge) */}
-        <div className="w-full h-[env(safe-area-inset-top)] bg-[#064e3b]" />
+        <div className="w-full h-[var(--safe-area-inset-top)] bg-[#064e3b]" />
 
         {/* Active Cooking Timers Banner */}
         <TimerBanner />
@@ -634,7 +634,7 @@ export default function App() {
 
         return (
           <div className={bottomBarClasses}>
-            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] px-3">
+            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-[calc(1.25rem_+_var(--safe-area-inset-bottom))] px-3">
               {/* Extract / New Recipe Tab */}
               <button
                 onClick={() => navigate('extract')}
