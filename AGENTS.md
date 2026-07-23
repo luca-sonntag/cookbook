@@ -347,6 +347,28 @@ Railway hostet die containerisierte Express- und React-Anwendung stateless.
   * **`web`**: Liefert die APIs und statische Frontend-Assets aus.
   * **`worker`**: Führt ausschließlich die asynchrone Queue-Schleife aus (`claimNextJob`, Frame-Extraktion, Gemini-Upload).
 
+## 🧪 Dev-/Test-Environment & Mobile-Preview
+
+Für den Workflow *unterwegs per Claude Code entwickeln → am Smartphone testen → PR mergen* gibt es
+eine geteilte Dev-Umgebung und ein statisches Web-Preview des Frontends. Details und einmalige
+Einrichtung: [`docs/dev-environment.md`](./docs/dev-environment.md).
+
+* **Test-User-Auto-Login:** `frontend/src/env.ts` exportiert `TEST_LOGIN_ENABLED` (aktiv nur, wenn
+  `VITE_TEST_LOGIN=true` **und** `VITE_TEST_USER_EMAIL`/`VITE_TEST_USER_PASSWORD` gesetzt sind).
+  `AuthContext` ruft dann beim Start `supabase.auth.signInWithPassword(...)` → echtes JWT → alle
+  Backend-Calls funktionieren gegen die Dev-Umgebung. Im Prod-/Play-Store-Build ist die Flag
+  ungesetzt und der Code inaktiv. Credentials liegen nur in Railway-Build-Variablen bzw.
+  `.env.development.local` (git-ignored via `.env*.local`), **nie** im Repo.
+* **Web-Preview:** Das Frontend ist ein Vite-SPA und läuft auch im Handy-Browser. `frontend/railway.json`
+  + `npm run build:dev` (`vite build --mode development`) + `serve -s dist -l $PORT` hosten das `dist`
+  statisch als eigenen Railway-Service (getrennt vom API-Backend), der via `VITE_API_BASE_URL` auf das
+  Dev-Backend zeigt.
+* **Dev-Supabase:** self-hosted auf Railway (offizielles Template) als geteilte Dev-Instanz; Fallback
+  managed supabase.com-Dev-Projekt. **Hinweis:** `backend/supabase_schema.sql` enthält nicht das
+  `jobs`-Kern-DDL — dieses muss zuerst aus der bestehenden Supabase exportiert werden.
+* **Seed:** `backend/src/scripts/seedDev.ts` (`npm run seed:dev`) legt den Test-User (email-confirmed
+  via GoTrue Admin-API) und Beispielrezepte/Collection an; idempotent, verweigert Prod-URLs.
+
 ## 💎 Freemium Gating System
 
 Die App unterscheidet zwischen **Free**-, **Alpha**- und **Premium**-Nutzern. Premium-Status wird aus `user.app_metadata.tier === 'premium'` abgeleitet. Der Alpha-Status wird aus `user.app_metadata.tier === 'alpha'` abgeleitet. Beide Tiers sind in `AuthContext` über `isPremium` als `true` abgebildet, da sie vollen Zugriff auf alle Premium-Features erhalten (Ausnahme: Alpha-Nutzer unterliegen voreingestellten Extraktions- und Kochbuch-Limits).

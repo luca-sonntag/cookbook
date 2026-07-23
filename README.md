@@ -66,6 +66,25 @@ The Vite dev server proxies `/api` to the backend on `localhost:3000`.
 
 ---
 
+## 🧪 Dev / mobile-preview environment
+
+For the *develop-on-the-go → test on your phone → merge* loop, the frontend can be built as a
+static web preview against a shared **dev backend + dev Supabase** with real seed data, and a
+**test-user auto-login** (`VITE_TEST_LOGIN=true`) skips the login screen so the authenticated UI
+renders in a mobile browser. Quick local run:
+
+```bash
+# fill frontend/.env.development.local with the dev Supabase + test-user creds (git-ignored)
+npm run dev -w frontend        # auto-logs-in as the seeded test user
+# seed the dev Supabase once (from backend/):
+SEED_TEST_USER_PASSWORD=… npm run seed:dev -w backend
+```
+
+Full setup (self-hosted Supabase on Railway, per-PR previews, seeding) is documented in
+[`docs/dev-environment.md`](./docs/dev-environment.md).
+
+---
+
 ## 📱 Building the Android app (Capacitor)
 
 From `frontend/`:
