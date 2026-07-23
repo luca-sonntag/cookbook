@@ -140,6 +140,7 @@ export default function App() {
     jobStatus,
     jobError,
     jobErrorCode,
+    jobErrorParams,
     recipe,
     setRecipe,
     progress,
@@ -568,6 +569,7 @@ export default function App() {
                 jobStatus={jobStatus}
                 jobError={jobError}
                 jobErrorCode={jobErrorCode}
+                jobErrorParams={jobErrorParams}
                 triggerExtraction={triggerExtraction}
                 url={url}
               />

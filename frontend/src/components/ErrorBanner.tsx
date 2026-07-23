@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Card, Button } from '@heroui/react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
-import { resolveJobError } from '../i18n';
+import { resolveErrorCode } from '../i18n';
+import type { ErrorParams } from '../errorCodes';
 import PremiumHint from './PremiumHint';
 import PremiumModal from './PremiumModal';
 
@@ -11,6 +12,7 @@ interface ErrorBannerProps {
   jobStatus: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed' | null;
   jobError: string | null;
   jobErrorCode?: string | null;
+  jobErrorParams?: ErrorParams | null;
   triggerExtraction: (url: string) => void;
   url: string;
 }
@@ -20,6 +22,7 @@ export default function ErrorBanner({
   jobStatus,
   jobError,
   jobErrorCode,
+  jobErrorParams,
   triggerExtraction,
   url
 }: ErrorBannerProps) {
@@ -51,7 +54,7 @@ export default function ErrorBanner({
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('error.title')}</h3>
           <p className="mt-0.5 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
-            {resolveJobError(jobError, language) || t('error.default')}
+            {resolveErrorCode(jobErrorCode, jobErrorParams ?? undefined, jobError, language) || t('error.default')}
           </p>
           <Button
             size="sm"
