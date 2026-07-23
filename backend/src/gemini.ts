@@ -3,6 +3,7 @@ import { GoogleAIFileManager } from '@google/generative-ai/files';
 import { config } from './config.js';
 import { Recipe } from './types.js';
 import { writeGeminiLog, estimateCost, type TokenUsage } from './logger.js';
+import { AppError } from './errors.js';
 import { withRetry } from './retry.js';
 
 // Initialize Gemini Generative AI and File Manager
@@ -398,7 +399,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
     const rawRecipe = JSON.parse(rawOutput);
 
     if (rawRecipe.isRecipe === false) {
-      throw new Error('The provided video does not appear to contain a food recipe.');
+      throw new AppError('NOT_A_RECIPE', { message: 'The provided video does not appear to contain a food recipe.' });
     }
 
     const recipe: Recipe = rawRecipe;
