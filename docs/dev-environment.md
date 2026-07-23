@@ -44,13 +44,21 @@ Railway-Build-Variablen bzw. in `frontend/.env.development.local` (git-ignored v
 
 ## Einmalige Einrichtung (Dashboards)
 
-### 1. Vollständiges DB-Schema beschaffen (Voraussetzung)
+### 1. DB-Schema anwenden
 
 `backend/supabase_schema.sql` enthält **nicht** die Kern-Tabelle `public.jobs` (nur `ALTER`s darauf
-plus `collections`, `recipe_collections`, `feedback`, `global_settings`). Exportiere das komplette
-Schema aus der bestehenden Supabase (Dashboard → Database → Schema, oder `pg_dump --schema-only`)
-inkl. `jobs` und der RPC `claim_next_job`, und lege es als `backend/db/schema.sql` ab. Ohne dieses
-Schema können weder self-host noch Seed die `jobs`-Tabelle befüllen.
+plus `collections`, `recipe_collections`, `feedback`, `global_settings`). Deshalb liegt das
+`jobs`-DDL + die `claim_next_job`-RPC jetzt (aus `backend/src/db.ts` rekonstruiert) in
+**`backend/db/schema.sql`**.
+
+Reihenfolge (via Supabase-Studio SQL-Editor oder `psql` gegen die Dev-Postgres):
+1. `backend/db/schema.sql` — `jobs`-Tabelle, Indizes, RLS-Policies, `claim_next_job`-RPC.
+2. `backend/supabase_schema.sql` — ergänzt `is_favorite`/`flags`/`media_bytes`, plus
+   collections/recipe_collections/feedback/global_settings/Buckets/partial-unique-index (idempotent).
+
+*(Höhere Genauigkeit, optional: das vollständige Schema aus der bestehenden Prod-Supabase
+exportieren — `pg_dump --schema-only` / Dashboard → Database → Schema — und statt `schema.sql`
+einspielen. Dann die Rekonstruktion gegen das Original abgleichen.)*
 
 ### 2. Dev-Supabase self-hosted auf Railway
 
@@ -93,6 +101,10 @@ npm run seed:dev
 
 Legt den Test-User (email-confirmed) an und schreibt 3 fertige Rezepte + 1 Collection. Idempotent
 (feste IDs, Upsert). Verweigert die Ausführung, wenn `SUPABASE_URL` nach Produktion aussieht.
+
+Alternative ohne Node (z.B. direkt im Studio-SQL-Editor): Test-User via Studio →
+Authentication → Add user anlegen, dann **`backend/db/seed.sql`** ausführen — schreibt dieselben
+Beispieldaten, per E-Mail auf den User gemappt (idempotent).
 
 ### 6. Pro-PR-Previews (der eigentliche Loop)
 
