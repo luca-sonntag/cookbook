@@ -41,7 +41,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [localSettings, setLocalSettings] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
-  const [metricsRange, setMetricsRange] = useState<'all' | 'today' | '7d' | '30d'>('all');
+  const [metricsRange, setMetricsRange] = useState<'all' | 'today' | '3d' | '7d' | '30d'>('all');
   const [users, setUsers] = useState<any[]>([]);
   const [usersRange, setUsersRange] = useState<'all' | 'today' | '7d' | '30d'>('all');
   const [loading, setLoading] = useState(true);
@@ -54,9 +54,10 @@ export default function AdminView({ onBack }: AdminViewProps) {
 
   const isDe = language === 'de';
 
-  const rangeLabel: Record<'all' | 'today' | '7d' | '30d', string> = {
+  const rangeLabel: Record<'all' | 'today' | '3d' | '7d' | '30d', string> = {
     all: isDe ? 'Gesamt' : 'All time',
     today: isDe ? 'Heute' : 'Today',
+    '3d': isDe ? 'Letzte 3 Tage' : 'Last 3 days',
     '7d': isDe ? 'Letzte 7 Tage' : 'Last 7 days',
     '30d': isDe ? 'Letzte 30 Tage' : 'Last 30 days',
   };
@@ -596,6 +597,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   [
                     { id: 'all', label: isDe ? 'Alle' : 'All' },
                     { id: 'today', label: isDe ? 'Heute' : 'Today' },
+                    { id: '3d', label: isDe ? '3 Tage' : 'Last 3 days' },
                     { id: '7d', label: isDe ? '7 Tage' : 'Last 7 days' },
                     { id: '30d', label: isDe ? '30 Tage' : 'Last 30 days' },
                   ] as const
@@ -810,6 +812,42 @@ export default function AdminView({ onBack }: AdminViewProps) {
                     </div>
                   </Card>
                 </div>
+
+                {/* 5. Extracted recipes per user (only users with >0 in range) */}
+                <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-4">
+                  <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
+                    {isDe ? 'Extrahierte Rezepte pro Nutzer' : 'Extracted Recipes per User'} ({rangeLabel[metricsRange]})
+                  </h3>
+                  {metrics.extractionsPerUser?.length ? (
+                    <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
+                      {metrics.extractionsPerUser.map((entry: any) => {
+                        const maxCount = Math.max(
+                          ...metrics.extractionsPerUser.map((e: any) => e.count),
+                          1,
+                        );
+                        const pct = (entry.count / maxCount) * 100;
+                        return (
+                          <div key={entry.userId} className="flex items-center gap-3 text-[11px]">
+                            <span className="w-40 truncate text-gray-500 dark:text-gray-400 font-medium shrink-0" title={entry.email || entry.userId}>
+                              {entry.email || entry.userId}
+                            </span>
+                            <div className="flex-1 bg-black/5 dark:bg-white/5 h-2.5 rounded-full overflow-hidden">
+                              <div
+                                className="bg-emerald-500 dark:bg-emerald-600 h-full rounded-full transition-all duration-500"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="w-6 text-right font-bold text-gray-800 dark:text-white shrink-0">{entry.count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-center text-xs text-gray-400 py-12">
+                      {isDe ? 'Keine Extraktionen im Zeitraum.' : 'No extractions in timeframe.'}
+                    </p>
+                  )}
+                </Card>
               </div>
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-12">

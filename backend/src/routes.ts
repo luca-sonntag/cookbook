@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, getExtractionsPerUser } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -1351,6 +1351,11 @@ function resolveMetricsRange(range: string): { since: Date | null; windowDays: n
   switch (range) {
     case 'today':
       return { since: startOfToday, windowDays: 1 };
+    case '3d': {
+      const since = new Date(startOfToday);
+      since.setDate(since.getDate() - 2);
+      return { since, windowDays: 3 };
+    }
     case '7d': {
       const since = new Date(startOfToday);
       since.setDate(since.getDate() - 6);
@@ -1384,6 +1389,8 @@ apiRouter.get('/admin/metrics', requireAdmin, async (req: Request, res: Response
     // window (equal to `total` for the unbounded "all" range).
     let userCount = 0;
     let newUsers = 0;
+    // Map of user_id → email, used to label the per-user extraction breakdown.
+    const emailById = new Map<string, string | null>();
     try {
       const { data, error } = await getClient().auth.admin.listUsers({ perPage: 1000 });
       if (!error && data?.users) {
@@ -1391,6 +1398,9 @@ apiRouter.get('/admin/metrics', requireAdmin, async (req: Request, res: Response
         newUsers = since
           ? data.users.filter((u) => u.created_at && new Date(u.created_at) >= since).length
           : userCount;
+        for (const u of data.users) {
+          emailById.set(u.id, u.email ?? null);
+        }
       }
     } catch (err: any) {
       console.error('Error fetching users from Supabase Admin:', err.message);
@@ -1402,6 +1412,15 @@ apiRouter.get('/admin/metrics', requireAdmin, async (req: Request, res: Response
     // 3. Fetch logs LLM metrics (scoped to the selected range)
     const llmMetrics = await getLlmMetrics(since, windowDays);
 
+    // 4. Count extracted recipes per user (only users with >0 in the range),
+    // resolving each user_id to an email for display.
+    const perUserRaw = await getExtractionsPerUser(since);
+    const extractionsPerUser = perUserRaw.map((entry) => ({
+      userId: entry.userId,
+      email: emailById.get(entry.userId) ?? null,
+      count: entry.count,
+    }));
+
     res.json({
       success: true,
       range,
@@ -1411,6 +1430,7 @@ apiRouter.get('/admin/metrics', requireAdmin, async (req: Request, res: Response
       },
       jobs: jobsMetrics,
       llm: llmMetrics,
+      extractionsPerUser,
     });
   } catch (error) {
     console.error('Error fetching admin metrics:', error);
