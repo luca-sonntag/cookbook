@@ -1,3 +1,10 @@
+import {
+  type ErrorParams,
+  isKnownErrorCode,
+  messageForCode,
+  parseSerializedError,
+} from './errorCodes';
+
 export const IngredientCategory = {
   PRODUCE: 'PRODUCE',
   BAKERY: 'BAKERY',
@@ -1626,16 +1633,44 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
 
 /**
  * Resolves a *stored* job error into localized display text using the CURRENT
- * language. Hooks keep the raw error in state — a backend/worker message, a
- * synthetic code like `too many requests`, or a `form.validation.*` i18n key —
- * instead of pre-translated text. Translating here (at render) means the message
- * re-localizes when the user switches language, rather than freezing in whatever
- * language happened to be active when the job failed.
+ * language. Hooks keep the raw error in state instead of pre-translated text, so
+ * the message re-localizes when the user switches language rather than freezing
+ * in whatever language was active when the job failed.
+ *
+ * Resolution order (codes first — see `errorCodes.ts`):
+ *   1. `form.validation.*` i18n key → dictionary lookup.
+ *   2. A serialized `{code, params}` envelope (how the worker persists failures).
+ *   3. A bare known error code string (how API responses surface `data.code`).
+ *   4. Legacy raw backend text → `translateApiError` string-matching fallback.
+ *      This path exists only for jobs persisted before the code system and for
+ *      any un-coded throw; new failures always carry a code.
  */
 export function resolveJobError(err: string | null | undefined, lang: SupportedLanguage): string {
   if (!err) return '';
   if (err.startsWith('form.validation.')) return getTranslation(err, lang);
+
+  const envelope = parseSerializedError(err);
+  if (envelope) return messageForCode(envelope.code, envelope.params, lang);
+
+  if (isKnownErrorCode(err)) return messageForCode(err, undefined, lang);
+
   return translateApiError(err, lang);
+}
+
+/**
+ * Resolves a synchronous API error (a `code` + `params` from a `{ success:false }`
+ * response) into localized text. Falls back to `translateApiError` on the raw
+ * `error` string when no known code is present (older clients/responses).
+ */
+export function resolveErrorCode(
+  code: string | null | undefined,
+  params: ErrorParams | undefined,
+  rawError: string | null | undefined,
+  lang: SupportedLanguage,
+): string {
+  if (code && isKnownErrorCode(code)) return messageForCode(code, params, lang);
+  if (rawError) return resolveJobError(rawError, lang);
+  return messageForCode(undefined, undefined, lang);
 }
 
 
