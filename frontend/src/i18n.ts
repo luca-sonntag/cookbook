@@ -1358,6 +1358,44 @@ export function getTranslation(key: string, lang: SupportedLanguage, variables?:
   return result;
 }
 
+/**
+ * Substrings that mark a message as a raw backend/worker/library error rather
+ * than something written for a human. When an unrecognized error still contains
+ * one of these (or is unusually long), {@link translateApiError} swaps it for a
+ * friendly generic message instead of leaking internals to the user.
+ */
+const TECHNICAL_ERROR_MARKERS = [
+  '://',
+  'status:',
+  'error:',
+  'exception',
+  'traceback',
+  'stack trace',
+  'rapidapi',
+  'yt-dlp',
+  'ytdlp',
+  'apify',
+  'actor run',
+  'econnreset',
+  'etimedout',
+  'enoent',
+  'undefined',
+  'typeerror',
+  'referenceerror',
+  'cannot read',
+  'fetch failed',
+  ' | ',
+  'http error',
+];
+
+/** True when a message looks like a raw technical dump not meant for end users. */
+function looksTechnical(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  if (TECHNICAL_ERROR_MARKERS.some((marker) => lower.includes(marker))) return true;
+  // Genuine user-facing messages are short; raw dumps tend to be long.
+  return msg.length > 180;
+}
+
 export function translateApiError(errorMsg: string | null | undefined, lang: SupportedLanguage = 'de'): string {
   if (!errorMsg) return '';
 
@@ -1482,6 +1520,42 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
       : 'Failed to retrieve the Instagram Reel. Please make sure the video is public and the link is correct.';
   }
 
+  // ── Media / scraping failures ──────────────────────────────────────────────
+  // When every scrape provider (RapidAPI → yt-dlp → Apify actor) fails, the
+  // backend throws one aggregated message that leaks provider names, raw URLs,
+  // "Unsupported URL", actor run IDs and "TIMED-OUT" statuses. None of that is
+  // actionable for a cook, so collapse the whole family of download/extraction
+  // failures into a single friendly explanation. Checked before the timeout
+  // branch below so the aggregate (which may contain "TIMED-OUT") lands here.
+  if (
+    lowerMsg.includes('social provider(s) failed') ||
+    lowerMsg.includes('no social scrape providers') ||
+    lowerMsg.includes('no usable video media') ||
+    lowerMsg.includes('unsupported url') ||
+    lowerMsg.includes('no dataset items') ||
+    lowerMsg.includes('produced no video url') ||
+    lowerMsg.includes('failed to retrieve status for actor') ||
+    lowerMsg.includes('finished with status')
+  ) {
+    return lang === 'de'
+      ? 'Aus diesem Link konnte kein Rezept geladen werden. Das Video ist möglicherweise privat, wurde gelöscht oder wird nicht unterstützt. Bitte überprüfe den Link oder versuche es mit einem anderen Beitrag.'
+      : "We couldn't load a recipe from this link. The video may be private, deleted, or unsupported. Please check the link or try another post.";
+  }
+
+  // Transient network / provider timeouts — a plain retry usually succeeds.
+  if (
+    lowerMsg.includes('timed-out') ||
+    lowerMsg.includes('timed out') ||
+    lowerMsg.includes('timeout') ||
+    lowerMsg.includes('etimedout') ||
+    lowerMsg.includes('econnreset') ||
+    lowerMsg.includes('network error')
+  ) {
+    return lang === 'de'
+      ? 'Zeitüberschreitung beim Laden des Videos. Bitte versuche es in einem Moment noch einmal.'
+      : 'The video took too long to load. Please try again in a moment.';
+  }
+
   if (lowerMsg.includes('video too long')) {
     const limitMatch = errorMsg.match(/the\s+(\d+)\s*s limit/i);
     const limitSec = limitMatch ? parseInt(limitMatch[1], 10) : null;
@@ -1535,6 +1609,16 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
   }
   if (errorMsg === 'submit_failed' || errorMsg === 'submitFailed') {
     return lang === 'de' ? 'Auftrag konnte nicht übermittelt werden.' : 'Failed to submit extraction job.';
+  }
+
+  // Safety net: anything unmatched that still looks like a raw technical dump
+  // (stack fragments, HTTP codes, provider internals, file paths…) gets replaced
+  // by a friendly generic message so we never surface internals to the user.
+  // Short, clean human sentences pass through unchanged.
+  if (looksTechnical(errorMsg)) {
+    return lang === 'de'
+      ? 'Beim Erstellen des Rezepts ist ein Fehler aufgetreten. Bitte versuche es erneut.'
+      : 'Something went wrong while creating the recipe. Please try again.';
   }
 
   return errorMsg;
