@@ -1,7 +1,7 @@
 import {
+  type AppErrorCode,
   type ErrorParams,
   isKnownErrorCode,
-  messageForCode,
   parseSerializedError,
 } from './errorCodes';
 
@@ -354,6 +354,74 @@ export const uiTranslations = {
       title: 'Rezept-Erstellung fehlgeschlagen',
       default: 'Beim Analysieren des Links ist ein unbekannter Fehler aufgetreten.',
       retry: 'Wiederholen',
+      generic: 'Beim Erstellen des Rezepts ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+      codes: {
+        MISSING_FIELD: '{field} fehlt. Bitte überprüfe deine Eingabe.',
+        INVALID_FIELD: '{field} ist ungültig. Bitte überprüfe deine Eingabe.',
+        INVALID_URL: 'Ungültiger Link. Bitte gib einen gültigen Instagram-, TikTok-, YouTube-Shorts- oder Website-Link ein.',
+        YOUTUBE_SHORTS_ONLY: 'Es werden nur YouTube Shorts unterstützt, keine regulären YouTube-Videos.',
+        REMIX_PROMPT_TOO_LONG: 'Der Remix-Text darf maximal {max} Zeichen lang sein.',
+        MESSAGE_TOO_LONG: 'Die Nachricht ist zu lang (max. {max} Zeichen).',
+        TOO_MANY_SCREENSHOTS: 'Zu viele Screenshots (max. {max}).',
+        SCREENSHOTS_TOO_LARGE: 'Die Screenshots sind zu groß. Bitte verwende kleinere Bilder.',
+        PARENT_JOB_NOT_COMPLETED: 'Das Ursprungsrezept ist noch nicht fertig. Bitte warte, bis es abgeschlossen ist.',
+        UNAUTHORIZED: 'Nicht autorisiert. Bitte melde dich erneut an.',
+        COOKBOOK_FULL: 'Kochbuch voll ({counts}). Lösche ein Rezept oder hol dir Premium, um weitere Rezepte zu extrahieren.',
+        RATE_LIMIT_EXCEEDED: 'Du hast dein Limit von {limit} Rezept-Extraktionen pro {period} erreicht. {retry}',
+        ACTIVE_JOB_EXISTS: 'Du hast bereits {count} laufende Extraktion(en). Bitte warte, bis diese abgeschlossen sind.',
+        TOO_MANY_REQUESTS: 'Zu viele Anfragen. Bitte versuche es später noch einmal.',
+        JOB_NOT_FOUND: 'Rezept nicht gefunden.',
+        RECIPE_NOT_FOUND: 'Rezept nicht gefunden.',
+        COLLECTION_NOT_FOUND: 'Sammlung nicht gefunden.',
+        PARENT_JOB_NOT_FOUND: 'Ursprungsrezept nicht gefunden.',
+        SCRAPE_FAILED: 'Aus diesem Link konnte kein Rezept geladen werden. Das Video ist möglicherweise privat, wurde gelöscht oder wird nicht unterstützt. Bitte überprüfe den Link oder versuche es mit einem anderen Beitrag.',
+        SCRAPE_TIMEOUT: 'Zeitüberschreitung beim Laden des Videos. Bitte versuche es in einem Moment noch einmal.',
+        VIDEO_TOO_LONG: 'Das Video ist zu lang. Es sind maximal {limit} erlaubt.',
+        VIDEO_TOO_LONG_NO_LIMIT: 'Das Video ist zu lang.',
+        MEDIA_DOWNLOAD_FAILED: 'Die Mediendatei konnte nicht heruntergeladen werden. Bitte versuche es noch einmal.',
+        NOT_A_RECIPE: 'In diesem Video wurde kein Rezept erkannt. Bitte versuche es mit einem Rezept-Video.',
+        WEBSITE_NO_RECIPE: 'Auf dieser Website konnte kein Rezept gefunden werden.',
+        UNRELATED_REMIX_REQUEST: 'Ungültige Anfrage: Die KI hat keine Rezeptänderung im eingegebenen Text erkannt.',
+        REVENUECAT_FAILED: 'Der Abo-Status konnte nicht abgerufen werden. Bitte versuche es später erneut.',
+        PROFILE_UPDATE_FAILED: 'Dein Profil konnte nicht aktualisiert werden. Bitte versuche es später erneut.',
+        CHAT_CHIPS_FAILED: 'Die Vorschläge konnten nicht geladen werden. Bitte versuche es später erneut.',
+        REMIX_CONFIRM_FAILED: 'Der Remix konnte nicht bestätigt werden. Bitte versuche es später erneut.',
+        CHAT_FAILED: 'Der Chat ist fehlgeschlagen. Bitte versuche es später erneut.',
+        ACCOUNT_DELETE_FAILED: 'Dein Konto konnte nicht gelöscht werden. Bitte versuche es später erneut.',
+        INTERNAL_ERROR: 'Ein interner Serverfehler ist aufgetreten. Bitte versuche es später erneut.',
+      },
+      premium: {
+        remix: 'Rezept Remix ist eine Premium-Funktion. Hol dir Premium, um Rezepte anzupassen.',
+        chat: 'Der KI-Küchenchef-Chat ist eine Premium-Funktion. Hol dir Premium, um mit dem Rezept-Copilot zu chatten.',
+        collections: 'Sammlungen sind eine Premium-Funktion. Hol dir Premium, um sie zu nutzen.',
+        tags: 'Eigene Tags sind eine Premium-Funktion. Hol dir Premium, um sie zu nutzen.',
+        generic: 'Das ist eine Premium-Funktion. Hol dir Premium, um sie zu nutzen.',
+      },
+      field: {
+        url: 'Der Link',
+        prompt: 'Der Text',
+        message: 'Die Nachricht',
+        modificationRequest: 'Die Änderung',
+        generic: 'Eine Angabe',
+      },
+      duration: {
+        minutes: '{n} Minuten',
+        seconds: '{n} Sekunden',
+        day1: '1 Tag',
+        dayN: '{n} Tagen',
+        andHours: ' und {h} Std.',
+      },
+      period: {
+        day: 'Tag',
+        days: '{n} Tagen',
+      },
+      tryAgain: {
+        later: 'Bitte versuche es später erneut.',
+        minutes: 'Bitte versuche es in {m} Min. erneut.',
+        hours: 'Bitte versuche es in {h} Std. erneut.',
+        hoursMinutes: 'Bitte versuche es in {h} Std. und {m} Min. erneut.',
+        days: 'Bitte versuche es in {dayStr}{hourStr} erneut.',
+      },
     },
     form: {
       urlLabel: 'Rezept Link',
@@ -941,6 +1009,74 @@ export const uiTranslations = {
       title: 'Failed to create recipe',
       default: 'An unknown error occurred while analyzing the link.',
       retry: 'Retry',
+      generic: 'Something went wrong while creating the recipe. Please try again.',
+      codes: {
+        MISSING_FIELD: '{field} is missing. Please check your input.',
+        INVALID_FIELD: '{field} is invalid. Please check your input.',
+        INVALID_URL: 'Invalid link. Please enter a valid Instagram, TikTok, YouTube Shorts, or website link.',
+        YOUTUBE_SHORTS_ONLY: 'Only YouTube Shorts are supported, not regular YouTube videos.',
+        REMIX_PROMPT_TOO_LONG: 'The remix text must not exceed {max} characters.',
+        MESSAGE_TOO_LONG: 'The message is too long (max {max} characters).',
+        TOO_MANY_SCREENSHOTS: 'Too many screenshots (max {max}).',
+        SCREENSHOTS_TOO_LARGE: 'The screenshots are too large. Please use smaller images.',
+        PARENT_JOB_NOT_COMPLETED: 'The original recipe is not ready yet. Please wait until it finishes.',
+        UNAUTHORIZED: 'Unauthorized. Please sign in again.',
+        COOKBOOK_FULL: 'Cookbook full ({counts}). Delete a recipe or upgrade to Premium to extract more.',
+        RATE_LIMIT_EXCEEDED: 'You have reached your limit of {limit} recipe extractions per {period}. {retry}',
+        ACTIVE_JOB_EXISTS: 'You already have {count} extraction(s) in progress. Please wait for them to finish.',
+        TOO_MANY_REQUESTS: 'Too many requests. Please try again later.',
+        JOB_NOT_FOUND: 'Recipe not found.',
+        RECIPE_NOT_FOUND: 'Recipe not found.',
+        COLLECTION_NOT_FOUND: 'Collection not found.',
+        PARENT_JOB_NOT_FOUND: 'Original recipe not found.',
+        SCRAPE_FAILED: "We couldn't load a recipe from this link. The video may be private, deleted, or unsupported. Please check the link or try another post.",
+        SCRAPE_TIMEOUT: 'The video took too long to load. Please try again in a moment.',
+        VIDEO_TOO_LONG: 'The video is too long. The maximum allowed length is {limit}.',
+        VIDEO_TOO_LONG_NO_LIMIT: 'The video is too long.',
+        MEDIA_DOWNLOAD_FAILED: 'Failed to download the media file. Please try again.',
+        NOT_A_RECIPE: 'No recipe was found in this video. Please try a recipe video.',
+        WEBSITE_NO_RECIPE: 'Could not find a recipe on this website.',
+        UNRELATED_REMIX_REQUEST: 'Invalid request: the AI did not recognize any recipe modification in the text.',
+        REVENUECAT_FAILED: 'Could not fetch your subscription status. Please try again later.',
+        PROFILE_UPDATE_FAILED: 'Could not update your profile. Please try again later.',
+        CHAT_CHIPS_FAILED: 'Could not load suggestions. Please try again later.',
+        REMIX_CONFIRM_FAILED: 'Could not confirm the remix. Please try again later.',
+        CHAT_FAILED: 'The chat failed. Please try again later.',
+        ACCOUNT_DELETE_FAILED: 'Could not delete your account. Please try again later.',
+        INTERNAL_ERROR: 'An internal server error occurred. Please try again later.',
+      },
+      premium: {
+        remix: 'Recipe Remix is a premium feature. Upgrade to Premium to customize recipes.',
+        chat: 'AI Kitchen Chef chat is a premium feature. Upgrade to Premium to chat with Recipe Copilot.',
+        collections: 'Collections are a premium feature. Upgrade to Premium to use them.',
+        tags: 'Custom tags are a premium feature. Upgrade to Premium to use them.',
+        generic: 'This is a premium feature. Upgrade to Premium to use it.',
+      },
+      field: {
+        url: 'The link',
+        prompt: 'The text',
+        message: 'The message',
+        modificationRequest: 'The change request',
+        generic: 'A field',
+      },
+      duration: {
+        minutes: '{n} minutes',
+        seconds: '{n} seconds',
+        day1: '1 day',
+        dayN: '{n} days',
+        andHours: ' and {h} hr.',
+      },
+      period: {
+        day: 'day',
+        days: '{n} days',
+      },
+      tryAgain: {
+        later: 'Please try again later.',
+        minutes: 'Please try again in {m} min.',
+        hours: 'Please try again in {h} hr.',
+        hoursMinutes: 'Please try again in {h} hr. and {m} min.',
+        days: 'Please try again in {dayStr}{hourStr}.',
+      },
     },
     form: {
       urlLabel: 'Recipe Link',
@@ -1629,6 +1765,114 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
   }
 
   return errorMsg;
+}
+
+// ── Error-code → localized message resolution ────────────────────────────────
+// The message templates live in the i18n dictionary (`error.codes.*` and the
+// `error.{premium,field,duration,period,tryAgain}` helper groups). The builders
+// below only compose the dynamic fragments (plural periods, retry phrasing, unit
+// labels, feature/field labels) — each of which is itself pulled from i18n — and
+// feed them as `{variables}` into `getTranslation`. No user-facing copy is
+// hardcoded here.
+
+/** Translates a form-field name into its friendly, localized label. */
+function fieldLabel(field: string, lang: SupportedLanguage): string {
+  const known = ['url', 'prompt', 'message', 'modificationRequest'];
+  return getTranslation(`error.field.${known.includes(field) ? field : 'generic'}`, lang);
+}
+
+/** Localized premium-feature message (per-feature copy, generic fallback). */
+function premiumText(feature: string, lang: SupportedLanguage): string {
+  const known = ['remix', 'chat', 'collections', 'tags'];
+  return getTranslation(`error.premium.${known.includes(feature) ? feature : 'generic'}`, lang);
+}
+
+/** Localized "per <period>" fragment for the rate-limit message. */
+function ratePeriod(days: number, lang: SupportedLanguage): string {
+  return days === 1
+    ? getTranslation('error.period.day', lang)
+    : getTranslation('error.period.days', lang, { n: days });
+}
+
+/** Localized human duration label for the video-length cap. */
+function videoLimit(seconds: number, lang: SupportedLanguage): string {
+  return seconds % 60 === 0
+    ? getTranslation('error.duration.minutes', lang, { n: seconds / 60 })
+    : getTranslation('error.duration.seconds', lang, { n: seconds });
+}
+
+/** Localized "please try again in …" phrasing from a minutes-remaining count. */
+function retryAfter(minutes: number, lang: SupportedLanguage): string {
+  if (!minutes || minutes <= 0) return getTranslation('error.tryAgain.later', lang);
+  if (minutes >= 1440) {
+    const d = Math.floor(minutes / 1440);
+    const h = Math.floor((minutes % 1440) / 60);
+    const dayStr = d === 1
+      ? getTranslation('error.duration.day1', lang)
+      : getTranslation('error.duration.dayN', lang, { n: d });
+    const hourStr = h > 0 ? getTranslation('error.duration.andHours', lang, { h }) : '';
+    return getTranslation('error.tryAgain.days', lang, { dayStr, hourStr });
+  }
+  if (minutes >= 60) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m > 0
+      ? getTranslation('error.tryAgain.hoursMinutes', lang, { h, m })
+      : getTranslation('error.tryAgain.hours', lang, { h });
+  }
+  return getTranslation('error.tryAgain.minutes', lang, { m: minutes });
+}
+
+/**
+ * Builds the localized message for an error code + params. Unknown codes and the
+ * generic worker fallback resolve to a friendly generic message — never a raw
+ * dump. Codes with dynamic content compose their `{variables}` from i18n; the
+ * rest are a direct dictionary lookup.
+ */
+export function messageForCode(
+  code: string | null | undefined,
+  params: ErrorParams | undefined,
+  lang: SupportedLanguage,
+): string {
+  if (!code || !isKnownErrorCode(code)) return getTranslation('error.generic', lang);
+  const p: ErrorParams = params ?? {};
+  const c: AppErrorCode = code;
+
+  switch (c) {
+    case 'EXTRACTION_FAILED':
+      return getTranslation('error.generic', lang);
+    case 'MISSING_FIELD':
+    case 'INVALID_FIELD':
+      return getTranslation(`error.codes.${c}`, lang, { field: fieldLabel(String(p.field ?? ''), lang) });
+    case 'PREMIUM_REQUIRED':
+      return premiumText(String(p.feature ?? ''), lang);
+    case 'COOKBOOK_FULL': {
+      const counts = p.count != null && p.limit != null ? `${p.count}/${p.limit}` : `${p.limit ?? ''}`;
+      return getTranslation('error.codes.COOKBOOK_FULL', lang, { counts });
+    }
+    case 'RATE_LIMIT_EXCEEDED':
+      return getTranslation('error.codes.RATE_LIMIT_EXCEEDED', lang, {
+        limit: p.limit ?? 10,
+        period: ratePeriod(Number(p.days ?? 1), lang),
+        retry: retryAfter(Number(p.minutes ?? 0), lang),
+      });
+    case 'VIDEO_TOO_LONG': {
+      const seconds = Number(p.maxSeconds ?? 0);
+      return seconds > 0
+        ? getTranslation('error.codes.VIDEO_TOO_LONG', lang, { limit: videoLimit(seconds, lang) })
+        : getTranslation('error.codes.VIDEO_TOO_LONG_NO_LIMIT', lang);
+    }
+    case 'REMIX_PROMPT_TOO_LONG':
+      return getTranslation('error.codes.REMIX_PROMPT_TOO_LONG', lang, { max: p.max ?? 250 });
+    case 'MESSAGE_TOO_LONG':
+      return getTranslation('error.codes.MESSAGE_TOO_LONG', lang, { max: p.max ?? 4000 });
+    case 'TOO_MANY_SCREENSHOTS':
+      return getTranslation('error.codes.TOO_MANY_SCREENSHOTS', lang, { max: p.max ?? 6 });
+    case 'ACTIVE_JOB_EXISTS':
+      return getTranslation('error.codes.ACTIVE_JOB_EXISTS', lang, { count: p.count ?? 1 });
+    default:
+      return getTranslation(`error.codes.${c}`, lang);
+  }
 }
 
 /**
