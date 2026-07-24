@@ -20,7 +20,7 @@ const recipeSchema = {
     },
     containsMultipleRecipes: {
       type: FunctionDeclarationSchemaType.BOOLEAN,
-      description: 'True ONLY when the source presents several DISTINCT standalone recipes/dishes (e.g. a "5 high-protein meals" roundup where each slide or segment shows a different dish) so that no single primary recipe can be identified. Components of ONE dish (a main with its sauce, sides, or toppings) or one recipe shown step-by-step do NOT count as multiple recipes — set false in that case.',
+      description: 'True ONLY when the source presents several DISTINCT standalone recipes or dishes (e.g. roundup posts titled "High protein dinners...", "5 meals to get lean", "3 lunch ideas", or slideshows/carousels or videos where different slides or video segments show separate meals like Smash Burger on slide 2, Bang Bang Chicken on slide 4, etc.) so that no single primary recipe can be identified. Components of ONE dish (a main with its sauce, sides, or toppings) or one recipe shown step-by-step do NOT count as multiple recipes — set false in that case.',
     },
     title: {
       type: FunctionDeclarationSchemaType.STRING,
@@ -221,6 +221,7 @@ const recipeSchema = {
   },
   required: [
     'isRecipe',
+    'containsMultipleRecipes',
     'title',
     'description',
     'prepTime',
@@ -408,21 +409,26 @@ export async function extractRecipe(
 Reconstruct the complete recipe, resolving any contradictions culinary-wise. Ensure to follow the field-level guidelines specified in the descriptions of the output schema.
 
 Key Constraints:
-1. Category Ordering: ${CATEGORY_ORDERING_INSTRUCTION}
-2. Translation: ${languageInstruction}
-3. Preferred Units:
+1. Multi-Recipe Ambiguity: Before attempting to extract a recipe, evaluate if the content represents a multi-recipe collection, roundup, or compilation. You MUST set "containsMultipleRecipes" to true if ANY of the following apply:
+   a) The title, caption, or cover image text indicates multiple dishes/recipes (e.g. "High protein dinners...", "5 meals to get lean", "3 lunch ideas", "What I eat in a day", "4 low-calorie recipes").
+   b) The carousel images or video scenes present multiple distinct standalone main dishes across different slides/segments (e.g. Slide 2 is "Smash Burger & Sweet Potato Fries", Slide 4 is "Bang Bang Chicken", Slide 6 is "Beef Burrito Bowl").
+   c) Multiple distinct nutrition/macro cards exist for different dishes throughout the slides/segments.
+   If "containsMultipleRecipes" is true, do NOT attempt to merge the dishes into one recipe.
+   Set "containsMultipleRecipes" to false ONLY if the entire post is dedicated to ONE single recipe (including its sub-components like sauce, marinade, side dish, or garnishes cooked together as one meal).
+2. Category Ordering: ${CATEGORY_ORDERING_INSTRUCTION}
+3. Translation: ${languageInstruction}
+4. Preferred Units:
    - Temperature Units: ${tempInstruction}
    - Weight & Volume Units: ${unitSystemInstruction}
-4. Missing Data & Nutrition: If any information for a specific field is missing, leave it empty (empty string "", null, or empty array []). You MUST set "hasExplicitNutritionalValues" to true ONLY IF the recipe nutritional values are explicitly stated in the source text or audio. If they are not, set it to false and set "nutritionalValues" to null (do NOT estimate or calculate overall nutritional values at the recipe level). Note that "nutritionalValues" MUST represent values per single serving/portion. If the source lists total values for the entire recipe, divide them by the number of servings/portions first.
-5. Clean Ingredient Names: ${CLEAN_INGREDIENT_NAMES_INSTRUCTION}
-6. Ingredient Decomposition: ${INGREDIENT_DECOMPOSITION_INSTRUCTION}
-7. Ingredient-level Nutritional Values: For each ingredient, you MUST estimate its nutritional values (calories, protein, carbs, fat) based on the ENTIRE specified quantity (amount * unit). Do NOT output per-100g, per-100ml, or single-unit values unless the quantity is exactly 100g, 100ml, or 1 unit. E.g., if chicken breast has 165 kcal per 100g and the recipe specifies 500g, the calories field MUST be 825, NOT 165. If a potato has 150 kcal and the amount is 6, the calories field MUST be 900, NOT 150. If olive oil has 14g fat/EL and the amount is 3 EL, the fat field MUST be 42, NOT 14.
-8. Infer Missing Ingredients from Title/Visuals: If the title or the provided images explicitly show or mention an ingredient/component (e.g., 'Air-Fried Broccolini' in the title and green broccolini on the plate) but the caption text omits it from the ingredients list, you MUST infer its presence. Add it to the ingredients list (with a reasonable estimated quantity, e.g., '1 bunch' or '200g') and add a cooking step in the instructions so the recipe is complete and matches the final plated dish.
-9. Serving Size Estimation: Identify the number of servings or portions the recipe makes. Look for clues like 'serves 4' or estimate based on the ingredient amounts (e.g., 500g chicken and 6 potatoes typically serves 3-4 people). Avoid defaulting to 1 serving if the ingredient amounts are clearly meant for a family-sized meal.
-10. Zero-Calorie & Low-Calorie Ingredients: Ingredients like water, ice, salt, or baking soda MUST have 0 calories, protein, carbs, and fat. For spices, seasonings, or herbs in small quantities (like teaspoons), focus your calculation energy on the high-calorie/high-macro ingredients (meats, oils, dairy, grains, starches) and estimate very small values (e.g., 5 kcal) or 0.
-11. Cooked vs. Raw/Dry States of Expandable Ingredients: ${COOKED_VS_RAW_INSTRUCTION}
-12. Common Pantry Staples: ${STAPLE_INGREDIENT_INSTRUCTION}
-13. Single-Recipe Ambiguity: If the content showcases several DISTINCT standalone recipes (e.g. a "5 meals I eat every week" roundup where each slide or video segment presents a different dish) and no single recipe clearly dominates, set "containsMultipleRecipes" to true and do NOT attempt to merge the dishes into one recipe. One dish together with its components (sauce, side, topping) or one recipe shown step-by-step is NOT ambiguous — set "containsMultipleRecipes" to false and extract that single recipe.
+5. Missing Data & Nutrition: If any information for a specific field is missing, leave it empty (empty string "", null, or empty array []). You MUST set "hasExplicitNutritionalValues" to true ONLY IF the recipe nutritional values are explicitly stated in the source text or audio. If they are not, set it to false and set "nutritionalValues" to null (do NOT estimate or calculate overall nutritional values at the recipe level). Note that "nutritionalValues" MUST represent values per single serving/portion. If the source lists total values for the entire recipe, divide them by the number of servings/portions first.
+6. Clean Ingredient Names: ${CLEAN_INGREDIENT_NAMES_INSTRUCTION}
+7. Ingredient Decomposition: ${INGREDIENT_DECOMPOSITION_INSTRUCTION}
+8. Ingredient-level Nutritional Values: For each ingredient, you MUST estimate its nutritional values (calories, protein, carbs, fat) based on the ENTIRE specified quantity (amount * unit). Do NOT output per-100g, per-100ml, or single-unit values unless the quantity is exactly 100g, 100ml, or 1 unit. E.g., if chicken breast has 165 kcal per 100g and the recipe specifies 500g, the calories field MUST be 825, NOT 165. If a potato has 150 kcal and the amount is 6, the calories field MUST be 900, NOT 150. If olive oil has 14g fat/EL and the amount is 3 EL, the fat field MUST be 42, NOT 14.
+9. Infer Missing Ingredients from Title/Visuals: If the title or the provided images explicitly show or mention an ingredient/component (e.g., 'Air-Fried Broccolini' in the title and green broccolini on the plate) but the caption text omits it from the ingredients list, you MUST infer its presence. Add it to the ingredients list (with a reasonable estimated quantity, e.g., '1 bunch' or '200g') and add a cooking step in the instructions so the recipe is complete and matches the final plated dish.
+10. Serving Size Estimation: Identify the number of servings or portions the recipe makes. Look for clues like 'serves 4' or estimate based on the ingredient amounts (e.g., 500g chicken and 6 potatoes typically serves 3-4 people). Avoid defaulting to 1 serving if the ingredient amounts are clearly meant for a family-sized meal.
+11. Zero-Calorie & Low-Calorie Ingredients: Ingredients like water, ice, salt, or baking soda MUST have 0 calories, protein, carbs, and fat. For spices, seasonings, or herbs in small quantities (like teaspoons), focus your calculation energy on the high-calorie/high-macro ingredients (meats, oils, dairy, grains, starches) and estimate very small values (e.g., 5 kcal) or 0.
+12. Cooked vs. Raw/Dry States of Expandable Ingredients: ${COOKED_VS_RAW_INSTRUCTION}
+13. Common Pantry Staples: ${STAPLE_INGREDIENT_INSTRUCTION}
 
 Description/Caption:
 """
@@ -448,7 +454,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
 
     // Ambiguous source: several distinct dishes (e.g. "5 meals" roundups) cannot be
     // extracted into one recipe — fail with a dedicated, non-retryable code.
-    if (rawRecipe.containsMultipleRecipes === true) {
+    if (rawRecipe.containsMultipleRecipes === true || String(rawRecipe.containsMultipleRecipes).toLowerCase() === 'true') {
       throw new AppError('MULTIPLE_RECIPES', {
         message: 'The source presents multiple distinct recipes; extraction requires a single recipe.',
       });
