@@ -55,15 +55,22 @@ async function getOrCreateTestUser(): Promise<string> {
     return created.user.id;
   }
 
-  // Already exists → find its id via the admin list.
-  console.log(`Test user ${TEST_USER_EMAIL} already exists, looking it up…`);
+  // Already exists → find its id via the admin list and update password/confirm email.
+  console.log(`Test user ${TEST_USER_EMAIL} already exists, updating password…`);
   let page = 1;
   // Paginate defensively in case the dev project has many users.
   for (; page <= 20; page++) {
     const { data, error: listErr } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
     if (listErr) throw new Error(`Failed to list users: ${listErr.message}`);
     const match = data.users.find(u => u.email?.toLowerCase() === TEST_USER_EMAIL.toLowerCase());
-    if (match) return match.id;
+    if (match) {
+      const { error: updateErr } = await supabase.auth.admin.updateUserById(match.id, {
+        password: TEST_USER_PASSWORD,
+        email_confirm: true,
+      });
+      if (updateErr) throw new Error(`Failed to update user password: ${updateErr.message}`);
+      return match.id;
+    }
     if (data.users.length < 200) break;
   }
   throw new Error(`Could not create or find test user ${TEST_USER_EMAIL} (createUser error: ${error?.message})`);
