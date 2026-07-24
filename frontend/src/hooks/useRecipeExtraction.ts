@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Recipe, Job, ProgressData } from '../types';
+import { type ErrorParams, parseSerializedError } from '../errorCodes';
 import { useI18n } from '../context/I18nContext';
 import { apiUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -44,6 +45,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
   const [jobError, setJobError] = useState<string | null>(null);
   const [jobErrorCode, setJobErrorCode] = useState<string | null>(null);
+  const [jobErrorParams, setJobErrorParams] = useState<ErrorParams | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [url, setUrl] = useState('');
@@ -183,7 +185,12 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           onExtractionSuccess(job.id);
         } else if (job.status === 'failed') {
           clearInterval(interval);
+          // The worker persists failures as a {code, params} envelope; surface the
+          // code/params so the banner can localize and branch (e.g. premium hints).
+          const envelope = job.error ? parseSerializedError(job.error) : null;
           setJobError(job.error || 'form.validation.failedExtraction');
+          setJobErrorCode(envelope?.code ?? null);
+          setJobErrorParams(envelope?.params ?? null);
           setProgress(null);
           setIsPending(false);
           localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
@@ -214,6 +221,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     setJobStatus('pending');
     setJobError(null);
     setJobErrorCode(null);
+    setJobErrorParams(null);
     setRecipe(null);
     setProgress(null);
 
@@ -249,7 +257,10 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       }
 
       if (!response.ok || !data.success) {
-        throw Object.assign(new Error(data.error || 'form.validation.submitFailed'), { code: data.code });
+        throw Object.assign(new Error(data.error || 'form.validation.submitFailed'), {
+          code: data.code,
+          params: data.params,
+        });
       }
 
       setJobStatus(data.status);
@@ -257,9 +268,11 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       localStorage.setItem(PENDING_JOB_STORAGE_KEY, data.jobId);
       startPolling(data.jobId);
     } catch (err: unknown) {
+      const typed = err as (Error & { code?: string; params?: ErrorParams }) | undefined;
       setJobStatus('failed');
       setJobError(err instanceof Error ? err.message : 'form.validation.submissionError');
-      setJobErrorCode(err instanceof Error && 'code' in err ? (err as Error & { code?: string }).code ?? null : null);
+      setJobErrorCode(typed?.code ?? null);
+      setJobErrorParams(typed?.params ?? null);
       setIsPending(false);
     }
   }, [getAccessToken, startPolling, validateUrl, fetchLimitStatus]);
@@ -288,6 +301,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     jobStatus,
     jobError,
     jobErrorCode,
+    jobErrorParams,
     recipe,
     setRecipe,
     progress,

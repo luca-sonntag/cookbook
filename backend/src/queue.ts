@@ -8,6 +8,7 @@ import { extractRecipe, remixRecipe } from './gemini.js';
 import { pruneOldGeminiLogs } from './logger.js';
 import type { Job, ProgressData } from './types.js';
 import { config } from './config.js';
+import { AppError, serializeJobError } from './errors.js';
 
 const workerId = randomUUID();
 let activeJobs = 0;
@@ -81,14 +82,14 @@ async function processJob(job: Job): Promise<void> {
 
       const parentJob = await getJob(job.parentJobId);
       if (!parentJob || !parentJob.recipe) {
-        throw new Error('Parent job or recipe not found for remix.');
+        throw new AppError('PARENT_JOB_NOT_FOUND', { message: 'Parent job or recipe not found for remix.' });
       }
 
       console.log(`[Job ${jobId}] Requesting remix from Gemini...`);
       const recipe = await remixRecipe(parentJob.recipe, job.prompt || '', runDir, userPrefs);
-      
+
       if (recipe.isRecipe === false) {
-        throw new Error('Unrelated request: The prompt was not recognized as a valid recipe modification.');
+        throw new AppError('UNRELATED_REMIX_REQUEST', { message: 'The prompt was not recognized as a valid recipe modification.' });
       }
 
       recipe.id = jobId;
@@ -119,7 +120,10 @@ async function processJob(job: Job): Promise<void> {
     const maxDuration = await getMaxVideoDurationSeconds();
     if (maxDuration > 0 && scrapeResult.durationSeconds && scrapeResult.durationSeconds > maxDuration) {
       const actualSec = Math.round(scrapeResult.durationSeconds);
-      throw new Error(`Video too long: ${actualSec}s exceeds the ${maxDuration}s limit.`);
+      throw new AppError('VIDEO_TOO_LONG', {
+        params: { maxSeconds: maxDuration },
+        message: `Video too long: ${actualSec}s exceeds the ${maxDuration}s limit.`,
+      });
     }
 
     // 3. Mark job as processing
@@ -237,9 +241,12 @@ async function processJob(job: Job): Promise<void> {
     });
   } catch (error: any) {
     console.error(`[Job ${jobId}] Failed during execution:`, error.message);
+    // Persist a machine-readable error envelope (code + params) instead of a raw
+    // message. Non-AppError throws collapse to EXTRACTION_FAILED so users never
+    // see internal/library text; the client localizes the code (see errorCodes.ts).
     await updateJob(jobId, {
       status: 'failed',
-      error: error.message || 'Unknown error occurred during processing.',
+      error: serializeJobError(error),
     });
   } finally {
     clearInterval(heartbeat);

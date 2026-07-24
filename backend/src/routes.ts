@@ -4,6 +4,7 @@ import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
 import { getLlmMetrics } from './adminMetrics.js';
+import { AppError, sendAppError } from './errors.js';
 
 export const apiRouter = Router();
 
@@ -113,22 +114,14 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     const { url } = req.body;
 
     if (!url || typeof url !== 'string') {
-      res.status(400).json({
-        success: false,
-        error: 'Missing required field: "url" must be a string.',
-      });
-      return;
+      throw new AppError('MISSING_FIELD', { params: { field: 'url' } });
     }
 
     // Clean up the URL by stripping leading/trailing curly braces, parentheses, quotes, or spaces
     const cleanUrl = url.trim().replace(/^[{("'\s]+|[})"'\s]+$/g, '');
 
     if (!SUPPORTED_URL_REGEX.test(cleanUrl)) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid URL. Must be a valid URL (e.g., Instagram Reel, TikTok, YouTube Shorts, or Recipe Website).',
-      });
-      return;
+      throw new AppError('INVALID_URL', { message: 'URL failed SUPPORTED_URL_REGEX.' });
     }
 
     try {
@@ -139,19 +132,12 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       if (isYouTube) {
         const isShort = urlObj.pathname.startsWith('/shorts/');
         if (!isShort) {
-          res.status(400).json({
-            success: false,
-            error: 'Only YouTube Shorts are supported, not regular YouTube videos.',
-          });
-          return;
+          throw new AppError('YOUTUBE_SHORTS_ONLY');
         }
       }
     } catch (e) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid URL format.',
-      });
-      return;
+      if (e instanceof AppError) throw e;
+      throw new AppError('INVALID_URL', { message: 'URL failed to parse.' });
     }
 
     // Check if job for this URL has already successfully completed (scoped to user)
@@ -184,11 +170,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     // Enforce per-user quota to protect Apify/Gemini budget
     const activeCount = await countActiveJobsForUser(req.userId!);
     if (activeCount >= config.MAX_JOBS_PER_USER) {
-      res.status(429).json({
-        success: false,
-        error: `You already have ${activeCount} active job(s). Please wait for them to finish before submitting more.`,
-      });
-      return;
+      throw new AppError('ACTIVE_JOB_EXISTS', { params: { count: activeCount } });
     }
 
     // Fetch the user once for tier-based gating (cookbook cap + rolling rate limit).
@@ -216,12 +198,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       const isAlpha = user?.app_metadata?.tier === 'alpha';
       const limit = isAlpha ? await getAlphaMaxSavedRecipes() : await getFreeMaxSavedRecipes();
       if (limit >= 0 && savedCount >= limit) {
-        res.status(403).json({
-          success: false,
-          code: 'COOKBOOK_FULL',
-          error: `Cookbook full (${savedCount}/${limit}). Delete a recipe or upgrade to Premium to extract more.`,
-        });
-        return;
+        throw new AppError('COOKBOOK_FULL', { params: { count: savedCount, limit } });
       }
     }
 
@@ -241,13 +218,9 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
           minutesRemaining = Math.max(1, Math.ceil(msRemaining / (60 * 1000)));
         }
 
-        res.status(429).json({
-          success: false,
-          code: 'RATE_LIMIT_EXCEEDED',
-          error: `Rate limit: You have reached your limit of ${limit} recipe extractions per ${windowDays} days.` +
-            (minutesRemaining > 0 ? ` Please try again in ${minutesRemaining} minutes.` : ''),
+        throw new AppError('RATE_LIMIT_EXCEEDED', {
+          params: { limit, days: windowDays, minutes: minutesRemaining },
         });
-        return;
       }
     }
 
@@ -262,11 +235,8 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       message: 'Recipe extraction job successfully queued.',
     });
   } catch (error: any) {
-    console.error('Error creating recipe extraction job:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error while creating job.',
-    });
+    if (!(error instanceof AppError)) console.error('Error creating recipe extraction job:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -281,37 +251,21 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
     const { prompt } = req.body;
 
     if (!prompt || typeof prompt !== 'string') {
-      res.status(400).json({
-        success: false,
-        error: 'Missing required field: "prompt" must be a string.',
-      });
-      return;
+      throw new AppError('MISSING_FIELD', { params: { field: 'prompt' } });
     }
 
     if (prompt.length > 250) {
-      res.status(400).json({
-        success: false,
-        error: 'Remix prompt must not exceed 250 characters.',
-      });
-      return;
+      throw new AppError('REMIX_PROMPT_TOO_LONG', { params: { max: 250 } });
     }
 
     // Get the parent job
     const parentJob = await getJob(id, req.userId!);
     if (!parentJob) {
-      res.status(404).json({
-        success: false,
-        error: 'Parent job not found.',
-      });
-      return;
+      throw new AppError('PARENT_JOB_NOT_FOUND');
     }
 
     if (parentJob.status !== 'completed' || !parentJob.recipe) {
-      res.status(400).json({
-        success: false,
-        error: 'Parent job must be completed and contain a recipe.',
-      });
-      return;
+      throw new AppError('PARENT_JOB_NOT_COMPLETED');
     }
 
     // Enforce premium access for remixing
@@ -342,11 +296,7 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
     }
 
     if (!isPremium) {
-      res.status(403).json({
-        success: false,
-        error: 'Recipe Remix is a premium feature. Please upgrade to Premium to customize recipes.',
-      });
-      return;
+      throw new AppError('PREMIUM_REQUIRED', { params: { feature: 'remix' } });
     }
 
     // Create a new remix job
@@ -359,11 +309,8 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
       message: 'Recipe remix job successfully queued.',
     });
   } catch (error: any) {
-    console.error('Error creating remix job:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error while creating remix job.',
-    });
+    if (!(error instanceof AppError)) console.error('Error creating remix job:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -379,21 +326,13 @@ apiRouter.get('/jobs/:id', async (req: Request, res: Response): Promise<void> =>
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
     if (!id) {
-      res.status(400).json({
-        success: false,
-        error: 'Missing job ID parameter.',
-      });
-      return;
+      throw new AppError('MISSING_FIELD', { params: { field: 'id' } });
     }
 
     const job = await getJob(id, req.userId!);
 
     if (!job) {
-      res.status(404).json({
-        success: false,
-        error: 'Job not found.',
-      });
-      return;
+      throw new AppError('JOB_NOT_FOUND');
     }
 
     res.status(200).json({
@@ -412,11 +351,8 @@ apiRouter.get('/jobs/:id', async (req: Request, res: Response): Promise<void> =>
       },
     });
   } catch (error: any) {
-    console.error('Error fetching job details:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error while retrieving job.',
-    });
+    if (!(error instanceof AppError)) console.error('Error fetching job details:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -439,8 +375,7 @@ apiRouter.get('/jobs/:id/frames', async (req: Request, res: Response): Promise<v
     // Ownership check: getJob is scoped to the requesting user.
     const job = await getJob(id, req.userId!);
     if (!job) {
-      res.status(404).json({ success: false, error: 'Job not found.' });
-      return;
+      throw new AppError('JOB_NOT_FOUND');
     }
 
     const frames = await getRecipeFrames(id);
@@ -455,8 +390,8 @@ apiRouter.get('/jobs/:id/frames', async (req: Request, res: Response): Promise<v
 
     res.status(200).json({ success: true, frames });
   } catch (error: any) {
-    console.error('Error delivering recipe frames:', error);
-    res.status(500).json({ success: false, error: 'Internal server error while retrieving frames.' });
+    if (!(error instanceof AppError)) console.error('Error delivering recipe frames:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -475,11 +410,8 @@ apiRouter.get('/jobs', async (req: Request, res: Response): Promise<void> => {
       jobs,
     });
   } catch (error: any) {
-    console.error('Error fetching recipe history:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error while retrieving recipe history.',
-    });
+    if (!(error instanceof AppError)) console.error('Error fetching recipe history:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -497,22 +429,15 @@ apiRouter.delete('/jobs/:id', async (req: Request, res: Response): Promise<void>
       );
     }
     if (!deleted) {
-      res.status(404).json({
-        success: false,
-        error: 'Job not found.',
-      });
-      return;
+      throw new AppError('JOB_NOT_FOUND');
     }
     res.status(200).json({
       success: true,
       message: 'Job deleted successfully.',
     });
   } catch (error: any) {
-    console.error('Error deleting job:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error while deleting job.',
-    });
+    if (!(error instanceof AppError)) console.error('Error deleting job:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -587,11 +512,8 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
       cookbookFull
     });
   } catch (error) {
-    console.error('Error fetching rate limit status:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error while fetching rate limit status.',
-    });
+    if (!(error instanceof AppError)) console.error('Error fetching rate limit status:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -603,8 +525,7 @@ apiRouter.post('/billing/sync', async (req: Request, res: Response): Promise<voi
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ success: false, error: 'Unauthorized.' });
-      return;
+      throw new AppError('UNAUTHORIZED');
     }
 
     const secretKey = config.REVENUECAT_SECRET_KEY;
@@ -639,8 +560,7 @@ apiRouter.post('/billing/sync', async (req: Request, res: Response): Promise<voi
     if (!response.ok) {
       const errorText = await response.text();
       console.error('RevenueCat API error:', errorText);
-      res.status(500).json({ success: false, error: 'Failed to fetch status from RevenueCat.' });
-      return;
+      throw new AppError('REVENUECAT_FAILED', { message: 'Failed to fetch status from RevenueCat.' });
     }
 
     const rcData = (await response.json()) as any;
@@ -669,14 +589,13 @@ apiRouter.post('/billing/sync', async (req: Request, res: Response): Promise<voi
 
     if (error) {
       console.error('Failed to update Supabase user tier:', error.message);
-      res.status(500).json({ success: false, error: 'Failed to update user profile.' });
-      return;
+      throw new AppError('PROFILE_UPDATE_FAILED', { message: 'Failed to update user profile.' });
     }
 
     res.status(200).json({ success: true, tier: newTier });
   } catch (error: any) {
-    console.error('Error syncing billing status:', error);
-    res.status(500).json({ success: false, error: 'Internal server error during sync.' });
+    if (!(error instanceof AppError)) console.error('Error syncing billing status:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -688,22 +607,14 @@ apiRouter.delete('/users/me', async (req: Request, res: Response): Promise<void>
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({
-        success: false,
-        error: 'Unauthorized. Missing user ID.',
-      });
-      return;
+      throw new AppError('UNAUTHORIZED', { message: 'Unauthorized. Missing user ID.' });
     }
 
     // Call Supabase Admin API to delete the user
     const { error } = await getClient().auth.admin.deleteUser(userId);
     if (error) {
       console.error('Supabase admin deleteUser error:', error);
-      res.status(500).json({
-        success: false,
-        error: `Failed to delete user account: ${error.message}`,
-      });
-      return;
+      throw new AppError('ACCOUNT_DELETE_FAILED', { message: `Failed to delete user account: ${error.message}` });
     }
 
     res.status(200).json({
@@ -711,11 +622,8 @@ apiRouter.delete('/users/me', async (req: Request, res: Response): Promise<void>
       message: 'Account deleted successfully.',
     });
   } catch (error: any) {
-    console.error('Error deleting user account:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error while deleting account.',
-    });
+    if (!(error instanceof AppError)) console.error('Error deleting user account:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -730,16 +638,15 @@ apiRouter.get('/jobs/:id/chat/chips', async (req: Request, res: Response): Promi
 
     const job = await getJob(id, req.userId!);
     if (!job || !job.recipe) {
-      res.status(404).json({ success: false, error: 'Recipe not found.' });
-      return;
+      throw new AppError('RECIPE_NOT_FOUND');
     }
 
     const chips = await generateChatChips(job.recipe, lang);
 
     res.status(200).json({ success: true, chips });
   } catch (error: any) {
-    console.error('Error generating chat chips:', error);
-    res.status(500).json({ success: false, error: 'Failed to generate chat chips.' });
+    if (!(error instanceof AppError)) console.error('Error generating chat chips:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -754,14 +661,12 @@ apiRouter.post('/jobs/:id/chat/confirm', async (req: Request, res: Response): Pr
     const { modificationRequest, replaceCurrent } = req.body;
 
     if (!modificationRequest || typeof modificationRequest !== 'string') {
-      res.status(400).json({ success: false, error: 'Missing required field: "modificationRequest".' });
-      return;
+      throw new AppError('MISSING_FIELD', { params: { field: 'modificationRequest' } });
     }
 
     const job = await getJob(id, req.userId!);
     if (!job || !job.recipe) {
-      res.status(404).json({ success: false, error: 'Recipe not found.' });
-      return;
+      throw new AppError('RECIPE_NOT_FOUND');
     }
 
     // Resolve user preferences
@@ -815,8 +720,8 @@ apiRouter.post('/jobs/:id/chat/confirm', async (req: Request, res: Response): Pr
       });
     }
   } catch (error: any) {
-    console.error('Error confirming remix:', error);
-    res.status(500).json({ success: false, error: 'Failed to confirm remix.' });
+    if (!(error instanceof AppError)) console.error('Error confirming remix:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -837,29 +742,17 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       : undefined;
 
     if (!message || typeof message !== 'string') {
-      res.status(400).json({
-        success: false,
-        error: 'Missing required field: "message" must be a string.',
-      });
-      return;
+      throw new AppError('MISSING_FIELD', { params: { field: 'message' } });
     }
 
     if (!Array.isArray(history)) {
-      res.status(400).json({
-        success: false,
-        error: 'Missing or invalid field: "history" must be an array.',
-      });
-      return;
+      throw new AppError('INVALID_FIELD', { params: { field: 'history' } });
     }
 
     // Get the recipe job
     const job = await getJob(id, req.userId!);
     if (!job || !job.recipe) {
-      res.status(404).json({
-        success: false,
-        error: 'Recipe not found.',
-      });
-      return;
+      throw new AppError('RECIPE_NOT_FOUND');
     }
 
     // Enforce premium access for chat
@@ -890,12 +783,7 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
     }
 
     if (!isPremium) {
-      res.status(403).json({
-        success: false,
-        code: 'PREMIUM_REQUIRED',
-        error: 'AI Kitchen Chef Chat is a premium feature. Please upgrade to Premium to chat with Recipe Copilot.',
-      });
-      return;
+      throw new AppError('PREMIUM_REQUIRED', { params: { feature: 'chat' } });
     }
 
     // Resolve user preferences for recipe language and unit system formatting
@@ -967,11 +855,8 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
 
     res.status(200).json(responsePayload);
   } catch (error: any) {
-    console.error('Error in recipe chat handler:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error during recipe chat.',
-    });
+    if (!(error instanceof AppError)) console.error('Error in recipe chat handler:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1014,21 +899,19 @@ apiRouter.patch('/jobs/:id/favorite', async (req: Request, res: Response): Promi
     const { isFavorite } = req.body;
 
     if (typeof isFavorite !== 'boolean') {
-      res.status(400).json({ success: false, error: 'Field isFavorite must be a boolean.' });
-      return;
+      throw new AppError('INVALID_FIELD', { params: { field: 'isFavorite' } });
     }
 
     const job = await getJob(id, req.userId!);
     if (!job) {
-      res.status(404).json({ success: false, error: 'Job not found.' });
-      return;
+      throw new AppError('JOB_NOT_FOUND');
     }
 
     await setFavorite(id, req.userId!, isFavorite);
     res.status(200).json({ success: true, message: 'Favorite status updated.' });
   } catch (error: any) {
-    console.error('Error updating favorite status:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error updating favorite status:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1042,31 +925,24 @@ apiRouter.patch('/jobs/:id/flags', async (req: Request, res: Response): Promise<
     const { flags } = req.body;
 
     if (!Array.isArray(flags)) {
-      res.status(400).json({ success: false, error: 'Field flags must be an array of strings.' });
-      return;
+      throw new AppError('INVALID_FIELD', { params: { field: 'flags' } });
     }
 
     const isPremium = await checkPremium(req);
     if (!isPremium) {
-      res.status(403).json({
-        success: false,
-        code: 'PREMIUM_REQUIRED',
-        error: 'Custom tags and flags are premium features. Please upgrade to Premium.',
-      });
-      return;
+      throw new AppError('PREMIUM_REQUIRED', { params: { feature: 'tags' } });
     }
 
     const job = await getJob(id, req.userId!);
     if (!job) {
-      res.status(404).json({ success: false, error: 'Job not found.' });
-      return;
+      throw new AppError('JOB_NOT_FOUND');
     }
 
     await setFlags(id, req.userId!, flags);
     res.status(200).json({ success: true, message: 'Custom flags updated.' });
   } catch (error: any) {
-    console.error('Error updating custom flags:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error updating custom flags:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1079,8 +955,8 @@ apiRouter.get('/collections', async (req: Request, res: Response): Promise<void>
     const collections = await listCollections(req.userId!);
     res.status(200).json({ success: true, collections });
   } catch (error: any) {
-    console.error('Error listing collections:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error listing collections:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1093,25 +969,19 @@ apiRouter.post('/collections', async (req: Request, res: Response): Promise<void
     const { name, emoji, position } = req.body;
 
     if (!name || typeof name !== 'string') {
-      res.status(400).json({ success: false, error: 'Field name must be a non-empty string.' });
-      return;
+      throw new AppError('INVALID_FIELD', { params: { field: 'name' } });
     }
 
     const isPremium = await checkPremium(req);
     if (!isPremium) {
-      res.status(403).json({
-        success: false,
-        code: 'PREMIUM_REQUIRED',
-        error: 'Collections are a premium feature. Please upgrade to Premium.',
-      });
-      return;
+      throw new AppError('PREMIUM_REQUIRED', { params: { feature: 'collections' } });
     }
 
     const collection = await createCollection(req.userId!, { name, emoji, position });
     res.status(201).json({ success: true, collection });
   } catch (error: any) {
-    console.error('Error creating collection:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error creating collection:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1126,36 +996,30 @@ apiRouter.post('/feedback', async (req: Request, res: Response): Promise<void> =
     const { message, type, context, screenshots } = req.body;
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      res.status(400).json({ success: false, error: 'Field message must be a non-empty string.' });
-      return;
+      throw new AppError('MISSING_FIELD', { params: { field: 'message' } });
     }
     if (message.length > 4000) {
-      res.status(400).json({ success: false, error: 'Message is too long (max 4000 characters).' });
-      return;
+      throw new AppError('MESSAGE_TOO_LONG', { params: { max: 4000 } });
     }
 
     const feedbackType: 'bug' | 'idea' = type === 'idea' ? 'idea' : 'bug';
 
     if (context !== undefined && (typeof context !== 'object' || context === null)) {
-      res.status(400).json({ success: false, error: 'Field context must be an object.' });
-      return;
+      throw new AppError('INVALID_FIELD', { params: { field: 'context' } });
     }
 
     let screenshotsBase64: string[] | undefined;
     if (screenshots !== undefined) {
       if (!Array.isArray(screenshots) || !screenshots.every((s) => typeof s === 'string')) {
-        res.status(400).json({ success: false, error: 'Field screenshots must be an array of base64 strings.' });
-        return;
+        throw new AppError('INVALID_FIELD', { params: { field: 'screenshots' } });
       }
       if (screenshots.length > 6) {
-        res.status(400).json({ success: false, error: 'Too many screenshots (max 6).' });
-        return;
+        throw new AppError('TOO_MANY_SCREENSHOTS', { params: { max: 6 } });
       }
       // Keep the whole payload under the global 1mb JSON body cap (base64 inflates ~33%).
       const totalLength = screenshots.reduce((sum: number, s: string) => sum + s.length, 0);
       if (totalLength > 1_500_000) {
-        res.status(400).json({ success: false, error: 'Screenshots are too large.' });
-        return;
+        throw new AppError('SCREENSHOTS_TOO_LARGE');
       }
       screenshotsBase64 = screenshots.length > 0 ? screenshots : undefined;
     }
@@ -1169,8 +1033,8 @@ apiRouter.post('/feedback', async (req: Request, res: Response): Promise<void> =
 
     res.status(201).json({ success: true, id });
   } catch (error: any) {
-    console.error('Error creating feedback:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error creating feedback:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1185,19 +1049,14 @@ apiRouter.patch('/collections/:id', async (req: Request, res: Response): Promise
 
     const isPremium = await checkPremium(req);
     if (!isPremium) {
-      res.status(403).json({
-        success: false,
-        code: 'PREMIUM_REQUIRED',
-        error: 'Collections are a premium feature. Please upgrade to Premium.',
-      });
-      return;
+      throw new AppError('PREMIUM_REQUIRED', { params: { feature: 'collections' } });
     }
 
     const collection = await updateCollection(id, req.userId!, { name, emoji, position });
     res.status(200).json({ success: true, collection });
   } catch (error: any) {
-    console.error('Error updating collection:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error updating collection:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1211,24 +1070,18 @@ apiRouter.delete('/collections/:id', async (req: Request, res: Response): Promis
 
     const isPremium = await checkPremium(req);
     if (!isPremium) {
-      res.status(403).json({
-        success: false,
-        code: 'PREMIUM_REQUIRED',
-        error: 'Collections are a premium feature. Please upgrade to Premium.',
-      });
-      return;
+      throw new AppError('PREMIUM_REQUIRED', { params: { feature: 'collections' } });
     }
 
     const deleted = await deleteCollection(id, req.userId!);
     if (!deleted) {
-      res.status(404).json({ success: false, error: 'Collection not found.' });
-      return;
+      throw new AppError('COLLECTION_NOT_FOUND');
     }
 
     res.status(200).json({ success: true, message: 'Collection deleted.' });
   } catch (error: any) {
-    console.error('Error deleting collection:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error deleting collection:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1242,31 +1095,24 @@ apiRouter.patch('/jobs/:id/collections', async (req: Request, res: Response): Pr
     const { collectionIds } = req.body;
 
     if (!Array.isArray(collectionIds)) {
-      res.status(400).json({ success: false, error: 'Field collectionIds must be an array of strings.' });
-      return;
+      throw new AppError('INVALID_FIELD', { params: { field: 'collectionIds' } });
     }
 
     const isPremium = await checkPremium(req);
     if (!isPremium) {
-      res.status(403).json({
-        success: false,
-        code: 'PREMIUM_REQUIRED',
-        error: 'Collections are a premium feature. Please upgrade to Premium.',
-      });
-      return;
+      throw new AppError('PREMIUM_REQUIRED', { params: { feature: 'collections' } });
     }
 
     const job = await getJob(id, req.userId!);
     if (!job) {
-      res.status(404).json({ success: false, error: 'Job not found.' });
-      return;
+      throw new AppError('JOB_NOT_FOUND');
     }
 
     await setRecipeCollections(id, req.userId!, collectionIds);
     res.status(200).json({ success: true, message: 'Recipe collections updated.' });
   } catch (error: any) {
-    console.error('Error updating recipe collections:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error updating recipe collections:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1298,8 +1144,8 @@ apiRouter.get('/admin/settings', requireAdmin, async (req: Request, res: Respons
     const settings = await getAllGlobalSettings();
     res.json({ success: true, settings });
   } catch (error) {
-    console.error('Error fetching global settings:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error fetching global settings:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1312,15 +1158,14 @@ apiRouter.patch('/admin/settings', requireAdmin, async (req: Request, res: Respo
   try {
     const { settings } = req.body;
     if (!settings || typeof settings !== 'object') {
-      res.status(400).json({ success: false, error: 'Settings object is required.' });
-      return;
+      throw new AppError('MISSING_FIELD', { params: { field: 'settings' } });
     }
 
     await updateGlobalSettings(settings);
     res.json({ success: true, message: 'Global settings updated.' });
   } catch (error) {
-    console.error('Error updating global settings:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error updating global settings:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1334,8 +1179,8 @@ apiRouter.get('/admin/feedback', requireAdmin, async (req: Request, res: Respons
     const feedback = await getAllFeedback();
     res.json({ success: true, feedback });
   } catch (error) {
-    console.error('Error fetching feedback:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error fetching feedback:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1443,8 +1288,8 @@ apiRouter.get('/admin/metrics', requireAdmin, async (req: Request, res: Response
       extractionsPerUser,
     });
   } catch (error) {
-    console.error('Error fetching admin metrics:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error fetching admin metrics:', error);
+    sendAppError(res, error);
   }
 });
 
@@ -1471,8 +1316,8 @@ apiRouter.get('/admin/users', requireAdmin, async (req: Request, res: Response):
 
     res.json({ success: true, users });
   } catch (error: any) {
-    console.error('Error listing users for admin:', error);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    if (!(error instanceof AppError)) console.error('Error listing users for admin:', error);
+    sendAppError(res, error);
   }
 });
 

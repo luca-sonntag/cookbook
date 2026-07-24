@@ -1,4 +1,5 @@
 import type { ScrapingResult } from './index.js';
+import { AppError } from '../errors.js';
 import { detectPlatform, scrapeWithProviders } from './providers/index.js';
 
 /**
@@ -9,7 +10,7 @@ import { detectPlatform, scrapeWithProviders } from './providers/index.js';
 export async function scrapeSocial(url: string, jobId?: string): Promise<ScrapingResult> {
   const platform = detectPlatform(url);
   if (!platform) {
-    throw new Error(`scrapeSocial called with unsupported URL: ${url}`);
+    throw new AppError('INVALID_URL', { message: `scrapeSocial called with unsupported URL: ${url}` });
   }
 
   return scrapeWithProviders(url, { jobId, platform });

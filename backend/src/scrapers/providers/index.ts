@@ -1,4 +1,5 @@
 import type { ScrapingResult } from '../index.js';
+import { AppError } from '../../errors.js';
 import { apifyActorProvider } from './apifyActor.js';
 import { localYtdlpProvider } from './localYtdlp.js';
 import { rapidApiProvider } from './rapidApi.js';
@@ -37,7 +38,7 @@ export async function scrapeWithProviders(
 ): Promise<ScrapingResult> {
   const enabled = socialProviders.filter((p) => p.isEnabled());
   if (enabled.length === 0) {
-    throw new Error('No social scrape providers are enabled.');
+    throw new AppError('SCRAPE_FAILED', { message: 'No social scrape providers are enabled.' });
   }
 
   const failures: string[] = [];
@@ -53,5 +54,9 @@ export async function scrapeWithProviders(
     }
   }
 
-  throw new Error(`All ${enabled.length} social provider(s) failed for ${url}. ${failures.join(' | ')}`);
+  // Every provider failed. The user sees a single friendly "couldn't load"
+  // message (SCRAPE_FAILED); the aggregated provider reasons are kept only for
+  // logs and admin/DB debugging (params._detail, ignored by the client).
+  const detail = `All ${enabled.length} social provider(s) failed for ${url}. ${failures.join(' | ')}`;
+  throw new AppError('SCRAPE_FAILED', { message: detail, params: { _detail: detail } });
 }

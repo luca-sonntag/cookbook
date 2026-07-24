@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
 import type { ScrapingResult } from './index.js';
+import { AppError, isAppError } from '../errors.js';
 
 export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
   try {
@@ -12,7 +13,7 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new AppError('SCRAPE_FAILED', { message: `HTTP error! status: ${response.status}` });
     }
 
     const html = await response.text();
@@ -37,6 +38,7 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
       media: { kind: 'none' }, // websites have no downloadable media
     };
   } catch (error: any) {
-    throw new Error(`Failed to scrape website: ${error.message}`);
+    if (isAppError(error)) throw error;
+    throw new AppError('SCRAPE_FAILED', { message: `Failed to scrape website: ${error.message}` });
   }
 }
