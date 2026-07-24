@@ -22,7 +22,9 @@
     "deploy:playstore": "powershell -ExecutionPolicy Bypass -File scripts/deploy-playstore.ps1",
     "deploy:production": "powershell -ExecutionPolicy Bypass -File scripts/deploy-playstore.ps1 -Track production",
     "deploy:production:patch": "powershell -ExecutionPolicy Bypass -File scripts/deploy-playstore.ps1 -Track production -Bump patch",
-    "deploy:production:upload": "powershell -ExecutionPolicy Bypass -File scripts/deploy-playstore.ps1 -Track production -SkipBuild"
+    "deploy:production:upload": "powershell -ExecutionPolicy Bypass -File scripts/deploy-playstore.ps1 -Track production -SkipBuild",
+    "deploy:ota": "powershell -ExecutionPolicy Bypass -File scripts/deploy-ota.ps1 -Channel production",
+    "deploy:ota:alpha": "powershell -ExecutionPolicy Bypass -File scripts/deploy-ota.ps1 -Channel alpha"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
@@ -35,6 +37,7 @@
     "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
     "@capgo/capacitor-social-login": "^8.3.33",
+    "@capgo/capacitor-updater": "^8.51.2",
     "@gravity-ui/icons": "^2.18.0",
     "@heroui/react": "^3.2.1",
     "@heroui/styles": "^3.2.1",
