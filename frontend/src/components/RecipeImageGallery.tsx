@@ -198,47 +198,21 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
       )}
 
       {/* Floating Bottom Actions */}
-      {(reelUrl || recipe.instagramHandle) && (() => {
-        const platform = reelUrl ? detectPlatform(reelUrl) : 'instagram';
+      {reelUrl && (() => {
+        const platform = detectPlatform(reelUrl);
         const iconColor = platformIconColor(platform);
-
-        // Build author profile URL based on platform. If it's a display name (contains spaces/invalid chars), link to the Reel itself instead.
-        const handle = recipe.instagramHandle?.replace('@', '').trim() || '';
-        const isValidUsername = /^[a-zA-Z0-9._-]+$/.test(handle);
-        const authorHref = isValidUsername
-          ? (platform === 'instagram'
-            ? `https://instagram.com/${handle}`
-            : platform === 'tiktok'
-            ? `https://tiktok.com/@${handle}`
-            : platform === 'youtube'
-            ? `https://youtube.com/@${handle}`
-            : reelUrl || '#')
-          : (reelUrl || '#');
 
         return (
           <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
-            {recipe.instagramHandle && (
-              <a
-                href={authorHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-black/65 hover:bg-emerald-600/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-md transition-all duration-300 hover:scale-105"
-              >
-                <PlatformIcon platform={platform} className={`w-3 h-3 ${iconColor}`} />
-                <span>{recipe.instagramHandle}</span>
-              </a>
-            )}
-            {reelUrl && (
-              <a
-                href={reelUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-black/65 hover:bg-emerald-600/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
-              >
-                <PlatformIcon platform={platform} className={`w-3 h-3 ${iconColor}`} />
-                <span>{t('catalog.viewReel')}</span>
-              </a>
-            )}
+            <a
+              href={reelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-black/65 hover:bg-emerald-600/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
+            >
+              <PlatformIcon platform={platform} className={`w-3 h-3 ${iconColor}`} />
+              <span>{t('catalog.viewReel')}</span>
+            </a>
           </div>
         );
       })()}

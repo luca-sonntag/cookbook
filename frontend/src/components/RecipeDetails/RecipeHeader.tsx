@@ -51,6 +51,11 @@ export default function RecipeHeader({
       {/* Recipe title header */}
       <div className="flex justify-between items-start gap-4 pb-4 border-b border-black/5 dark:border-white/5">
         <div className="min-w-0 flex-1">
+          {recipe.instagramHandle && (
+            <div className="text-xs font-extrabold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-300 mb-1.5 leading-none select-none">
+              {recipe.instagramHandle}
+            </div>
+          )}
           <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight break-words">{recipe.title}</h2>
           {recipe.parentJobId && resolvedParentTitle && (
             <div className="mt-1.5 text-xs flex flex-wrap items-center gap-1 text-gray-500 dark:text-gray-400 leading-normal break-words">
