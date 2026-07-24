@@ -5,6 +5,7 @@ import DataDeletionPage from './pages/DataDeletionPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import LegalPage from './pages/LegalPage';
 import TermsPage from './pages/TermsPage';
+import AdminPage from './pages/AdminPage';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/legal" element={<LegalPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </main>
 
