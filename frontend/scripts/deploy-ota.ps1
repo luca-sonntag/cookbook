@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Builds and publishes an OTA (over-the-air) web bundle to Supabase Storage.
 
@@ -72,12 +72,19 @@ function Read-DotEnvValue {
     return $val
 }
 
-$backendEnv = "$repoRoot\backend\.env"
-$supabaseUrl = if ($env:SUPABASE_URL) { $env:SUPABASE_URL } else { Read-DotEnvValue $backendEnv 'SUPABASE_URL' }
-$serviceKey = if ($env:SUPABASE_SECRET_KEY) { $env:SUPABASE_SECRET_KEY } else { Read-DotEnvValue $backendEnv 'SUPABASE_SECRET_KEY' }
+$backendProdEnv = "$repoRoot\backend\.env.production"
+$backendDevEnv  = "$repoRoot\backend\.env"
+
+$supabaseUrl = if ($env:SUPABASE_URL) { $env:SUPABASE_URL } `
+               elseif (Test-Path $backendProdEnv) { Read-DotEnvValue $backendProdEnv 'SUPABASE_URL' } `
+               else { Read-DotEnvValue $backendDevEnv 'SUPABASE_URL' }
+
+$serviceKey  = if ($env:SUPABASE_SECRET_KEY) { $env:SUPABASE_SECRET_KEY } `
+               elseif (Test-Path $backendProdEnv) { Read-DotEnvValue $backendProdEnv 'SUPABASE_SECRET_KEY' } `
+               else { Read-DotEnvValue $backendDevEnv 'SUPABASE_SECRET_KEY' }
 
 if (-not $supabaseUrl -or -not $serviceKey) {
-    Write-Error "SUPABASE_URL / SUPABASE_SECRET_KEY not found (checked env and $backendEnv)."
+    Write-Error "SUPABASE_URL / SUPABASE_SECRET_KEY not found (checked env, $backendProdEnv, and $backendDevEnv)."
     exit 1
 }
 $supabaseUrl = $supabaseUrl.TrimEnd('/')
@@ -206,7 +213,7 @@ Write-Host "  Native version: $versionName ($versionCode) | minVersionCode: $Min
 Write-Host "[2/6] Building frontend..." -ForegroundColor Yellow
 Push-Location $frontendDir
 try {
-    npm run build:dev
+    npm run build
     if ($LASTEXITCODE -ne 0) { throw "Frontend build failed" }
 } finally {
     Pop-Location
