@@ -15,7 +15,6 @@ import SettingsView from './components/SettingsView';
 import TimerBanner from './components/TimerBanner';
 import WelcomeGuide from './components/WelcomeGuide';
 import AlphaWelcome from './components/AlphaWelcome';
-import AdminView from './components/AdminView';
 import TrialBanner from './components/TrialBanner';
 import PremiumModal from './components/PremiumModal';
 
@@ -505,11 +504,9 @@ export default function App() {
 
       {/* Main content body */}
       <main className={`w-full max-w-md mx-auto px-4 mt-1 flex-1 flex flex-col gap-6 ${
-        activeView === 'admin'
-          ? 'pb-12'
-          : isViewingRecipe || activeView === 'shopping-list' || (activeView === 'history' && isCatalogSelectMode)
-            ? 'pb-48'
-            : 'pb-24'
+        isViewingRecipe || activeView === 'shopping-list' || (activeView === 'history' && isCatalogSelectMode)
+          ? 'pb-48'
+          : 'pb-24'
       } ${(activeView === 'extract' && !recipe) ? 'pt-6' : (!isViewingRecipe ? 'pt-4' : '')}`}>
 
         {/* One-time trial banner for free users */}
@@ -614,9 +611,6 @@ export default function App() {
             clearAll={clearAll}
             clearChecked={clearChecked}
           />
-        ) : activeView === 'admin' ? (
-          /* ADMIN DASHBOARD VIEW */
-          <AdminView onBack={() => navigate('settings')} />
         ) : (
           /* SETTINGS TAB */
           <SettingsView />
@@ -628,7 +622,7 @@ export default function App() {
 
       {/* Mobile Bottom Navigation Bar */}
       {(() => {
-        const isBottomBarHidden = (activeView === 'history' && isCatalogSelectMode) || activeView === 'admin';
+        const isBottomBarHidden = activeView === 'history' && isCatalogSelectMode;
         const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out pb-safe ${isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
           }`;
 
