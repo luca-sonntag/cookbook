@@ -923,6 +923,93 @@ export async function getJobMetrics(
   return { total, completed, failed, pending, processing, mediaBytes, mediaMb, dailyStats };
 }
 
+// ── OTA app bundles ──────────────────────────────────────────────────────────
+
+/** Row shape of the app_bundles table (snake_case columns). */
+export interface AppBundleRow {
+  id: string;
+  channel: 'production' | 'alpha';
+  version: string;
+  storage_path: string;
+  checksum: string;
+  min_version_code: number;
+  max_version_code: number | null;
+  active: boolean;
+  notes: string | null;
+  created_at: string;
+}
+
+/**
+ * Fetch the active OTA bundle for a channel that is compatible with the given
+ * native versionCode: min_version_code <= versionCode <= max_version_code
+ * (a null max means open-ended). Returns null when no compatible bundle is
+ * active — a partial unique index guarantees at most one active row per channel.
+ */
+export async function getActiveAppBundle(channel: string, versionCode: number): Promise<AppBundleRow | null> {
+  const { data, error } = await getClient()
+    .from('app_bundles')
+    .select('*')
+    .eq('channel', channel)
+    .eq('active', true)
+    .lte('min_version_code', versionCode)
+    .or(`max_version_code.is.null,max_version_code.gte.${versionCode}`)
+    .maybeSingle<AppBundleRow>();
+
+  if (error) throw wrapError('Failed to fetch active app bundle', error);
+  return data ?? null;
+}
+
+/** List all OTA bundles (optionally filtered by channel), newest first. */
+export async function listAppBundles(channel?: string): Promise<AppBundleRow[]> {
+  let query = getClient()
+    .from('app_bundles')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (channel) query = query.eq('channel', channel);
+
+  const { data, error } = await query.returns<AppBundleRow[]>();
+  if (error) throw wrapError('Failed to list app bundles', error);
+  return data || [];
+}
+
+/**
+ * Set a bundle's active flag. Activating deactivates the channel's currently
+ * active bundle first — the partial unique index allows at most one active
+ * bundle per channel, so the order matters.
+ */
+export async function setAppBundleActive(id: string, active: boolean): Promise<AppBundleRow> {
+  const { data: row, error: fetchError } = await getClient()
+    .from('app_bundles')
+    .select('*')
+    .eq('id', id)
+    .single<AppBundleRow>();
+
+  if (fetchError) {
+    if (isNoRowsError(fetchError)) throw new Error(`App bundle ${id} not found`);
+    throw wrapError(`Failed to fetch app bundle ${id}`, fetchError);
+  }
+
+  if (active) {
+    const { error: deactivateError } = await getClient()
+      .from('app_bundles')
+      .update({ active: false })
+      .eq('channel', row.channel)
+      .eq('active', true)
+      .neq('id', id);
+    if (deactivateError) throw wrapError('Failed to deactivate current active bundle', deactivateError);
+  }
+
+  const { data, error } = await getClient()
+    .from('app_bundles')
+    .update({ active })
+    .eq('id', id)
+    .select()
+    .single<AppBundleRow>();
+
+  if (error) throw wrapError(`Failed to set app bundle ${id} active=${active}`, error);
+  return data;
+}
+
 
 
 

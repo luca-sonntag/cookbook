@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -1335,6 +1335,57 @@ apiRouter.get('/admin/feedback', requireAdmin, async (req: Request, res: Respons
     res.json({ success: true, feedback });
   } catch (error) {
     console.error('Error fetching feedback:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * List all OTA web bundles (optionally filtered by ?channel=production|alpha).
+ * GET /api/admin/app-bundles
+ * Requires admin privileges.
+ */
+apiRouter.get('/admin/app-bundles', requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const channel = req.query.channel as string | undefined;
+    if (channel !== undefined && channel !== 'production' && channel !== 'alpha') {
+      res.status(400).json({ success: false, error: 'Query parameter channel must be "production" or "alpha".' });
+      return;
+    }
+
+    const bundles = await listAppBundles(channel);
+    res.json({ success: true, bundles });
+  } catch (error) {
+    console.error('Error listing app bundles:', error);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * Activate or deactivate an OTA web bundle. Activating an older bundle is the
+ * rollback lever (devices converge on their next check); deactivating all
+ * bundles of a channel is the kill switch.
+ * PATCH /api/admin/app-bundles/:id
+ * Body: { active: true|false }
+ * Requires admin privileges.
+ */
+apiRouter.patch('/admin/app-bundles/:id', requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { active } = req.body;
+
+    if (typeof active !== 'boolean') {
+      res.status(400).json({ success: false, error: 'Field active must be a boolean.' });
+      return;
+    }
+
+    const bundle = await setAppBundleActive(id, active);
+    res.json({ success: true, bundle });
+  } catch (error: any) {
+    if (typeof error?.message === 'string' && error.message.includes('not found')) {
+      res.status(404).json({ success: false, error: 'App bundle not found.' });
+      return;
+    }
+    console.error('Error updating app bundle:', error);
     res.status(500).json({ success: false, error: 'Internal server error.' });
   }
 });
