@@ -342,7 +342,7 @@ export async function extractRecipe(
 
     // 2b. If a grid image is provided, upload it as well
     const contentParts: any[] = [];
-    
+
     if (uploadResult) {
       contentParts.push({
         fileData: {
@@ -454,7 +454,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
 
     // Ambiguous source: several distinct dishes (e.g. "5 meals" roundups) cannot be
     // extracted into one recipe — fail with a dedicated, non-retryable code.
-    if (rawRecipe.containsMultipleRecipes === true || String(rawRecipe.containsMultipleRecipes).toLowerCase() === 'true') {
+    if (rawRecipe.containsMultipleRecipes === true) {
       throw new AppError('MULTIPLE_RECIPES', {
         message: 'The source presents multiple distinct recipes; extraction requires a single recipe.',
       });
