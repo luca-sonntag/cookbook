@@ -139,3 +139,29 @@ CREATE UNIQUE INDEX IF NOT EXISTS jobs_active_user_url_idx
   ON public.jobs (user_id, url_normalized)
   WHERE status IN ('pending', 'scraping', 'processing');
 
+-- --- persistent gemini logging ---
+
+-- Persistent Gemini request & cost logging table for LLM metrics
+CREATE TABLE IF NOT EXISTS public.gemini_logs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz DEFAULT now(),
+  request_type text NOT NULL,
+  model text NOT NULL,
+  duration_ms integer NOT NULL,
+  success boolean NOT NULL,
+  error_msg text,
+  input_data jsonb,
+  token_prompt integer,
+  token_candidate integer,
+  token_total integer,
+  cost_input_usd numeric(10, 6),
+  cost_output_usd numeric(10, 6),
+  cost_total_usd numeric(10, 6)
+);
+
+CREATE INDEX IF NOT EXISTS gemini_logs_created_at_idx ON public.gemini_logs (created_at DESC);
+
+-- Enable RLS (admin-only via service role, no public policies)
+ALTER TABLE public.gemini_logs ENABLE ROW LEVEL SECURITY;
+
+
