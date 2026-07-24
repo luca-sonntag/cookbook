@@ -226,12 +226,7 @@ export default function ShoppingList({
       )}
 
       {totalCount === 0 ? (
-        <>
-          <div>
-            Test Hugo
-          </div>
-          <ShoppingEmptyState />
-        </>
+        <ShoppingEmptyState />
       ) : (
         <div className="flex flex-col gap-3">
           {activeGroups.length > 0 ? (
