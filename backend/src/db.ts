@@ -959,6 +959,46 @@ export async function getExtractionsPerUser(
     .sort((a, b) => b.count - a.count);
 }
 
+export interface FailedJobDetails {
+  id: string;
+  url: string;
+  error: string | null;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Retrieve detailed information on failed jobs within the specified time window. */
+export async function getFailedJobs(
+  since: Date | null = null,
+  limit: number = 50
+): Promise<FailedJobDetails[]> {
+  let query = getClient()
+    .from('jobs')
+    .select('id, url, error, user_id, created_at, updated_at')
+    .eq('status', 'failed')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (since) {
+    query = query.gte('created_at', since.toISOString());
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw wrapError('Failed to fetch failed jobs for metrics', error);
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    url: row.url,
+    error: row.error,
+    userId: row.user_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
+}
+
+
 
 
 

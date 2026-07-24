@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, getExtractionsPerUser } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, getExtractionsPerUser, getFailedJobs } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -1409,6 +1409,13 @@ apiRouter.get('/admin/metrics', requireAdmin, async (req: Request, res: Response
     // 2. Fetch db jobs metrics (scoped to the selected range)
     const jobsMetrics = await getJobMetrics(since, windowDays);
 
+    // 2b. Fetch failed jobs details
+    const failedJobsRaw = await getFailedJobs(since);
+    const failedJobs = failedJobsRaw.map((job) => ({
+      ...job,
+      email: emailById.get(job.userId) ?? null,
+    }));
+
     // 3. Fetch logs LLM metrics (scoped to the selected range)
     const llmMetrics = await getLlmMetrics(since, windowDays);
 
@@ -1428,7 +1435,10 @@ apiRouter.get('/admin/metrics', requireAdmin, async (req: Request, res: Response
         total: userCount,
         newInRange: newUsers,
       },
-      jobs: jobsMetrics,
+      jobs: {
+        ...jobsMetrics,
+        failedJobs,
+      },
       llm: llmMetrics,
       extractionsPerUser,
     });
