@@ -330,169 +330,163 @@ export default function ExtractForm({
       )}
 
       {/* Share Directly Accordion */}
-      {!url && (
-        <Accordion variant="surface" className="w-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden" defaultExpandedKeys={['share']}>
-          <Accordion.Item className="border-none" id="share">
-            <Accordion.Heading>
-              <Accordion.Trigger className="px-5 py-4 flex items-center justify-between text-gray-800 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5">
-                <span className="flex items-center gap-2 text-sm font-semibold">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                    <polyline points="16 6 12 2 8 6" />
-                    <line x1="12" y1="2" x2="12" y2="15" />
-                  </svg>
-                  {t('form.helpShareTitle')}
-                </span>
-                <Accordion.Indicator />
-              </Accordion.Trigger>
-            </Accordion.Heading>
-            <Accordion.Panel>
-              <Accordion.Body className="px-5 pb-5 pt-3 text-xs text-gray-600 dark:text-gray-400 flex flex-col gap-4 border-t border-black/5 dark:border-white/5">
-                <p className="leading-relaxed">{t('form.helpShareDesc')}</p>
+      <Accordion variant="surface" className="w-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden" defaultExpandedKeys={['share']}>
+        <Accordion.Item className="border-none" id="share">
+          <Accordion.Heading>
+            <Accordion.Trigger className="px-5 py-4 flex items-center justify-between text-gray-800 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5">
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                  <polyline points="16 6 12 2 8 6" />
+                  <line x1="12" y1="2" x2="12" y2="15" />
+                </svg>
+                {t('form.helpShareTitle')}
+              </span>
+              <Accordion.Indicator />
+            </Accordion.Trigger>
+          </Accordion.Heading>
+          <Accordion.Panel>
+            <Accordion.Body className="px-5 pb-5 pt-3 text-xs text-gray-600 dark:text-gray-400 flex flex-col gap-4 border-t border-black/5 dark:border-white/5">
+              <p className="leading-relaxed">{t('form.helpShareDesc')}</p>
 
-                {/* Visual Step-by-Step Guide */}
-                <div className="flex flex-col gap-3 pt-1">
-                  {/* Step 1 */}
-                  <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
-                    <div className="flex-1 flex flex-col gap-1">
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
-                        {t('form.helpShareStep1Title')}
-                      </h4>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
-                        {t('form.helpShareStep1Desc')}
-                      </p>
-                    </div>
-                    <ShareStep1Mockup />
+              {/* Visual Step-by-Step Guide */}
+              <div className="flex flex-col gap-3 pt-1">
+                {/* Step 1 */}
+                <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
+                  <div className="flex-1 flex flex-col gap-1">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
+                      {t('form.helpShareStep1Title')}
+                    </h4>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
+                      {t('form.helpShareStep1Desc')}
+                    </p>
                   </div>
-
-                  {/* Step 2 */}
-                  <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
-                    <div className="flex-1 flex flex-col gap-1">
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
-                        {t('form.helpShareStep2Title')}
-                      </h4>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
-                        {t('form.helpShareStep2Desc')}
-                      </p>
-                    </div>
-                    <ShareStep2Mockup />
-                  </div>
-
-                  {/* Step 3 */}
-                  <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
-                    <div className="flex-1 flex flex-col gap-1">
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
-                        {t('form.helpShareStep3Title')}
-                      </h4>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
-                        {t('form.helpShareStep3Desc')}
-                      </p>
-                    </div>
-                    <ShareStep3Mockup />
-                  </div>
+                  <ShareStep1Mockup />
                 </div>
 
-                <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center italic mt-1 leading-normal">
-                  {t('form.helpShareStep')}
-                </p>
-              </Accordion.Body>
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
-      )}
+                {/* Step 2 */}
+                <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
+                  <div className="flex-1 flex flex-col gap-1">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
+                      {t('form.helpShareStep2Title')}
+                    </h4>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
+                      {t('form.helpShareStep2Desc')}
+                    </p>
+                  </div>
+                  <ShareStep2Mockup />
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex gap-4 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 items-center justify-between">
+                  <div className="flex-1 flex flex-col gap-1">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
+                      {t('form.helpShareStep3Title')}
+                    </h4>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
+                      {t('form.helpShareStep3Desc')}
+                    </p>
+                  </div>
+                  <ShareStep3Mockup />
+                </div>
+              </div>
+
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center italic mt-1 leading-normal">
+                {t('form.helpShareStep')}
+              </p>
+            </Accordion.Body>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
 
       {/* Help / Instructions Accordion */}
-      {!url && (
-        <Accordion variant="surface" className="w-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden">
-          <Accordion.Item className="border-none">
-            <Accordion.Heading>
-              <Accordion.Trigger className="px-5 py-4 flex items-center justify-between text-gray-800 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5">
-                <span className="flex items-center gap-2 text-sm font-semibold">
-                  <HelpCircle className="w-4 h-4 text-emerald-500" />
-                  {t('form.helpTitle')}
-                </span>
-                <Accordion.Indicator />
-              </Accordion.Trigger>
-            </Accordion.Heading>
-            <Accordion.Panel>
-              <Accordion.Body className="px-5 pb-5 pt-1 text-xs text-gray-600 dark:text-gray-400 flex flex-col gap-3.5 border-t border-black/5 dark:border-white/5">
-                <div className="flex gap-2.5 items-start">
-                  <div className="p-1.5 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-400 shrink-0">
-                    <InstagramIcon className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">Instagram Reel</h4>
-                    <p>{t('form.helpSteps.instagram')}</p>
-                  </div>
+      <Accordion variant="surface" className="w-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden">
+        <Accordion.Item className="border-none">
+          <Accordion.Heading>
+            <Accordion.Trigger className="px-5 py-4 flex items-center justify-between text-gray-800 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5">
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <HelpCircle className="w-4 h-4 text-emerald-500" />
+                {t('form.helpTitle')}
+              </span>
+              <Accordion.Indicator />
+            </Accordion.Trigger>
+          </Accordion.Heading>
+          <Accordion.Panel>
+            <Accordion.Body className="px-5 pb-5 pt-1 text-xs text-gray-600 dark:text-gray-400 flex flex-col gap-3.5 border-t border-black/5 dark:border-white/5">
+              <div className="flex gap-2.5 items-start">
+                <div className="p-1.5 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-400 shrink-0">
+                  <InstagramIcon className="w-3.5 h-3.5" />
                 </div>
-                <div className="flex gap-2.5 items-start">
-                  <div className="p-1.5 rounded-lg bg-black/10 dark:bg-white/10 text-gray-800 dark:text-gray-200 shrink-0">
-                    <TikTokIcon className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">TikTok Video</h4>
-                    <p>{t('form.helpSteps.tiktok')}</p>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">Instagram Reel</h4>
+                  <p>{t('form.helpSteps.instagram')}</p>
                 </div>
-                <div className="flex gap-2.5 items-start">
-                  <div className="p-1.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 shrink-0">
-                    <YoutubeIcon className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">YouTube Shorts</h4>
-                    <p>{t('form.helpSteps.youtube')}</p>
-                  </div>
+              </div>
+              <div className="flex gap-2.5 items-start">
+                <div className="p-1.5 rounded-lg bg-black/10 dark:bg-white/10 text-gray-800 dark:text-gray-200 shrink-0">
+                  <TikTokIcon className="w-3.5 h-3.5" />
                 </div>
-                <div className="flex gap-2.5 items-start">
-                  <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
-                    <FacebookIcon className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">Facebook Video</h4>
-                    <p>{t('form.helpSteps.facebook')}</p>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">TikTok Video</h4>
+                  <p>{t('form.helpSteps.tiktok')}</p>
                 </div>
-                <div className="flex gap-2.5 items-start">
-                  <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-                    <Globe className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">Recipe Website</h4>
-                    <p>{t('form.helpSteps.website')}</p>
-                  </div>
+              </div>
+              <div className="flex gap-2.5 items-start">
+                <div className="p-1.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 shrink-0">
+                  <YoutubeIcon className="w-3.5 h-3.5" />
                 </div>
-              </Accordion.Body>
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
-      )}
+                <div>
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">YouTube Shorts</h4>
+                  <p>{t('form.helpSteps.youtube')}</p>
+                </div>
+              </div>
+              <div className="flex gap-2.5 items-start">
+                <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+                  <FacebookIcon className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">Facebook Video</h4>
+                  <p>{t('form.helpSteps.facebook')}</p>
+                </div>
+              </div>
+              <div className="flex gap-2.5 items-start">
+                <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <Globe className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-0.5">Recipe Website</h4>
+                  <p>{t('form.helpSteps.website')}</p>
+                </div>
+              </div>
+            </Accordion.Body>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
 
       {/* Demo Recipes Card */}
-      {!url && (
-        <Card className="glass-panel p-5 mb-3 rounded-2xl border border-black/5 dark:border-white/5 shadow-md flex flex-col gap-3">
-          <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            {t('form.demoTitle')}
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {DEMO_RECIPES.map((demo, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleDemoClick(demo.url)}
-                disabled={isPending}
-                className="flex flex-col items-center justify-center p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all text-center gap-1.5 group"
-              >
-                <div className={`p-2 rounded-lg bg-gradient-to-br ${demo.color} shadow-sm group-hover:scale-110 transition-transform`}>
-                  {demo.icon}
-                </div>
-                <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                  {demo.name}
-                </span>
-              </button>
-            ))}
-          </div>
-        </Card>
-      )}
+      <Card className="glass-panel p-5 mb-3 rounded-2xl border border-black/5 dark:border-white/5 shadow-md flex flex-col gap-3">
+        <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          {t('form.demoTitle')}
+        </span>
+        <div className="grid grid-cols-2 gap-2">
+          {DEMO_RECIPES.map((demo, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handleDemoClick(demo.url)}
+              disabled={isPending}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all text-center gap-1.5 group"
+            >
+              <div className={`p-2 rounded-lg bg-gradient-to-br ${demo.color} shadow-sm group-hover:scale-110 transition-transform`}>
+                {demo.icon}
+              </div>
+              <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                {demo.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }
