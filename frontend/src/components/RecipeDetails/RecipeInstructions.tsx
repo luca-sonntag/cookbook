@@ -34,20 +34,6 @@ export default function RecipeInstructions({
 
   return (
     <div className="flex flex-col gap-4">
-      {recipe.equipment && recipe.equipment.length > 0 && (
-        <Card className="glass-panel p-5 rounded-2xl">
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">{t('recipe.requiredEquipment')}</h3>
-          <ul className="grid grid-cols-2 gap-2">
-            {recipe.equipment.map((item, idx) => (
-              <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] rounded-lg border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
-                <ChevronRight className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
-
       {/* Cooking Progress Bar & Start Button Card */}
       <Card className="glass-panel p-5 rounded-2xl flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -76,6 +62,20 @@ export default function RecipeInstructions({
           </Button>
         </div>
       </Card>
+
+      {recipe.equipment && recipe.equipment.length > 0 && (
+        <Card className="glass-panel p-5 rounded-2xl">
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">{t('recipe.requiredEquipment')}</h3>
+          <ul className="grid grid-cols-2 gap-2">
+            {recipe.equipment.map((item, idx) => (
+              <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] rounded-lg border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
+                <ChevronRight className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <Card className="glass-panel p-5 rounded-2xl">
         <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">{t('recipe.stepByStep')}</h3>
