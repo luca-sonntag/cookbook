@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { ChefHat, ShoppingCart, Play, Sparkles, Clock, Utensils } from 'lucide-react';
+import { ChefHat, ShoppingCart, Play, MessageCircle, Clock, Utensils } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 
 /* Step 1 — a mini saved-recipe card being tapped */
@@ -70,9 +70,9 @@ const AddToCartMockup = () => {
           <span className="h-0.5 w-3 rounded bg-white/70" />
         </div>
 
-        {/* Remix (muted) */}
+        {/* Remix / Copilot Chat (muted) */}
         <div className="w-5 h-5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center justify-center opacity-50">
-          <Sparkles className="w-2.5 h-2.5 text-gray-500 dark:text-gray-400" />
+          <MessageCircle className="w-2.5 h-2.5 text-gray-500 dark:text-gray-400" />
         </div>
 
         {/* Highlighted cart action */}
