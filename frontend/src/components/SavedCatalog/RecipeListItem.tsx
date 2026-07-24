@@ -65,47 +65,49 @@ export default function RecipeListItem({
       </div>
 
       {/* Metadata */}
-      <div className="flex-1 min-w-0 flex flex-col justify-center">
+      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+        {/* Line 1: Title */}
         <h4 className="text-base font-bold text-gray-900 dark:text-white truncate">
           {r.title}
         </h4>
-        <div className="flex items-end justify-between gap-1 mt-0.5 min-w-0">
-          <div className="flex-1 min-w-0 flex flex-col justify-center">
-            {/* Tag pills under the name */}
-            {(durationBadge || recipeTags.length > 0 || (job.flags && job.flags.length > 0)) && (
-              <div className="flex flex-wrap gap-1 mt-0.5">
-                {durationBadge && (
-                  <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap">
-                    {durationBadge}
-                  </span>
-                )}
-                {recipeTags.slice(0, 2).map((tag: string, idx: number) => (
-                  <span key={idx} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap">
-                    {tag}
-                  </span>
-                ))}
-                {job.flags?.slice(0, 2).map((flag: string, idx: number) => (
-                  <span key={`flag-${idx}`} className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap border border-amber-500/20 flex items-center gap-0.5">
-                    <Tag className="w-2.5 h-2.5" />
-                    {flag}
-                  </span>
-                ))}
-              </div>
+
+        {/* Line 2: Tag pills (Full Width) */}
+        {(durationBadge || recipeTags.length > 0 || (job.flags && job.flags.length > 0)) && (
+          <div className="flex flex-wrap gap-1 items-center min-w-0">
+            {durationBadge && (
+              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap">
+                {durationBadge}
+              </span>
             )}
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 flex items-center flex-wrap gap-x-2 gap-y-0.5">
-              <span className="flex items-center gap-1 whitespace-nowrap">
-                <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> {formattedPrepTime}
+            {recipeTags.slice(0, 2).map((tag: string, idx: number) => (
+              <span key={idx} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap">
+                {tag}
               </span>
-              <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700 shrink-0" />
-              <span className="flex items-center gap-1 whitespace-nowrap">
-                <Utensils className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> {formattedCookTime}
+            ))}
+            {job.flags?.slice(0, 2).map((flag: string, idx: number) => (
+              <span key={`flag-${idx}`} className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap border border-amber-500/20 flex items-center gap-0.5">
+                <Tag className="w-2.5 h-2.5" />
+                {flag}
               </span>
-            </p>
+            ))}
           </div>
+        )}
+
+        {/* Line 3: Prep/Cook Time on left & Actions on right */}
+        <div className="flex items-center justify-between gap-1.5 min-w-0">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5 whitespace-nowrap min-w-0 overflow-hidden text-ellipsis">
+            <span className="flex items-center gap-1 shrink-0">
+              <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> {formattedPrepTime}
+            </span>
+            <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700 shrink-0" />
+            <span className="flex items-center gap-1 shrink-0">
+              <Utensils className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> {formattedCookTime}
+            </span>
+          </p>
 
           {/* Actions */}
           {!isSelectMode && (
-            <div className="flex items-center gap-0.5 shrink-0 self-end -mr-1">
+            <div className="flex items-center gap-0.5 shrink-0 -mr-1">
               {onToggleFavorite && (
                 <button
                   onClick={(e) => {
