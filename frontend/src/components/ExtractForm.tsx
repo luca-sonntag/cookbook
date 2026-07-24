@@ -58,6 +58,7 @@ interface ExtractFormProps {
   limitStatus?: { limit: number; used: number; remaining: number; windowDays: number; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null;
   jobStatus: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed' | null;
   progress: ProgressData | null;
+  errorBanner?: React.ReactNode;
 }
 
 export default function ExtractForm({
@@ -70,7 +71,8 @@ export default function ExtractForm({
   handleFormSubmit,
   limitStatus,
   jobStatus,
-  progress
+  progress,
+  errorBanner
 }: ExtractFormProps) {
   const { t } = useI18n();
   const { user, isPremium, isPremiumOverride, hasTrialAvailable, trialDays, trialLoading } = useAuth();
@@ -318,6 +320,9 @@ export default function ExtractForm({
           </form>
         </Card>
       )}
+
+      {/* Error Banner — Rendered directly below the input card */}
+      {errorBanner}
 
       {/* Premium Upgrade Promotion — hidden when TrialBanner already covers it */}
       {!hideUpgradeCard && !isPending && (

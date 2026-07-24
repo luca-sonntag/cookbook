@@ -548,32 +548,30 @@ export default function App() {
               }}
             />
           ) : (
-            <>
-              {/* Extraction Form */}
-              <ExtractForm
-                url={url}
-                setUrl={setUrl}
-                urlError={urlError}
-                setUrlError={setUrlError}
-                validateUrl={validateUrl}
-                isPending={isPending}
-                handleFormSubmit={handleFormSubmit}
-                limitStatus={limitStatus}
-                jobStatus={jobStatus}
-                progress={progress}
-              />
-
-              {/* Error State Banner */}
-              <ErrorBanner
-                isPending={isPending}
-                jobStatus={jobStatus}
-                jobError={jobError}
-                jobErrorCode={jobErrorCode}
-                jobErrorParams={jobErrorParams}
-                triggerExtraction={triggerExtraction}
-                url={url}
-              />
-            </>
+            /* Extraction Form & Error Banner */
+            <ExtractForm
+              url={url}
+              setUrl={setUrl}
+              urlError={urlError}
+              setUrlError={setUrlError}
+              validateUrl={validateUrl}
+              isPending={isPending}
+              handleFormSubmit={handleFormSubmit}
+              limitStatus={limitStatus}
+              jobStatus={jobStatus}
+              progress={progress}
+              errorBanner={
+                <ErrorBanner
+                  isPending={isPending}
+                  jobStatus={jobStatus}
+                  jobError={jobError}
+                  jobErrorCode={jobErrorCode}
+                  jobErrorParams={jobErrorParams}
+                  triggerExtraction={triggerExtraction}
+                  url={url}
+                />
+              }
+            />
           )
         ) : activeView === 'history' ? (
           /* SAVED RECIPES TAB */
