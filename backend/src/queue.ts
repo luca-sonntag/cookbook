@@ -152,6 +152,7 @@ async function processJob(job: Job): Promise<void> {
     // 6. If video is available, extract frames and create grid first
     let gridImagePath: string | undefined;
     framePaths = [];
+    const isCarousel = downloaded.imageFilePaths.length > 0;
 
     if (videoFilePath) {
       await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 55, stage: 'extracting_frames' } as any });
@@ -159,7 +160,7 @@ async function processJob(job: Job): Promise<void> {
         const { extractFrames, createImageGrid } = await import('./frameExtractor.js');
         console.log(`[Job ${jobId}] Extracting frames from video...`);
         framePaths = await extractFrames(videoFilePath, framesDir);
-        
+
         const localGridPath = path.join(framesDir, 'grid.jpg');
         console.log(`[Job ${jobId}] Creating tiled frame grid at ${localGridPath}...`);
         await createImageGrid(framePaths, localGridPath);
@@ -167,9 +168,40 @@ async function processJob(job: Job): Promise<void> {
       } catch (err: any) {
         console.warn(`[Job ${jobId}] Frame extraction / grid generation failed: ${err.message}`);
       }
+    } else if (isCarousel) {
+      // Image carousel: the slides take the role of video frames — build the tiled grid
+      // from them so the existing best-shot selection works unchanged. A single-slide
+      // post skips the grid (xstack needs >= 2 inputs); its cover is uploaded directly.
+      await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 55, stage: 'extracting_frames' } as any });
+      framePaths = downloaded.imageFilePaths;
+      if (framePaths.length > 1) {
+        try {
+          const { createImageGrid } = await import('./frameExtractor.js');
+          await fs.mkdir(framesDir, { recursive: true });
+          const localGridPath = path.join(framesDir, 'grid.jpg');
+          console.log(`[Job ${jobId}] Creating tiled grid from ${framePaths.length} carousel images at ${localGridPath}...`);
+          await createImageGrid(framePaths, localGridPath);
+          gridImagePath = localGridPath;
+        } catch (err: any) {
+          console.warn(`[Job ${jobId}] Carousel grid generation failed: ${err.message}`);
+        }
+      }
     }
 
     console.log(`[Job ${jobId}] Running recipe extraction and frame selection in parallel...`);
+
+    // Carousel fallback when Gemini selection is unavailable/fails: the first slide is
+    // typically the hero shot, so hand it off as the cover via the same transient upload.
+    const uploadFirstCarouselImage = async (): Promise<string[] | null> => {
+      try {
+        const buffer = await fs.readFile(framePaths[0]);
+        await uploadRecipeFrame(jobId, 0, buffer);
+        return [`local:${jobId}:0`];
+      } catch (err: any) {
+        console.warn(`[Job ${jobId}] Carousel cover upload failed: ${err.message}`);
+        return null;
+      }
+    };
 
     const frameSelectionPromise: Promise<string[] | null> = (gridImagePath && framePaths.length > 0)
       ? (async () => {
@@ -194,10 +226,12 @@ async function processJob(job: Job): Promise<void> {
           return localRefs;
         } catch (err: any) {
           console.warn(`[Job ${jobId}] Frame selection failed (falling back to cover): ${err.message}`);
-          return null;
+          return isCarousel ? uploadFirstCarouselImage() : null;
         }
       })()
-      : Promise.resolve(null);
+      : (isCarousel && framePaths.length > 0)
+        ? uploadFirstCarouselImage()
+        : Promise.resolve(null);
 
     await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 75, stage: 'extracting_recipe' } as any });
 
@@ -206,10 +240,13 @@ async function processJob(job: Job): Promise<void> {
         audioFilePath || undefined,
         mimeType,
         scrapeResult.caption,
-        gridImagePath,
+        // Carousels send every slide at full resolution instead of the downscaled grid —
+        // the recipe is usually written as text on the images and must stay readable.
+        isCarousel ? undefined : gridImagePath,
         runDir,
         userPrefs,
-        scrapeResult.htmlContent
+        scrapeResult.htmlContent,
+        isCarousel ? downloaded.imageFilePaths : undefined
       ),
       frameSelectionPromise,
     ]);
