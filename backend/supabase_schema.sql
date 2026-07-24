@@ -164,4 +164,33 @@ CREATE INDEX IF NOT EXISTS gemini_logs_created_at_idx ON public.gemini_logs (cre
 -- Enable RLS (admin-only via service role, no public policies)
 ALTER TABLE public.gemini_logs ENABLE ROW LEVEL SECURITY;
 
+-- --- OTA app bundles migration ---
+
+-- OTA app bundles table for self-hosted update server
+CREATE TABLE IF NOT EXISTS public.app_bundles (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  channel text NOT NULL CHECK (channel IN ('production', 'alpha')),
+  version text NOT NULL,
+  storage_path text NOT NULL,
+  checksum text NOT NULL,
+  min_version_code integer NOT NULL,
+  max_version_code integer,
+  active boolean NOT NULL DEFAULT false,
+  notes text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT app_bundles_channel_version_key UNIQUE (channel, version)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS app_bundles_one_active_per_channel
+  ON public.app_bundles (channel)
+  WHERE active = true;
+
+ALTER TABLE public.app_bundles ENABLE ROW LEVEL SECURITY;
+
+-- Public storage bucket for OTA zip bundles
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('app-bundles', 'app-bundles', true)
+ON CONFLICT (id) DO NOTHING;
+
+
 
