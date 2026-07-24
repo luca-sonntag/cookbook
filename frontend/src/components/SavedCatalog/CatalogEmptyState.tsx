@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, Button } from '@heroui/react';
-import { Link, Sparkles, Plus, Clipboard } from 'lucide-react';
+import { Link, BookOpen, Plus, Clipboard } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { ShareStep1Mockup, ShareStep2Mockup, ShareStep3Mockup } from '../ShareMockups';
 
@@ -33,7 +33,7 @@ const CatalogCopyLinkMockup = () => {
 };
 
 const CatalogExtractMockup = () => {
-  const { language } = useI18n();
+  const { t } = useI18n();
   return (
     <div className="relative w-[132px] h-[104px] shrink-0 mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 p-2 overflow-hidden shadow-inner flex flex-col justify-between select-none">
       {/* App Header representation */}
@@ -53,9 +53,9 @@ const CatalogExtractMockup = () => {
       <div className="relative mt-1">
         <div className="absolute inset-0 rounded-lg bg-emerald-500 animate-ping opacity-75 duration-1000" />
         <div className="relative h-6 rounded-lg bg-emerald-600 border border-emerald-500 flex items-center justify-center gap-1 shadow-md shadow-emerald-500/20 text-white px-2">
-          <Sparkles className="w-2.5 h-2.5 text-white" />
+          <BookOpen className="w-2.5 h-2.5 text-white" />
           <span className="text-[8px] font-bold leading-none">
-            {language === 'de' ? 'Zaubern' : 'Extract'}
+            {t('form.btnSubmit')}
           </span>
         </div>
       </div>
