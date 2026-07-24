@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from './config.js';
 import { startQueue, stopQueue } from './queue.js';
 import { apiRouter } from './routes.js';
+import { appUpdatesRouter } from './appUpdates.js';
 import { checkDbHealth } from './db.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -126,6 +127,10 @@ async function bootstrap() {
         res.status(500).send('Error proxying image');
       }
     });
+
+    // OTA update checks are public (before apiRouter to skip the auth gate —
+    // the app may check before a session exists). Covered by apiLimiter above.
+    app.use('/api/app-updates', appUpdatesRouter);
 
     app.use('/api', apiRouter);
 
