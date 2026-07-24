@@ -206,7 +206,7 @@ Write-Host "  Native version: $versionName ($versionCode) | minVersionCode: $Min
 Write-Host "[2/6] Building frontend..." -ForegroundColor Yellow
 Push-Location $frontendDir
 try {
-    npm run build
+    npm run build:dev
     if ($LASTEXITCODE -ne 0) { throw "Frontend build failed" }
 } finally {
     Pop-Location
