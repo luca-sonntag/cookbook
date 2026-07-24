@@ -18,6 +18,10 @@ const recipeSchema = {
       type: FunctionDeclarationSchemaType.BOOLEAN,
       description: 'Whether the source content contains a food recipe. Set to false if it is unrelated content (e.g. vlog, comedy).',
     },
+    containsMultipleRecipes: {
+      type: FunctionDeclarationSchemaType.BOOLEAN,
+      description: 'True ONLY when the source presents several DISTINCT standalone recipes/dishes (e.g. a "5 high-protein meals" roundup where each slide or segment shows a different dish) so that no single primary recipe can be identified. Components of ONE dish (a main with its sauce, sides, or toppings) or one recipe shown step-by-step do NOT count as multiple recipes — set false in that case.',
+    },
     title: {
       type: FunctionDeclarationSchemaType.STRING,
       description: 'The title of the recipe.',
@@ -418,6 +422,7 @@ Key Constraints:
 10. Zero-Calorie & Low-Calorie Ingredients: Ingredients like water, ice, salt, or baking soda MUST have 0 calories, protein, carbs, and fat. For spices, seasonings, or herbs in small quantities (like teaspoons), focus your calculation energy on the high-calorie/high-macro ingredients (meats, oils, dairy, grains, starches) and estimate very small values (e.g., 5 kcal) or 0.
 11. Cooked vs. Raw/Dry States of Expandable Ingredients: ${COOKED_VS_RAW_INSTRUCTION}
 12. Common Pantry Staples: ${STAPLE_INGREDIENT_INSTRUCTION}
+13. Single-Recipe Ambiguity: If the content showcases several DISTINCT standalone recipes (e.g. a "5 meals I eat every week" roundup where each slide or video segment presents a different dish) and no single recipe clearly dominates, set "containsMultipleRecipes" to true and do NOT attempt to merge the dishes into one recipe. One dish together with its components (sauce, side, topping) or one recipe shown step-by-step is NOT ambiguous — set "containsMultipleRecipes" to false and extract that single recipe.
 
 Description/Caption:
 """
@@ -441,6 +446,14 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
       throw new AppError('NOT_A_RECIPE', { message: 'The provided video does not appear to contain a food recipe.' });
     }
 
+    // Ambiguous source: several distinct dishes (e.g. "5 meals" roundups) cannot be
+    // extracted into one recipe — fail with a dedicated, non-retryable code.
+    if (rawRecipe.containsMultipleRecipes === true) {
+      throw new AppError('MULTIPLE_RECIPES', {
+        message: 'The source presents multiple distinct recipes; extraction requires a single recipe.',
+      });
+    }
+
     const recipe: Recipe = rawRecipe;
 
     // Conditionally clear nutritionalValues if the model indicated they weren't explicitly provided
@@ -448,6 +461,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
       delete recipe.nutritionalValues;
     }
     delete (recipe as any).hasExplicitNutritionalValues;
+    delete (recipe as any).containsMultipleRecipes;
 
     // Clean up transcript if there were no spoken words
     if (
@@ -724,6 +738,8 @@ ${JSON.stringify(parentRecipe, null, 2)}`;
       delete recipe.nutritionalValues;
     }
     delete (recipe as any).hasExplicitNutritionalValues;
+    // Remixes start from one recipe, so the ambiguity flag is meaningless here — drop it.
+    delete (recipe as any).containsMultipleRecipes;
 
     const usageMeta = result.response.usageMetadata;
     const tokenUsage: TokenUsage | undefined = usageMeta
