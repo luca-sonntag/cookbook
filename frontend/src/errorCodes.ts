@@ -99,6 +99,62 @@ export function isKnownErrorCode(code: string): code is AppErrorCode {
   return ERROR_CODE_SET.has(code);
 }
 
+/** Non-temporary (permanent) error codes that will not succeed upon immediate retry. */
+export const NON_RETRYABLE_ERROR_CODES: ReadonlySet<AppErrorCode> = new Set<AppErrorCode>([
+  'MISSING_FIELD',
+  'INVALID_FIELD',
+  'INVALID_URL',
+  'YOUTUBE_SHORTS_ONLY',
+  'REMIX_PROMPT_TOO_LONG',
+  'MESSAGE_TOO_LONG',
+  'TOO_MANY_SCREENSHOTS',
+  'SCREENSHOTS_TOO_LARGE',
+  'PARENT_JOB_NOT_COMPLETED',
+  'UNAUTHORIZED',
+  'PREMIUM_REQUIRED',
+  'COOKBOOK_FULL',
+  'RATE_LIMIT_EXCEEDED',
+  'JOB_NOT_FOUND',
+  'RECIPE_NOT_FOUND',
+  'COLLECTION_NOT_FOUND',
+  'PARENT_JOB_NOT_FOUND',
+  'VIDEO_TOO_LONG',
+  'NOT_A_RECIPE',
+  'WEBSITE_NO_RECIPE',
+  'UNRELATED_REMIX_REQUEST',
+]);
+
+/**
+ * Returns true if an error code or raw error message represents a temporary (transient)
+ * error that can be meaningfully retried by pressing "Retry".
+ * Non-temporary (permanent) errors (e.g. invalid URLs, non-recipe videos, quota limits)
+ * return false so the UI hides the retry button.
+ */
+export function isRetryableError(
+  code?: string | null,
+  rawError?: string | null
+): boolean {
+  if (code && isKnownErrorCode(code) && NON_RETRYABLE_ERROR_CODES.has(code)) {
+    return false;
+  }
+
+  if (rawError && typeof rawError === 'string') {
+    const lower = rawError.toLowerCase();
+    if (
+      lower.includes('invalidurl') ||
+      lower.includes('invalid_url') ||
+      lower.includes('unauthorized') ||
+      lower.includes('not_a_recipe') ||
+      lower.includes('cookbook_full') ||
+      lower.includes('premium_required')
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /**
  * Attempts to parse a persisted job `error` string as a {@link SerializedError}
  * envelope (`{"code":...,"params":...}`). Returns null when the string is not an
@@ -117,3 +173,4 @@ export function parseSerializedError(raw: string): SerializedError | null {
   }
   return null;
 }
+
