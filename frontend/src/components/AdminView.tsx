@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Tabs, Card, TextField, Label, Input, Button, Spinner } from '@heroui/react';
-import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal, BarChart3, Users, BookOpen, TrendingUp, Coins, HardDriveDownload } from 'lucide-react';
+import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal, BarChart3, Users, BookOpen, TrendingUp, Coins, HardDriveDownload, ExternalLink, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
 import { useI18n } from '../context/I18nContext';
@@ -41,7 +41,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [localSettings, setLocalSettings] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [metrics, setMetrics] = useState<any | null>(null);
-  const [metricsRange, setMetricsRange] = useState<'all' | 'today' | '7d' | '30d'>('all');
+  const [metricsRange, setMetricsRange] = useState<'all' | 'today' | '3d' | '7d' | '30d'>('all');
   const [users, setUsers] = useState<any[]>([]);
   const [usersRange, setUsersRange] = useState<'all' | 'today' | '7d' | '30d'>('all');
   const [loading, setLoading] = useState(true);
@@ -51,12 +51,14 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [expandedFeedbackId, setExpandedFeedbackId] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [showFailedJobs, setShowFailedJobs] = useState(false);
 
   const isDe = language === 'de';
 
-  const rangeLabel: Record<'all' | 'today' | '7d' | '30d', string> = {
+  const rangeLabel: Record<'all' | 'today' | '3d' | '7d' | '30d', string> = {
     all: isDe ? 'Gesamt' : 'All time',
     today: isDe ? 'Heute' : 'Today',
+    '3d': isDe ? 'Letzte 3 Tage' : 'Last 3 days',
     '7d': isDe ? 'Letzte 7 Tage' : 'Last 7 days',
     '30d': isDe ? 'Letzte 30 Tage' : 'Last 30 days',
   };
@@ -596,6 +598,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   [
                     { id: 'all', label: isDe ? 'Alle' : 'All' },
                     { id: 'today', label: isDe ? 'Heute' : 'Today' },
+                    { id: '3d', label: isDe ? '3 Tage' : 'Last 3 days' },
                     { id: '7d', label: isDe ? '7 Tage' : 'Last 7 days' },
                     { id: '30d', label: isDe ? '30 Tage' : 'Last 30 days' },
                   ] as const
@@ -704,25 +707,120 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5 leading-none">
                     Queue Status Breakdown
                   </h3>
-                  <div className="grid grid-cols-4 gap-2 text-center">
-                    <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 dark:border-emerald-500/15 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-[10px] leading-tight text-emerald-500 dark:text-emerald-400/80 font-semibold truncate">{isDe ? 'Erfolgreich' : 'Succeeded'}</span>
-                      <span className="text-lg font-bold text-emerald-500 dark:text-emerald-300 mt-0.5">{metrics.jobs?.completed ?? 0}</span>
+                  <div className="grid grid-cols-2 gap-3 text-center">
+                    <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 dark:border-emerald-500/15 rounded-xl p-3 flex flex-col items-center justify-center">
+                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400/90 truncate">{isDe ? 'Erfolgreich' : 'Succeeded'}</span>
+                      <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-300 mt-1">{metrics.jobs?.completed ?? 0}</span>
                     </div>
-                    <div className="bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/10 dark:border-rose-500/15 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-[10px] leading-tight text-rose-400 dark:text-rose-400/80 font-semibold truncate">{isDe ? 'Fehlgeschlagen' : 'Failed'}</span>
-                      <span className="text-lg font-bold text-rose-500 dark:text-rose-300 mt-0.5">{metrics.jobs?.failed ?? 0}</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowFailedJobs((prev) => !prev)}
+                      className={`bg-rose-500/5 dark:bg-rose-500/10 border rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer outline-none ${
+                        showFailedJobs
+                          ? 'border-rose-500 ring-2 ring-rose-500/30 bg-rose-500/15 dark:bg-rose-500/25'
+                          : 'border-rose-500/10 dark:border-rose-500/15 hover:border-rose-500/40 hover:scale-[1.02]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center gap-1 w-full">
+                        <span className="text-xs font-semibold text-rose-600 dark:text-rose-400 truncate">{isDe ? 'Fehlgeschlagen' : 'Failed'}</span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-rose-500 transition-transform duration-200 ${showFailedJobs ? 'rotate-180' : ''}`} />
+                      </div>
+                      <span className="text-xl font-extrabold text-rose-600 dark:text-rose-300 mt-1">{metrics.jobs?.failed ?? 0}</span>
+                      <span className="text-[10px] font-bold text-rose-500/80 dark:text-rose-400/80 underline decoration-rose-500/40 mt-0.5">
+                        {showFailedJobs ? (isDe ? 'Verbergen' : 'Hide') : (isDe ? 'Details' : 'Details')}
+                      </span>
+                    </button>
+                    <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/10 dark:border-blue-500/15 rounded-xl p-3 flex flex-col items-center justify-center">
+                      <span className="text-xs font-semibold text-blue-600 dark:text-blue-400/90 truncate">{isDe ? 'Aktiv' : 'Processing'}</span>
+                      <span className="text-xl font-extrabold text-blue-600 dark:text-blue-300 mt-1">{metrics.jobs?.processing ?? 0}</span>
                     </div>
-                    <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/10 dark:border-blue-500/15 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-[10px] leading-tight text-blue-400 dark:text-blue-400/80 font-semibold truncate">{isDe ? 'Aktiv' : 'Processing'}</span>
-                      <span className="text-lg font-bold text-blue-500 dark:text-blue-300 mt-0.5">{metrics.jobs?.processing ?? 0}</span>
-                    </div>
-                    <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 dark:border-amber-500/15 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-[10px] leading-tight text-amber-500 dark:text-amber-400/80 font-semibold truncate">{isDe ? 'Wartend' : 'Pending'}</span>
-                      <span className="text-lg font-bold text-amber-500 dark:text-amber-300 mt-0.5">{metrics.jobs?.pending ?? 0}</span>
+                    <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 dark:border-amber-500/15 rounded-xl p-3 flex flex-col items-center justify-center">
+                      <span className="text-xs font-semibold text-amber-600 dark:text-amber-400/90 truncate">{isDe ? 'Wartend' : 'Pending'}</span>
+                      <span className="text-xl font-extrabold text-amber-600 dark:text-amber-300 mt-1">{metrics.jobs?.pending ?? 0}</span>
                     </div>
                   </div>
                 </Card>
+
+                {/* 2b. Failed Job Details Card (Shown on click of Failed Queue Status) */}
+                {showFailedJobs && (
+                  <Card className="glass-panel p-5 rounded-2xl border border-rose-500/20 dark:border-rose-500/30 shadow-lg bg-white dark:bg-gray-900 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500">
+                          <AlertCircle className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col">
+                          <h3 className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider leading-none">
+                            {isDe ? 'Fehlgeschlagene Jobs' : 'Failed Jobs'}
+                          </h3>
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                            {isDe ? `Zeitraum: ${rangeLabel[metricsRange]}` : `Timeframe: ${rangeLabel[metricsRange]}`}
+                          </span>
+                        </div>
+                        <span className="ml-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 font-bold">
+                          {metrics.jobs?.failedJobs?.length ?? 0}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowFailedJobs(false)}
+                        className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                        aria-label="Close"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {(!metrics.jobs?.failedJobs || metrics.jobs.failedJobs.length === 0) ? (
+                      <div className="text-center py-8 px-4 bg-gray-50 dark:bg-gray-950/50 rounded-xl border border-black/5 dark:border-white/5">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {isDe ? 'Keine fehlgeschlagenen Jobs im gewählten Zeitraum vorhanden.' : 'No failed jobs found in the selected timeframe.'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-3 max-h-96 overflow-y-auto pr-1">
+                        {metrics.jobs.failedJobs.map((job: any) => (
+                          <div key={job.id} className="p-3.5 bg-rose-500/5 dark:bg-rose-950/20 border border-rose-500/15 dark:border-rose-500/25 rounded-xl flex flex-col gap-2.5">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex flex-col gap-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap text-xs">
+                                  <span className="font-bold text-gray-900 dark:text-gray-100 truncate" title={job.email || job.userId}>
+                                    {job.email || job.userId}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded">
+                                    ID: {job.id.slice(0, 8)}...
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono">
+                                  {formatDate(job.createdAt)}
+                                </span>
+                              </div>
+                              {job.url && (
+                                <a
+                                  href={job.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 hover:underline shrink-0 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 rounded-lg transition-all"
+                                >
+                                  <span>{isDe ? 'Reel öffnen' : 'Open Reel'}</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
+                            </div>
+
+                            {/* Error Details Container */}
+                            <div className="p-3 bg-black/5 dark:bg-gray-950 border border-black/5 dark:border-white/10 rounded-xl text-[11px] font-mono text-rose-700 dark:text-rose-300 break-words leading-relaxed whitespace-pre-wrap">
+                              <span className="font-bold text-rose-500 uppercase tracking-wider text-[9px] block mb-1">
+                                {isDe ? 'Fehlergrund:' : 'Error details:'}
+                              </span>
+                              {job.error || (isDe ? 'Keine genauere Fehlermeldung hinterlegt.' : 'No detailed error message provided.')}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </Card>
+                )}
 
                 {/* 3. LLM Breakdown Table */}
                 <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-4 overflow-hidden">
@@ -810,6 +908,42 @@ export default function AdminView({ onBack }: AdminViewProps) {
                     </div>
                   </Card>
                 </div>
+
+                {/* 5. Extracted recipes per user (only users with >0 in range) */}
+                <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-4">
+                  <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
+                    {isDe ? 'Extrahierte Rezepte pro Nutzer' : 'Extracted Recipes per User'} ({rangeLabel[metricsRange]})
+                  </h3>
+                  {metrics.extractionsPerUser?.length ? (
+                    <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
+                      {metrics.extractionsPerUser.map((entry: any) => {
+                        const maxCount = Math.max(
+                          ...metrics.extractionsPerUser.map((e: any) => e.count),
+                          1,
+                        );
+                        const pct = (entry.count / maxCount) * 100;
+                        return (
+                          <div key={entry.userId} className="flex items-center gap-3 text-[11px]">
+                            <span className="w-40 truncate text-gray-500 dark:text-gray-400 font-medium shrink-0" title={entry.email || entry.userId}>
+                              {entry.email || entry.userId}
+                            </span>
+                            <div className="flex-1 bg-black/5 dark:bg-white/5 h-2.5 rounded-full overflow-hidden">
+                              <div
+                                className="bg-emerald-500 dark:bg-emerald-600 h-full rounded-full transition-all duration-500"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="w-6 text-right font-bold text-gray-800 dark:text-white shrink-0">{entry.count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-center text-xs text-gray-400 py-12">
+                      {isDe ? 'Keine Extraktionen im Zeitraum.' : 'No extractions in timeframe.'}
+                    </p>
+                  )}
+                </Card>
               </div>
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-12">

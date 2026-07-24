@@ -923,6 +923,82 @@ export async function getJobMetrics(
   return { total, completed, failed, pending, processing, mediaBytes, mediaMb, dailyStats };
 }
 
+/**
+ * Count successfully extracted recipes (completed jobs) grouped by user. When
+ * `since` is provided, only jobs created on/after that timestamp are counted;
+ * otherwise all completed jobs are aggregated ("all-time"). Users with zero
+ * extractions in the window are omitted, and the result is sorted descending
+ * by count. The caller is responsible for resolving `user_id` → email.
+ */
+export async function getExtractionsPerUser(
+  since: Date | null = null,
+): Promise<{ userId: string; count: number }[]> {
+  let query = getClient()
+    .from('jobs')
+    .select('user_id')
+    .eq('status', 'completed');
+
+  if (since) {
+    query = query.gte('created_at', since.toISOString());
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw wrapError('Failed to fetch per-user extraction metrics', error);
+
+  const counts: Record<string, number> = {};
+  for (const row of data ?? []) {
+    const uid = (row as any).user_id;
+    if (!uid) continue;
+    counts[uid] = (counts[uid] || 0) + 1;
+  }
+
+  return Object.entries(counts)
+    .map(([userId, count]) => ({ userId, count }))
+    .filter((entry) => entry.count > 0)
+    .sort((a, b) => b.count - a.count);
+}
+
+export interface FailedJobDetails {
+  id: string;
+  url: string;
+  error: string | null;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Retrieve detailed information on failed jobs within the specified time window. */
+export async function getFailedJobs(
+  since: Date | null = null,
+  limit: number = 50
+): Promise<FailedJobDetails[]> {
+  let query = getClient()
+    .from('jobs')
+    .select('id, url, error, user_id, created_at, updated_at')
+    .eq('status', 'failed')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (since) {
+    query = query.gte('created_at', since.toISOString());
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw wrapError('Failed to fetch failed jobs for metrics', error);
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    url: row.url,
+    error: row.error,
+    userId: row.user_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
+}
+
+
 
 
 
