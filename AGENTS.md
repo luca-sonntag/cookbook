@@ -366,8 +366,7 @@ Einrichtung: [`docs/dev-environment.md`](./docs/dev-environment.md).
 * **Dev-Supabase:** self-hosted auf Railway (offizielles Template) als geteilte Dev-Instanz; Fallback
   managed supabase.com-Dev-Projekt. **Hinweis:** `backend/supabase_schema.sql` enthält nicht das
   `jobs`-Kern-DDL — dieses muss zuerst aus der bestehenden Supabase exportiert werden.
-* **Seed:** `backend/src/scripts/seedDev.ts` (`npm run seed:dev`) legt den Test-User (email-confirmed
-  via GoTrue Admin-API) und Beispielrezepte/Collection an; idempotent, verweigert Prod-URLs.
+* **Seed:** `backend/src/scripts/seedDev.ts` (`npm run seed:dev`) legt den Test-User (email-confirmed via GoTrue Admin-API) an; idempotent, verweigert Prod-URLs.
 
 ## 💎 Freemium Gating System
 

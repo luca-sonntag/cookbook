@@ -3,9 +3,9 @@
 Ziel: **Unterwegs per Claude Code ein Feature entwickeln → das Ergebnis direkt am Smartphone
 testen → bei Erfolg den PR mergen.**
 
-Dafür gibt es eine geteilte **Dev-Umgebung** (Dev-Backend + Dev-Supabase mit echten Seed-Daten)
+Dafür gibt es eine geteilte **Dev-Umgebung** (Dev-Backend + Dev-Supabase)
 und ein **statisches Web-Preview** des Frontends, das im Handy-Browser geöffnet wird. Ein
-Test-User-Auto-Login überspringt den Login-Screen, sodass die App sofort mit echten Daten
+Test-User-Auto-Login überspringt den Login-Screen, sodass die App sofort im eingeloggten Zustand
 gerendert wird.
 
 ```
@@ -14,7 +14,7 @@ Claude pusht Branch/PR
         ▼
 Railway baut  ──►  Dev-Backend (API)          ─┐
               └►  statisches Frontend-Preview  ─┤──►  Dev-Supabase (self-hosted, geteilt)
-        │                                        │        (Seed-Daten + Test-User)
+        │                                        │        (Test-User Account)
         ▼                                        │
 Preview-URL am PR  ──►  am Handy öffnen  ──►  Test-User bereits eingeloggt  ──►  testen  ──►  mergen
 ```
@@ -34,7 +34,7 @@ Override decken das für Feature-Tests ab.
 | Auto-Login | `frontend/src/context/AuthContext.tsx` | Bei `TEST_LOGIN_ENABLED` automatischer `signInWithPassword` → echtes JWT |
 | Dev-Env | `frontend/.env.development` | Nicht-geheime Flags (`VITE_TEST_LOGIN=true`); URLs/Keys via Railway/`.local` |
 | Web-Serve | `frontend/railway.json`, Script `build:dev` / `serve:dev`, Dev-Dep `serve` | Statisches Hosting des `dist` (`serve -s dist -l $PORT`) |
-| Seed | `backend/src/scripts/seedDev.ts`, Script `seed:dev` | Test-User + Beispielrezepte/Collection in Dev-Supabase |
+| Seed | `backend/src/scripts/seedDev.ts`, Script `seed:dev` | Provisionierung des Test-Users in Dev-Supabase |
 
 **Sicherheit:** Der Auto-Login ist hart hinter `VITE_TEST_LOGIN` — im Prod/Play-Store-Build ist die
 Flag ungesetzt und der Code inaktiv. Test-Credentials stehen **nie** im Repo, sondern nur in
@@ -56,41 +56,29 @@ Reihenfolge (via Supabase-Studio SQL-Editor oder `psql` gegen die Dev-Postgres):
 2. `backend/supabase_schema.sql` — ergänzt `is_favorite`/`flags`/`media_bytes`, plus
    collections/recipe_collections/feedback/global_settings/Buckets/partial-unique-index (idempotent).
 
-*(Höhere Genauigkeit, optional: das vollständige Schema aus der bestehenden Prod-Supabase
-exportieren — `pg_dump --schema-only` / Dashboard → Database → Schema — und statt `schema.sql`
-einspielen. Dann die Rekonstruktion gegen das Original abgleichen.)*
-
 ### 2. Dev-Supabase self-hosted auf Railway
 
 - Neues Railway-**Dev-Environment** (getrennt von Prod) anlegen.
 - Supabase über das **offizielle Supabase-Railway-Template** deployen (Postgres, GoTrue, PostgREST,
-  Storage, Kong) — den Stack nicht von Hand zusammenbauen.
-- Schema einspielen: zuerst `backend/db/schema.sql` (Schritt 1), dann `backend/supabase_schema.sql`
-  (Migrationen/Settings/Buckets).
-- *Fallback, falls self-host zu fummelig wird:* ein managed **supabase.com Dev-Projekt** — identische
-  Env-Vars, deutlich weniger Betrieb. GoTrue/JWKS funktionieren dort out-of-the-box.
+  Storage, Kong).
+- Schema einspielen: zuerst `backend/db/schema.sql`, dann `backend/supabase_schema.sql`.
 
 ### 3. Dev-Backend auf Railway
 
-Reuse des vorhandenen root-`Dockerfile` (kein eigenes `backend/railway.json` nötig): neuen Railway-
-Service im Dev-Environment mit Repo-Root als Build-Context anlegen. Env-Vars:
+Service im Dev-Environment mit Repo-Root als Build-Context:
 
 - `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` → Dev-Supabase
-- `GEMINI_API_KEY`, `APIFY_TOKEN` → müssen **gesetzt** sein, damit der Prozess bootet
-  (`backend/src/config.ts` wirft sonst). Dummy-Werte reichen, solange keine echte Extraction im Dev
-  gebraucht wird.
-- `ROLE=web` (zum Ansehen/Testen genügt der Web-Teil; Worker optional).
-- `CORS_ORIGIN` auf die Preview-Domain(s) setzen.
+- `GEMINI_API_KEY`, `APIFY_TOKEN` → müssen gesetzt sein
+- `ROLE=web`
+- `CORS_ORIGIN` auf Preview-Domain(s).
 
 ### 4. Frontend-Preview auf Railway
 
-- Service mit Root-Directory `frontend` (nutzt `frontend/railway.json`: NIXPACKS, `build:dev`,
-  `serve -s dist -l $PORT`).
-- Build-Variablen: `VITE_API_BASE_URL` = Dev-Backend-URL, `VITE_SUPABASE_URL` /
-  `VITE_SUPABASE_PUBLISHABLE_KEY` = Dev-Supabase, `VITE_TEST_LOGIN=true`,
-  `VITE_TEST_USER_EMAIL` / `VITE_TEST_USER_PASSWORD` = Seed-Test-User.
+- Service mit Root-Directory `frontend` (`frontend/railway.json`).
+- Build-Variablen: `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`,
+  `VITE_TEST_LOGIN=true`, `VITE_TEST_USER_EMAIL`, `VITE_TEST_USER_PASSWORD`.
 
-### 5. Seed ausführen
+### 5. Test-User anlegen (Seed)
 
 ```bash
 cd backend
@@ -99,18 +87,8 @@ SEED_TEST_USER_EMAIL=test@dev.snagbite.local SEED_TEST_USER_PASSWORD=<pw> \
 npm run seed:dev
 ```
 
-Legt den Test-User (email-confirmed) an und schreibt 3 fertige Rezepte + 1 Collection. Idempotent
-(feste IDs, Upsert). Verweigert die Ausführung, wenn `SUPABASE_URL` nach Produktion aussieht.
-
-Alternative ohne Node (z.B. direkt im Studio-SQL-Editor): Test-User via Studio →
-Authentication → Add user anlegen, dann **`backend/db/seed.sql`** ausführen — schreibt dieselben
-Beispieldaten, per E-Mail auf den User gemappt (idempotent).
-
-### 6. Pro-PR-Previews (der eigentliche Loop)
-
-Railway↔GitHub-Integration mit **PR-Environments** aktivieren: pro PR werden Dev-Backend + Frontend
-ephemer deployt, alle gegen die geteilte Dev-Supabase, und Railway postet die Preview-URL am PR. Du
-öffnest die URL am Handy, testest, mergst.
+Legt den Test-User (email-confirmed) in GoTrue Auth an. Idempotent. Verweigert die Ausführung bei
+Produktions-URLs.
 
 ---
 
@@ -128,8 +106,8 @@ EOF
 
 # 2. Dev-Server (auto-login als Test-User)
 npm run dev -w frontend
-
-# 3. Oder den Preview-Build wie in Prod servieren
+```
+uild wie in Prod servieren
 npm run build:dev -w frontend
 npm run serve:dev -w frontend   # http://localhost:4173
 ```
