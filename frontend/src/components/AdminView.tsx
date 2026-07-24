@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Tabs, Card, TextField, Label, Input, Button, Spinner } from '@heroui/react';
-import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal, BarChart3, Users, BookOpen, TrendingUp, Coins, HardDriveDownload } from 'lucide-react';
+import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal, BarChart3, Users, BookOpen, TrendingUp, Coins, HardDriveDownload, ExternalLink, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
 import { useI18n } from '../context/I18nContext';
@@ -51,6 +51,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [expandedFeedbackId, setExpandedFeedbackId] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [showFailedJobs, setShowFailedJobs] = useState(false);
 
   const isDe = language === 'de';
 
@@ -711,10 +712,24 @@ export default function AdminView({ onBack }: AdminViewProps) {
                       <span className="text-[10px] leading-tight text-emerald-500 dark:text-emerald-400/80 font-semibold truncate">{isDe ? 'Erfolgreich' : 'Succeeded'}</span>
                       <span className="text-lg font-bold text-emerald-500 dark:text-emerald-300 mt-0.5">{metrics.jobs?.completed ?? 0}</span>
                     </div>
-                    <div className="bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/10 dark:border-rose-500/15 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-[10px] leading-tight text-rose-400 dark:text-rose-400/80 font-semibold truncate">{isDe ? 'Fehlgeschlagen' : 'Failed'}</span>
-                      <span className="text-lg font-bold text-rose-500 dark:text-rose-300 mt-0.5">{metrics.jobs?.failed ?? 0}</span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowFailedJobs((prev) => !prev)}
+                      className={`bg-rose-500/5 dark:bg-rose-500/10 border rounded-xl p-2.5 flex flex-col items-center justify-center text-center transition-all cursor-pointer outline-none ${
+                        showFailedJobs
+                          ? 'border-rose-500 ring-2 ring-rose-500/30 bg-rose-500/15 dark:bg-rose-500/25'
+                          : 'border-rose-500/10 dark:border-rose-500/15 hover:border-rose-500/40 hover:scale-[1.02]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center gap-1 w-full">
+                        <span className="text-[10px] leading-tight text-rose-500 dark:text-rose-400 font-semibold truncate">{isDe ? 'Fehlgeschlagen' : 'Failed'}</span>
+                        <ChevronDown className={`w-3 h-3 text-rose-500 transition-transform duration-200 ${showFailedJobs ? 'rotate-180' : ''}`} />
+                      </div>
+                      <span className="text-lg font-bold text-rose-600 dark:text-rose-300 mt-0.5">{metrics.jobs?.failed ?? 0}</span>
+                      <span className="text-[9px] font-semibold text-rose-500/80 dark:text-rose-400/80 underline decoration-rose-500/40">
+                        {showFailedJobs ? (isDe ? 'Verbergen' : 'Hide') : (isDe ? 'Details' : 'Details')}
+                      </span>
+                    </button>
                     <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/10 dark:border-blue-500/15 rounded-xl p-2.5 flex flex-col">
                       <span className="text-[10px] leading-tight text-blue-400 dark:text-blue-400/80 font-semibold truncate">{isDe ? 'Aktiv' : 'Processing'}</span>
                       <span className="text-lg font-bold text-blue-500 dark:text-blue-300 mt-0.5">{metrics.jobs?.processing ?? 0}</span>
@@ -725,6 +740,87 @@ export default function AdminView({ onBack }: AdminViewProps) {
                     </div>
                   </div>
                 </Card>
+
+                {/* 2b. Failed Job Details Card (Shown on click of Failed Queue Status) */}
+                {showFailedJobs && (
+                  <Card className="glass-panel p-5 rounded-2xl border border-rose-500/20 dark:border-rose-500/30 shadow-lg bg-white dark:bg-gray-900 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500">
+                          <AlertCircle className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col">
+                          <h3 className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider leading-none">
+                            {isDe ? 'Fehlgeschlagene Jobs' : 'Failed Jobs'}
+                          </h3>
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                            {isDe ? `Zeitraum: ${rangeLabel[metricsRange]}` : `Timeframe: ${rangeLabel[metricsRange]}`}
+                          </span>
+                        </div>
+                        <span className="ml-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 font-bold">
+                          {metrics.jobs?.failedJobs?.length ?? 0}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowFailedJobs(false)}
+                        className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                        aria-label="Close"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {(!metrics.jobs?.failedJobs || metrics.jobs.failedJobs.length === 0) ? (
+                      <div className="text-center py-8 px-4 bg-gray-50 dark:bg-gray-950/50 rounded-xl border border-black/5 dark:border-white/5">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {isDe ? 'Keine fehlgeschlagenen Jobs im gewählten Zeitraum vorhanden.' : 'No failed jobs found in the selected timeframe.'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-3 max-h-96 overflow-y-auto pr-1">
+                        {metrics.jobs.failedJobs.map((job: any) => (
+                          <div key={job.id} className="p-3.5 bg-rose-500/5 dark:bg-rose-950/20 border border-rose-500/15 dark:border-rose-500/25 rounded-xl flex flex-col gap-2.5">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex flex-col gap-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap text-xs">
+                                  <span className="font-bold text-gray-900 dark:text-gray-100 truncate" title={job.email || job.userId}>
+                                    {job.email || job.userId}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded">
+                                    ID: {job.id.slice(0, 8)}...
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono">
+                                  {formatDate(job.createdAt)}
+                                </span>
+                              </div>
+                              {job.url && (
+                                <a
+                                  href={job.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 hover:underline shrink-0 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 rounded-lg transition-all"
+                                >
+                                  <span>{isDe ? 'Reel öffnen' : 'Open Reel'}</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
+                            </div>
+
+                            {/* Error Details Container */}
+                            <div className="p-3 bg-black/5 dark:bg-gray-950 border border-black/5 dark:border-white/10 rounded-xl text-[11px] font-mono text-rose-700 dark:text-rose-300 break-words leading-relaxed whitespace-pre-wrap">
+                              <span className="font-bold text-rose-500 uppercase tracking-wider text-[9px] block mb-1">
+                                {isDe ? 'Fehlergrund:' : 'Error details:'}
+                              </span>
+                              {job.error || (isDe ? 'Keine genauere Fehlermeldung hinterlegt.' : 'No detailed error message provided.')}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </Card>
+                )}
 
                 {/* 3. LLM Breakdown Table */}
                 <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-4 overflow-hidden">
