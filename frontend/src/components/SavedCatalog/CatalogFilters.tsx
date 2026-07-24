@@ -51,7 +51,7 @@ export default function CatalogFilters({
   };
 
   return (
-    <div className="sticky top-[env(safe-area-inset-top)] z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-3 pt-3">
+    <div className="sticky top-[var(--safe-area-inset-top)] z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-3 pt-3">
       {/* Search & View Toggle Bar */}
       <div className="flex gap-2 items-center min-h-[44px]">
         {isSearchActive ? (
@@ -161,7 +161,7 @@ export default function CatalogFilters({
         {/* 'All' chip */}
         <button
           onClick={() => setActiveFilter('all')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
+          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer ${
             activeFilter === 'all'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -173,7 +173,7 @@ export default function CatalogFilters({
         {/* 'Favorites' chip */}
         <button
           onClick={() => setActiveFilter('favorites')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer flex items-center gap-1 ${
+          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer flex items-center gap-1 ${
             activeFilter === 'favorites'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -191,7 +191,7 @@ export default function CatalogFilters({
             <button
               key={col.id}
               onClick={() => setActiveFilter(isSelected ? 'all' : colFilter)}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer flex items-center gap-1 ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer flex items-center gap-1 ${
                 isSelected
                   ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
                   : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -206,7 +206,7 @@ export default function CatalogFilters({
         {/* 'Under 15' chip */}
         <button
           onClick={() => setActiveFilter('under15')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
+          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer ${
             activeFilter === 'under15'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -218,7 +218,7 @@ export default function CatalogFilters({
         {/* 'Under 30' chip */}
         <button
           onClick={() => setActiveFilter('under30')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
+          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer ${
             activeFilter === 'under30'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
               : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -235,7 +235,7 @@ export default function CatalogFilters({
             <button
               key={flag}
               onClick={() => setActiveFilter(isSelected ? 'all' : flagFilter)}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap active:scale-95 cursor-pointer flex items-center gap-1 ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer flex items-center gap-1 ${
                 isSelected
                   ? 'bg-amber-500 border-amber-500 text-white shadow-sm font-bold'
                   : 'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
