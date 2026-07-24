@@ -12,7 +12,8 @@
     "build": "tsc",
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "preview": "node dist/index.js",
-    "purge-hosted-frames": "tsx src/scripts/purgeHostedFrames.ts"
+    "purge-hosted-frames": "tsx src/scripts/purgeHostedFrames.ts",
+    "seed:dev": "tsx src/scripts/seedDev.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.11.0",

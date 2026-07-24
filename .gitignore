@@ -1,6 +1,9 @@
 node_modules/
 dist/
 .env
+# Local, git-ignored overrides for any Vite mode (holds dev/preview secrets like
+# VITE_TEST_USER_*). The committed .env.development carries only non-secret flags.
+.env*.local
 database.json
 *.log
 *.mp3

@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { supabase } from '../supabase';
 import { apiUrl } from '../api';
+import { TEST_LOGIN_ENABLED, TEST_USER_EMAIL, TEST_USER_PASSWORD } from '../env';
 
 const GOOGLE_WEB_CLIENT_ID = import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID as string | undefined;
 
@@ -165,27 +166,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) {
-        // No active session on cold start: try to sign in silently with an
-        // on-device Google account before falling back to the login form.
-        // On success, the onAuthStateChange listener below already applied
-        // the new session — don't overwrite it with the stale `session`
-        // (still null here) captured before the silent attempt ran.
-        const res = await attemptSilentGoogleSignIn();
-        if (res.success) {
-          setAutoSignedIn(true);
-          setAuthError(null);
+    if (TEST_LOGIN_ENABLED) {
+      // Dev / preview only (VITE_TEST_LOGIN=true): auto-sign-in as the seeded
+      // test user so the app renders the authenticated UI in a headless / mobile
+      // browser without the native Google flow. Produces a real Supabase JWT, so
+      // all backend calls work against the dev environment. On success the
+      // onAuthStateChange listener below applies the session.
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
+        if (session) {
+          setSession(session);
+          setUser(session.user);
+          setLoading(false);
           return;
-        } else if (res.error) {
-          setAuthError(res.error);
         }
-      }
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: TEST_USER_EMAIL!,
+          password: TEST_USER_PASSWORD!,
+        });
+        if (error) {
+          setAuthError(error.message);
+          setLoading(false);
+        }
+      });
+    } else {
+      // Get initial session
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
+        if (!session) {
+          // No active session on cold start: try to sign in silently with an
+          // on-device Google account before falling back to the login form.
+          // On success, the onAuthStateChange listener below already applied
+          // the new session — don't overwrite it with the stale `session`
+          // (still null here) captured before the silent attempt ran.
+          const res = await attemptSilentGoogleSignIn();
+          if (res.success) {
+            setAutoSignedIn(true);
+            setAuthError(null);
+            return;
+          } else if (res.error) {
+            setAuthError(res.error);
+          }
+        }
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
+    }
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
