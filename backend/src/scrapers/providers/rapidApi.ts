@@ -90,6 +90,14 @@ function pickVideo(medias: RapidMedia[]): RapidMedia | null {
   return pool[0]; // no parseable heights — trust API order
 }
 
+/** Max carousel images we download/process (IG allows up to 20; keeps cost bounded). */
+const MAX_CAROUSEL_IMAGES = 15;
+
+/** All image entries of an image-carousel post, in carousel order. */
+function pickImages(medias: RapidMedia[]): RapidMedia[] {
+  return medias.filter((m) => m.url && isType(m, 'image')).slice(0, MAX_CAROUSEL_IMAGES);
+}
+
 /** Pick the highest-bitrate audio-only track, if any. */
 function pickAudio(medias: RapidMedia[]): RapidMedia | null {
   const audios = medias.filter((m) => m.url && isType(m, 'audio'));
@@ -128,7 +136,12 @@ export const rapidApiProvider: SocialScrapeProvider = {
 
     const medias = Array.isArray(data.medias) ? data.medias : [];
     const video = pickVideo(medias);
-    if (!video?.url) throw new Error('RapidAPI returned no usable video media.');
+    // Image-carousel posts (IG/TikTok photo slideshows) have no video at all — fall
+    // back to the ordered image list before giving up.
+    const carouselImages = video ? [] : pickImages(medias);
+    if (!video?.url && carouselImages.length === 0) {
+      throw new Error('RapidAPI returned no usable video or image media.');
+    }
     const audio = pickAudio(medias);
 
     let caption = (data.title ?? '').toString();
@@ -144,18 +157,26 @@ export const rapidApiProvider: SocialScrapeProvider = {
       if (meta.authorHandle && isGenericAuthor(authorHandle)) authorHandle = meta.authorHandle;
     }
 
+    // CDN links served fine cross-network with just a UA in testing.
+    const headers = { 'User-Agent': BROWSER_UA };
+
     return {
       caption,
       imageUrl: (data.thumbnail ?? '').toString(),
       authorHandle: authorHandle || undefined,
       durationSeconds: normalizeDurationToSeconds(data.duration),
-      media: {
-        kind: 'direct',
-        videoUrl: video.url,
-        audioUrl: audio?.url ?? video.url, // separate audio track when present; else the (progressive) video
-        // CDN links served fine cross-network with just a UA in testing.
-        headers: { 'User-Agent': BROWSER_UA },
-      },
+      media: video?.url
+        ? {
+            kind: 'direct',
+            videoUrl: video.url,
+            audioUrl: audio?.url ?? video.url, // separate audio track when present; else the (progressive) video
+            headers,
+          }
+        : {
+            kind: 'images',
+            imageUrls: carouselImages.map((m) => m.url!),
+            headers,
+          },
     };
   },
 };

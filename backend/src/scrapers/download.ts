@@ -56,10 +56,24 @@ export interface DownloadedMedia {
   audioFilePath: string;
   /** Local path to the video file (for frame extraction), or '' when absent/failed. */
   videoFilePath: string;
+  /** Local paths to carousel images in post order (empty unless the source is an image carousel). */
+  imageFilePaths: string[];
   /** Best-effort mime type for the audio file (from its extension). */
   mimeType?: string;
-  /** Combined size of all downloaded media (audio + video) in bytes (0 when nothing was downloaded). */
+  /** Combined size of all downloaded media (audio + video + images) in bytes (0 when nothing was downloaded). */
   mediaBytes: number;
+}
+
+/** File extension for a carousel image URL (defaults to .jpg). */
+function imageExtension(url: string): string {
+  try {
+    const pathname = new URL(url).pathname.toLowerCase();
+    const match = pathname.match(/\.(jpe?g|png|webp|heic)$/);
+    if (match) return `.${match[1]}`;
+  } catch {
+    // fall through to default
+  }
+  return '.jpg';
 }
 
 /** Best-effort file size in bytes; returns 0 if the path is empty or unreadable. */
@@ -79,7 +93,28 @@ async function fileSizeBytes(filePath: string): Promise<number> {
  * missing video still lets audio + caption drive extraction.
  */
 export async function downloadMedia(media: MediaDownload, runDir: string): Promise<DownloadedMedia> {
-  if (media.kind === 'none') return { audioFilePath: '', videoFilePath: '', mediaBytes: 0 };
+  if (media.kind === 'none') return { audioFilePath: '', videoFilePath: '', imageFilePaths: [], mediaBytes: 0 };
+
+  if (media.kind === 'images') {
+    // Image carousel: fetch every slide in post order. Individual failures fail soft so
+    // a partially downloaded carousel still drives extraction.
+    const results = await Promise.all(
+      media.imageUrls.map(async (url, i) => {
+        const destPath = path.join(runDir, `image_${i}${imageExtension(url)}`);
+        try {
+          await downloadFile(url, destPath, media.headers);
+          return destPath;
+        } catch (err: any) {
+          console.warn(`[download] carousel image ${i} download failed: ${err.message}`);
+          return '';
+        }
+      }),
+    );
+    const imageFilePaths = results.filter(Boolean);
+    const sizes = await Promise.all(imageFilePaths.map(fileSizeBytes));
+    const mediaBytes = sizes.reduce((sum, n) => sum + n, 0);
+    return { audioFilePath: '', videoFilePath: '', imageFilePaths, mediaBytes };
+  }
 
   const audioExt = media.kind === 'ytdlp' ? '.mp3' : media.audioUrl?.includes('.mp3') ? '.mp3' : '.mp4';
   let audioFilePath = path.join(runDir, `audio${audioExt}`);
@@ -144,5 +179,5 @@ export async function downloadMedia(media: MediaDownload, runDir: string): Promi
     fileSizeBytes(videoFilePath),
   ]);
   const mediaBytes = audioBytes + videoBytes;
-  return { audioFilePath, videoFilePath, mimeType: audioExt === '.mp3' ? 'audio/mp3' : 'audio/mp4', mediaBytes };
+  return { audioFilePath, videoFilePath, imageFilePaths: [], mimeType: audioExt === '.mp3' ? 'audio/mp3' : 'audio/mp4', mediaBytes };
 }
