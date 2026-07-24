@@ -707,36 +707,36 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5 leading-none">
                     Queue Status Breakdown
                   </h3>
-                  <div className="grid grid-cols-4 gap-2 text-center">
-                    <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 dark:border-emerald-500/15 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-[10px] leading-tight text-emerald-500 dark:text-emerald-400/80 font-semibold truncate">{isDe ? 'Erfolgreich' : 'Succeeded'}</span>
-                      <span className="text-lg font-bold text-emerald-500 dark:text-emerald-300 mt-0.5">{metrics.jobs?.completed ?? 0}</span>
+                  <div className="grid grid-cols-2 gap-3 text-center">
+                    <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 dark:border-emerald-500/15 rounded-xl p-3 flex flex-col items-center justify-center">
+                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400/90 truncate">{isDe ? 'Erfolgreich' : 'Succeeded'}</span>
+                      <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-300 mt-1">{metrics.jobs?.completed ?? 0}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowFailedJobs((prev) => !prev)}
-                      className={`bg-rose-500/5 dark:bg-rose-500/10 border rounded-xl p-2.5 flex flex-col items-center justify-center text-center transition-all cursor-pointer outline-none ${
+                      className={`bg-rose-500/5 dark:bg-rose-500/10 border rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer outline-none ${
                         showFailedJobs
                           ? 'border-rose-500 ring-2 ring-rose-500/30 bg-rose-500/15 dark:bg-rose-500/25'
                           : 'border-rose-500/10 dark:border-rose-500/15 hover:border-rose-500/40 hover:scale-[1.02]'
                       }`}
                     >
                       <div className="flex items-center justify-center gap-1 w-full">
-                        <span className="text-[10px] leading-tight text-rose-500 dark:text-rose-400 font-semibold truncate">{isDe ? 'Fehlgeschlagen' : 'Failed'}</span>
-                        <ChevronDown className={`w-3 h-3 text-rose-500 transition-transform duration-200 ${showFailedJobs ? 'rotate-180' : ''}`} />
+                        <span className="text-xs font-semibold text-rose-600 dark:text-rose-400 truncate">{isDe ? 'Fehlgeschlagen' : 'Failed'}</span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-rose-500 transition-transform duration-200 ${showFailedJobs ? 'rotate-180' : ''}`} />
                       </div>
-                      <span className="text-lg font-bold text-rose-600 dark:text-rose-300 mt-0.5">{metrics.jobs?.failed ?? 0}</span>
-                      <span className="text-[9px] font-semibold text-rose-500/80 dark:text-rose-400/80 underline decoration-rose-500/40">
+                      <span className="text-xl font-extrabold text-rose-600 dark:text-rose-300 mt-1">{metrics.jobs?.failed ?? 0}</span>
+                      <span className="text-[10px] font-bold text-rose-500/80 dark:text-rose-400/80 underline decoration-rose-500/40 mt-0.5">
                         {showFailedJobs ? (isDe ? 'Verbergen' : 'Hide') : (isDe ? 'Details' : 'Details')}
                       </span>
                     </button>
-                    <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/10 dark:border-blue-500/15 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-[10px] leading-tight text-blue-400 dark:text-blue-400/80 font-semibold truncate">{isDe ? 'Aktiv' : 'Processing'}</span>
-                      <span className="text-lg font-bold text-blue-500 dark:text-blue-300 mt-0.5">{metrics.jobs?.processing ?? 0}</span>
+                    <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/10 dark:border-blue-500/15 rounded-xl p-3 flex flex-col items-center justify-center">
+                      <span className="text-xs font-semibold text-blue-600 dark:text-blue-400/90 truncate">{isDe ? 'Aktiv' : 'Processing'}</span>
+                      <span className="text-xl font-extrabold text-blue-600 dark:text-blue-300 mt-1">{metrics.jobs?.processing ?? 0}</span>
                     </div>
-                    <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 dark:border-amber-500/15 rounded-xl p-2.5 flex flex-col">
-                      <span className="text-[10px] leading-tight text-amber-500 dark:text-amber-400/80 font-semibold truncate">{isDe ? 'Wartend' : 'Pending'}</span>
-                      <span className="text-lg font-bold text-amber-500 dark:text-amber-300 mt-0.5">{metrics.jobs?.pending ?? 0}</span>
+                    <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 dark:border-amber-500/15 rounded-xl p-3 flex flex-col items-center justify-center">
+                      <span className="text-xs font-semibold text-amber-600 dark:text-amber-400/90 truncate">{isDe ? 'Wartend' : 'Pending'}</span>
+                      <span className="text-xl font-extrabold text-amber-600 dark:text-amber-300 mt-1">{metrics.jobs?.pending ?? 0}</span>
                     </div>
                   </div>
                 </Card>
