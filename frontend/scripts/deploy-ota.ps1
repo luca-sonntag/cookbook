@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Builds and publishes an OTA (over-the-air) web bundle to Supabase Storage.
 
