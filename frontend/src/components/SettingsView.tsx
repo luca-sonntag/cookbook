@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Select, ListBox, Popover } from '@heroui/react';
 import { LogOut, Globe, Moon, Sun, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare, Shield, ScrollText, Building2, ExternalLink } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
@@ -9,6 +9,7 @@ import { useHashRouter } from '../hooks/useHashRouter';
 import PremiumModal from './PremiumModal';
 import { FeedbackDrawer } from './FeedbackDrawer';
 import { APP_VERSION_LABEL } from '../version';
+import { getActiveOtaVersion } from '../utils/otaUpdater';
 import { LEGAL_URLS } from '../legal';
 import PremiumUpgradeCard from './PremiumUpgradeCard';
 
@@ -50,7 +51,13 @@ export default function SettingsView() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  // Version of the running OTA web bundle, null on stock (builtin) installs.
+  const [otaVersion, setOtaVersion] = useState<string | null>(null);
   const isDev = import.meta.env.DEV;
+
+  useEffect(() => {
+    getActiveOtaVersion().then(setOtaVersion).catch(() => {});
+  }, []);
 
   const preferredTempUnit = user?.user_metadata?.preferred_temperature_unit || 'Celsius';
   const preferredUnitSystem = user?.user_metadata?.preferred_unit_system || 'metric';
@@ -532,7 +539,7 @@ export default function SettingsView() {
 
       <div className="flex justify-center mt-4 mb-8">
         <p className="text-xs text-gray-400 dark:text-gray-600 font-medium">
-          Snagbite {APP_VERSION_LABEL}
+          Snagbite {APP_VERSION_LABEL}{otaVersion ? ` · ota ${otaVersion}` : ''}
         </p>
       </div>
 
