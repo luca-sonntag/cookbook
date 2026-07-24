@@ -275,6 +275,17 @@ function getPromptUnitInstructions(userPrefs?: UserPreferences) {
  * and extracts a structured recipe. If no audio is provided, it extracts from the text/html context.
  * Automatically deletes the files from Gemini storage when done.
  */
+/** Image mime type from a local file path's extension (defaults to image/jpeg). */
+function imageMimeType(filePath: string): string {
+  const ext = filePath.toLowerCase().match(/\.(\w+)$/)?.[1];
+  switch (ext) {
+    case 'png': return 'image/png';
+    case 'webp': return 'image/webp';
+    case 'heic': return 'image/heic';
+    default: return 'image/jpeg';
+  }
+}
+
 export async function extractRecipe(
   audioFilePath: string | undefined,
   mimeType: string | undefined,
@@ -282,7 +293,8 @@ export async function extractRecipe(
   gridImagePath?: string,
   logDir?: string,
   userPrefs?: UserPreferences,
-  htmlContent?: string
+  htmlContent?: string,
+  carouselImagePaths?: string[]
 ): Promise<Recipe> {
   if (!config.GEMINI_API_KEY || config.GEMINI_API_KEY === 'your_gemini_api_key_here') {
     throw new Error('Gemini API key is not configured in environment variables.');
@@ -292,6 +304,7 @@ export async function extractRecipe(
   const timestamp = new Date().toISOString();
   let uploadResult: any;
   let gridUploadResult: any;
+  const carouselUploadResults: any[] = [];
   let rawOutput: string | undefined;
 
   try {
@@ -348,6 +361,26 @@ export async function extractRecipe(
       });
     }
 
+    // 2c. Image-carousel posts: upload every slide at full resolution (recipe text is
+    // often written directly on the images, so the downscaled grid is not enough).
+    if (carouselImagePaths?.length) {
+      console.log(`[extractRecipe] Uploading ${carouselImagePaths.length} carousel images for recipe extraction...`);
+      for (const imagePath of carouselImagePaths) {
+        const imgMime = imageMimeType(imagePath);
+        const imgUpload = await fileManager.uploadFile(imagePath, {
+          mimeType: imgMime,
+          displayName: `carousel-image-${Date.now()}`,
+        });
+        carouselUploadResults.push(imgUpload);
+        contentParts.push({
+          fileData: {
+            fileUri: imgUpload.file.uri,
+            mimeType: imgMime,
+          },
+        });
+      }
+    }
+
     // 3. Request structured content from Gemini
     const model = genAI.getGenerativeModel({
       model: config.GEMINI_MODEL,
@@ -360,7 +393,13 @@ export async function extractRecipe(
 
     const { targetLanguage, tempInstruction, unitSystemInstruction, languageInstruction } = getPromptUnitInstructions(userPrefs);
 
-    const prompt = `You are an expert recipe extractor. Analyze the provided content (which may include audio, website text, or video caption)${gridImagePath ? ' and an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating)' : ''}.
+    const visualContextClause = carouselImagePaths?.length
+      ? ` and ${carouselImagePaths.length} images from a photo-carousel post in their original slide order. Recipe carousels typically show the finished dish plus slides where the ingredient list and step-by-step instructions are written as TEXT ON the images — carefully read ALL text visible in every image; it is the primary recipe source`
+      : gridImagePath
+        ? ' and an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating)'
+        : '';
+
+    const prompt = `You are an expert recipe extractor. Analyze the provided content (which may include audio, website text, or video caption)${visualContextClause}.
     
 Reconstruct the complete recipe, resolving any contradictions culinary-wise. Ensure to follow the field-level guidelines specified in the descriptions of the output schema.
 
@@ -374,7 +413,7 @@ Key Constraints:
 5. Clean Ingredient Names: ${CLEAN_INGREDIENT_NAMES_INSTRUCTION}
 6. Ingredient Decomposition: ${INGREDIENT_DECOMPOSITION_INSTRUCTION}
 7. Ingredient-level Nutritional Values: For each ingredient, you MUST estimate its nutritional values (calories, protein, carbs, fat) based on the ENTIRE specified quantity (amount * unit). Do NOT output per-100g, per-100ml, or single-unit values unless the quantity is exactly 100g, 100ml, or 1 unit. E.g., if chicken breast has 165 kcal per 100g and the recipe specifies 500g, the calories field MUST be 825, NOT 165. If a potato has 150 kcal and the amount is 6, the calories field MUST be 900, NOT 150. If olive oil has 14g fat/EL and the amount is 3 EL, the fat field MUST be 42, NOT 14.
-8. Infer Missing Ingredients from Title/Visuals: If the title or the 16 video frames explicitly show or mention an ingredient/component (e.g., 'Air-Fried Broccolini' in the title and green broccolini on the plate) but the caption text omits it from the ingredients list, you MUST infer its presence. Add it to the ingredients list (with a reasonable estimated quantity, e.g., '1 bunch' or '200g') and add a cooking step in the instructions so the recipe is complete and matches the final plated dish.
+8. Infer Missing Ingredients from Title/Visuals: If the title or the provided images explicitly show or mention an ingredient/component (e.g., 'Air-Fried Broccolini' in the title and green broccolini on the plate) but the caption text omits it from the ingredients list, you MUST infer its presence. Add it to the ingredients list (with a reasonable estimated quantity, e.g., '1 bunch' or '200g') and add a cooking step in the instructions so the recipe is complete and matches the final plated dish.
 9. Serving Size Estimation: Identify the number of servings or portions the recipe makes. Look for clues like 'serves 4' or estimate based on the ingredient amounts (e.g., 500g chicken and 6 potatoes typically serves 3-4 people). Avoid defaulting to 1 serving if the ingredient amounts are clearly meant for a family-sized meal.
 10. Zero-Calorie & Low-Calorie Ingredients: Ingredients like water, ice, salt, or baking soda MUST have 0 calories, protein, carbs, and fat. For spices, seasonings, or herbs in small quantities (like teaspoons), focus your calculation energy on the high-calorie/high-macro ingredients (meats, oils, dairy, grains, starches) and estimate very small values (e.g., 5 kcal) or 0.
 11. Cooked vs. Raw/Dry States of Expandable Ingredients: ${COOKED_VS_RAW_INSTRUCTION}
@@ -442,6 +481,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
         uploadMimeType: mimeType === 'video/mp4' ? 'audio/mp4' : mimeType,
         captionLength: caption.length,
         captionPreview: caption.slice(0, 300),
+        carouselImageCount: carouselImagePaths?.length ?? 0,
         prompt,
       },
       rawOutput,
@@ -465,6 +505,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
         mimeType,
         captionLength: caption.length,
         captionPreview: caption.slice(0, 300),
+        carouselImageCount: carouselImagePaths?.length ?? 0,
       },
       rawOutput,
       logDir,
@@ -481,6 +522,13 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
       fileManager.deleteFile(gridUploadResult.file.name).catch((err: any) => {
         console.error(`Failed to clean up file ${gridUploadResult.file.name} from Gemini File API:`, err.message);
       });
+    }
+    for (const imgUpload of carouselUploadResults) {
+      if (imgUpload?.file?.name) {
+        fileManager.deleteFile(imgUpload.file.name).catch((err: any) => {
+          console.error(`Failed to clean up file ${imgUpload.file.name} from Gemini File API:`, err.message);
+        });
+      }
     }
   }
 }
