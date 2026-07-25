@@ -6,6 +6,7 @@ import { getScraperForUrl } from './scrapers/index.js';
 import { downloadMedia } from './scrapers/download.js';
 import { extractRecipe, remixRecipe } from './gemini.js';
 import { pruneOldGeminiLogs } from './logger.js';
+import { isPhotoJobUrl, photoUploadIdFromUrl, downloadImportPhotos, deleteImportPhotos, sweepOldPhotoImports } from './photoImport.js';
 import type { Job, ProgressData } from './types.js';
 import { config } from './config.js';
 import { AppError, serializeJobError } from './errors.js';
@@ -377,6 +378,10 @@ export function startQueue(pollIntervalMs = 2000): void {
     sweepOldRecipeFrames(24)
       .then(n => { if (n > 0) console.log(`[cleanup] Swept ${n} orphaned recipe frame(s).`); })
       .catch(err => console.error('[cleanup] Frame sweep failed:', err));
+    // Backstop for photo imports whose job never ran (see photoImport.ts).
+    sweepOldPhotoImports(24)
+      .then(n => { if (n > 0) console.log(`[cleanup] Swept ${n} orphaned import photo(s).`); })
+      .catch(err => console.error('[cleanup] Photo import sweep failed:', err));
   };
   runCleanup();
   cleanupInterval = setInterval(runCleanup, 12 * 60 * 60 * 1000);
