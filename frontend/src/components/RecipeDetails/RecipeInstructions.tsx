@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { ChevronRight, Play, Sparkles, Check, ChefHat } from 'lucide-react';
+import { Play, Sparkles, Check, ChefHat, CookingPot } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeInstructionText from '../RecipeInstructionText';
 import { useI18n } from '../../context/I18nContext';
@@ -33,52 +33,63 @@ export default function RecipeInstructions({
   const { isPremium } = useAuth();
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pb-4">
       {/* Cooking Progress Bar & Start Button Card */}
-      <Card className="glass-panel p-5 rounded-2xl flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div className="flex-1">
-            <div className="flex justify-between items-center mb-1.5">
-              <span className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('recipe.cookingProgress')}</span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                {t('recipe.progressSteps', { completed: completedStepsCount, total: totalStepsCount, percent: Math.round(progressPercent) })}
-              </span>
-            </div>
-            <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
-              <div
-                className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+            <CookingPot className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
           </div>
-
-          <Button
-            className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all flex-shrink-0 self-start sm:self-center"
-            onPress={onStartCooking}
-          >
-            <Play className="w-4 h-4 fill-white" />
-            <span>{t('recipe.startCooking')}</span>
-            {!isPremium && <PremiumCrownBadge />}
-          </Button>
+          <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('recipe.stepByStep')}</h3>
+          {totalStepsCount > 0 && (
+            <span className="ml-auto text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-full px-2.5 py-1 tabular-nums select-none">
+              {totalStepsCount}
+            </span>
+          )}
         </div>
-      </Card>
 
-      {recipe.equipment && recipe.equipment.length > 0 && (
-        <Card className="glass-panel p-5 rounded-2xl">
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">{t('recipe.requiredEquipment')}</h3>
-          <ul className="grid grid-cols-2 gap-2">
-            {recipe.equipment.map((item, idx) => (
-              <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] rounded-lg border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
-                <ChevronRight className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+        {/* Equipment as a wrapping chip row — integrated under instructions steps */}
+        {recipe.equipment && recipe.equipment.length > 0 && (
+          <div className="pt-2 pb-4">
+            <ul className="flex flex-wrap gap-1.5">
+              {recipe.equipment.map((item, idx) => (
+                <li key={idx} className="py-1.5 px-3 bg-black/5 dark:bg-white/5 rounded-full border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+
+        <Card className="glass-panel p-5 mb-5 rounded-2xl flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div className="flex-1">
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{t('recipe.cookingProgress')}</span>
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                  {t('recipe.progressSteps', { completed: completedStepsCount, total: totalStepsCount, percent: Math.round(progressPercent) })}
+                </span>
+              </div>
+              <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+
+            <Button
+              className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all flex-shrink-0 self-start sm:self-center"
+              onPress={onStartCooking}
+            >
+              <Play className="w-4 h-4 fill-white" />
+              <span>{t('recipe.startCooking')}</span>
+              {!isPremium && <PremiumCrownBadge />}
+            </Button>
+          </div>
         </Card>
-      )}
 
-      <Card className="glass-panel p-5 rounded-2xl">
-        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">{t('recipe.stepByStep')}</h3>
         <div className="flex flex-col gap-4">
           {recipe.instructions.map((step) => {
             const isChecked = !!checkedSteps[step.step];
@@ -88,17 +99,15 @@ export default function RecipeInstructions({
               <div
                 key={step.step}
                 onClick={() => toggleStep(step.step)}
-                className={`flex items-start gap-4 p-3.5 rounded-xl cursor-pointer transition-all duration-200 border ${
-                  isActive
-                    ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)] scale-[1.01]'
-                    : isChecked
+                className={`flex items-start gap-4 p-3.5 rounded-xl cursor-pointer transition-all duration-200 border ${isActive
+                  ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)] scale-[1.01]'
+                  : isChecked
                     ? 'bg-black/2 dark:bg-white/2 border-transparent opacity-65'
                     : 'bg-transparent border-transparent hover:bg-black/5 dark:hover:bg-white/5'
-                }`}
+                  }`}
               >
-                <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
-                  isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
-                }`}>
+                <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
+                  }`}>
                   {isChecked ? (
                     <Check className="w-3 h-3 text-white" />
                   ) : (
@@ -112,9 +121,8 @@ export default function RecipeInstructions({
                       {t('recipe.currentStep')}
                     </span>
                   )}
-                  <span className={`text-sm leading-relaxed block select-none transition-all ${
-                    isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
-                  }`}>
+                  <span className={`text-sm leading-relaxed block select-none transition-all ${isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
+                    }`}>
                     <RecipeInstructionText text={step.description} recipe={recipe} formatAmount={formatAmount} stepNum={step.step} />
                   </span>
                 </div>
@@ -122,7 +130,7 @@ export default function RecipeInstructions({
             );
           })}
         </div>
-      </Card>
+      </div>
 
       {recipe.tips && recipe.tips.length > 0 && (
         <Card className="glass-panel p-5 rounded-2xl border border-emerald-500/10">

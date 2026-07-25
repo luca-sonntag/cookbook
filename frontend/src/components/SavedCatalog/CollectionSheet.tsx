@@ -18,6 +18,9 @@ interface CollectionSheetProps {
    */
   initialMode?: 'assign' | 'create' | 'manage';
   onUpdated?: () => void;
+  /** If provided, called instead of the internal updateRecipeCollections — allows the
+   * parent to inject an optimistic implementation so the UI responds instantly. */
+  onAssign?: (jobId: string, collectionIds: string[]) => Promise<any>;
 }
 
 const EMOJIS = ['🥦', '🍕', '🍝', '🥩', '🍰', '🥐', '🥑', '🌮', '🍣', '🍩', '🍳', '🥗', '☕', '🍷'];
@@ -28,7 +31,8 @@ export default function CollectionSheet({
   job,
   selectedJobs = [],
   initialMode = 'assign',
-  onUpdated
+  onUpdated,
+  onAssign
 }: CollectionSheetProps) {
   const { t, language } = useI18n();
   const {
@@ -201,8 +205,13 @@ export default function CollectionSheet({
 
   const handleConfirmAssignment = async () => {
     if (job) {
-      // Single-recipe mode: replace membership with the selected set (same as before).
-      await updateRecipeCollections(job.id, membershipIds);
+      // Single-recipe mode: replace membership with the selected set.
+      // Prefer the optimistic injected handler if the parent provided one.
+      if (onAssign) {
+        onAssign(job.id, membershipIds);
+      } else {
+        await updateRecipeCollections(job.id, membershipIds);
+      }
       onUpdated?.();
       onClose();
       return;
@@ -226,7 +235,11 @@ export default function CollectionSheet({
         next.length === initial.length &&
         next.every(id => initial.includes(id));
       if (same) return;
-      await updateRecipeCollections(j.id, next);
+      if (onAssign) {
+        onAssign(j.id, next);
+      } else {
+        await updateRecipeCollections(j.id, next);
+      }
     });
     await Promise.all(promises);
 
@@ -239,7 +252,7 @@ export default function CollectionSheet({
       <Drawer>
         <Drawer.Backdrop isOpen={isOpen} onOpenChange={(open) => { if (!open) onClose(); }} className="!z-[100]">
           <Drawer.Content placement="bottom" className="!z-[100]">
-            <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 max-h-[85vh] flex flex-col">
+            <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 max-h-[85vh] flex flex-col pb-[calc(1.5rem_+_var(--safe-area-inset-bottom))]">
               <Drawer.Handle />
 
               {/* Header */}

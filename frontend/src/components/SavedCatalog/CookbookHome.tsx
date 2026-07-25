@@ -25,14 +25,11 @@ interface CookbookHomeProps {
   formatTotalTime: (recipe: any) => string | null;
   onOpenList: (preset: CatalogPreset) => void;
   onOpenRecipe: (e: React.MouseEvent, job: Job) => void;
-  onToggleFavorite: (e: React.MouseEvent, job: Job) => void;
   onAddCollection: () => void;
   onManageCollections: () => void;
   isSelectMode?: boolean;
   selectedIds?: Set<string>;
-  addedRecipeIds?: Record<string, boolean>;
   bindLongPress?: (id: string, job: Job) => any;
-  onDirectAdd?: (e: React.MouseEvent, job: Job) => void;
 }
 
 /**
@@ -49,14 +46,11 @@ export default function CookbookHome({
   formatTotalTime,
   onOpenList,
   onOpenRecipe,
-  onToggleFavorite,
   onAddCollection,
   onManageCollections,
   isSelectMode = false,
   selectedIds = new Set(),
-  addedRecipeIds = {},
   bindLongPress,
-  onDirectAdd
 }: CookbookHomeProps) {
   const { t } = useI18n();
 
@@ -134,12 +128,9 @@ export default function CookbookHome({
         formatTotalTime={formatTotalTime}
         onOpenAll={() => onOpenList({ kind: 'recent' })}
         onOpenRecipe={onOpenRecipe}
-        onToggleFavorite={onToggleFavorite}
         isSelectMode={isSelectMode}
         selectedIds={selectedIds}
-        addedRecipeIds={addedRecipeIds}
         bindLongPress={bindLongPress}
-        onDirectAdd={onDirectAdd}
       />
 
       <RecipeShelf
@@ -150,12 +141,9 @@ export default function CookbookHome({
         formatTotalTime={formatTotalTime}
         onOpenAll={() => onOpenList({ kind: 'favorites' })}
         onOpenRecipe={onOpenRecipe}
-        onToggleFavorite={onToggleFavorite}
         isSelectMode={isSelectMode}
         selectedIds={selectedIds}
-        addedRecipeIds={addedRecipeIds}
         bindLongPress={bindLongPress}
-        onDirectAdd={onDirectAdd}
       />
 
       <RecipeShelf
@@ -166,12 +154,9 @@ export default function CookbookHome({
         formatTotalTime={formatTotalTime}
         onOpenAll={() => onOpenList({ kind: 'quick' })}
         onOpenRecipe={onOpenRecipe}
-        onToggleFavorite={onToggleFavorite}
         isSelectMode={isSelectMode}
         selectedIds={selectedIds}
-        addedRecipeIds={addedRecipeIds}
         bindLongPress={bindLongPress}
-        onDirectAdd={onDirectAdd}
       />
 
       <RecipeShelf
@@ -182,12 +167,9 @@ export default function CookbookHome({
         formatTotalTime={formatTotalTime}
         onOpenAll={() => onOpenList({ kind: 'all' })}
         onOpenRecipe={onOpenRecipe}
-        onToggleFavorite={onToggleFavorite}
         isSelectMode={isSelectMode}
         selectedIds={selectedIds}
-        addedRecipeIds={addedRecipeIds}
         bindLongPress={bindLongPress}
-        onDirectAdd={onDirectAdd}
       />
 
       {/* Labels */}

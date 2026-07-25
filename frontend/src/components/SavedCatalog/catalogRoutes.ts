@@ -18,6 +18,7 @@
  * collide with the reserved `list` segment — 'l', 'i', 's' and 't' are not
  * hex characters.
  */
+import { EMPTY_FILTERS, type CatalogFilterState } from '../../hooks/useSavedCatalog';
 
 export const LIST_SEGMENT = 'list';
 
@@ -90,3 +91,20 @@ function safeDecode(value: string): string {
     return value;
   }
 }
+
+/** Returns the base filter state corresponding to a route preset. */
+export function getBaseFiltersForPreset(preset: CatalogPreset): CatalogFilterState {
+  switch (preset.kind) {
+    case 'favorites':
+      return { ...EMPTY_FILTERS, favoritesOnly: true };
+    case 'quick':
+      return { ...EMPTY_FILTERS, maxTime: 30 };
+    case 'collection':
+      return { ...EMPTY_FILTERS, collectionIds: [preset.id] };
+    case 'flag':
+      return { ...EMPTY_FILTERS, flags: [preset.name] };
+    default:
+      return EMPTY_FILTERS;
+  }
+}
+

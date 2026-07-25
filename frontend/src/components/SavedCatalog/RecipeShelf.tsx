@@ -13,12 +13,9 @@ interface RecipeShelfProps {
   formatTotalTime: (recipe: any) => string | null;
   onOpenAll: () => void;
   onOpenRecipe: (e: React.MouseEvent, job: Job) => void;
-  onToggleFavorite: (e: React.MouseEvent, job: Job) => void;
   isSelectMode?: boolean;
   selectedIds?: Set<string>;
-  addedRecipeIds?: Record<string, boolean>;
   bindLongPress?: (id: string, job: Job) => any;
-  onDirectAdd?: (e: React.MouseEvent, job: Job) => void;
 }
 
 /**
@@ -34,12 +31,9 @@ export default function RecipeShelf({
   formatTotalTime,
   onOpenAll,
   onOpenRecipe,
-  onToggleFavorite,
   isSelectMode = false,
   selectedIds = new Set(),
-  addedRecipeIds = {},
   bindLongPress,
-  onDirectAdd
 }: RecipeShelfProps) {
   const { t } = useI18n();
 
@@ -71,11 +65,8 @@ export default function RecipeShelf({
             totalTime={formatTotalTime(job.recipe)}
             isSelected={selectedIds.has(job.id)}
             isSelectMode={isSelectMode}
-            isAdded={!!addedRecipeIds[job.id]}
             bindLongPress={bindLongPress ? bindLongPress(job.id, job) : undefined}
             onClick={(e) => onOpenRecipe(e, job)}
-            onDirectAdd={onDirectAdd ? (e) => onDirectAdd(e, job) : undefined}
-            onToggleFavorite={(e) => onToggleFavorite(e, job)}
           />
         ))}
       </div>

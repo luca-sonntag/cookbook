@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, ShoppingCart, Check, Star } from 'lucide-react';
+import { Clock, Check } from 'lucide-react';
 import type { Job } from '../../types';
 import CachedImage from '../CachedImage';
 import { detectPlatform, PlatformIcon, PLATFORM_ICON_COLOR } from './PlatformIcon';
@@ -16,10 +16,7 @@ interface RecipePosterCardProps {
   variant?: 'grid' | 'shelf';
   isSelected?: boolean;
   isSelectMode?: boolean;
-  isAdded?: boolean;
   bindLongPress?: any;
-  onDirectAdd?: (e: React.MouseEvent) => void;
-  onToggleFavorite?: (e: React.MouseEvent) => void;
 }
 
 /**
@@ -35,10 +32,7 @@ export default function RecipePosterCard({
   variant = 'grid',
   isSelected = false,
   isSelectMode = false,
-  isAdded = false,
   bindLongPress,
-  onDirectAdd,
-  onToggleFavorite
 }: RecipePosterCardProps) {
   const r = job.recipe!;
   const platform = detectPlatform(job.url);
@@ -47,9 +41,8 @@ export default function RecipePosterCard({
 
   return (
     <div
-      className={`glass-panel rounded-2xl overflow-hidden border cursor-pointer active:scale-[0.98] transition-all select-none flex flex-col ${
-        isShelf ? 'w-[9.5rem] shrink-0' : 'w-full'
-      } ${isSelected ? '!border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-black/5 dark:border-white/5 hover:border-emerald-500/30'}`}
+      className={`glass-panel rounded-2xl overflow-hidden border cursor-pointer active:scale-[0.98] transition-all select-none flex flex-col ${isShelf ? 'w-[9.5rem] shrink-0' : 'w-full'
+        } ${isSelected ? '!border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-black/5 dark:border-white/5 hover:border-emerald-500/30'}`}
       onClick={onClick}
       {...(bindLongPress ?? {})}
     >
@@ -65,50 +58,18 @@ export default function RecipePosterCard({
         {/* Select-mode checkbox */}
         {isSelectMode && (
           <div
-            className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all border ${
-              isSelected
-                ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
-                : 'bg-black/40 backdrop-blur-sm border-white/30 text-white'
-            }`}
+            className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all border ${isSelected
+              ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
+              : 'bg-black/40 backdrop-blur-sm border-white/30 text-white'
+              }`}
           >
             {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
           </div>
         )}
 
-        {/* Favorite toggle */}
-        {!isSelectMode && onToggleFavorite && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(e);
-            }}
-            className="absolute top-1.5 right-1.5 z-10 w-9 h-9 rounded-xl bg-black/40 backdrop-blur-sm border border-white/20 text-white hover:bg-black/60 active:scale-90 transition-all flex items-center justify-center cursor-pointer"
-            aria-label="Toggle favorite"
-          >
-            <Star className={`w-4 h-4 ${job.isFavorite ? 'text-amber-400 fill-amber-400 stroke-amber-400' : 'text-white'}`} />
-          </button>
-        )}
-
-        {/* Quick add to shopping list */}
-        {!isSelectMode && onDirectAdd && (
-          <button
-            type="button"
-            onClick={onDirectAdd}
-            className={`absolute bottom-1.5 right-1.5 z-10 w-9 h-9 rounded-xl border active:scale-90 transition-all flex items-center justify-center cursor-pointer ${
-              isAdded
-                ? 'bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-500/25'
-                : 'bg-black/40 backdrop-blur-sm border-white/20 text-white hover:bg-black/60'
-            }`}
-            aria-label="Direct add"
-          >
-            {isAdded ? <Check className="w-4 h-4 animate-scale-up" /> : <ShoppingCart className="w-4 h-4" />}
-          </button>
-        )}
-
         {/* Source platform */}
-        {r.instagramHandle && (
-          <div className="absolute bottom-1.5 left-1.5 z-[5] bg-black/60 backdrop-blur-sm border border-white/10 rounded-lg w-7 h-7 flex items-center justify-center pointer-events-none select-none">
+        {!isSelectMode && (
+          <div className="absolute bottom-1.5 left-1.5 z-[5] bg-gradient-to-br from-emerald-100/85 to-indigo-100/85 dark:from-emerald-950/85 dark:to-indigo-950/85 border border-black/10 dark:border-white/15 rounded-lg w-7 h-7 flex items-center justify-center pointer-events-none select-none">
             <PlatformIcon platform={platform} className={`w-3.5 h-3.5 ${iconColor}`} />
           </div>
         )}

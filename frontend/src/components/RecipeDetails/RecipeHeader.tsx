@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus } from 'lucide-react';
+import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Star } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeImageGallery from '../RecipeImageGallery';
 import { useI18n } from '../../context/I18nContext';
@@ -20,6 +20,8 @@ interface RecipeHeaderProps {
   onAssignCollections?: () => void;
   onManageFlags?: () => void;
   flags?: string[];
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 export default function RecipeHeader({
@@ -36,10 +38,18 @@ export default function RecipeHeader({
   parentRecipeTitle,
   onAssignCollections,
   onManageFlags,
-  flags
+  flags,
+  isFavorite = false,
+  onToggleFavorite,
 }: RecipeHeaderProps) {
   const { t, language } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
+  // The description is clamped to two lines so the ingredient list starts
+  // higher up. Only offer the toggle for texts that actually get cut off —
+  // roughly two lines' worth of characters at the mobile width.
+  const isDescriptionLong = (recipe.description?.length ?? 0) > 90;
 
   const resolvedParentTitle = parentRecipeTitle || recipe.parentRecipeTitle;
 
@@ -49,8 +59,8 @@ export default function RecipeHeader({
       <RecipeImageGallery recipe={recipe} reelUrl={reelUrl} onBack={onBack} />
 
       {/* Recipe title header */}
-      <div className="flex justify-between items-start gap-4 pb-4 border-b border-black/5 dark:border-white/5">
-        <div className="min-w-0 flex-1">
+      <div className="flex justify-between items-start gap-4">
+        <div className="min-w-0 flex-1 p-2">
           {recipe.instagramHandle && (
             <div className="text-xs font-extrabold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-300 mb-1.5 leading-none select-none">
               {recipe.instagramHandle}
@@ -80,9 +90,27 @@ export default function RecipeHeader({
               )}
             </div>
           )}
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed break-words">{recipe.description}</p>
+          {recipe.description && (
+            <div className="mt-2.5">
+              <p
+                className={`text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words ${isDescriptionExpanded || !isDescriptionLong ? '' : 'line-clamp-2'
+                  }`}
+              >
+                {recipe.description}
+              </p>
+              {isDescriptionLong && (
+                <button
+                  type="button"
+                  onClick={() => setIsDescriptionExpanded(v => !v)}
+                  className="mt-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer outline-none border-none bg-transparent p-0"
+                >
+                  {isDescriptionExpanded ? t('recipe.descriptionLess') : t('recipe.descriptionMore')}
+                </button>
+              )}
+            </div>
+          )}
           {((flags && flags.length > 0) || onManageFlags) && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="flex flex-wrap gap-1.5 mt-3.5">
               {flags && flags.map((flag, idx) => (
                 <span
                   key={`flag-${idx}`}
@@ -105,23 +133,37 @@ export default function RecipeHeader({
             </div>
           )}
           {createdAt && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 font-medium">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 font-medium">
               {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
             </p>
           )}
         </div>
-        <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
-          <Popover.Trigger>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {onToggleFavorite && (
             <Button
               isIconOnly
               variant="outline"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center"
-              aria-label="Options"
+              onClick={onToggleFavorite}
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center transition-all ${
+                isFavorite ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+              aria-label="Toggle Favorite"
             >
-              <MoreVertical className="w-5 h-5" />
+              <Star className={`w-5 h-5 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
             </Button>
-          </Popover.Trigger>
-          <Popover.Content placement="bottom end" className="p-1.5 min-w-[180px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
+          )}
+          <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <Popover.Trigger>
+              <Button
+                isIconOnly
+                variant="outline"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center"
+                aria-label="Options"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </Button>
+            </Popover.Trigger>
+            <Popover.Content placement="bottom end" className="p-1.5 min-w-[180px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
             <div className="flex flex-col w-full">
               {onAssignCollections && (
                 <button
@@ -198,6 +240,7 @@ export default function RecipeHeader({
           </Popover.Content>
         </Popover>
       </div>
+    </div>
     </>
   );
 }

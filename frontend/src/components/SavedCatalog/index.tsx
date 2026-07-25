@@ -20,7 +20,7 @@ import CookbookHome from './CookbookHome';
 import BulkActionBar from './BulkActionBar';
 import CatalogEmptyState from './CatalogEmptyState';
 import CatalogLoadingState from './CatalogLoadingState';
-import { buildListRoute, isCatalogListRoute, parseListRoute, type CatalogPreset } from './catalogRoutes';
+import { buildListRoute, isCatalogListRoute, parseListRoute, getBaseFiltersForPreset, type CatalogPreset } from './catalogRoutes';
 
 interface SavedCatalogProps {
   history: Job[];
@@ -69,9 +69,23 @@ export default function SavedCatalog({
     else window.location.hash = subPath ? `#/history/${subPath}` : '#/history';
   }, [onNavigateCatalog]);
 
+  // Wrapper that sets skipNextRouteSyncRef before navigating, so the route-sync
+  // effect doesn't reset filters that were just applied by the user.
+  const navigateCatalogSkipSync = useCallback((subPath?: string | null) => {
+    skipNextRouteSyncRef.current = true;
+    navigateCatalog(subPath ?? null);
+  }, [navigateCatalog]);
+
   // Which of the three catalog levels is showing
   const isListLevel = !selectedJob && isCatalogListRoute(catalogSubPath);
   const preset = useMemo(() => parseListRoute(catalogSubPath), [catalogSubPath]);
+
+  // Track previous isListLevel to detect transitions from list → home
+  const prevIsListLevelRef = useRef(isListLevel);
+  const justNavigatedBackFromList = prevIsListLevelRef.current && !isListLevel;
+  useEffect(() => {
+    prevIsListLevelRef.current = isListLevel;
+  }, [isListLevel]);
 
   // Swipe-back / mobile back out of the detail view returns to whichever level
   // the recipe was opened from — the list route, or `null` for the cookbook
@@ -98,20 +112,17 @@ export default function SavedCatalog({
     setSearchQuery,
     filters,
     setFilters,
-    resetFilters,
     activeFilterCount,
     isSelectMode,
     setIsSelectMode,
     selectedIds,
     setSelectedIds,
-    addedRecipeIds,
     filteredJobs,
     countMatches,
     formatTotalTime,
     getRecipeTags,
     bindLongPress,
     handleCardClick,
-    handleDirectAddToShoppingList,
     handleBulkAddToShoppingList,
     handleBulkDelete,
     sortBy,
@@ -119,6 +130,7 @@ export default function SavedCatalog({
     allFlags,
     toggleFavorite,
     setRecipeFlags,
+    assignCollections,
     shelves,
     jobsByCollection,
     markOpened
@@ -132,6 +144,13 @@ export default function SavedCatalog({
   });
 
   const { collections, refreshCollections } = useCollections();
+
+  // Always read selectedJob from completedJobs so all optimistic overrides
+  // (isFavorite, flags, collectionIds) are immediately reflected in the UI
+  // without waiting for a history re-fetch.
+  const selectedJobResolved = selectedJob
+    ? (completedJobs.find(j => j.id === selectedJob.id) ?? selectedJob)
+    : null;
   const [isCollectionSheetOpen, setIsCollectionSheetOpen] = useState(false);
   const [collectionSheetJob, setCollectionSheetJob] = useState<Job | undefined>(undefined);
   const [collectionSheetBulkJobs, setCollectionSheetBulkJobs] = useState<Job[]>([]);
@@ -156,7 +175,7 @@ export default function SavedCatalog({
         return t('catalog.shelfRecent');
       case 'collection': {
         const col = collections.find(c => c.id === preset.id);
-        return col ? `${col.emoji} ${col.name}` : t('catalog.allRecipesTitle');
+        return col ? `${col.emoji ? col.emoji + ' ' : ''}${col.name}` : t('catalog.allRecipesTitle');
       }
       case 'flag':
         return preset.name;
@@ -182,50 +201,42 @@ export default function SavedCatalog({
   // entered with a different preset. Tracked by ref so the user's own edits
   // inside the sheet are never clobbered by a re-render.
   const appliedRouteRef = useRef<string | null>(null);
+  const skipNextRouteSyncRef = useRef(false);
   useEffect(() => {
     if (!isCatalogListRoute(catalogSubPath)) {
+      // Navigating back to home: reset filters and search
       appliedRouteRef.current = null;
+      setFilters(EMPTY_FILTERS);
+      setSearchQuery('');
+      setSortBy('newest');
       return;
     }
     if (appliedRouteRef.current === catalogSubPath) return;
+    // Skip route sync when navigation was triggered by a filter change
+    if (skipNextRouteSyncRef.current) {
+      skipNextRouteSyncRef.current = false;
+      appliedRouteRef.current = catalogSubPath ?? null;
+      return;
+    }
     appliedRouteRef.current = catalogSubPath ?? null;
 
-    setSearchQuery('');
-    switch (preset.kind) {
-      case 'favorites':
-        setFilters({ ...EMPTY_FILTERS, favoritesOnly: true });
-        setSortBy('newest');
-        break;
-      case 'quick':
-        setFilters({ ...EMPTY_FILTERS, maxTime: 30 });
-        setSortBy('newest');
-        break;
-      case 'collection':
-        setFilters({ ...EMPTY_FILTERS, collectionIds: [preset.id] });
-        setSortBy('newest');
-        break;
-      case 'flag':
-        setFilters({ ...EMPTY_FILTERS, flags: [preset.name] });
-        setSortBy('newest');
-        break;
-      case 'recent':
-        setFilters(EMPTY_FILTERS);
-        setSortBy('recent');
-        break;
-      default:
-        setFilters(EMPTY_FILTERS);
-        setSortBy('newest');
-        break;
+    if (preset.kind !== 'search') {
+      setSearchQuery('');
+      setFilters(getBaseFiltersForPreset(preset));
+      setSortBy(preset.kind === 'recent' ? 'recent' : 'newest');
     }
   }, [catalogSubPath, preset, setFilters, setSearchQuery, setSortBy]);
 
   // Automatically transition to the list level (Level 2) if search query
   // or active filter count becomes greater than 0 while on Cookbook Home (Level 1).
+  // Nur auslösen, wenn wir NICHT im Detail-View sind (selectedJob ist null)
+  // und wenn wir NICHT gerade von der Liste zurück zur Home navigiert haben.
   useEffect(() => {
-    if (!isListLevel && (searchQuery || activeFilterCount > 0)) {
-      navigateCatalog(buildListRoute({ kind: 'search' }));
+    if (justNavigatedBackFromList) return; // Don't auto-transition when navigating back from list to home
+    if (!isListLevel && !selectedJob && (searchQuery || activeFilterCount > 0)) {
+      navigateCatalogSkipSync(buildListRoute({ kind: 'search' }));
     }
-  }, [isListLevel, searchQuery, activeFilterCount, navigateCatalog]);
+  }, [isListLevel, selectedJob, searchQuery, activeFilterCount, navigateCatalogSkipSync, justNavigatedBackFromList]);
 
   const openList = useCallback((target: CatalogPreset) => {
     navigateCatalog(buildListRoute(target));
@@ -290,36 +301,37 @@ export default function SavedCatalog({
   // ---------------------------------------------------------------------------
   // Level 3: recipe detail
   // ---------------------------------------------------------------------------
-  if (selectedJob) {
+  if (selectedJobResolved) {
     return (
       <div className="flex flex-col gap-4">
-        {selectedJob.recipe && (
+        {selectedJobResolved.recipe && (
           <RecipeDetails
-            key={selectedJob.id}
-            recipe={selectedJob.recipe}
+            key={selectedJobResolved.id}
+            recipe={selectedJobResolved.recipe}
             onAddIngredients={onAddIngredients}
-            onDelete={() => handleDeleteJob({ stopPropagation: () => { } } as any, selectedJob.id)}
-            reelUrl={selectedJob.url}
-            createdAt={selectedJob.createdAt}
+            onDelete={() => handleDeleteJob({ stopPropagation: () => { } } as any, selectedJobResolved.id)}
+            reelUrl={selectedJobResolved.url}
+            createdAt={selectedJobResolved.createdAt}
             onBack={() => navigateCatalog(listRouteBeforeDetailRef.current)}
-            flags={selectedJob.flags}
+            flags={selectedJobResolved.flags}
             onNavigateToShoppingList={onNavigateToShoppingList}
             shoppingListCount={shoppingListCount}
             onRemixSuccess={onRemixSuccess}
             onReplaceCurrent={() => {
-              // Just refresh history — the job recipe was updated in-place in the DB
               fetchHistory?.();
             }}
-            isParentAvailable={selectedJob.recipe?.parentJobId ? history.some(j => j.id === selectedJob.recipe?.parentJobId) : false}
-            parentRecipeTitle={selectedJob.recipe?.parentRecipeTitle || (selectedJob.recipe?.parentJobId ? history.find(j => j.id === selectedJob.recipe?.parentJobId)?.recipe?.title : null)}
+            isParentAvailable={selectedJobResolved.recipe?.parentJobId ? history.some(j => j.id === selectedJobResolved.recipe?.parentJobId) : false}
+            parentRecipeTitle={selectedJobResolved.recipe?.parentRecipeTitle || (selectedJobResolved.recipe?.parentJobId ? history.find(j => j.id === selectedJobResolved.recipe?.parentJobId)?.recipe?.title : null)}
             onNavigateToRecipe={(recipeId) => {
               const parentJob = history.find(j => j.id === recipeId);
               if (parentJob) {
                 setSelectedJob(parentJob);
               }
             }}
-            onAssignCollections={() => handleAssignCollectionsClick(selectedJob)}
-            onManageFlags={() => handleManageFlagsClick(selectedJob)}
+            onAssignCollections={() => handleAssignCollectionsClick(selectedJobResolved)}
+            onManageFlags={() => handleManageFlagsClick(selectedJobResolved)}
+            isFavorite={selectedJobResolved.isFavorite}
+            onToggleFavorite={() => toggleFavorite(selectedJobResolved)}
           />
         )}
 
@@ -329,10 +341,8 @@ export default function SavedCatalog({
           job={collectionSheetJob}
           selectedJobs={collectionSheetBulkJobs}
           initialMode={!collectionSheetJob && collectionSheetBulkJobs.length === 0 ? 'manage' : 'assign'}
-          onUpdated={() => {
-            fetchHistory?.();
-            refreshCollections();
-          }}
+          onAssign={assignCollections}
+          onUpdated={() => refreshCollections()}
         />
         <FlagSheet
           isOpen={isFlagSheetOpen}
@@ -341,7 +351,6 @@ export default function SavedCatalog({
           allExistingFlags={allExistingFlags}
           onSave={async (j, flags) => {
             await setRecipeFlags(j, flags);
-            fetchHistory?.();
           }}
         />
         <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
@@ -364,16 +373,12 @@ export default function SavedCatalog({
         job={collectionSheetJob}
         selectedJobs={collectionSheetBulkJobs}
         initialMode={
-          // No specific recipe / bulk context => open in management overview
-          // (no checkboxes); otherwise assign mode is default.
           !collectionSheetJob && collectionSheetBulkJobs.length === 0
             ? 'manage'
             : 'assign'
         }
-        onUpdated={() => {
-          fetchHistory?.();
-          refreshCollections();
-        }}
+        onAssign={assignCollections}
+        onUpdated={() => refreshCollections()}
       />
 
       <FlagSheet
@@ -383,7 +388,6 @@ export default function SavedCatalog({
         allExistingFlags={allExistingFlags}
         onSave={async (j, flags) => {
           await setRecipeFlags(j, flags);
-          fetchHistory?.();
         }}
       />
 
@@ -417,6 +421,8 @@ export default function SavedCatalog({
         resultCount={isListLevel ? filteredJobs.length : completedJobs.length}
         sortBy={sortBy}
         showViewModeToggle={isListLevel}
+        catalogSubPath={catalogSubPath}
+        onNavigateCatalog={navigateCatalogSkipSync}
       />
 
       {premiumBanner}
@@ -431,17 +437,11 @@ export default function SavedCatalog({
           formatTotalTime={formatTotalTime}
           onOpenList={openList}
           onOpenRecipe={(e, job) => handleCardClick(e, job)}
-          onToggleFavorite={(e, job) => {
-            e.stopPropagation();
-            toggleFavorite(job);
-          }}
           onAddCollection={handleAddCollectionClick}
           onManageCollections={handleAddCollectionClick}
           isSelectMode={isSelectMode}
           selectedIds={selectedIds}
-          addedRecipeIds={addedRecipeIds}
           bindLongPress={bindLongPress}
-          onDirectAdd={handleDirectAddToShoppingList}
         />
       ) : filteredJobs.length === 0 ? (
         <div className="flex flex-col items-center gap-3 text-center py-14 px-6">
@@ -453,8 +453,11 @@ export default function SavedCatalog({
             <button
               type="button"
               onClick={() => {
-                resetFilters();
+                setFilters(EMPTY_FILTERS);
                 setSearchQuery('');
+                if (preset.kind !== 'all' && preset.kind !== 'search') {
+                  navigateCatalog(buildListRoute({ kind: 'all' }));
+                }
               }}
               className="px-4 py-2 text-xs font-bold rounded-full bg-emerald-600 text-white hover:bg-emerald-500 active:scale-95 transition-all cursor-pointer"
             >
@@ -471,14 +474,8 @@ export default function SavedCatalog({
               totalTime={formatTotalTime(job.recipe!)}
               isSelected={selectedIds.has(job.id)}
               isSelectMode={isSelectMode}
-              isAdded={!!addedRecipeIds[job.id]}
               bindLongPress={bindLongPress(job.id, job)}
               onClick={(e) => handleCardClick(e, job)}
-              onDirectAdd={(e) => handleDirectAddToShoppingList(e, job)}
-              onToggleFavorite={(e) => {
-                e.stopPropagation();
-                toggleFavorite(job);
-              }}
             />
           ))}
         </div>
@@ -490,16 +487,10 @@ export default function SavedCatalog({
               job={job}
               isSelected={selectedIds.has(job.id)}
               isSelectMode={isSelectMode}
-              isAdded={!!addedRecipeIds[job.id]}
               totalTime={formatTotalTime(job.recipe!)}
               recipeTags={getRecipeTags(job.recipe!)}
               bindLongPress={bindLongPress(job.id, job)}
               onClick={(e) => handleCardClick(e, job)}
-              onDirectAdd={(e) => handleDirectAddToShoppingList(e, job)}
-              onToggleFavorite={(e) => {
-                e.stopPropagation();
-                toggleFavorite(job);
-              }}
             />
           ))}
         </div>
@@ -524,6 +515,16 @@ export default function SavedCatalog({
         filters={filters}
         sortBy={sortBy}
         onApply={(next, nextSort) => {
+          // If we're in a specific context (collection, favorites, quick, flag)
+          // and the user changes filters, navigate to general list view so the
+          // new filters apply to all recipes, not just the current context.
+          if (isListLevel && preset.kind !== 'all' && preset.kind !== 'search') {
+            setFilters(next);
+            setSortBy(nextSort);
+            skipNextRouteSyncRef.current = true;
+            navigateCatalog(buildListRoute({ kind: 'all' }));
+            return;
+          }
           setFilters(next);
           setSortBy(nextSort);
         }}

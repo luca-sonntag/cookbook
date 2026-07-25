@@ -130,6 +130,31 @@ export default function App() {
   const authSettledRef = useRef(false);
   const prevUserIdRef = useRef<string | null>(null);
 
+  // The sticky top region (safe-area filler + timer banner) grows and shrinks
+  // at runtime, so views that want to pin something *below* it can't hardcode a
+  // `top` offset. We measure the real element and publish its height as the
+  // global `--app-sticky-top` variable (see index.css for the fallback).
+  // A callback ref (instead of useRef) re-runs the effect once the element
+  // actually mounts, which matters because the auth gate returns early.
+  const [stickyTopEl, setStickyTopEl] = useState<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!stickyTopEl) {
+      root.style.removeProperty('--app-sticky-top');
+      return;
+    }
+    const publish = () => {
+      root.style.setProperty('--app-sticky-top', `${stickyTopEl.offsetHeight}px`);
+    };
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(stickyTopEl);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty('--app-sticky-top');
+    };
+  }, [stickyTopEl]);
+
   // Fetch recipe extraction history (using JWT).
   // Bounded with a timeout: on a cold app start the access token may be
   // expired, so getAccessToken() can trigger a network refresh before the
@@ -530,7 +555,7 @@ export default function App() {
       {/* Sticky top region: safe-area inset + timer banner share one sticky
           container so they stack without a gap or overlapping each other when
           pinned. */}
-      <div className="sticky top-0 z-40 w-full">
+      <div ref={setStickyTopEl} className="sticky top-0 z-40 w-full">
         {/* Status bar background filler for devices with safe-area-inset-top (e.g. Android 15 Edge-to-Edge) */}
         <div className="w-full h-[var(--safe-area-inset-top)] bg-[#064e3b]" />
 

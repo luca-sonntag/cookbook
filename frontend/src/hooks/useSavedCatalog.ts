@@ -559,10 +559,6 @@ export function useSavedCatalog({
       if (!response.ok) {
         throw new Error('Failed to update favorite status');
       }
-
-      if (fetchHistory) {
-        fetchHistory();
-      }
     } catch (err) {
       console.error('Error toggling favorite:', err);
       setOptimisticFavorites(prev => ({ ...prev, [job.id]: job.isFavorite ?? false }));
@@ -601,9 +597,6 @@ export function useSavedCatalog({
         throw new Error(errorData.error || 'Failed to update flags');
       }
 
-      if (fetchHistory) {
-        fetchHistory();
-      }
       return { success: true };
     } catch (err: any) {
       console.error('Error updating flag:', err);
@@ -640,9 +633,6 @@ export function useSavedCatalog({
         throw new Error(errorData.error || 'Failed to update flags');
       }
 
-      if (fetchHistory) {
-        fetchHistory();
-      }
       return { success: true };
     } catch (err: any) {
       console.error('Error updating flags:', err);
@@ -682,9 +672,6 @@ export function useSavedCatalog({
         throw new Error(errorData.error || 'Failed to update collections');
       }
 
-      if (fetchHistory) {
-        fetchHistory();
-      }
       return { success: true };
     } catch (err: any) {
       console.error('Error updating collections:', err);

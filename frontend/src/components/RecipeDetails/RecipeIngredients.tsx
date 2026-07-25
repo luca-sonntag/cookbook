@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { Check, Plus, Sparkles, Crown } from 'lucide-react';
+import { Check, Plus, Sparkles, Crown, Carrot } from 'lucide-react';
 import type { Ingredient, Recipe } from '../../types';
 import AiNotice from '../AiNotice';
 import { useI18n } from '../../context/I18nContext';
@@ -31,22 +31,31 @@ export default function RecipeIngredients({
   scaleFactor,
   formatAmount,
   onAddIngredients,
-  isAdded
+  isAdded,
 }: RecipeIngredientsProps) {
   const { t, translateCategory } = useI18n();
 
+  const ingredientCount = sortedIngredients.reduce(
+    (sum, { group }) => sum + group.items.length,
+    0
+  );
+
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="glass-panel p-5 rounded-2xl">
-        <div className="flex flex-col gap-2 mb-4 border-b border-black/5 dark:border-white/5 pb-3">
-          <div className="flex flex-wrap justify-between items-baseline gap-2">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-              {t('recipe.ingredientsTitle')}
-            </h3>
-            <span className="text-xs text-gray-500 dark:text-gray-400 normal-case font-normal">
-              {t('recipe.ingredientsSubtitle')}
-            </span>
+    <div className="flex flex-col gap-4 pb-4">
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+            <Carrot className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
           </div>
+          <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('recipe.tabIngredients')}</h3>
+          {ingredientCount > 0 && (
+            <span className="ml-auto text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-full px-2.5 py-1 tabular-nums select-none">
+              {ingredientCount}
+            </span>
+          )}
+        </div>
+        {/* Header only carries the checklist hint. Servings stepper is managed at the top Details card. */}
+        <div className="flex flex-col gap-2 mb-4 pb-2">
           {hasIngredientNutrition && (
             <div className="flex justify-start items-center gap-1.5">
               <button
@@ -85,9 +94,9 @@ export default function RecipeIngredients({
                     <li
                       key={uniqueId}
                       onClick={() => toggleIngredient(uniqueId)}
-                      className="flex items-center gap-3.5 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                      className="flex items-start gap-3.5 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
                     >
-                      <div className={`w-5.5 h-5.5 rounded-md border flex items-center justify-center flex-shrink-0 transition-all ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
+                      <div className={`w-5.5 h-5.5 rounded-md border flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
                         }`}>
                         {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
                       </div>
@@ -117,8 +126,10 @@ export default function RecipeIngredients({
 
                           if (parts.length === 0) return null;
                           return (
-                            <span className="inline-flex gap-1 ml-2 text-[11px] text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md font-medium select-none align-middle">
-                              {parts.join(' | ')}
+                            <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 font-medium select-none text-left">
+                              <span className="bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md inline-block">
+                                {parts.join(' | ')}
+                              </span>
                             </span>
                           );
                         })()}
@@ -150,7 +161,7 @@ export default function RecipeIngredients({
             )}
           </Button>
         )}
-      </Card>
+      </div>
 
       {recipe.alternativeIngredients && recipe.alternativeIngredients.length > 0 && (
         <Card className="glass-panel p-5 rounded-2xl">
