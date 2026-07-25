@@ -22,10 +22,10 @@ export default function TimerBanner() {
 
   return (
     <div
-      className="w-full"
+      className="w-full bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur-md border-b border-black/5 dark:border-white/5 py-2.5 transition-all"
       style={{ animation: 'timerBannerSlideDown 0.25s cubic-bezier(0.32,0.72,0,1) both' }}
     >
-      <div className="w-full max-w-md mx-auto px-3 pt-2 pb-1.5 flex flex-col gap-1.5">
+      <div className="w-full max-w-md mx-auto px-4 flex flex-col gap-2">
         {timers.map(timer => {
           const remaining = getRemainingSeconds(timer.endAt);
           const isFinished = timer.isFinished;
@@ -45,7 +45,7 @@ export default function TimerBanner() {
                   detail: { recipeId, stepNum }
                 }));
               } : undefined}
-              className={`relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl shadow-lg overflow-hidden transition-all duration-300 ${
+              className={`relative flex items-center justify-between gap-3 px-4 py-3 rounded-2xl shadow-md overflow-hidden transition-all duration-300 ${
                 isAssociated ? 'cursor-pointer active:scale-[0.99]' : ''
               } ${
                 isFinished
@@ -56,40 +56,49 @@ export default function TimerBanner() {
               {/* Background progress track */}
               {!isFinished && (
                 <div
-                  className="absolute inset-0 bg-white/10 origin-left transition-all duration-500"
+                  className="absolute inset-0 bg-white/15 origin-left transition-all duration-500"
                   style={{ transform: `scaleX(${progress})` }}
                 />
               )}
 
-              {/* Icon */}
-              <div className="relative flex-shrink-0">
-                {isFinished ? (
-                  <Bell className="w-4 h-4 text-white animate-bounce" />
-                ) : (
-                  <Timer className="w-4 h-4 text-white/80" />
-                )}
-              </div>
+              {/* Icon + Label + Countdown */}
+              <div className="relative flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  {isFinished ? (
+                    <Bell className="w-4 h-4 text-white animate-bounce" />
+                  ) : (
+                    <Timer className="w-4 h-4 text-white" />
+                  )}
+                </div>
 
-              {/* Label + countdown */}
-              <div className="relative flex-1 min-w-0">
-                <p className="text-[10px] text-white/70 font-medium leading-none">
-                  {timer.label}
-                </p>
-                <p className={`text-sm font-black text-white tabular-nums mt-0.5 leading-none ${isFinished ? '' : ''}`}>
-                  {isFinished
-                    ? t('timer.finished')
-                    : formatCountdown(remaining)
-                  }
-                </p>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[11px] font-semibold text-white/85 truncate leading-snug">
+                    {timer.label}
+                  </span>
+                  <span className="text-sm font-extrabold text-white tabular-nums leading-tight">
+                    {isFinished
+                      ? t('timer.finished')
+                      : formatCountdown(remaining)
+                    }
+                  </span>
+                </div>
               </div>
 
               {/* Dismiss / Cancel button */}
               <button
-                onClick={() => isFinished ? dismissFinished(timer.id) : removeTimer(timer.id)}
-                className="relative flex-shrink-0 w-9 h-9 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center transition-colors cursor-pointer"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isFinished) {
+                    dismissFinished(timer.id);
+                  } else {
+                    removeTimer(timer.id);
+                  }
+                }}
+                className="relative shrink-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 text-white flex items-center justify-center transition-colors cursor-pointer outline-none"
                 aria-label={isFinished ? t('timer.dismiss') : 'Cancel timer'}
               >
-                <X className="w-3.5 h-3.5 text-white" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           );
