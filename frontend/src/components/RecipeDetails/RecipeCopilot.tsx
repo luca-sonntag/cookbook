@@ -269,8 +269,8 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
           // Look up ingredient details in current recipe for smart defaults
           let foundIng: any = null;
           for (const group of recipe.ingredients) {
-            const match = group.items.find(i => 
-              i.name.toLowerCase().includes(name.toLowerCase()) || 
+            const match = group.items.find(i =>
+              i.name.toLowerCase().includes(name.toLowerCase()) ||
               name.toLowerCase().includes(i.name.toLowerCase()) ||
               (i.baseName && i.baseName.toLowerCase().includes(name.toLowerCase()))
             );
@@ -402,7 +402,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
       <Drawer.Backdrop className="!z-[100]">
         <Drawer.Content placement="bottom" className="!z-[100] h-[100dvh] w-full rounded-none md:max-w-2xl md:mx-auto md:h-[85vh] md:rounded-t-3xl">
           <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 flex flex-col h-full overflow-hidden">
-            
+
             {/* Clear/Reset Session Button (Top-Left) — only when there's a conversation to clear */}
             {history.length > 0 && (
               <button
@@ -430,9 +430,6 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
             {/* Compact Header (Plain HTML elements to prevent HeroUI Drawer.Header flex-col / alignment overrides) */}
             <div className="border-b border-black/5 dark:border-white/5 py-2.5 px-4 flex items-center justify-center flex-shrink-0 select-none bg-white dark:bg-gray-900 h-11 relative">
               <div className="flex items-center gap-2 max-w-[70%]">
-                <div className="w-6.5 h-6.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0 border border-emerald-500/10">
-                  <Bot className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                </div>
                 <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 leading-none truncate">
                   {t('copilot.title')}
                   <span className="flex h-1.5 w-1.5 relative">
@@ -445,7 +442,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
 
             {/* Body (Messages) */}
             <Drawer.Body className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4 scrollbar-none bg-gray-50/50 dark:bg-black/10">
-              
+
               {/* Welcome message if history is empty */}
               {history.length === 0 && (
                 <div className="my-auto flex flex-col items-center text-center max-w-sm mx-auto gap-3 py-8">
@@ -469,20 +466,18 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                     key={idx}
                     className={`flex gap-3 max-w-[85%] ${isAI ? 'self-start' : 'self-end flex-row-reverse'}`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs ${
-                      isAI 
-                        ? 'bg-emerald-600 border border-emerald-500/10' 
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs ${isAI
+                        ? 'bg-emerald-600 border border-emerald-500/10'
                         : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-                    }`}>
+                      }`}>
                       {isAI ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <div className={`p-3.5 rounded-2xl text-sm leading-relaxed shadow-xs ${
-                        isAI
+                      <div className={`p-3.5 rounded-2xl text-sm leading-relaxed shadow-xs ${isAI
                           ? 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-xs border border-black/5 dark:border-white/5'
                           : 'bg-emerald-600 text-white rounded-tr-xs'
-                      }`}>
+                        }`}>
                         {msg.text}
                       </div>
 
