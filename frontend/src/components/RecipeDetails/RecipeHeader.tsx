@@ -59,120 +59,122 @@ export default function RecipeHeader({
       <RecipeImageGallery recipe={recipe} reelUrl={reelUrl} onBack={onBack} />
 
       {/* Recipe title header */}
-      <div className="p-2 flex flex-col gap-2">
-        {/* Top action bar: handle on left (if present), action buttons on right */}
-        <div className="flex items-center justify-between gap-3">
-          {recipe.instagramHandle ? (
-            <div className="text-xs font-extrabold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-300 leading-none select-none">
-              {recipe.instagramHandle}
-            </div>
-          ) : <div />}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {onToggleFavorite && (
+      <div className="relative p-2 flex flex-col gap-2">
+        {/* Top right action buttons */}
+        <div className="absolute top-2 right-2 flex items-center gap-1.5 z-10">
+          {onToggleFavorite && (
+            <Button
+              isIconOnly
+              variant="outline"
+              onClick={onToggleFavorite}
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center transition-all ${
+                isFavorite ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+              aria-label="Toggle Favorite"
+            >
+              <Star className={`w-5 h-5 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
+            </Button>
+          )}
+          <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <Popover.Trigger>
               <Button
                 isIconOnly
                 variant="outline"
-                onClick={onToggleFavorite}
-                className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center transition-all ${
-                  isFavorite ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
-                }`}
-                aria-label="Toggle Favorite"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center"
+                aria-label="Options"
               >
-                <Star className={`w-5 h-5 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
+                <MoreVertical className="w-5 h-5" />
               </Button>
-            )}
-            <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
-              <Popover.Trigger>
-                <Button
-                  isIconOnly
-                  variant="outline"
-                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center"
-                  aria-label="Options"
-                >
-                  <MoreVertical className="w-5 h-5" />
-                </Button>
-              </Popover.Trigger>
-              <Popover.Content placement="bottom end" className="p-1.5 min-w-[180px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
-                <div className="flex flex-col w-full">
-                  {onAssignCollections && (
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        onAssignCollections();
-                      }}
-                      className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
-                    >
-                      <Folder className="w-4 h-4 text-emerald-500" />
-                      <span>{t('catalog.bulkAddToCollection') || 'Zu Sammlung hinzufügen'}</span>
-                    </button>
-                  )}
-
-                  {onManageFlags && (
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        onManageFlags();
-                      }}
-                      className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
-                    >
-                      <Tag className="w-4 h-4 text-emerald-500" />
-                      <span>{t('catalog.manageRecipeFlagsTitle') || 'Labels verwalten'}</span>
-                    </button>
-                  )}
-
+            </Popover.Trigger>
+            <Popover.Content placement="bottom end" className="p-1.5 min-w-[180px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
+              <div className="flex flex-col w-full">
+                {onAssignCollections && (
                   <button
                     onClick={() => {
-                      onCopyRecipe();
                       setIsMenuOpen(false);
+                      onAssignCollections();
                     }}
                     className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
                   >
-                    {isCopied ? (
-                      <>
-                        <Check className="w-4 h-4 text-emerald-500" />
-                        <span className="text-emerald-500 font-bold">{t('recipe.copied')}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 text-emerald-500" />
-                        <span>{t('recipe.copyRecipe')}</span>
-                      </>
-                    )}
+                    <Folder className="w-4 h-4 text-emerald-500" />
+                    <span>{t('catalog.bulkAddToCollection') || 'Zu Sammlung hinzufügen'}</span>
                   </button>
+                )}
 
-                  {onNavigateToShoppingList && (
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        onNavigateToShoppingList();
-                      }}
-                      className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
-                    >
-                      <ShoppingCart className="w-4 h-4 text-emerald-500" />
-                      <span>{t('recipe.goToShoppingList')}</span>
-                    </button>
-                  )}
+                {onManageFlags && (
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onManageFlags();
+                    }}
+                    className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                  >
+                    <Tag className="w-4 h-4 text-emerald-500" />
+                    <span>{t('catalog.manageRecipeFlagsTitle') || 'Labels verwalten'}</span>
+                  </button>
+                )}
 
-                  {onDelete && (
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        onDelete();
-                      }}
-                      className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>{t('recipe.delete')}</span>
-                    </button>
+                <button
+                  onClick={() => {
+                    onCopyRecipe();
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                >
+                  {isCopied ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-500" />
+                      <span className="text-emerald-500 font-bold">{t('recipe.copied')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 text-emerald-500" />
+                      <span>{t('recipe.copyRecipe')}</span>
+                    </>
                   )}
-                </div>
-              </Popover.Content>
-            </Popover>
-          </div>
+                </button>
+
+                {onNavigateToShoppingList && (
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onNavigateToShoppingList();
+                    }}
+                    className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                  >
+                    <ShoppingCart className="w-4 h-4 text-emerald-500" />
+                    <span>{t('recipe.goToShoppingList')}</span>
+                  </button>
+                )}
+
+                {onDelete && (
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onDelete();
+                    }}
+                    className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>{t('recipe.delete')}</span>
+                  </button>
+                )}
+              </div>
+            </Popover.Content>
+          </Popover>
         </div>
 
-        {/* Title, description, tags, saved date span full width */}
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight break-words">{recipe.title}</h2>
+        {/* Creator handle + Title: no gap between handle and title, padded right so title wraps before buttons */}
+        <div className={onToggleFavorite ? 'pr-[100px]' : 'pr-[52px]'}>
+          {recipe.instagramHandle && (
+            <div className="text-xs font-extrabold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-300 mb-0.5 leading-none select-none">
+              {recipe.instagramHandle}
+            </div>
+          )}
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight break-words">{recipe.title}</h2>
+        </div>
+
+        {/* Remix link, description, tags, saved date */}
         {recipe.parentJobId && resolvedParentTitle && (
           <div className="text-xs flex flex-wrap items-center gap-1 text-gray-500 dark:text-gray-400 leading-normal break-words">
             <span>{t('remix.parentLinkPrefix') || 'Abgewandelt von'}</span>
