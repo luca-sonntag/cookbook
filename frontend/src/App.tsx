@@ -94,6 +94,17 @@ export default function App() {
   // effect doesn't clear its subPath before the history state catches up.
   const newlyExtractedJobIdRef = useRef<string | null>(null);
 
+  // Remembers the last open state of the history tab (recipe detail or list),
+  // so the bottom-nav "Recipes" button returns to the recipe that was open
+  // when the user switched to another tab (e.g. the shopping list) instead of
+  // always landing on the full recipe list.
+  const lastHistorySubPathRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (activeView === 'history') {
+      lastHistorySubPathRef.current = subPath;
+    }
+  }, [activeView, subPath]);
+
   // Tracks auth transitions so we can land on the catalog after an interactive
   // login without hijacking cold-start deep links (notification taps, shared
   // recipe URLs). `authSettledRef` guards the very first settled auth state.
@@ -653,7 +664,13 @@ export default function App() {
               {/* Recipes / History Tab */}
               <button
                 onClick={() => {
-                  navigate('history');
+                  if (activeView === 'history') {
+                    // Tapping the already-active tab returns to the recipe list.
+                    navigate('history');
+                  } else {
+                    // Restore the recipe that was open when the tab was left.
+                    navigate('history', lastHistorySubPathRef.current);
+                  }
                   fetchHistory();
                 }}
                 className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'history'
