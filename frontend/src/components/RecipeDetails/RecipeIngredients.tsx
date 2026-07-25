@@ -45,19 +45,12 @@ export default function RecipeIngredients({
   return (
     <div className="flex flex-col gap-4 pb-4">
       <div>
-        {/* The tab is already labelled "Ingredients", so the header only carries
-            the checklist hint and the servings control that scales the list. */}
+        {/* Header only carries the checklist hint. Servings stepper is managed at the top Details card. */}
         <div className="flex flex-col gap-2 mb-4 border-b border-black/5 dark:border-white/5 pb-2">
           <div className="flex justify-between items-center gap-2">
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {t('recipe.ingredientsSubtitle')}
             </span>
-            <RecipeServingsStepper
-              variant="compact"
-              servings={servings}
-              onDecreaseServings={onDecreaseServings}
-              onIncreaseServings={onIncreaseServings}
-            />
           </div>
           {hasIngredientNutrition && (
             <div className="flex justify-start items-center gap-1.5">
@@ -97,9 +90,9 @@ export default function RecipeIngredients({
                     <li
                       key={uniqueId}
                       onClick={() => toggleIngredient(uniqueId)}
-                      className="flex items-center gap-3.5 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                      className="flex items-start gap-3.5 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
                     >
-                      <div className={`w-5.5 h-5.5 rounded-md border flex items-center justify-center flex-shrink-0 transition-all ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
+                      <div className={`w-5.5 h-5.5 rounded-md border flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
                         }`}>
                         {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
                       </div>
@@ -129,8 +122,10 @@ export default function RecipeIngredients({
 
                           if (parts.length === 0) return null;
                           return (
-                            <span className="inline-flex gap-1 ml-2 text-[11px] text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md font-medium select-none align-middle">
-                              {parts.join(' | ')}
+                            <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 font-medium select-none text-left">
+                              <span className="bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md inline-block">
+                                {parts.join(' | ')}
+                              </span>
                             </span>
                           );
                         })()}
