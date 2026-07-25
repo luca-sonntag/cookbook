@@ -5,6 +5,8 @@ import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
 import { getLlmMetrics } from './adminMetrics.js';
 import { AppError, sendAppError } from './errors.js';
+import { randomUUID } from 'node:crypto';
+import { MAX_IMPORT_PHOTOS, deleteImportPhotos, photoJobUrl, uploadImportPhoto } from './photoImport.js';
 
 export const apiRouter = Router();
 
@@ -13,6 +15,13 @@ apiRouter.use(requireAuth);
 // Regular expression to validate standard URLs
 // Supports Instagram, TikTok, YouTube Shorts, and generic websites
 const SUPPORTED_URL_REGEX = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/i;
+
+/**
+ * Combined base64 budget for one photo import. The client compresses to roughly
+ * 400-800 KB per photo, so five photos stay well below this; the cap only exists
+ * to reject payloads that would exhaust memory before the JSON parser does.
+ */
+const MAX_PHOTOS_TOTAL_CHARS = 9_000_000;
 
 /**
  * Helper to fetch a user by ID and automatically assign the alpha tier if alpha is active
@@ -105,6 +114,76 @@ function isPremiumUser(user: any): boolean {
 }
 
 /**
+ * Shared quota gate for everything that creates an extraction job: the active-job
+ * quota, the cookbook cap and the rolling per-user extraction limit. Photo
+ * imports go through exactly the same gate as link imports — they cost the same
+ * Gemini budget and count against the same allowance.
+ *
+ * Throws the matching {@link AppError} when a limit is hit; returns quietly when
+ * the user may start another extraction.
+ */
+async function enforceExtractionQuota(req: Request): Promise<void> {
+  const userId = req.userId!;
+
+  // Enforce per-user quota to protect Apify/Gemini budget
+  const activeCount = await countActiveJobsForUser(userId);
+  if (activeCount >= config.MAX_JOBS_PER_USER) {
+    throw new AppError('ACTIVE_JOB_EXISTS', { params: { count: activeCount } });
+  }
+
+  // Fetch the user once for tier-based gating (cookbook cap + rolling rate limit).
+  let user: any = null;
+  try {
+    user = await fetchAndSyncUser(userId);
+  } catch (err) {
+    console.warn(`Failed to fetch user metadata for gating checks:`, err);
+  }
+
+  // Dev-override: allow simulating premium in development environments
+  if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
+    if (!user) user = { id: userId, app_metadata: {} };
+    if (!user.app_metadata) user.app_metadata = {};
+    user.app_metadata.tier = 'premium';
+  }
+
+  const premium = isPremiumUser(user);
+
+  // Enforce the cookbook cap: free accounts may only keep a limited number of
+  // saved recipes. Existing recipes stay accessible — the user must delete one
+  // or upgrade to Premium before extracting more.
+  if (!premium) {
+    const savedCount = await countCompletedRecipesForUser(userId);
+    const isAlpha = user?.app_metadata?.tier === 'alpha';
+    const limit = isAlpha ? await getAlphaMaxSavedRecipes() : await getFreeMaxSavedRecipes();
+    if (limit >= 0 && savedCount >= limit) {
+      throw new AppError('COOKBOOK_FULL', { params: { count: savedCount, limit } });
+    }
+  }
+
+  // Enforce rolling rate limit per user (with custom override in app_metadata)
+  const limit = user ? await resolveUserRateLimit(user) : await getFreeMaxExtractions();
+
+  // If limit is non-negative (not -1 for unlimited)
+  if (limit >= 0) {
+    const windowDays = config.EXTRACTION_LIMIT_WINDOW_DAYS;
+    const extractions = await getExtractionsForUserInTimeframe(userId, windowDays);
+    if (extractions.length >= limit) {
+      const oldestJob = extractions[0];
+      let minutesRemaining = 0;
+      if (oldestJob) {
+        const resetTime = new Date(new Date(oldestJob.createdAt).getTime() + windowDays * 24 * 60 * 60 * 1000);
+        const msRemaining = resetTime.getTime() - Date.now();
+        minutesRemaining = Math.max(1, Math.ceil(msRemaining / (60 * 1000)));
+      }
+
+      throw new AppError('RATE_LIMIT_EXCEEDED', {
+        params: { limit, days: windowDays, minutes: minutesRemaining },
+      });
+    }
+  }
+}
+
+/**
  * Endpoint to submit an Instagram Reel URL for recipe extraction.
  * POST /api/extract-recipe
  * Body: { url: string }
@@ -167,62 +246,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // Enforce per-user quota to protect Apify/Gemini budget
-    const activeCount = await countActiveJobsForUser(req.userId!);
-    if (activeCount >= config.MAX_JOBS_PER_USER) {
-      throw new AppError('ACTIVE_JOB_EXISTS', { params: { count: activeCount } });
-    }
-
-    // Fetch the user once for tier-based gating (cookbook cap + rolling rate limit).
-    let user: any = null;
-    try {
-      user = await fetchAndSyncUser(req.userId!);
-    } catch (err) {
-      console.warn(`Failed to fetch user metadata for gating checks:`, err);
-    }
-
-    // Dev-override: allow simulating premium in development environments
-    if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
-      if (!user) user = { id: req.userId, app_metadata: {} };
-      if (!user.app_metadata) user.app_metadata = {};
-      user.app_metadata.tier = 'premium';
-    }
-
-    const premium = isPremiumUser(user);
-
-    // Enforce the cookbook cap: free accounts may only keep a limited number of
-    // saved recipes. Existing recipes stay accessible — the user must delete one
-    // or upgrade to Premium before extracting more.
-    if (!premium) {
-      const savedCount = await countCompletedRecipesForUser(req.userId!);
-      const isAlpha = user?.app_metadata?.tier === 'alpha';
-      const limit = isAlpha ? await getAlphaMaxSavedRecipes() : await getFreeMaxSavedRecipes();
-      if (limit >= 0 && savedCount >= limit) {
-        throw new AppError('COOKBOOK_FULL', { params: { count: savedCount, limit } });
-      }
-    }
-
-    // Enforce rolling rate limit per user (with custom override in app_metadata)
-    const limit = user ? await resolveUserRateLimit(user) : await getFreeMaxExtractions();
-
-    // If limit is non-negative (not -1 for unlimited)
-    if (limit >= 0) {
-      const windowDays = config.EXTRACTION_LIMIT_WINDOW_DAYS;
-      const extractions = await getExtractionsForUserInTimeframe(req.userId!, windowDays);
-      if (extractions.length >= limit) {
-        const oldestJob = extractions[0];
-        let minutesRemaining = 0;
-        if (oldestJob) {
-          const resetTime = new Date(new Date(oldestJob.createdAt).getTime() + windowDays * 24 * 60 * 60 * 1000);
-          const msRemaining = resetTime.getTime() - Date.now();
-          minutesRemaining = Math.max(1, Math.ceil(msRemaining / (60 * 1000)));
-        }
-
-        throw new AppError('RATE_LIMIT_EXCEEDED', {
-          params: { limit, days: windowDays, minutes: minutesRemaining },
-        });
-      }
-    }
+    await enforceExtractionQuota(req);
 
     // Create a new pending job in the database
     const job = await createJob(cleanUrl, req.userId!);
@@ -236,6 +260,76 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
     });
   } catch (error: any) {
     if (!(error instanceof AppError)) console.error('Error creating recipe extraction job:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
+ * Endpoint to submit user-taken photos of a physical recipe source (cookbook
+ * page, magazine clipping, handwritten recipe card) for extraction.
+ * POST /api/extract-recipe/photos
+ * Body: { photos: string[] }  — data-URL or raw base64 JPEGs, in page order
+ *
+ * Unlike the link endpoint there is nothing to deduplicate against: every import
+ * gets a fresh upload id, so the job's synthetic `photo://{uploadId}` URL is
+ * unique by construction and never collides with the active-job unique index.
+ *
+ * The photos are uploaded to Storage *before* the job row is created — a job is
+ * claimable by a worker the moment it exists, so the media has to be in place
+ * first. The request body limit for this path is raised in index.ts.
+ */
+apiRouter.post('/extract-recipe/photos', async (req: Request, res: Response): Promise<void> => {
+  let uploadId: string | null = null;
+
+  try {
+    const { photos } = req.body;
+
+    if (!Array.isArray(photos) || photos.length === 0) {
+      throw new AppError('MISSING_FIELD', { params: { field: 'photos' } });
+    }
+    if (photos.some((photo: unknown) => typeof photo !== 'string' || photo.trim().length === 0)) {
+      throw new AppError('INVALID_FIELD', { params: { field: 'photos' } });
+    }
+    if (photos.length > MAX_IMPORT_PHOTOS) {
+      throw new AppError('TOO_MANY_PHOTOS', { params: { max: MAX_IMPORT_PHOTOS } });
+    }
+
+    const totalLength = photos.reduce((sum: number, photo: string) => sum + photo.length, 0);
+    if (totalLength > MAX_PHOTOS_TOTAL_CHARS) {
+      throw new AppError('PHOTOS_TOO_LARGE', {
+        message: `Combined photo payload of ${totalLength} chars exceeds ${MAX_PHOTOS_TOTAL_CHARS}.`,
+      });
+    }
+
+    await enforceExtractionQuota(req);
+
+    uploadId = randomUUID();
+    try {
+      for (let index = 0; index < photos.length; index++) {
+        const base64 = (photos[index] as string).replace(/^data:image\/\w+;base64,/, '');
+        await uploadImportPhoto(req.userId!, uploadId, index, Buffer.from(base64, 'base64'));
+      }
+    } catch (uploadError: any) {
+      // A partially uploaded import would silently extract a recipe from half the
+      // pages, so discard everything and let the user retry the whole set.
+      await deleteImportPhotos(req.userId!, uploadId).catch(() => { });
+      uploadId = null;
+      throw new AppError('PHOTO_UPLOAD_FAILED', { message: uploadError?.message });
+    }
+
+    const job = await createJob(photoJobUrl(uploadId), req.userId!);
+
+    res.status(202).json({
+      success: true,
+      jobId: job.id,
+      status: job.status,
+      message: 'Photo recipe extraction job successfully queued.',
+    });
+  } catch (error: any) {
+    // Any failure after the upload (e.g. the job insert) would orphan the photos
+    // until the sweep runs — clean them up right away.
+    if (uploadId) await deleteImportPhotos(req.userId!, uploadId).catch(() => { });
+    if (!(error instanceof AppError)) console.error('Error creating photo extraction job:', error);
     sendAppError(res, error);
   }
 });

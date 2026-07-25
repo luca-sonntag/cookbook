@@ -194,3 +194,13 @@ ON CONFLICT (id) DO NOTHING;
 
 
 
+
+-- --- photo import ---
+
+-- Private bucket for user-photographed recipe sources (cookbook pages, recipe
+-- cards). Written by POST /api/extract-recipe/photos, read and deleted again by
+-- the worker; service-role only, no policies. Photos live here only between the
+-- API request and the worker run — orphans are swept by sweepOldPhotoImports.
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('recipe-photos', 'recipe-photos', false)
+ON CONFLICT (id) DO NOTHING;

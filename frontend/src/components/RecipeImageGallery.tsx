@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
+  Camera,
   ChefHat
 } from 'lucide-react';
 import type { Recipe } from '../types';
@@ -13,6 +14,7 @@ import { useImageGallery } from '../hooks/useImageGallery';
 import { useI18n } from '../context/I18nContext';
 import CachedImage from './CachedImage';
 import { getCachedImage } from '../utils/imageStore';
+import { isPhotoImportUrl } from '../utils/photoImport';
 
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -199,6 +201,19 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
 
       {/* Floating Bottom Actions */}
       {reelUrl && (() => {
+        // A photo import has no source to open — label its origin instead of
+        // rendering a link to an unresolvable photo:// URL.
+        if (isPhotoImportUrl(reelUrl)) {
+          return (
+            <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
+              <span className="bg-black/65 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-lg">
+                <Camera className="w-3 h-3 text-emerald-300" />
+                <span>{t('catalog.photoImport')}</span>
+              </span>
+            </div>
+          );
+        }
+
         const platform = detectPlatform(reelUrl);
         const iconColor = platformIconColor(platform);
 

@@ -1,4 +1,6 @@
 import React from 'react';
+import { isPhotoImportUrl } from '../../utils/photoImport';
+import { Camera } from 'lucide-react';
 
 /**
  * Source-platform icons for the creator badge on recipe cards.
@@ -45,10 +47,12 @@ const GlobeIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export type Platform = 'instagram' | 'tiktok' | 'youtube' | 'website';
+export type Platform = 'instagram' | 'tiktok' | 'youtube' | 'website' | 'photo';
 
 export function detectPlatform(url?: string): Platform {
   if (!url) return 'website';
+  // Photo imports carry a synthetic photo:// URL and have no platform at all.
+  if (isPhotoImportUrl(url)) return 'photo';
   try {
     const host = new URL(url).hostname.toLowerCase();
     if (host.includes('instagram.com')) return 'instagram';
@@ -63,6 +67,7 @@ export const PLATFORM_ICON_COLOR: Record<Platform, string> = {
   tiktok: 'text-cyan-300',
   youtube: 'text-red-400',
   website: 'text-blue-300',
+  photo: 'text-emerald-300',
 };
 
 export function PlatformIcon({ platform, className }: { platform: Platform; className?: string }) {
@@ -70,6 +75,7 @@ export function PlatformIcon({ platform, className }: { platform: Platform; clas
     case 'instagram': return <InstagramIcon className={className} />;
     case 'tiktok': return <TikTokIcon className={className} />;
     case 'youtube': return <YouTubeIcon className={className} />;
+    case 'photo': return <Camera className={className} />;
     default: return <GlobeIcon className={className} />;
   }
 }

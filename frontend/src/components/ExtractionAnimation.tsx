@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChefHat, Video } from 'lucide-react';
+import { Camera, ChefHat, Video } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import type { SupportedLanguage } from '../i18n';
 import type { ProgressData, ProgressStage } from '../types';
@@ -9,6 +9,8 @@ interface ExtractionAnimationProps {
   isPending: boolean;
   jobStatus: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed' | null;
   progress: ProgressData | null;
+  /** Which stage sequence to walk — photo imports never scrape or download. */
+  variant?: 'link' | 'photo';
 }
 
 const FUNNY_TEXTS: Record<SupportedLanguage, Record<'pending' | 'scraping' | 'processing' | 'completed' | 'failed', string[]>> = {
@@ -111,16 +113,28 @@ const SCENE_ORDER: ProgressStage[] = [
   'finalizing'
 ];
 
+// Photo imports skip scraping, media download and frame extraction entirely.
+// They need their own sequence because the scene walker advances one step at a
+// time with a 2s floor — on the shared list it would spend six seconds showing
+// "searching the reel" and "downloading audio" for a job that does neither.
+const PHOTO_SCENE_ORDER: ProgressStage[] = [
+  'queued',
+  'reading_photos',
+  'extracting_recipe',
+  'finalizing'
+];
+
 const SCENE_TARGET_PERCENT: Record<ProgressStage, number> = {
   queued: 5,
   scraping: 15,
   downloading_media: 50,
   extracting_frames: 55,
+  reading_photos: 20,
   extracting_recipe: 75,
   finalizing: 90,
 };
 
-export default function ExtractionAnimation({ url: _url, jobStatus, progress }: ExtractionAnimationProps) {
+export default function ExtractionAnimation({ url: _url, jobStatus, progress, variant = 'link' }: ExtractionAnimationProps) {
   const { t, language } = useI18n();
   const [displayedIndex, setDisplayedIndex] = useState(0);
   const [funnyText, setFunnyText] = useState('');
@@ -128,9 +142,14 @@ export default function ExtractionAnimation({ url: _url, jobStatus, progress }: 
   // Track when the scene was displayed
   const shownAtRef = useRef<number>(Date.now());
 
+  const sceneOrder = variant === 'photo' ? PHOTO_SCENE_ORDER : SCENE_ORDER;
+
   // Determine current active stage based on real progress or fallback
-  const activeStage = progress?.stage ?? (jobStatus === 'scraping' ? 'scraping' : jobStatus === 'processing' ? 'downloading_media' : 'queued');
-  const targetIndex = Math.max(0, SCENE_ORDER.indexOf(activeStage));
+  const fallbackStage: ProgressStage = variant === 'photo'
+    ? (jobStatus === 'processing' ? 'reading_photos' : 'queued')
+    : (jobStatus === 'scraping' ? 'scraping' : jobStatus === 'processing' ? 'downloading_media' : 'queued');
+  const activeStage = progress?.stage ?? fallbackStage;
+  const targetIndex = Math.max(0, sceneOrder.indexOf(activeStage));
 
   // Monotonic increment state machine with 2-second floor
   useEffect(() => {
@@ -152,7 +171,7 @@ export default function ExtractionAnimation({ url: _url, jobStatus, progress }: 
     return () => clearTimeout(timer);
   }, [displayedIndex, targetIndex]);
 
-  const displayedStage = SCENE_ORDER[displayedIndex];
+  const displayedStage = sceneOrder[displayedIndex];
 
   // Rotate funny text based on displayed stage
   useEffect(() => {
@@ -242,6 +261,23 @@ export default function ExtractionAnimation({ url: _url, jobStatus, progress }: 
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        );
+      case 'reading_photos':
+        return (
+          <div className="relative flex items-center justify-center h-28">
+            {/* A recipe card with handwriting lines, swept by the scan line. */}
+            <div className="w-20 h-24 rounded-lg bg-white dark:bg-gray-900 border border-black/10 dark:border-white/10 shadow-sm rotate-[-4deg] relative overflow-hidden flex flex-col gap-1.5 p-3">
+              <div className="absolute inset-x-0 h-1 bg-emerald-400 dark:bg-emerald-500 shadow-[0_0_8px_#34d399] animate-scan z-10" />
+              <div className="h-1.5 w-3/4 rounded-full bg-emerald-500/30" />
+              <div className="h-1 w-full rounded-full bg-black/15 dark:bg-white/15" />
+              <div className="h-1 w-5/6 rounded-full bg-black/15 dark:bg-white/15" />
+              <div className="h-1 w-full rounded-full bg-black/15 dark:bg-white/15" />
+              <div className="h-1 w-2/3 rounded-full bg-black/15 dark:bg-white/15" />
+            </div>
+            <div className="absolute -right-1 bottom-3 p-2 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20">
+              <Camera className="w-5 h-5 text-emerald-600 dark:text-emerald-400 animate-pulse" />
             </div>
           </div>
         );

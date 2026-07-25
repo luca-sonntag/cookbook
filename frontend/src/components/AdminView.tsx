@@ -3,6 +3,7 @@ import { Tabs, Card, TextField, Label, Input, Button, Spinner } from '@heroui/re
 import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal, BarChart3, Users, BookOpen, TrendingUp, Coins, HardDriveDownload, ExternalLink, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
+import { isPhotoImportUrl } from '../utils/photoImport';
 import { useI18n } from '../context/I18nContext';
 
 interface GlobalSetting {
@@ -795,7 +796,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                                   {formatDate(job.createdAt)}
                                 </span>
                               </div>
-                              {job.url && (
+                              {job.url && !isPhotoImportUrl(job.url) && (
                                 <a
                                   href={job.url}
                                   target="_blank"

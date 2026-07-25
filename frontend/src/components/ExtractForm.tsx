@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, TextField, Label, Input, Button, FieldError, Spinner, Accordion } from '@heroui/react';
-import { BookOpen, Clipboard, Globe, HelpCircle, Link2 } from 'lucide-react';
+import { BookOpen, Camera, Clipboard, Globe, HelpCircle, ImagePlus, Link2, X } from 'lucide-react';
+import { MAX_IMPORT_PHOTOS } from '../hooks/useRecipeExtraction';
 import { Clipboard as CapClipboard } from '@capacitor/clipboard';
 import { Capacitor } from '@capacitor/core';
 import { useI18n } from '../context/I18nContext';
@@ -47,6 +48,8 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 
+export type ExtractMode = 'link' | 'photo';
+
 interface ExtractFormProps {
   url: string;
   setUrl: (url: string) => void;
@@ -59,6 +62,11 @@ interface ExtractFormProps {
   jobStatus: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed' | null;
   progress: ProgressData | null;
   errorBanner?: React.ReactNode;
+  mode: ExtractMode;
+  setMode: (mode: ExtractMode) => void;
+  photos: File[];
+  setPhotos: (photos: File[]) => void;
+  isUploadingPhotos: boolean;
 }
 
 export default function ExtractForm({
@@ -72,7 +80,12 @@ export default function ExtractForm({
   limitStatus,
   jobStatus,
   progress,
-  errorBanner
+  errorBanner,
+  mode,
+  setMode,
+  photos,
+  setPhotos,
+  isUploadingPhotos
 }: ExtractFormProps) {
   const { t } = useI18n();
   const { user, isPremium, isPremiumOverride, hasTrialAvailable, trialDays, trialLoading } = useAuth();
@@ -148,6 +161,36 @@ export default function ExtractForm({
     }, 50);
   };
 
+  // Camera vs gallery are two inputs rather than one: `capture` asks Android for
+  // the camera app directly, while the gallery picker needs `multiple` and must
+  // not carry `capture`. Plain file inputs keep this shippable over OTA — a
+  // native camera plugin would require a full Play Store release.
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const photosFull = photos.length >= MAX_IMPORT_PHOTOS;
+
+  // Preview URLs are derived once per selection and revoked when it changes —
+  // creating them inline during render would mint a new URL on every re-render.
+  const photoPreviews = useMemo(() => photos.map(photo => URL.createObjectURL(photo)), [photos]);
+  useEffect(() => () => photoPreviews.forEach(URL.revokeObjectURL), [photoPreviews]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = Array.from(e.target.files ?? []);
+    // Reset so re-picking the very same file fires onChange again.
+    e.target.value = '';
+    if (picked.length === 0) return;
+    setPhotos([...photos, ...picked].slice(0, MAX_IMPORT_PHOTOS));
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(photos.filter((_, i) => i !== index));
+  };
+
+  const openPicker = (ref: React.RefObject<HTMLInputElement | null>) => {
+    if (blockedByLimit) { setIsPremiumModalOpen(true); return; }
+    ref.current?.click();
+  };
+
   const DEMO_RECIPES = [
     {
       name: 'Instagram Reel',
@@ -172,6 +215,7 @@ export default function ExtractForm({
           isPending={isPending}
           jobStatus={jobStatus}
           progress={progress}
+          variant={mode === 'photo' ? 'photo' : 'link'}
         />
       ) : (
         <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
@@ -182,6 +226,105 @@ export default function ExtractForm({
             }}
             className="flex flex-col gap-3"
           >
+            {/* Input channel switch: a shared link vs. your own photos. */}
+            <div className="flex items-center gap-1 p-1 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+              {(['link', 'photo'] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setMode(option)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 ${mode === option
+                    ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400'
+                    }`}
+                >
+                  {option === 'link' ? <Link2 className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
+                  <span>{t(`form.mode.${option}`)}</span>
+                </button>
+              ))}
+            </div>
+
+            {mode === 'photo' ? (
+              <div className="flex flex-col gap-3">
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
+
+                {photos.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 py-6 px-4 rounded-2xl border border-dashed border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] text-center">
+                    <div className="p-2.5 rounded-full bg-emerald-500/10">
+                      <Camera className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('form.photo.emptyTitle')}</p>
+                    <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400 max-w-[16rem]">
+                      {t('form.photo.emptyHint')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {photos.map((photo, index) => (
+                      <div key={`${photo.name}-${index}`} className="relative aspect-square rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
+                        <img
+                          src={photoPreviews[index]}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                        {/* The badge is the page order sent to the extractor. */}
+                        <span className="absolute bottom-1 left-1 w-5 h-5 rounded-full bg-black/65 text-white text-[10px] font-bold flex items-center justify-center backdrop-blur-sm">
+                          {index + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(index)}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/65 text-white flex items-center justify-center backdrop-blur-sm active:scale-90 transition-transform"
+                          aria-label={t('form.photo.remove')}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openPicker(cameraInputRef)}
+                    disabled={photosFull}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-semibold bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white disabled:opacity-40 active:scale-95 transition-all"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span>{t('form.photo.takePhoto')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openPicker(galleryInputRef)}
+                    disabled={photosFull}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-semibold bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white disabled:opacity-40 active:scale-95 transition-all"
+                  >
+                    <ImagePlus className="w-4 h-4" />
+                    <span>{t('form.photo.fromGallery')}</span>
+                  </button>
+                </div>
+
+                <p className="text-center text-[11px] text-gray-400 dark:text-gray-500">
+                  {t('form.photo.counter', { count: photos.length, max: MAX_IMPORT_PHOTOS })}
+                </p>
+              </div>
+            ) : (
             <TextField
               fullWidth
               name="url"
@@ -226,13 +369,14 @@ export default function ExtractForm({
               </div>
               {urlError && <FieldError className="text-xs text-red-500 mt-1">{urlError}</FieldError>}
             </TextField>
+            )}
 
             <Button
               type="submit"
               fullWidth
-              isPending={isPending}
-              isDisabled={blockedByLimit}
-              className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${blockedByLimit
+              isPending={isPending || isUploadingPhotos}
+              isDisabled={blockedByLimit || (mode === 'photo' && photos.length === 0)}
+              className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${blockedByLimit || (mode === 'photo' && photos.length === 0)
                 ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-70 shadow-none'
                 : isPending
                   ? 'bg-emerald-800 shadow-none'
@@ -244,7 +388,7 @@ export default function ExtractForm({
                   {isPending ? (
                     <>
                       <Spinner color="current" size="sm" />
-                      <span>{t('form.btnPending')}</span>
+                      <span>{isUploadingPhotos ? t('form.photo.btnUploading') : t('form.btnPending')}</span>
                     </>
                   ) : (
                     <>
@@ -305,18 +449,24 @@ export default function ExtractForm({
             <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
 
             {/* Supported Platforms */}
-            <div className="flex items-center justify-center gap-2 pt-1">
-              <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-                {t('form.platformsTitle')}
-              </span>
-              <div className="flex items-center gap-3">
-                <InstagramIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-                <TikTokIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-                <YoutubeIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-                <FacebookIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-                <Globe className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+            {mode === 'link' ? (
+              <div className="flex items-center justify-center gap-2 pt-1">
+                <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                  {t('form.platformsTitle')}
+                </span>
+                <div className="flex items-center gap-3">
+                  <InstagramIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                  <TikTokIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                  <YoutubeIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                  <FacebookIcon className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                  <Globe className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="text-center text-[11px] leading-relaxed text-gray-400 dark:text-gray-500 pt-1">
+                {t('form.photo.tips')}
+              </p>
+            )}
           </form>
         </Card>
       )}
@@ -332,6 +482,9 @@ export default function ExtractForm({
             <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
           )}
 
+          {/* Link-only guidance: sharing a post and the per-platform help below
+              have no meaning for a photo import. */}
+          {mode === 'link' && (<>
           {/* Share Directly Accordion */}
           <Accordion variant="surface" className="w-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden" defaultExpandedKeys={['share']}>
             <Accordion.Item className="border-none" id="share">
@@ -490,6 +643,7 @@ export default function ExtractForm({
               ))}
             </div>
           </Card>
+          </>)}
         </>
       )}
     </div>

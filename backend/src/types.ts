@@ -65,7 +65,7 @@ export interface Recipe {
 
 export type JobStatus = 'pending' | 'scraping' | 'processing' | 'completed' | 'failed';
 
-export type ProgressStage = 'queued' | 'scraping' | 'downloading_media' | 'extracting_frames' | 'extracting_recipe' | 'finalizing';
+export type ProgressStage = 'queued' | 'scraping' | 'downloading_media' | 'extracting_frames' | 'reading_photos' | 'extracting_recipe' | 'finalizing';
 
 export interface ProgressData {
   isProgress: true;

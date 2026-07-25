@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getCachedImage, setCachedImage } from '../utils/imageStore';
+import { compressImage, PREVIEW_PROFILE } from '../utils/imageCompression';
 import { apiUrl } from '../api';
 
 /**
@@ -21,56 +22,8 @@ async function compressAndConvertToBase64(url: string): Promise<string> {
   }
 
   const blob = await response.blob();
-  
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous'; // Ensure CORS is handled
-    const objectUrl = URL.createObjectURL(blob);
 
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Failed to get 2D context from canvas'));
-          return;
-        }
-
-        // Calculate new dimensions (max 800px, preserving aspect ratio)
-        const maxDim = 800;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        // Draw and compress
-        ctx.drawImage(img, 0, 0, width, height);
-        const base64 = canvas.toDataURL('image/jpeg', 0.75); // 75% quality JPEG
-        resolve(base64);
-      } catch (err) {
-        reject(err);
-      }
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('Failed to load image into HTMLImageElement'));
-    };
-
-    img.src = objectUrl;
-  });
+  return compressImage(blob, PREVIEW_PROFILE);
 }
 
 /**

@@ -95,6 +95,10 @@ async function bootstrap() {
     });
     app.use('/api', apiLimiter);
 
+    // Photo imports carry up to 5 base64 JPEGs and need a larger budget than the
+    // global 1 MB default. Mounted *before* the global parser: body-parser marks
+    // the body as read, so the 1 MB limit never applies to this path.
+    app.use('/api/extract-recipe/photos', express.json({ limit: '12mb' }));
     app.use(express.json({ limit: '1mb' }));
 
     // Image proxy to bypass Instagram CORP blocks (before apiRouter to skip API key check)
