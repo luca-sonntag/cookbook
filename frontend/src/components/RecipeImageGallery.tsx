@@ -190,7 +190,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
         <Button
           isIconOnly
           onPress={onBack}
-          className="absolute top-4 left-4 z-20 bg-black/65 hover:bg-emerald-600/90 text-white w-9 h-9 min-w-0 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+          className="absolute top-6 left-5 z-20 bg-black/65 hover:bg-emerald-600/90 text-white w-9 h-9 min-w-0 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
           aria-label="Go back"
         >
           <ArrowLeft className="w-4 h-4" />
