@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Star, Zap, History, Sparkles, Plus, Tag, ChevronRight, Settings2 } from 'lucide-react';
+import { Star, Zap, History, Sparkles, Plus, Tag, ChevronRight, Settings2 } from 'lucide-react';
 import type { Collection, Job } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import CollectionTile from './CollectionTile';

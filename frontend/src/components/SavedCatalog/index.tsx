@@ -219,13 +219,13 @@ export default function SavedCatalog({
     }
   }, [catalogSubPath, preset, setFilters, setSearchQuery, setSortBy]);
 
-  // Leaving the list level drops the multi-select mode with it.
+  // Automatically transition to the list level (Level 2) if search query
+  // or active filter count becomes greater than 0 while on Cookbook Home (Level 1).
   useEffect(() => {
-    if (!isListLevel && isSelectMode) {
-      setIsSelectMode(false);
-      setSelectedIds(new Set());
+    if (!isListLevel && (searchQuery || activeFilterCount > 0)) {
+      navigateCatalog(buildListRoute({ kind: 'search' }));
     }
-  }, [isListLevel, isSelectMode, setIsSelectMode, setSelectedIds]);
+  }, [isListLevel, searchQuery, activeFilterCount, navigateCatalog]);
 
   const openList = useCallback((target: CatalogPreset) => {
     navigateCatalog(buildListRoute(target));
@@ -392,44 +392,15 @@ export default function SavedCatalog({
   );
 
   // ---------------------------------------------------------------------------
-  // Level 1: cookbook home
-  // ---------------------------------------------------------------------------
-  if (!isListLevel) {
-    return (
-      <div className="flex flex-col gap-4">
-        {premiumBanner}
-        <CookbookHome
-          totalRecipes={completedJobs.length}
-          collections={collections}
-          jobsByCollection={jobsByCollection}
-          shelves={shelves}
-          allFlags={allFlags}
-          formatTotalTime={formatTotalTime}
-          onOpenSearch={() => openList({ kind: 'search' })}
-          onOpenList={openList}
-          onOpenRecipe={(e, job) => handleCardClick(e, job)}
-          onToggleFavorite={(e, job) => {
-            e.stopPropagation();
-            toggleFavorite(job);
-          }}
-          onAddCollection={handleAddCollectionClick}
-          onManageCollections={handleAddCollectionClick}
-        />
-        {sheets}
-      </div>
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Level 2: full list
+  // Level 1 & 2: Unified Layout
   // ---------------------------------------------------------------------------
   return (
     <div className="flex flex-col gap-4">
       <CatalogFilters
-        title={listTitle}
+        title={isListLevel ? listTitle : t('catalog.myCookbookTitle')}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        autoFocusSearch={preset.kind === 'search'}
+        autoFocusSearch={isListLevel && preset.kind === 'search'}
         viewMode={viewMode}
         setViewMode={setViewMode}
         filters={filters}
@@ -442,14 +413,37 @@ export default function SavedCatalog({
           setIsSelectMode(active);
           if (!active) setSelectedIds(new Set());
         }}
-        onBack={() => navigateCatalog(null)}
-        resultCount={filteredJobs.length}
+        onBack={isListLevel ? () => navigateCatalog(null) : undefined}
+        resultCount={isListLevel ? filteredJobs.length : completedJobs.length}
         sortBy={sortBy}
+        showViewModeToggle={isListLevel}
       />
 
       {premiumBanner}
 
-      {filteredJobs.length === 0 ? (
+      {!isListLevel ? (
+        <CookbookHome
+          totalRecipes={completedJobs.length}
+          collections={collections}
+          jobsByCollection={jobsByCollection}
+          shelves={shelves}
+          allFlags={allFlags}
+          formatTotalTime={formatTotalTime}
+          onOpenList={openList}
+          onOpenRecipe={(e, job) => handleCardClick(e, job)}
+          onToggleFavorite={(e, job) => {
+            e.stopPropagation();
+            toggleFavorite(job);
+          }}
+          onAddCollection={handleAddCollectionClick}
+          onManageCollections={handleAddCollectionClick}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          addedRecipeIds={addedRecipeIds}
+          bindLongPress={bindLongPress}
+          onDirectAdd={handleDirectAddToShoppingList}
+        />
+      ) : filteredJobs.length === 0 ? (
         <div className="flex flex-col items-center gap-3 text-center py-14 px-6">
           <SearchX className="w-9 h-9 text-gray-300 dark:text-gray-600" />
           <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
