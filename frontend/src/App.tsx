@@ -9,6 +9,7 @@ import ExtractForm from './components/ExtractForm';
 import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog/index';
+import { isCatalogListRoute } from './components/SavedCatalog/catalogRoutes';
 import ShoppingList from './components/ShoppingList';
 import AuthForm from './components/AuthForm';
 import SettingsView from './components/SettingsView';
@@ -64,19 +65,37 @@ export default function App() {
     complete: completeAlphaWelcome,
   } = useAlphaWelcome();
 
+  // The catalog's sub-path carries two things: a recipe id (detail view) or a
+  // `list...` route (level 2 of the cookbook). See SavedCatalog/catalogRoutes.
+  const isCatalogList = activeView === 'history' && isCatalogListRoute(subPath);
+
   // Derived: which saved job is currently open (from URL sub-path)
   const selectedJob: Job | null =
-    activeView === 'history' && subPath && historyLoaded
+    activeView === 'history' && subPath && !isCatalogListRoute(subPath) && historyLoaded
       ? (history.find(j => j.id === subPath) ?? null)
       : null;
+
+  // Remembers the catalog level a recipe was opened from, so closing the detail
+  // view returns there: the list route it came from, or `null` for the cookbook
+  // home. Only updated while no recipe is open, so the value survives the
+  // detail view itself.
+  const catalogReturnRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (activeView !== 'history' || selectedJob) return;
+    catalogReturnRef.current = isCatalogList ? subPath : null;
+  }, [activeView, selectedJob, isCatalogList, subPath]);
 
   // Setter for selected job — navigates via URL
   const setSelectedJob = useCallback((job: Job | null) => {
     if (job) {
       navigate('history', job.id);
     } else {
-      navigate('history');
+      navigate('history', catalogReturnRef.current);
     }
+  }, [navigate]);
+
+  const navigateCatalog = useCallback((catalogSubPath?: string | null) => {
+    navigate('history', catalogSubPath ?? null);
   }, [navigate]);
 
   // Custom Hooks for Recipe Extraction and Shopping List
@@ -178,6 +197,11 @@ export default function App() {
         return true;
       }
       if (activeView === 'history' && selectedJob) {
+        // Back out of a recipe into the list it was opened from (or the home).
+        navigate('history', catalogReturnRef.current);
+        return true;
+      }
+      if (isCatalogList) {
         navigate('history');
         return true;
       }
@@ -196,7 +220,7 @@ export default function App() {
     });
   // Note: activeView, selectedJob and recipe are intentionally in the dep array
   // so the handler always closes over the latest state.
-  }, [activeView, selectedJob, recipe, navigate, setRecipe, setUrl]);
+  }, [activeView, selectedJob, isCatalogList, recipe, navigate, setRecipe, setUrl]);
 
   // Fetch history on load. Waits for AuthContext's own initial getSession()
   // to settle first (authLoading) instead of firing immediately on mount —
@@ -288,7 +312,7 @@ export default function App() {
   // or clear the subPath if the jobId no longer exists.
   useEffect(() => {
     if (!historyLoaded) return;
-    if (activeView === 'history' && subPath) {
+    if (activeView === 'history' && subPath && !isCatalogListRoute(subPath)) {
       const exists = history.some(j => j.id === subPath);
       if (exists) {
         // Clear the guard once the job is confirmed in history.
@@ -603,6 +627,8 @@ export default function App() {
               fetchHistory();
             }}
             onSelectModeChange={setIsCatalogSelectMode}
+            catalogSubPath={subPath}
+            onNavigateCatalog={navigateCatalog}
           />
         ) : activeView === 'shopping-list' ? (
           /* SHOPPING LIST TAB */
