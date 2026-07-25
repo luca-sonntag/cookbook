@@ -227,11 +227,12 @@ export default function SavedCatalog({
 
   // Automatically transition to the list level (Level 2) if search query
   // or active filter count becomes greater than 0 while on Cookbook Home (Level 1).
+  // Nur auslösen, wenn wir NICHT im Detail-View sind (selectedJob ist null).
   useEffect(() => {
-    if (!isListLevel && (searchQuery || activeFilterCount > 0)) {
+    if (!isListLevel && !selectedJob && (searchQuery || activeFilterCount > 0)) {
       navigateCatalog(buildListRoute({ kind: 'search' }));
     }
-  }, [isListLevel, searchQuery, activeFilterCount, navigateCatalog]);
+  }, [isListLevel, selectedJob, searchQuery, activeFilterCount, navigateCatalog]);
 
   const openList = useCallback((target: CatalogPreset) => {
     navigateCatalog(buildListRoute(target));
