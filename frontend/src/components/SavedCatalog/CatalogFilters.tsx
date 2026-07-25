@@ -20,9 +20,10 @@ interface CatalogFiltersProps {
   collections: Collection[];
   isSelectMode: boolean;
   setIsSelectMode: (active: boolean) => void;
-  onBack: () => void;
+  onBack?: () => void;
   resultCount: number;
   sortBy: CatalogSort;
+  showViewModeToggle?: boolean;
 }
 
 /**
@@ -49,7 +50,8 @@ export default function CatalogFilters({
   setIsSelectMode,
   onBack,
   resultCount,
-  sortBy
+  sortBy,
+  showViewModeToggle = true
 }: CatalogFiltersProps) {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,32 +74,36 @@ export default function CatalogFilters({
     <div className="sticky top-[var(--safe-area-inset-top)] z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-2.5 pt-3">
       {/* Row 1: back + title + view/select toggles */}
       <div className="flex items-center gap-1 min-h-[44px]">
-        <Button
-          isIconOnly
-          variant="tertiary"
-          className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
-          onPress={onBack}
-          aria-label={t('catalog.backToCookbook')}
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
+        {onBack && (
+          <Button
+            isIconOnly
+            variant="tertiary"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
+            onPress={onBack}
+            aria-label={t('catalog.backToCookbook')}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        )}
 
-        <div className="flex-1 min-w-0">
+        <div className={`flex-1 min-w-0 ${!onBack ? 'pl-2' : ''}`}>
           <h2 className="text-base font-bold text-gray-900 dark:text-white truncate leading-tight">{title}</h2>
           <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight truncate">
             {t('catalog.recipeCount', { count: resultCount })} · {t(`catalog.sort.${sortBy}`)}
           </p>
         </div>
 
-        <Button
-          isIconOnly
-          variant="tertiary"
-          className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
-          onPress={() => setViewMode(viewMode === 'card' ? 'compact' : 'card')}
-          aria-label={t('catalog.viewToggle')}
-        >
-          {viewMode === 'card' ? <List className="w-5 h-5" /> : <LayoutGrid className="w-5 h-5" />}
-        </Button>
+        {showViewModeToggle && (
+          <Button
+            isIconOnly
+            variant="tertiary"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
+            onPress={() => setViewMode(viewMode === 'card' ? 'compact' : 'card')}
+            aria-label={t('catalog.viewToggle')}
+          >
+            {viewMode === 'card' ? <List className="w-5 h-5" /> : <LayoutGrid className="w-5 h-5" />}
+          </Button>
+        )}
 
         <Button
           isIconOnly
