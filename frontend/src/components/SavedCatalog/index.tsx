@@ -146,6 +146,27 @@ export default function SavedCatalog({
     return Array.from(new Set(completedJobs.flatMap(j => j.flags || [])));
   }, [completedJobs]);
 
+  const listTitle = useMemo(() => {
+    switch (preset.kind) {
+      case 'favorites':
+        return t('catalog.favoritesFilter');
+      case 'quick':
+        return t('catalog.shelfQuick');
+      case 'recent':
+        return t('catalog.shelfRecent');
+      case 'collection': {
+        const col = collections.find(c => c.id === preset.id);
+        return col ? `${col.emoji} ${col.name}` : t('catalog.allRecipesTitle');
+      }
+      case 'flag':
+        return preset.name;
+      case 'search':
+        return t('catalog.allRecipesTitle');
+      default:
+        return t('catalog.allRecipesTitle');
+    }
+  }, [preset, collections, t]);
+
   useEffect(() => {
     if (historyLoaded) {
       refreshCollections();
@@ -397,27 +418,6 @@ export default function SavedCatalog({
   // ---------------------------------------------------------------------------
   // Level 2: full list
   // ---------------------------------------------------------------------------
-  const listTitle = useMemo(() => {
-    switch (preset.kind) {
-      case 'favorites':
-        return t('catalog.favoritesFilter');
-      case 'quick':
-        return t('catalog.shelfQuick');
-      case 'recent':
-        return t('catalog.shelfRecent');
-      case 'collection': {
-        const col = collections.find(c => c.id === preset.id);
-        return col ? `${col.emoji} ${col.name}` : t('catalog.allRecipesTitle');
-      }
-      case 'flag':
-        return preset.name;
-      case 'search':
-        return t('catalog.allRecipesTitle');
-      default:
-        return t('catalog.allRecipesTitle');
-    }
-  }, [preset, collections, t]);
-
   return (
     <div className="flex flex-col gap-4">
       <CatalogFilters
