@@ -1,4 +1,4 @@
-import { ArrowLeft, Crown, Clock, Utensils, Flame } from 'lucide-react';
+import { ArrowLeft, Crown, Clock, Users, Flame } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 
 interface RecipeStickyBarProps {
@@ -73,7 +73,7 @@ export default function RecipeStickyBar({
               </span>
             )}
             <span className="flex items-center gap-1">
-              <Utensils className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+              <Users className="w-3 h-3 text-emerald-500 flex-shrink-0" />
               {t('recipe.servingsCount', { count: servings })}
             </span>
             {calories !== null && (

@@ -26,14 +26,10 @@ export default function RecipeNutrition({
 
   return (
     <>
-      <div 
+      <div
         onClick={() => !isPremium && setIsPremiumModalOpen(true)}
-        className={`relative p-3.5 rounded-xl border border-black/5 dark:border-white/5 transition-all duration-300 ${
-          !isPremium ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 shadow-xs' : ''
-        } ${
-          isAiEstimated
-            ? 'bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] shadow-[0_0_15px_rgba(99,102,241,0.05)]'
-            : 'bg-black/5 dark:bg-white/5'
+        className={`glass-panel relative p-4 rounded-2xl transition-all duration-300 ${
+          !isPremium ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''
         }`}
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3.5">
@@ -79,20 +75,20 @@ export default function RecipeNutrition({
           !isPremium ? 'filter blur-sm select-none pointer-events-none opacity-30' : ''
         }`}>
           <div>
-            <div className="text-gray-900 dark:text-white text-sm font-bold">{getNutritionDisplayValue(nutritionalValues.calories, 'kcal', showTotalNutrition, false)}</div>
-            <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{t('recipe.nutritionCalories')}</div>
+            <div className="text-gray-900 dark:text-white text-base font-extrabold tabular-nums">{getNutritionDisplayValue(nutritionalValues.calories, 'kcal', showTotalNutrition, false)}</div>
+            <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionCalories')}</div>
           </div>
           <div>
-            <div className="text-gray-900 dark:text-white text-sm font-bold">{getNutritionDisplayValue(nutritionalValues.protein, 'g', showTotalNutrition, true)}</div>
-            <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{t('recipe.nutritionProtein')}</div>
+            <div className="text-gray-900 dark:text-white text-base font-extrabold tabular-nums">{getNutritionDisplayValue(nutritionalValues.protein, 'g', showTotalNutrition, true)}</div>
+            <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionProtein')}</div>
           </div>
           <div>
-            <div className="text-gray-900 dark:text-white text-sm font-bold">{getNutritionDisplayValue(nutritionalValues.carbs, 'g', showTotalNutrition, true)}</div>
-            <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{t('recipe.nutritionCarbs')}</div>
+            <div className="text-gray-900 dark:text-white text-base font-extrabold tabular-nums">{getNutritionDisplayValue(nutritionalValues.carbs, 'g', showTotalNutrition, true)}</div>
+            <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionCarbs')}</div>
           </div>
           <div>
-            <div className="text-gray-900 dark:text-white text-sm font-bold">{getNutritionDisplayValue(nutritionalValues.fat, 'g', showTotalNutrition, true)}</div>
-            <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{t('recipe.nutritionFat')}</div>
+            <div className="text-gray-900 dark:text-white text-base font-extrabold tabular-nums">{getNutritionDisplayValue(nutritionalValues.fat, 'g', showTotalNutrition, true)}</div>
+            <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionFat')}</div>
           </div>
         </div>
 
