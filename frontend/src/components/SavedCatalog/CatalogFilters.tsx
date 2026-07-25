@@ -4,6 +4,7 @@ import { Search, List, LayoutGrid, CheckSquare, Square, ArrowLeft, Star, Tag, Sl
 import { useI18n } from '../../context/I18nContext';
 import type { Collection } from '../../types';
 import type { CatalogFilterState, CatalogSort } from '../../hooks/useSavedCatalog';
+import { buildListRoute, parseListRoute } from './catalogRoutes';
 
 interface CatalogFiltersProps {
   title: string;
@@ -24,6 +25,10 @@ interface CatalogFiltersProps {
   resultCount: number;
   sortBy: CatalogSort;
   showViewModeToggle?: boolean;
+  /** Current catalog sub-path to detect context. */
+  catalogSubPath?: string | null;
+  /** Navigate within the catalog. */
+  onNavigateCatalog?: (subPath: string | null) => void;
 }
 
 /**
@@ -51,7 +56,9 @@ export default function CatalogFilters({
   onBack,
   resultCount,
   sortBy,
-  showViewModeToggle = true
+  showViewModeToggle = true,
+  catalogSubPath,
+  onNavigateCatalog
 }: CatalogFiltersProps) {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -63,12 +70,46 @@ export default function CatalogFilters({
   const collectionName = (id: string) => collections.find(c => c.id === id)?.name ?? id;
   const collectionEmoji = (id: string) => collections.find(c => c.id === id)?.emoji ?? null;
 
-  const removeCollection = (id: string) =>
+  // When removing a filter chip or changing search in a specific context
+  // (collection, favorites, quick, flag), navigate to general list view.
+  const navigateToGeneralListIfNeeded = () => {
+    if (!onNavigateCatalog || !catalogSubPath) return;
+    const preset = parseListRoute(catalogSubPath);
+    if (preset.kind !== 'all' && preset.kind !== 'search') {
+      onNavigateCatalog(buildListRoute({ kind: 'all' }));
+    }
+  };
+
+  const removeCollection = (id: string) => {
     setFilters({ ...filters, collectionIds: filters.collectionIds.filter(c => c !== id) });
-  const removeFlag = (flag: string) =>
+    navigateToGeneralListIfNeeded();
+  };
+  const removeFlag = (flag: string) => {
     setFilters({ ...filters, flags: filters.flags.filter(f => f !== flag) });
+    navigateToGeneralListIfNeeded();
+  };
+  const removeFavorites = () => {
+    setFilters({ ...filters, favoritesOnly: false });
+    navigateToGeneralListIfNeeded();
+  };
+  const removeTime = () => {
+    setFilters({ ...filters, maxTime: 0 });
+    navigateToGeneralListIfNeeded();
+  };
 
   const hasActiveChips = activeFilterCount > 0;
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    // If user starts typing in a specific context (collection, favorites, etc.),
+    // navigate to general list view so the search applies to all recipes
+    if (value && onNavigateCatalog && catalogSubPath) {
+      const preset = parseListRoute(catalogSubPath);
+      if (preset.kind !== 'all' && preset.kind !== 'search') {
+        onNavigateCatalog(buildListRoute({ kind: 'search' }));
+      }
+    }
+  };
 
   return (
     <div className="sticky top-[var(--safe-area-inset-top)] z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-2.5 pt-3">
@@ -127,7 +168,7 @@ export default function CatalogFilters({
             ref={inputRef}
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder={t('catalog.searchPlaceholder')}
             className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-10 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none placeholder-gray-400 dark:placeholder-gray-500"
           />
@@ -168,14 +209,14 @@ export default function CatalogFilters({
         <div className="flex gap-1.5 overflow-x-auto scrollbar-none -mx-4 px-4 md:-mx-6 md:px-6 scroll-smooth">
           {filters.favoritesOnly && (
             <ActiveChip
-              onRemove={() => setFilters({ ...filters, favoritesOnly: false })}
+              onRemove={removeFavorites}
               icon={<Star className="w-3 h-3 fill-current" />}
               label={t('catalog.favoritesFilter')}
             />
           )}
           {filters.maxTime > 0 && (
             <ActiveChip
-              onRemove={() => setFilters({ ...filters, maxTime: 0 })}
+              onRemove={removeTime}
               icon={<Clock className="w-3 h-3" />}
               label={t('catalog.timeUnder', { count: filters.maxTime })}
             />

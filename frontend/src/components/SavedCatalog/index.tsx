@@ -69,6 +69,13 @@ export default function SavedCatalog({
     else window.location.hash = subPath ? `#/history/${subPath}` : '#/history';
   }, [onNavigateCatalog]);
 
+  // Wrapper that sets skipNextRouteSyncRef before navigating, so the route-sync
+  // effect doesn't reset filters that were just applied by the user.
+  const navigateCatalogSkipSync = useCallback((subPath?: string | null) => {
+    skipNextRouteSyncRef.current = true;
+    navigateCatalog(subPath ?? null);
+  }, [navigateCatalog]);
+
   // Which of the three catalog levels is showing
   const isListLevel = !selectedJob && isCatalogListRoute(catalogSubPath);
   const preset = useMemo(() => parseListRoute(catalogSubPath), [catalogSubPath]);
@@ -195,6 +202,7 @@ export default function SavedCatalog({
   // entered with a different preset. Tracked by ref so the user's own edits
   // inside the sheet are never clobbered by a re-render.
   const appliedRouteRef = useRef<string | null>(null);
+  const skipNextRouteSyncRef = useRef(false);
   useEffect(() => {
     if (!isCatalogListRoute(catalogSubPath)) {
       // Navigating back to home: reset filters and search
@@ -205,6 +213,12 @@ export default function SavedCatalog({
       return;
     }
     if (appliedRouteRef.current === catalogSubPath) return;
+    // Skip route sync when navigation was triggered by a filter change
+    if (skipNextRouteSyncRef.current) {
+      skipNextRouteSyncRef.current = false;
+      appliedRouteRef.current = catalogSubPath ?? null;
+      return;
+    }
     appliedRouteRef.current = catalogSubPath ?? null;
 
     setSearchQuery('');
@@ -430,6 +444,8 @@ export default function SavedCatalog({
         resultCount={isListLevel ? filteredJobs.length : completedJobs.length}
         sortBy={sortBy}
         showViewModeToggle={isListLevel}
+        catalogSubPath={catalogSubPath}
+        onNavigateCatalog={navigateCatalogSkipSync}
       />
 
       {premiumBanner}
@@ -519,19 +535,15 @@ export default function SavedCatalog({
         filters={filters}
         sortBy={sortBy}
         onApply={(next, nextSort) => {
-          // If we're in a collection context and the new filters don't include this collection,
-          // reset the collection filter and navigate to general list
-          if (isListLevel && preset.kind === 'collection') {
-            const stillInSameCollection = next.collectionIds.includes(preset.id);
-            if (!stillInSameCollection) {
-              // Reset collection filter, keep other filters
-              const filtersWithoutCollection = { ...next, collectionIds: [] };
-              setFilters(filtersWithoutCollection);
-              setSortBy(nextSort);
-              // Navigate to general list view
-              navigateCatalog(buildListRoute({ kind: 'all' }));
-              return;
-            }
+          // If we're in a specific context (collection, favorites, quick, flag)
+          // and the user changes filters, navigate to general list view so the
+          // new filters apply to all recipes, not just the current context.
+          if (isListLevel && preset.kind !== 'all' && preset.kind !== 'search') {
+            setFilters(next);
+            setSortBy(nextSort);
+            skipNextRouteSyncRef.current = true;
+            navigateCatalog(buildListRoute({ kind: 'all' }));
+            return;
           }
           setFilters(next);
           setSortBy(nextSort);
