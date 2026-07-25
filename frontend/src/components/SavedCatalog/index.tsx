@@ -221,29 +221,37 @@ export default function SavedCatalog({
     }
     appliedRouteRef.current = catalogSubPath ?? null;
 
-    setSearchQuery('');
     switch (preset.kind) {
       case 'favorites':
+        setSearchQuery('');
         setFilters({ ...EMPTY_FILTERS, favoritesOnly: true });
         setSortBy('newest');
         break;
       case 'quick':
+        setSearchQuery('');
         setFilters({ ...EMPTY_FILTERS, maxTime: 30 });
         setSortBy('newest');
         break;
       case 'collection':
+        setSearchQuery('');
         setFilters({ ...EMPTY_FILTERS, collectionIds: [preset.id] });
         setSortBy('newest');
         break;
       case 'flag':
+        setSearchQuery('');
         setFilters({ ...EMPTY_FILTERS, flags: [preset.name] });
         setSortBy('newest');
         break;
       case 'recent':
+        setSearchQuery('');
         setFilters(EMPTY_FILTERS);
         setSortBy('recent');
         break;
+      case 'search':
+        // Do not clear searchQuery when in search view
+        break;
       default:
+        setSearchQuery('');
         setFilters(EMPTY_FILTERS);
         setSortBy('newest');
         break;
@@ -257,9 +265,9 @@ export default function SavedCatalog({
   useEffect(() => {
     if (justNavigatedBackFromList) return; // Don't auto-transition when navigating back from list to home
     if (!isListLevel && !selectedJob && (searchQuery || activeFilterCount > 0)) {
-      navigateCatalog(buildListRoute({ kind: 'search' }));
+      navigateCatalogSkipSync(buildListRoute({ kind: 'search' }));
     }
-  }, [isListLevel, selectedJob, searchQuery, activeFilterCount, navigateCatalog, justNavigatedBackFromList]);
+  }, [isListLevel, selectedJob, searchQuery, activeFilterCount, navigateCatalogSkipSync, justNavigatedBackFromList]);
 
   const openList = useCallback((target: CatalogPreset) => {
     navigateCatalog(buildListRoute(target));
