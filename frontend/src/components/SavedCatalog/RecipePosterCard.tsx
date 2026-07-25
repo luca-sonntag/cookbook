@@ -41,9 +41,8 @@ export default function RecipePosterCard({
 
   return (
     <div
-      className={`glass-panel rounded-2xl overflow-hidden border cursor-pointer active:scale-[0.98] transition-all select-none flex flex-col ${
-        isShelf ? 'w-[9.5rem] shrink-0' : 'w-full'
-      } ${isSelected ? '!border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-black/5 dark:border-white/5 hover:border-emerald-500/30'}`}
+      className={`glass-panel rounded-2xl overflow-hidden border cursor-pointer active:scale-[0.98] transition-all select-none flex flex-col ${isShelf ? 'w-[9.5rem] shrink-0' : 'w-full'
+        } ${isSelected ? '!border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-black/5 dark:border-white/5 hover:border-emerald-500/30'}`}
       onClick={onClick}
       {...(bindLongPress ?? {})}
     >
@@ -59,11 +58,10 @@ export default function RecipePosterCard({
         {/* Select-mode checkbox */}
         {isSelectMode && (
           <div
-            className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all border ${
-              isSelected
+            className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all border ${isSelected
                 ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
                 : 'bg-black/40 backdrop-blur-sm border-white/30 text-white'
-            }`}
+              }`}
           >
             {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
           </div>
@@ -71,7 +69,7 @@ export default function RecipePosterCard({
 
         {/* Source platform */}
         {!isSelectMode && (
-          <div className="absolute bottom-1.5 left-1.5 z-[5] bg-gradient-to-br from-emerald-500/10 via-transparent to-indigo-500/10 bg-white/20 dark:bg-black/20 backdrop-blur-md shadow-sm border border-white/20 dark:border-white/10 rounded-lg w-7 h-7 flex items-center justify-center pointer-events-none select-none">
+          <div className="absolute bottom-1.5 left-1.5 z-[5] bg-gradient-to-br from-emerald-100 to-indigo-100 dark:from-emerald-950 dark:to-indigo-950 shadow-sm border border-black/10 dark:border-white/15 rounded-lg w-7 h-7 flex items-center justify-center pointer-events-none select-none">
             <PlatformIcon platform={platform} className={`w-3.5 h-3.5 ${iconColor}`} />
           </div>
         )}
