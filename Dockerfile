@@ -7,9 +7,10 @@ WORKDIR /app
 COPY package*.json ./
 COPY backend/package*.json backend/
 COPY frontend/package*.json frontend/
+COPY healthcheck/package*.json healthcheck/
 
 # Install dependencies for the workspaces
-RUN YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm ci
+RUN YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm install
 
 # Build backend
 COPY backend/tsconfig.json backend/
