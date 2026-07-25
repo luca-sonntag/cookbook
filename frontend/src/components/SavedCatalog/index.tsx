@@ -104,14 +104,12 @@ export default function SavedCatalog({
     setIsSelectMode,
     selectedIds,
     setSelectedIds,
-    addedRecipeIds,
     filteredJobs,
     countMatches,
     formatTotalTime,
     getRecipeTags,
     bindLongPress,
     handleCardClick,
-    handleDirectAddToShoppingList,
     handleBulkAddToShoppingList,
     handleBulkDelete,
     sortBy,
@@ -320,6 +318,8 @@ export default function SavedCatalog({
             }}
             onAssignCollections={() => handleAssignCollectionsClick(selectedJob)}
             onManageFlags={() => handleManageFlagsClick(selectedJob)}
+            isFavorite={selectedJob.isFavorite}
+            onToggleFavorite={() => toggleFavorite(selectedJob)}
           />
         )}
 
@@ -431,17 +431,11 @@ export default function SavedCatalog({
           formatTotalTime={formatTotalTime}
           onOpenList={openList}
           onOpenRecipe={(e, job) => handleCardClick(e, job)}
-          onToggleFavorite={(e, job) => {
-            e.stopPropagation();
-            toggleFavorite(job);
-          }}
           onAddCollection={handleAddCollectionClick}
           onManageCollections={handleAddCollectionClick}
           isSelectMode={isSelectMode}
           selectedIds={selectedIds}
-          addedRecipeIds={addedRecipeIds}
           bindLongPress={bindLongPress}
-          onDirectAdd={handleDirectAddToShoppingList}
         />
       ) : filteredJobs.length === 0 ? (
         <div className="flex flex-col items-center gap-3 text-center py-14 px-6">
@@ -471,14 +465,8 @@ export default function SavedCatalog({
               totalTime={formatTotalTime(job.recipe!)}
               isSelected={selectedIds.has(job.id)}
               isSelectMode={isSelectMode}
-              isAdded={!!addedRecipeIds[job.id]}
               bindLongPress={bindLongPress(job.id, job)}
               onClick={(e) => handleCardClick(e, job)}
-              onDirectAdd={(e) => handleDirectAddToShoppingList(e, job)}
-              onToggleFavorite={(e) => {
-                e.stopPropagation();
-                toggleFavorite(job);
-              }}
             />
           ))}
         </div>
@@ -490,16 +478,10 @@ export default function SavedCatalog({
               job={job}
               isSelected={selectedIds.has(job.id)}
               isSelectMode={isSelectMode}
-              isAdded={!!addedRecipeIds[job.id]}
               totalTime={formatTotalTime(job.recipe!)}
               recipeTags={getRecipeTags(job.recipe!)}
               bindLongPress={bindLongPress(job.id, job)}
               onClick={(e) => handleCardClick(e, job)}
-              onDirectAdd={(e) => handleDirectAddToShoppingList(e, job)}
-              onToggleFavorite={(e) => {
-                e.stopPropagation();
-                toggleFavorite(job);
-              }}
             />
           ))}
         </div>

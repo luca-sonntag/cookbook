@@ -37,6 +37,8 @@ interface RecipeDetailsProps {
   onAssignCollections?: () => void;
   onManageFlags?: () => void;
   flags?: string[];
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 export default function RecipeDetails({
@@ -54,7 +56,9 @@ export default function RecipeDetails({
   parentRecipeTitle,
   onAssignCollections,
   onManageFlags,
-  flags
+  flags,
+  isFavorite = false,
+  onToggleFavorite
 }: RecipeDetailsProps) {
   const dialog = useDialog();
   const { t, translateCategory } = useI18n();
@@ -107,7 +111,7 @@ export default function RecipeDetails({
   useEffect(() => {
     const handleScroll = () => {
       const sections = ['ingredients', 'instructions', 'details'] as const;
-      
+
       const stickyTopHeight = parseInt(
         getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
         10
@@ -586,6 +590,8 @@ export default function RecipeDetails({
         onAssignCollections={onAssignCollections}
         onManageFlags={onManageFlags}
         flags={flags}
+        isFavorite={isFavorite}
+        onToggleFavorite={onToggleFavorite}
       />
 
       {/* Sentinel for the sticky bar's collapsed title row (see effect above). */}
@@ -668,6 +674,10 @@ export default function RecipeDetails({
             formatAmount={formatAmount}
           />
         </section>
+
+        <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center leading-normal select-none mt-2">
+          {t('recipe.aiGeneratedDisclaimer')}
+        </p>
       </div>
 
       {/* Unified Floating Action Dock (Bottom-Center) */}

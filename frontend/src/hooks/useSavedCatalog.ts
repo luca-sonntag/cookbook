@@ -537,6 +537,7 @@ export function useSavedCatalog({
   const toggleFavorite = async (job: Job) => {
     const nextVal = !job.isFavorite;
     setOptimisticFavorites(prev => ({ ...prev, [job.id]: nextVal }));
+    setSelectedJob({ ...job, isFavorite: nextVal });
 
     try {
       const token = getAccessToken ? await getAccessToken() : null;
@@ -566,6 +567,7 @@ export function useSavedCatalog({
     } catch (err) {
       console.error('Error toggling favorite:', err);
       setOptimisticFavorites(prev => ({ ...prev, [job.id]: job.isFavorite ?? false }));
+      setSelectedJob(job);
     }
   };
 

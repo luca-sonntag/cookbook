@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus } from 'lucide-react';
+import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Star } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeImageGallery from '../RecipeImageGallery';
 import { useI18n } from '../../context/I18nContext';
@@ -20,6 +20,8 @@ interface RecipeHeaderProps {
   onAssignCollections?: () => void;
   onManageFlags?: () => void;
   flags?: string[];
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 export default function RecipeHeader({
@@ -37,6 +39,8 @@ export default function RecipeHeader({
   onAssignCollections,
   onManageFlags,
   flags,
+  isFavorite = false,
+  onToggleFavorite,
 }: RecipeHeaderProps) {
   const { t, language } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -134,18 +138,32 @@ export default function RecipeHeader({
             </p>
           )}
         </div>
-        <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
-          <Popover.Trigger>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {onToggleFavorite && (
             <Button
               isIconOnly
               variant="outline"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center"
-              aria-label="Options"
+              onClick={onToggleFavorite}
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center transition-all ${
+                isFavorite ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+              aria-label="Toggle Favorite"
             >
-              <MoreVertical className="w-5 h-5" />
+              <Star className={`w-5 h-5 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
             </Button>
-          </Popover.Trigger>
-          <Popover.Content placement="bottom end" className="p-1.5 min-w-[180px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
+          )}
+          <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <Popover.Trigger>
+              <Button
+                isIconOnly
+                variant="outline"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center"
+                aria-label="Options"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </Button>
+            </Popover.Trigger>
+            <Popover.Content placement="bottom end" className="p-1.5 min-w-[180px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
             <div className="flex flex-col w-full">
               {onAssignCollections && (
                 <button
@@ -222,6 +240,7 @@ export default function RecipeHeader({
           </Popover.Content>
         </Popover>
       </div>
+    </div>
     </>
   );
 }
