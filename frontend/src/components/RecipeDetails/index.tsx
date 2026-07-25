@@ -1,10 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Tabs } from '@heroui/react';
 import type { Recipe, Ingredient } from '../../types';
 import { useRecipeScaling } from '../../hooks/useRecipeScaling';
 import { useRecipeProgress } from '../../hooks/useRecipeProgress';
 import { useRecipeNutrition } from '../../hooks/useRecipeNutrition';
-import { useSwipeableTabs } from '../../hooks/useSwipeableTabs';
 import { categoryOrder, legacyCategoryMap } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
@@ -13,7 +11,7 @@ import { useTimerManager } from '../../hooks/useTimerManager';
 // Import subcomponents
 import RecipeHeader from './RecipeHeader';
 import RecipeMetaStrip from './RecipeMetaStrip';
-import RecipeInfoSheet from './RecipeInfoSheet';
+import RecipeInfoSection from './RecipeInfoSection';
 import RecipeStickyBar from './RecipeStickyBar';
 import RecipeIngredients from './RecipeIngredients';
 import RecipeInstructions from './RecipeInstructions';
@@ -86,8 +84,9 @@ export default function RecipeDetails({
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
-  const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const { pendingNavigation, setPendingNavigation } = useTimerManager();
+
+  const [activeSection, setActiveSection] = useState<'ingredients' | 'instructions' | 'details'>('ingredients');
 
   // Drives the compact title row inside the sticky tab bar: a zero-height
   // sentinel sits right below the title block, so as soon as it leaves the
@@ -105,10 +104,54 @@ export default function RecipeDetails({
     return () => observer.disconnect();
   }, [collapseSentinel]);
 
-  // Swipe-to-switch between the ingredients and steps tabs (with slide animation)
-  const { tabsProps, containerProps, panelProps } = useSwipeableTabs({
-    tabs: ['ingredients', 'steps'] as const,
-  });
+  // Track scroll position to update the active navigation section (scroll spy)
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['ingredients', 'instructions', 'details'] as const;
+      
+      const stickyTopHeight = parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
+        10
+      );
+      // Offset corresponds to status bar/timers + sub-navigation (48px) + offset buffer
+      const offset = stickyTopHeight + 48 + 64;
+      const scrollPosition = window.scrollY + offset;
+
+      for (const sectionId of sections) {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (scrollPosition >= top && scrollPosition < top + height) {
+            setActiveSection(sectionId);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initialize
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [recipe]);
+
+  const scrollToSection = (sectionId: 'ingredients' | 'instructions' | 'details') => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      const stickyTopHeight = parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
+        10
+      );
+      const offset = stickyTopHeight + 48 + 16;
+      const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   // Listen to state-based pending navigation (handles timing/mount delays)
   useEffect(() => {
@@ -546,70 +589,97 @@ export default function RecipeDetails({
         flags={flags}
       />
 
-      {/* Key figures at a glance; the full breakdown opens in a bottom sheet. */}
+      {/* Key figures at a glance; scrolling to the details section at the bottom. */}
       <div className="mt-3">
         <RecipeMetaStrip
           totalTimeLabel={totalTimeLabel}
           servings={servings}
           calories={hasNutritionInfo ? metaCalories : null}
           isPremium={isPremium}
-          onOpenDetails={() => setIsInfoSheetOpen(true)}
+          onScrollToDetails={() => scrollToSection('details')}
         />
       </div>
 
       {/* Sentinel for the sticky bar's collapsed title row (see effect above). */}
       <div ref={setCollapseSentinel} aria-hidden="true" className="h-px" />
 
-      {/* Tabbed view for recipe items */}
-      <Tabs {...tabsProps} variant="secondary" className="w-full mt-3">
-        <RecipeStickyBar
-          recipeTitle={recipe.title}
-          isCollapsed={isHeaderCollapsed}
-          onBack={onBack}
-        />
+      {/* Smart Sticky Sub-navigation */}
+      <RecipeStickyBar
+        recipeTitle={recipe.title}
+        isCollapsed={isHeaderCollapsed}
+        onBack={onBack}
+        activeSection={activeSection}
+        onSectionClick={scrollToSection}
+      />
 
-        {/* Swipeable panel area: the visible panel follows the finger and the
-            neighbouring tab slides in once the swipe passes the threshold. */}
-        <div {...containerProps} className="mt-4">
-          <div {...panelProps}>
-            {/* Ingredients tab */}
-            <Tabs.Panel id="ingredients">
-              <RecipeIngredients
-                recipe={recipe}
-                sortedIngredients={sortedIngredients}
-                checkedIngredients={checkedIngredients}
-                toggleIngredient={toggleIngredient}
-                showIngredientNutrition={isPremium && showIngredientNutrition}
-                onToggleIngredientNutrition={handleToggleIngredientNutrition}
-                hasIngredientNutrition={hasIngredientNutrition}
-                isPremium={isPremium}
-                scaleFactor={scaleFactor}
-                formatAmount={formatAmount}
-                onAddIngredients={onAddIngredients ? handleAddToShoppingList : undefined}
-                isAdded={isAdded}
-                servings={servings}
-                onDecreaseServings={() => setServings(s => Math.max(1, s - 1))}
-                onIncreaseServings={() => setServings(s => s + 1)}
-              />
-            </Tabs.Panel>
+      {/* Single scrollable layout containing all sections */}
+      <div className="flex flex-col gap-8 mt-5 pb-16">
+        {/* Ingredients section */}
+        <section
+          id="ingredients"
+          style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}
+        >
+          <RecipeIngredients
+            recipe={recipe}
+            sortedIngredients={sortedIngredients}
+            checkedIngredients={checkedIngredients}
+            toggleIngredient={toggleIngredient}
+            showIngredientNutrition={isPremium && showIngredientNutrition}
+            onToggleIngredientNutrition={handleToggleIngredientNutrition}
+            hasIngredientNutrition={hasIngredientNutrition}
+            isPremium={isPremium}
+            scaleFactor={scaleFactor}
+            formatAmount={formatAmount}
+            onAddIngredients={onAddIngredients ? handleAddToShoppingList : undefined}
+            isAdded={isAdded}
+            servings={servings}
+            onDecreaseServings={() => setServings(s => Math.max(1, s - 1))}
+            onIncreaseServings={() => setServings(s => s + 1)}
+          />
+        </section>
 
-            {/* Instructions tab */}
-            <Tabs.Panel id="steps">
-              <RecipeInstructions
-                recipe={recipe}
-                checkedSteps={checkedSteps}
-                toggleStep={toggleStep}
-                activeStepNum={activeStepNum}
-                completedStepsCount={completedStepsCount}
-                totalStepsCount={totalStepsCount}
-                progressPercent={progressPercent}
-                onStartCooking={handleStartCooking}
-                formatAmount={formatAmount}
-              />
-            </Tabs.Panel>
-          </div>
-        </div>
-      </Tabs>
+        <hr className="border-black/5 dark:border-white/5" />
+
+        {/* Instructions section */}
+        <section
+          id="instructions"
+          style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}
+        >
+          <RecipeInstructions
+            recipe={recipe}
+            checkedSteps={checkedSteps}
+            toggleStep={toggleStep}
+            activeStepNum={activeStepNum}
+            completedStepsCount={completedStepsCount}
+            totalStepsCount={totalStepsCount}
+            progressPercent={progressPercent}
+            onStartCooking={handleStartCooking}
+            formatAmount={formatAmount}
+          />
+        </section>
+
+        <hr className="border-black/5 dark:border-white/5" />
+
+        {/* Info & Nutrition Details section */}
+        <section
+          id="details"
+          style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}
+        >
+          <RecipeInfoSection
+            prepTime={recipe.prepTime}
+            cookTime={recipe.cookTime}
+            formatTimeValue={formatTimeValue}
+            servings={servings}
+            onDecreaseServings={() => setServings(s => Math.max(1, s - 1))}
+            onIncreaseServings={() => setServings(s => s + 1)}
+            nutritionalValues={hasNutritionInfo ? nutritionalValues : null}
+            isAiEstimated={isAiEstimated}
+            showTotalNutrition={showTotalNutrition}
+            onToggleTotalNutrition={handleToggleTotalNutrition}
+            getNutritionDisplayValue={getNutritionDisplayValue}
+          />
+        </section>
+      </div>
 
       {/* Unified Floating Action Dock (Bottom-Center) */}
       {!isCookingMode && (totalStepsCount > 0 || onAddIngredients || onNavigateToShoppingList) && (
@@ -656,23 +726,6 @@ export default function RecipeDetails({
           onReplaceCurrent={onReplaceCurrent!}
         />
       )}
-
-      {/* Times, servings, nutrition and the AI disclaimer on demand */}
-      <RecipeInfoSheet
-        isOpen={isInfoSheetOpen}
-        onClose={() => setIsInfoSheetOpen(false)}
-        prepTime={recipe.prepTime}
-        cookTime={recipe.cookTime}
-        formatTimeValue={formatTimeValue}
-        servings={servings}
-        onDecreaseServings={() => setServings(s => Math.max(1, s - 1))}
-        onIncreaseServings={() => setServings(s => s + 1)}
-        nutritionalValues={hasNutritionInfo ? nutritionalValues : null}
-        isAiEstimated={isAiEstimated}
-        showTotalNutrition={showTotalNutrition}
-        onToggleTotalNutrition={handleToggleTotalNutrition}
-        getNutritionDisplayValue={getNutritionDisplayValue}
-      />
 
       {/* Premium Upgrade Modal */}
       <PremiumModal
