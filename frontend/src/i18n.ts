@@ -542,6 +542,7 @@ export const uiTranslations = {
       dateToday: 'Heute',
       dateYesterday: 'Gestern',
       // --- Cookbook home (level 1) & list level (level 2) ---
+      myCookbookTitle: 'Mein Kochbuch',
       allRecipesTitle: 'Alle Rezepte',
       allRecipes: 'Alle {count} Rezepte ansehen',
       recipeCount: '{count} Rezepte',
@@ -1208,6 +1209,7 @@ export const uiTranslations = {
       dateToday: 'Today',
       dateYesterday: 'Yesterday',
       // --- Cookbook home (level 1) & list level (level 2) ---
+      myCookbookTitle: 'My Cookbook',
       allRecipesTitle: 'All recipes',
       allRecipes: 'Browse all {count} recipes',
       recipeCount: '{count} recipes',
