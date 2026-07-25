@@ -1,261 +1,238 @@
-import { useState, useEffect } from 'react';
-import { Button, Select, ListBox } from '@heroui/react';
-import { Search, List, LayoutGrid, CheckSquare, Square, ArrowLeft, Star, Tag, Plus } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Button } from '@heroui/react';
+import { Search, List, LayoutGrid, CheckSquare, Square, ArrowLeft, Star, Tag, SlidersHorizontal, X, Clock } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import type { Collection } from '../../types';
+import type { CatalogFilterState, CatalogSort } from '../../hooks/useSavedCatalog';
 
 interface CatalogFiltersProps {
+  title: string;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  /** Renders the search field expanded and focused on mount. */
+  autoFocusSearch?: boolean;
   viewMode: 'card' | 'compact';
   setViewMode: (mode: 'card' | 'compact') => void;
-  activeFilter: string;
-  setActiveFilter: (filter: string) => void;
-  allFlags: string[];
+  filters: CatalogFilterState;
+  setFilters: (filters: CatalogFilterState) => void;
+  activeFilterCount: number;
+  onOpenFilters: () => void;
   collections: Collection[];
   isSelectMode: boolean;
   setIsSelectMode: (active: boolean) => void;
-  sortBy: 'newest' | 'title' | 'time';
-  setSortBy: (sort: 'newest' | 'title' | 'time') => void;
-  onAddCollection: () => void;
+  onBack?: () => void;
+  resultCount: number;
+  sortBy: CatalogSort;
+  showViewModeToggle?: boolean;
 }
 
+/**
+ * Sticky header of the catalog list (level 2).
+ *
+ * The chip row here shows what is currently ON — every active facet as a
+ * removable chip — instead of enumerating every option the user could pick.
+ * Picking happens in the FilterSheet, which is why the row can no longer grow
+ * unbounded with one chip per collection and per label.
+ */
 export default function CatalogFilters({
+  title,
   searchQuery,
   setSearchQuery,
+  autoFocusSearch = false,
   viewMode,
   setViewMode,
-  activeFilter,
-  setActiveFilter,
-  allFlags,
+  filters,
+  setFilters,
+  activeFilterCount,
+  onOpenFilters,
   collections,
   isSelectMode,
   setIsSelectMode,
+  onBack,
+  resultCount,
   sortBy,
-  setSortBy,
-  onAddCollection
+  showViewModeToggle = true
 }: CatalogFiltersProps) {
   const { t } = useI18n();
-  const [isSearchActive, setIsSearchActive] = useState(!!searchQuery);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-open search if searchQuery is set from outside
   useEffect(() => {
-    if (searchQuery) {
-      setIsSearchActive(true);
-    }
-  }, [searchQuery]);
+    if (autoFocusSearch) inputRef.current?.focus();
+  }, [autoFocusSearch]);
 
-  const handleCloseSearch = () => {
-    setIsSearchActive(false);
-    setSearchQuery('');
-  };
+  const collectionName = (id: string) => collections.find(c => c.id === id)?.name ?? id;
+  const collectionEmoji = (id: string) => collections.find(c => c.id === id)?.emoji ?? null;
+
+  const removeCollection = (id: string) =>
+    setFilters({ ...filters, collectionIds: filters.collectionIds.filter(c => c !== id) });
+  const removeFlag = (flag: string) =>
+    setFilters({ ...filters, flags: filters.flags.filter(f => f !== flag) });
+
+  const hasActiveChips = activeFilterCount > 0;
 
   return (
-    <div className="sticky top-[var(--safe-area-inset-top)] z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-3 pt-3">
-      {/* Search & View Toggle Bar */}
-      <div className="flex gap-2 items-center min-h-[44px]">
-        {isSearchActive ? (
-          <div className="flex-1 flex gap-2 items-center w-full">
-            <Button
-              isIconOnly
-              variant="tertiary"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
-              onPress={handleCloseSearch}
-              aria-label="Back"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                autoFocus
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('catalog.searchPlaceholder')}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-10 py-3 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none placeholder-gray-400 dark:placeholder-gray-500 animate-in fade-in slide-in-from-left-2 duration-200"
-              />
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          </div>
-        ) : (
-          <>
-            <Button
-              isIconOnly
-              variant="tertiary"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
-              onPress={() => setIsSearchActive(true)}
-              aria-label="Search"
-            >
-              <Search className="w-5 h-5" />
-            </Button>
-
-            <Button
-              isIconOnly
-              variant="tertiary"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
-              onPress={() => setViewMode(viewMode === 'card' ? 'compact' : 'card')}
-              aria-label={t('catalog.viewToggle')}
-            >
-              {viewMode === 'card' ? <List className="w-5 h-5" /> : <LayoutGrid className="w-5 h-5" />}
-            </Button>
-            <Button
-              isIconOnly
-              variant="tertiary"
-              className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl active:scale-95 transition-all shrink-0 ${
-                isSelectMode
-                  ? 'bg-emerald-600 border-0 text-white hover:bg-emerald-500 shadow-md shadow-emerald-600/10'
-                  : 'bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-              onPress={() => setIsSelectMode(!isSelectMode)}
-              aria-label={t('catalog.selectModeToggle')}
-            >
-              {isSelectMode ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
-            </Button>
-
-            <div className="flex-1" />
-
-            {/* Sort Control Dropdown */}
-            <Select
-              variant="secondary"
-              selectedKey={sortBy}
-              onSelectionChange={(key) => setSortBy(key as any)}
-              className="w-32 shrink-0"
-              aria-label="Sort"
-            >
-              <Select.Trigger className="h-11 py-1.5 px-3 flex items-center leading-none rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 shadow-none hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
-                <Select.Value className="text-xs font-semibold text-gray-600 dark:text-gray-300" />
-                <Select.Indicator className="size-3.5 ml-1 text-gray-500" />
-              </Select.Trigger>
-              <Select.Popover className="p-1 min-w-[140px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
-                <ListBox>
-                  <ListBox.Item id="newest" textValue={t('catalog.sortNewest')} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
-                    {t('catalog.sortNewest')}
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                  <ListBox.Item id="title" textValue={t('catalog.sortTitle')} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
-                    {t('catalog.sortTitle')}
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                  <ListBox.Item id="time" textValue={t('catalog.sortTime')} className="px-3.5 py-2.5 text-xs font-semibold rounded-lg">
-                    {t('catalog.sortTime')}
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                </ListBox>
-              </Select.Popover>
-            </Select>
-          </>
+    <div className="sticky top-[var(--safe-area-inset-top)] z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-2.5 pt-3">
+      {/* Row 1: back + title + view/select toggles */}
+      <div className="flex items-center gap-1 min-h-[44px]">
+        {onBack && (
+          <Button
+            isIconOnly
+            variant="tertiary"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
+            onPress={onBack}
+            aria-label={t('catalog.backToCookbook')}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
         )}
+
+        <div className={`flex-1 min-w-0 ${!onBack ? 'pl-2' : ''}`}>
+          <h2 className="text-base font-bold text-gray-900 dark:text-white truncate leading-tight">{title}</h2>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight truncate">
+            {t('catalog.recipeCount', { count: resultCount })} · {t(`catalog.sort.${sortBy}`)}
+          </p>
+        </div>
+
+        {showViewModeToggle && (
+          <Button
+            isIconOnly
+            variant="tertiary"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all shrink-0"
+            onPress={() => setViewMode(viewMode === 'card' ? 'compact' : 'card')}
+            aria-label={t('catalog.viewToggle')}
+          >
+            {viewMode === 'card' ? <List className="w-5 h-5" /> : <LayoutGrid className="w-5 h-5" />}
+          </Button>
+        )}
+
+        <Button
+          isIconOnly
+          variant="tertiary"
+          className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl active:scale-95 transition-all shrink-0 ${
+            isSelectMode
+              ? 'bg-emerald-600 border-0 text-white hover:bg-emerald-500 shadow-md shadow-emerald-600/10'
+              : 'bg-transparent border-0 text-gray-500 hover:text-emerald-500 hover:bg-black/5 dark:hover:bg-white/5'
+          }`}
+          onPress={() => setIsSelectMode(!isSelectMode)}
+          aria-label={t('catalog.selectModeToggle')}
+        >
+          {isSelectMode ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+        </Button>
       </div>
 
-      {/* Horizontal Scrollable Filter Chips */}
-      <div className="flex gap-1.5 overflow-x-auto scrollbar-none py-1 -mx-4 px-4 md:-mx-6 md:px-6 scroll-smooth">
-        {/* 'All' chip */}
-        <button
-          onClick={() => setActiveFilter('all')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer ${
-            activeFilter === 'all'
-              ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
-              : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-          }`}
-        >
-          {t('catalog.allFilter')}
-        </button>
-
-        {/* 'Favorites' chip */}
-        <button
-          onClick={() => setActiveFilter('favorites')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer flex items-center gap-1 ${
-            activeFilter === 'favorites'
-              ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
-              : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-          }`}
-        >
-          <Star className={`w-3 h-3 ${activeFilter === 'favorites' ? 'fill-white stroke-white text-white' : 'text-amber-500 fill-amber-500'}`} />
-          {t('catalog.favoritesFilter') || 'Favoriten'}
-        </button>
-
-        {/* Collection chips */}
-        {collections.map(col => {
-          const colFilter = `collection:${col.id}`;
-          const isSelected = activeFilter === colFilter;
-          return (
+      {/* Row 2: search + filter trigger */}
+      <div className="flex gap-2 items-center">
+        <div className="flex-1 relative">
+          <input
+            ref={inputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('catalog.searchPlaceholder')}
+            className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-10 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none placeholder-gray-400 dark:placeholder-gray-500"
+          />
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          {searchQuery && (
             <button
-              key={col.id}
-              onClick={() => setActiveFilter(isSelected ? 'all' : colFilter)}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer flex items-center gap-1 ${
-                isSelected
-                  ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
-                  : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+              aria-label={t('catalog.clearSearch')}
             >
-              {col.emoji && <span className="text-sm leading-none">{col.emoji}</span>}
-              <span>{col.name}</span>
+              ×
             </button>
-          );
-        })}
+          )}
+        </div>
 
-        {/* 'Under 15' chip */}
         <button
-          onClick={() => setActiveFilter('under15')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer ${
-            activeFilter === 'under15'
-              ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
-              : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          type="button"
+          onClick={onOpenFilters}
+          className={`relative h-11 min-w-[44px] px-3 rounded-xl border flex items-center gap-1.5 text-xs font-semibold active:scale-95 transition-all shrink-0 cursor-pointer ${
+            hasActiveChips
+              ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/10'
+              : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10'
           }`}
+          aria-label={t('catalog.filterTitle')}
         >
-          {t('catalog.under15')}
+          <SlidersHorizontal className="w-4 h-4" />
+          {hasActiveChips && (
+            <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-white text-emerald-700 text-[11px] font-bold flex items-center justify-center">
+              {activeFilterCount}
+            </span>
+          )}
         </button>
+      </div>
 
-        {/* 'Under 30' chip */}
-        <button
-          onClick={() => setActiveFilter('under30')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer ${
-            activeFilter === 'under30'
-              ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold'
-              : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-          }`}
-        >
-          {t('catalog.under30')}
-        </button>
-
-        {/* Custom Flag chips */}
-        {allFlags.map((flag: string) => {
-          const flagFilter = `flag:${flag}`;
-          const isSelected = activeFilter === flagFilter;
-          return (
-            <button
+      {/* Row 3: active facets as removable chips */}
+      {hasActiveChips && (
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-none -mx-4 px-4 md:-mx-6 md:px-6 scroll-smooth">
+          {filters.favoritesOnly && (
+            <ActiveChip
+              onRemove={() => setFilters({ ...filters, favoritesOnly: false })}
+              icon={<Star className="w-3 h-3 fill-current" />}
+              label={t('catalog.favoritesFilter')}
+            />
+          )}
+          {filters.maxTime > 0 && (
+            <ActiveChip
+              onRemove={() => setFilters({ ...filters, maxTime: 0 })}
+              icon={<Clock className="w-3 h-3" />}
+              label={t('catalog.timeUnder', { count: filters.maxTime })}
+            />
+          )}
+          {filters.collectionIds.map(id => (
+            <ActiveChip
+              key={id}
+              onRemove={() => removeCollection(id)}
+              icon={collectionEmoji(id) ? <span className="text-sm leading-none">{collectionEmoji(id)}</span> : undefined}
+              label={collectionName(id)}
+            />
+          ))}
+          {filters.flags.map(flag => (
+            <ActiveChip
               key={flag}
-              onClick={() => setActiveFilter(isSelected ? 'all' : flagFilter)}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap shrink-0 active:scale-95 cursor-pointer flex items-center gap-1 ${
-                isSelected
-                  ? 'bg-amber-500 border-amber-500 text-white shadow-sm font-bold'
-                  : 'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
-              }`}
-            >
-              <Tag className={`w-2.5 h-2.5 ${isSelected ? 'text-white' : 'text-amber-500'}`} />
-              <span>{flag}</span>
-            </button>
-          );
-        })}
-
-        {/* '+ Sammlung' button */}
-        <button
-          onClick={onAddCollection}
-          className="px-3.5 py-1.5 text-xs font-semibold rounded-full border border-dashed border-emerald-600/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5 active:scale-95 transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 shrink-0"
-        >
-          <Plus className="w-3 h-3" />
-          <span>{t('catalog.addCollection') || '＋ Sammlung'}</span>
-        </button>
-      </div>
+              onRemove={() => removeFlag(flag)}
+              icon={<Tag className="w-3 h-3" />}
+              label={flag}
+              accent="amber"
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => setFilters({ favoritesOnly: false, maxTime: 0, collectionIds: [], flags: [] })}
+            className="px-3 py-1.5 text-xs font-semibold rounded-full border border-black/10 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white whitespace-nowrap shrink-0 active:scale-95 transition-all cursor-pointer"
+          >
+            {t('catalog.resetFilters')}
+          </button>
+        </div>
+      )}
     </div>
+  );
+}
+
+function ActiveChip({
+  label,
+  icon,
+  onRemove,
+  accent = 'emerald'
+}: {
+  label: string;
+  icon?: React.ReactNode;
+  onRemove: () => void;
+  accent?: 'emerald' | 'amber';
+}) {
+  const tone = accent === 'amber'
+    ? 'bg-amber-500 border-amber-500 text-white'
+    : 'bg-emerald-600 border-emerald-600 text-white';
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      className={`px-3 py-1.5 text-xs font-bold rounded-full border shadow-sm whitespace-nowrap shrink-0 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 ${tone}`}
+    >
+      {icon}
+      <span className="max-w-[9rem] truncate">{label}</span>
+      <X className="w-3 h-3 opacity-80" />
+    </button>
   );
 }

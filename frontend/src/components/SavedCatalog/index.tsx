@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { SearchX } from 'lucide-react';
 import type { Job, Ingredient, Recipe } from '../../types';
 import RecipeDetails from '../RecipeDetails';
 import { useMobileNavigationBack } from '../../hooks/useMobileNavigationBack';
 import { useI18n } from '../../context/I18nContext';
-import { useSavedCatalog } from '../../hooks/useSavedCatalog';
+import { useSavedCatalog, EMPTY_FILTERS } from '../../hooks/useSavedCatalog';
 import { useAuth } from '../../context/AuthContext';
 import { useCollections } from '../../hooks/useCollections';
 import PremiumModal from '../PremiumModal';
@@ -11,12 +12,15 @@ import PremiumHint from '../PremiumHint';
 import CollectionSheet from './CollectionSheet';
 import { FlagSheet } from './FlagSheet';
 
-import RecipeCard from './RecipeCard';
+import RecipePosterCard from './RecipePosterCard';
 import RecipeListItem from './RecipeListItem';
 import CatalogFilters from './CatalogFilters';
+import FilterSheet from './FilterSheet';
+import CookbookHome from './CookbookHome';
 import BulkActionBar from './BulkActionBar';
 import CatalogEmptyState from './CatalogEmptyState';
 import CatalogLoadingState from './CatalogLoadingState';
+import { buildListRoute, isCatalogListRoute, parseListRoute, type CatalogPreset } from './catalogRoutes';
 
 interface SavedCatalogProps {
   history: Job[];
@@ -32,7 +36,13 @@ interface SavedCatalogProps {
   onRemixSuccess?: (newRecipe: Recipe, newJobId?: string) => void;
   onReplaceCurrent?: (newRecipe: Recipe) => void;
   onSelectModeChange?: (active: boolean) => void;
+  /** Current `#/history/...` sub-path — `null` = cookbook home. */
+  catalogSubPath?: string | null;
+  /** Navigates within the catalog tab (`null` returns to the cookbook home). */
+  onNavigateCatalog?: (subPath?: string | null) => void;
 }
+
+const FREE_RECIPE_LIMIT = 5;
 
 export default function SavedCatalog({
   history,
@@ -46,38 +56,37 @@ export default function SavedCatalog({
   onNavigateToShoppingList,
   shoppingListCount,
   onRemixSuccess,
-  onSelectModeChange
+  onSelectModeChange,
+  catalogSubPath = null,
+  onNavigateCatalog
 }: SavedCatalogProps) {
-  const { language, t } = useI18n();
+  const { t } = useI18n();
   const { isPremium } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
-  // Per-day date key (local time) used to group recipes by their created date
-  const dateKey = (createdAt?: string) => {
-    const d = new Date(createdAt ?? '');
-    if (isNaN(d.getTime())) return '';
-    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-  };
+  const navigateCatalog = useCallback((subPath?: string | null) => {
+    if (onNavigateCatalog) onNavigateCatalog(subPath ?? null);
+    else window.location.hash = subPath ? `#/history/${subPath}` : '#/history';
+  }, [onNavigateCatalog]);
 
-  // Human-readable separator label: Today / Yesterday / full date
-  const formatDateSeparator = (createdAt?: string) => {
-    const d = new Date(createdAt ?? '');
-    if (isNaN(d.getTime())) return '';
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-    if (dateKey(createdAt) === dateKey(today.toISOString())) return t('catalog.dateToday');
-    if (dateKey(createdAt) === dateKey(yesterday.toISOString())) return t('catalog.dateYesterday');
-    return d.toLocaleDateString(language, { day: 'numeric', month: 'long', year: 'numeric' });
-  };
+  // Which of the three catalog levels is showing
+  const isListLevel = !selectedJob && isCatalogListRoute(catalogSubPath);
+  const preset = useMemo(() => parseListRoute(catalogSubPath), [catalogSubPath]);
 
-  const FREE_RECIPE_LIMIT = 5;
+  // Swipe-back / mobile back out of the detail view returns to whichever level
+  // the recipe was opened from — the list route, or `null` for the cookbook
+  // home. Frozen while a recipe is open so the detail route can't overwrite it.
+  const listRouteBeforeDetailRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (selectedJob) return;
+    listRouteBeforeDetailRef.current = isCatalogListRoute(catalogSubPath) ? catalogSubPath : null;
+  }, [selectedJob, catalogSubPath]);
 
-  // Custom hook for swipe-to-go-back and mobile back button handling
-  // Swipe-back / browser back: navigate to the history list URL so App.tsx
-  // derives selectedJob = null from the hash automatically.
   useMobileNavigationBack(!!selectedJob, () => {
-    window.location.hash = '#/history';
+    navigateCatalog(listRouteBeforeDetailRef.current);
+  });
+  useMobileNavigationBack(isListLevel, () => {
+    navigateCatalog(null);
   });
 
   // Custom hook to manage the complex state, long-press, filters, and actions
@@ -87,16 +96,18 @@ export default function SavedCatalog({
     setViewMode,
     searchQuery,
     setSearchQuery,
-    activeFilter,
-    setActiveFilter,
+    filters,
+    setFilters,
+    resetFilters,
+    activeFilterCount,
     isSelectMode,
     setIsSelectMode,
     selectedIds,
     setSelectedIds,
     addedRecipeIds,
     filteredJobs,
-    formatTimeValue,
-    getDurationBadge,
+    countMatches,
+    formatTotalTime,
     getRecipeTags,
     bindLongPress,
     handleCardClick,
@@ -107,7 +118,10 @@ export default function SavedCatalog({
     setSortBy,
     allFlags,
     toggleFavorite,
-    setRecipeFlags
+    setRecipeFlags,
+    shelves,
+    jobsByCollection,
+    markOpened
   } = useSavedCatalog({
     history,
     setSelectedJob,
@@ -121,6 +135,7 @@ export default function SavedCatalog({
   const [isCollectionSheetOpen, setIsCollectionSheetOpen] = useState(false);
   const [collectionSheetJob, setCollectionSheetJob] = useState<Job | undefined>(undefined);
   const [collectionSheetBulkJobs, setCollectionSheetBulkJobs] = useState<Job[]>([]);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
   // FlagSheet states
   const [isFlagSheetOpen, setIsFlagSheetOpen] = useState(false);
@@ -131,22 +146,100 @@ export default function SavedCatalog({
     return Array.from(new Set(completedJobs.flatMap(j => j.flags || [])));
   }, [completedJobs]);
 
+  const listTitle = useMemo(() => {
+    switch (preset.kind) {
+      case 'favorites':
+        return t('catalog.favoritesFilter');
+      case 'quick':
+        return t('catalog.shelfQuick');
+      case 'recent':
+        return t('catalog.shelfRecent');
+      case 'collection': {
+        const col = collections.find(c => c.id === preset.id);
+        return col ? `${col.emoji} ${col.name}` : t('catalog.allRecipesTitle');
+      }
+      case 'flag':
+        return preset.name;
+      case 'search':
+        return t('catalog.allRecipesTitle');
+      default:
+        return t('catalog.allRecipesTitle');
+    }
+  }, [preset, collections, t]);
+
   useEffect(() => {
     if (historyLoaded) {
       refreshCollections();
     }
   }, [historyLoaded, refreshCollections]);
 
+  // Record recency centrally so deep links and notification taps count too.
+  useEffect(() => {
+    if (selectedJob) markOpened(selectedJob.id);
+  }, [selectedJob?.id, markOpened]);
+
+  // Seed search/filters/sort from the route preset whenever the list level is
+  // entered with a different preset. Tracked by ref so the user's own edits
+  // inside the sheet are never clobbered by a re-render.
+  const appliedRouteRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isCatalogListRoute(catalogSubPath)) {
+      appliedRouteRef.current = null;
+      return;
+    }
+    if (appliedRouteRef.current === catalogSubPath) return;
+    appliedRouteRef.current = catalogSubPath ?? null;
+
+    setSearchQuery('');
+    switch (preset.kind) {
+      case 'favorites':
+        setFilters({ ...EMPTY_FILTERS, favoritesOnly: true });
+        setSortBy('newest');
+        break;
+      case 'quick':
+        setFilters({ ...EMPTY_FILTERS, maxTime: 30 });
+        setSortBy('newest');
+        break;
+      case 'collection':
+        setFilters({ ...EMPTY_FILTERS, collectionIds: [preset.id] });
+        setSortBy('newest');
+        break;
+      case 'flag':
+        setFilters({ ...EMPTY_FILTERS, flags: [preset.name] });
+        setSortBy('newest');
+        break;
+      case 'recent':
+        setFilters(EMPTY_FILTERS);
+        setSortBy('recent');
+        break;
+      default:
+        setFilters(EMPTY_FILTERS);
+        setSortBy('newest');
+        break;
+    }
+  }, [catalogSubPath, preset, setFilters, setSearchQuery, setSortBy]);
+
+  // Automatically transition to the list level (Level 2) if search query
+  // or active filter count becomes greater than 0 while on Cookbook Home (Level 1).
+  useEffect(() => {
+    if (!isListLevel && (searchQuery || activeFilterCount > 0)) {
+      navigateCatalog(buildListRoute({ kind: 'search' }));
+    }
+  }, [isListLevel, searchQuery, activeFilterCount, navigateCatalog]);
+
+  const openList = useCallback((target: CatalogPreset) => {
+    navigateCatalog(buildListRoute(target));
+  }, [navigateCatalog]);
+
   const handleAddCollectionClick = () => {
     if (!isPremium) {
       setIsPremiumModalOpen(true);
     } else {
       // Open directly in "create" mode — no checkbox list, since there's no
-      // pre-existing recipe assignment context from a "+ Sammlung" filter chip.
+      // pre-existing recipe assignment context.
       setCollectionSheetJob(undefined);
       setCollectionSheetBulkJobs([]);
       setIsCollectionSheetOpen(true);
-      // initialMode='create' is conveyed via the sheet prop below.
     }
   };
 
@@ -181,190 +274,90 @@ export default function SavedCatalog({
     setIsFlagSheetOpen(true);
   };
 
-  return (
-    <div className="flex flex-col gap-4">
-      {selectedJob ? (
-        /* DETAIL VIEW FOR SAVED RECIPE */
-        <div className="flex flex-col gap-4">
-          {selectedJob.recipe && (
-            <RecipeDetails
-              key={selectedJob.id}
-              recipe={selectedJob.recipe}
-              onAddIngredients={onAddIngredients}
-              onDelete={() => handleDeleteJob({ stopPropagation: () => { } } as any, selectedJob.id)}
-              reelUrl={selectedJob.url}
-              createdAt={selectedJob.createdAt}
-              onBack={() => setSelectedJob(null)}
-              flags={selectedJob.flags}
-              onNavigateToShoppingList={onNavigateToShoppingList}
-              shoppingListCount={shoppingListCount}
-              onRemixSuccess={onRemixSuccess}
-              onReplaceCurrent={() => {
-                // Just refresh history — the job recipe was updated in-place in the DB
-                fetchHistory?.();
-              }}
-              isParentAvailable={selectedJob.recipe?.parentJobId ? history.some(j => j.id === selectedJob.recipe?.parentJobId) : false}
-              parentRecipeTitle={selectedJob.recipe?.parentRecipeTitle || (selectedJob.recipe?.parentJobId ? history.find(j => j.id === selectedJob.recipe?.parentJobId)?.recipe?.title : null)}
-              onNavigateToRecipe={(recipeId) => {
-                const parentJob = history.find(j => j.id === recipeId);
-                if (parentJob) {
-                  setSelectedJob(parentJob);
-                }
-              }}
-              onAssignCollections={() => handleAssignCollectionsClick(selectedJob)}
-              onManageFlags={() => handleManageFlagsClick(selectedJob)}
-            />
-          )}
-        </div>
-      ) : (
-        /* LIST VIEW OF SAVED RECIPES */
-        <div className="flex flex-col gap-4">
-          {completedJobs.length === 0 ? (
-            !historyLoaded ? (
-              <CatalogLoadingState />
-            ) : (
-              <CatalogEmptyState />
-            )
-          ) : (
-            <>
-              {/* Sticky Search and Filter Chips Row */}
-              <CatalogFilters
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                viewMode={viewMode}
-                setViewMode={setViewMode}
-                activeFilter={activeFilter}
-                setActiveFilter={setActiveFilter}
-                allFlags={allFlags}
-                collections={collections}
-                isSelectMode={isSelectMode}
-                setIsSelectMode={(active) => {
-                  setIsSelectMode(active);
-                  if (!active) {
-                    setSelectedIds(new Set());
-                  }
-                }}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                onAddCollection={handleAddCollectionClick}
-              />
+  const premiumBanner = !isPremium && completedJobs.length >= FREE_RECIPE_LIMIT - 1 && (
+    <PremiumHint
+      variant="banner"
+      onClick={() => setIsPremiumModalOpen(true)}
+      label={
+        completedJobs.length >= FREE_RECIPE_LIMIT
+          ? t('premium.hint.catalogFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
+          : t('premium.hint.catalogAlmostFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
+      }
+      cta={t('premium.hint.upgrade')}
+    />
+  );
 
-              {/* Free plan catalog limit banner */}
-              {!isPremium && completedJobs.length >= FREE_RECIPE_LIMIT - 1 && (
-                <PremiumHint
-                  variant="banner"
-                  onClick={() => setIsPremiumModalOpen(true)}
-                  label={
-                    completedJobs.length >= FREE_RECIPE_LIMIT
-                      ? t('premium.hint.catalogFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
-                      : t('premium.hint.catalogAlmostFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
-                  }
-                  cta={t('premium.hint.upgrade')}
-                />
-              )}
+  // ---------------------------------------------------------------------------
+  // Level 3: recipe detail
+  // ---------------------------------------------------------------------------
+  if (selectedJob) {
+    return (
+      <div className="flex flex-col gap-4">
+        {selectedJob.recipe && (
+          <RecipeDetails
+            key={selectedJob.id}
+            recipe={selectedJob.recipe}
+            onAddIngredients={onAddIngredients}
+            onDelete={() => handleDeleteJob({ stopPropagation: () => { } } as any, selectedJob.id)}
+            reelUrl={selectedJob.url}
+            createdAt={selectedJob.createdAt}
+            onBack={() => navigateCatalog(listRouteBeforeDetailRef.current)}
+            flags={selectedJob.flags}
+            onNavigateToShoppingList={onNavigateToShoppingList}
+            shoppingListCount={shoppingListCount}
+            onRemixSuccess={onRemixSuccess}
+            onReplaceCurrent={() => {
+              // Just refresh history — the job recipe was updated in-place in the DB
+              fetchHistory?.();
+            }}
+            isParentAvailable={selectedJob.recipe?.parentJobId ? history.some(j => j.id === selectedJob.recipe?.parentJobId) : false}
+            parentRecipeTitle={selectedJob.recipe?.parentRecipeTitle || (selectedJob.recipe?.parentJobId ? history.find(j => j.id === selectedJob.recipe?.parentJobId)?.recipe?.title : null)}
+            onNavigateToRecipe={(recipeId) => {
+              const parentJob = history.find(j => j.id === recipeId);
+              if (parentJob) {
+                setSelectedJob(parentJob);
+              }
+            }}
+            onAssignCollections={() => handleAssignCollectionsClick(selectedJob)}
+            onManageFlags={() => handleManageFlagsClick(selectedJob)}
+          />
+        )}
 
-              {/* RECIPES DISPLAY GRID/LIST */}
-              {filteredJobs.length === 0 ? (
-                <div className="text-center py-10 text-xs text-gray-500">
-                  {language === 'de' ? 'Keine passenden Rezepte gefunden.' : 'No matching recipes found.'}
-                </div>
-              ) : viewMode === 'card' ? (
-                /* CARD GRID VIEW */
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                  {filteredJobs.map((job, index) => {
-                    const showDateSeparator =
-                      activeFilter === 'all' &&
-                      sortBy === 'newest' &&
-                      (index === 0 || dateKey(filteredJobs[index - 1].createdAt) !== dateKey(job.createdAt));
-                    return (
-                    <React.Fragment key={job.id}>
-                    {showDateSeparator && (
-                      <div className="col-span-1 md:col-span-2 text-center text-xs text-gray-400 dark:text-gray-500 pt-2 first:pt-0">
-                        {formatDateSeparator(job.createdAt)}
-                      </div>
-                    )}
-                    <RecipeCard
-                      key={job.id}
-                      job={job}
-                      isSelected={selectedIds.has(job.id)}
-                      isSelectMode={isSelectMode}
-                      isAdded={!!addedRecipeIds[job.id]}
-                      durationBadge={getDurationBadge(job.recipe!)}
-                      recipeTags={getRecipeTags(job.recipe!)}
-                      formattedPrepTime={formatTimeValue(job.recipe!.prepTime)}
-                      formattedCookTime={formatTimeValue(job.recipe!.cookTime)}
-                      bindLongPress={bindLongPress(job.id, job)}
-                      onClick={(e) => handleCardClick(e, job)}
-                      onDirectAdd={(e) => handleDirectAddToShoppingList(e, job)}
-                      onDelete={(e) => handleDeleteJob(e, job.id)}
-                      onToggleFavorite={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(job);
-                      }}
-                    />
-                    </React.Fragment>
-                    );
-                  })}
-                </div>
-              ) : (
-                /* COMPACT LIST VIEW */
-                <div className="flex flex-col gap-2.5 mt-2">
-                  {filteredJobs.map((job, index) => {
-                    const showDateSeparator =
-                      activeFilter === 'all' &&
-                      sortBy === 'newest' &&
-                      (index === 0 || dateKey(filteredJobs[index - 1].createdAt) !== dateKey(job.createdAt));
-                    return (
-                    <React.Fragment key={job.id}>
-                    {showDateSeparator && (
-                      <div className="text-center text-xs text-gray-400 dark:text-gray-500 pt-1.5 first:pt-0">
-                        {formatDateSeparator(job.createdAt)}
-                      </div>
-                    )}
-                    <RecipeListItem
-                      key={job.id}
-                      job={job}
-                      isSelected={selectedIds.has(job.id)}
-                      isSelectMode={isSelectMode}
-                      isAdded={!!addedRecipeIds[job.id]}
-                      durationBadge={getDurationBadge(job.recipe!)}
-                      recipeTags={getRecipeTags(job.recipe!)}
-                      formattedPrepTime={formatTimeValue(job.recipe!.prepTime)}
-                      formattedCookTime={formatTimeValue(job.recipe!.cookTime)}
-                      bindLongPress={bindLongPress(job.id, job)}
-                      onClick={(e) => handleCardClick(e, job)}
-                      onDirectAdd={(e) => handleDirectAddToShoppingList(e, job)}
-                      onDelete={(e) => handleDeleteJob(e, job.id)}
-                      onToggleFavorite={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(job);
-                      }}
-                    />
-                    </React.Fragment>
-                    );
-                  })}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Floating bottom action bar in select mode */}
-      {isSelectMode && (
-        <BulkActionBar
-          selectedCount={selectedIds.size}
-          onCancel={() => {
-            setIsSelectMode(false);
-            setSelectedIds(new Set());
+        <CollectionSheet
+          isOpen={isCollectionSheetOpen}
+          onClose={() => setIsCollectionSheetOpen(false)}
+          job={collectionSheetJob}
+          selectedJobs={collectionSheetBulkJobs}
+          initialMode={!collectionSheetJob && collectionSheetBulkJobs.length === 0 ? 'manage' : 'assign'}
+          onUpdated={() => {
+            fetchHistory?.();
+            refreshCollections();
           }}
-          onBulkAdd={handleBulkAddToShoppingList}
-          onBulkDelete={handleBulkDelete}
-          onBulkAddToCollection={handleBulkAddToCollectionClick}
         />
-      )}
+        <FlagSheet
+          isOpen={isFlagSheetOpen}
+          onClose={() => setIsFlagSheetOpen(false)}
+          job={flagSheetJob}
+          allExistingFlags={allExistingFlags}
+          onSave={async (j, flags) => {
+            await setRecipeFlags(j, flags);
+            fetchHistory?.();
+          }}
+        />
+        <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
+      </div>
+    );
+  }
 
-      {/* Collection Management bottom sheet */}
+  // ---------------------------------------------------------------------------
+  // Empty / loading
+  // ---------------------------------------------------------------------------
+  if (completedJobs.length === 0) {
+    return !historyLoaded ? <CatalogLoadingState /> : <CatalogEmptyState />;
+  }
+
+  const sheets = (
+    <>
       <CollectionSheet
         isOpen={isCollectionSheetOpen}
         onClose={() => setIsCollectionSheetOpen(false)}
@@ -383,7 +376,6 @@ export default function SavedCatalog({
         }}
       />
 
-      {/* Flag/Label Management bottom sheet */}
       <FlagSheet
         isOpen={isFlagSheetOpen}
         onClose={() => setIsFlagSheetOpen(false)}
@@ -395,8 +387,152 @@ export default function SavedCatalog({
         }}
       />
 
-      {/* Premium Modal */}
       <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
+    </>
+  );
+
+  // ---------------------------------------------------------------------------
+  // Level 1 & 2: Unified Layout
+  // ---------------------------------------------------------------------------
+  return (
+    <div className="flex flex-col gap-4">
+      <CatalogFilters
+        title={isListLevel ? listTitle : t('catalog.myCookbookTitle')}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        autoFocusSearch={isListLevel && preset.kind === 'search'}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        filters={filters}
+        setFilters={setFilters}
+        activeFilterCount={activeFilterCount}
+        onOpenFilters={() => setIsFilterSheetOpen(true)}
+        collections={collections}
+        isSelectMode={isSelectMode}
+        setIsSelectMode={(active) => {
+          setIsSelectMode(active);
+          if (!active) setSelectedIds(new Set());
+        }}
+        onBack={isListLevel ? () => navigateCatalog(null) : undefined}
+        resultCount={isListLevel ? filteredJobs.length : completedJobs.length}
+        sortBy={sortBy}
+        showViewModeToggle={isListLevel}
+      />
+
+      {premiumBanner}
+
+      {!isListLevel ? (
+        <CookbookHome
+          totalRecipes={completedJobs.length}
+          collections={collections}
+          jobsByCollection={jobsByCollection}
+          shelves={shelves}
+          allFlags={allFlags}
+          formatTotalTime={formatTotalTime}
+          onOpenList={openList}
+          onOpenRecipe={(e, job) => handleCardClick(e, job)}
+          onToggleFavorite={(e, job) => {
+            e.stopPropagation();
+            toggleFavorite(job);
+          }}
+          onAddCollection={handleAddCollectionClick}
+          onManageCollections={handleAddCollectionClick}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          addedRecipeIds={addedRecipeIds}
+          bindLongPress={bindLongPress}
+          onDirectAdd={handleDirectAddToShoppingList}
+        />
+      ) : filteredJobs.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 text-center py-14 px-6">
+          <SearchX className="w-9 h-9 text-gray-300 dark:text-gray-600" />
+          <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
+            {t('catalog.noMatches')}
+          </p>
+          {(activeFilterCount > 0 || searchQuery) && (
+            <button
+              type="button"
+              onClick={() => {
+                resetFilters();
+                setSearchQuery('');
+              }}
+              className="px-4 py-2 text-xs font-bold rounded-full bg-emerald-600 text-white hover:bg-emerald-500 active:scale-95 transition-all cursor-pointer"
+            >
+              {t('catalog.resetFilters')}
+            </button>
+          )}
+        </div>
+      ) : viewMode === 'card' ? (
+        <div className="grid grid-cols-2 gap-3">
+          {filteredJobs.map(job => (
+            <RecipePosterCard
+              key={job.id}
+              job={job}
+              totalTime={formatTotalTime(job.recipe!)}
+              isSelected={selectedIds.has(job.id)}
+              isSelectMode={isSelectMode}
+              isAdded={!!addedRecipeIds[job.id]}
+              bindLongPress={bindLongPress(job.id, job)}
+              onClick={(e) => handleCardClick(e, job)}
+              onDirectAdd={(e) => handleDirectAddToShoppingList(e, job)}
+              onToggleFavorite={(e) => {
+                e.stopPropagation();
+                toggleFavorite(job);
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {filteredJobs.map(job => (
+            <RecipeListItem
+              key={job.id}
+              job={job}
+              isSelected={selectedIds.has(job.id)}
+              isSelectMode={isSelectMode}
+              isAdded={!!addedRecipeIds[job.id]}
+              totalTime={formatTotalTime(job.recipe!)}
+              recipeTags={getRecipeTags(job.recipe!)}
+              bindLongPress={bindLongPress(job.id, job)}
+              onClick={(e) => handleCardClick(e, job)}
+              onDirectAdd={(e) => handleDirectAddToShoppingList(e, job)}
+              onToggleFavorite={(e) => {
+                e.stopPropagation();
+                toggleFavorite(job);
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {isSelectMode && (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          onCancel={() => {
+            setIsSelectMode(false);
+            setSelectedIds(new Set());
+          }}
+          onBulkAdd={handleBulkAddToShoppingList}
+          onBulkDelete={handleBulkDelete}
+          onBulkAddToCollection={handleBulkAddToCollectionClick}
+        />
+      )}
+
+      <FilterSheet
+        isOpen={isFilterSheetOpen}
+        onClose={() => setIsFilterSheetOpen(false)}
+        filters={filters}
+        sortBy={sortBy}
+        onApply={(next, nextSort) => {
+          setFilters(next);
+          setSortBy(nextSort);
+        }}
+        collections={collections}
+        allFlags={allFlags}
+        countMatches={countMatches}
+      />
+
+      {sheets}
     </div>
   );
 }
