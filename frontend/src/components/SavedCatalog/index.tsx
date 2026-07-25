@@ -525,6 +525,8 @@ export default function SavedCatalog({
         collections={collections}
         allFlags={allFlags}
         countMatches={countMatches}
+        onNavigateCatalog={navigateCatalog}
+        catalogSubPath={catalogSubPath}
       />
 
       {sheets}
