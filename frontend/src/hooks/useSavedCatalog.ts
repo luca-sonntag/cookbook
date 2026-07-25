@@ -537,7 +537,6 @@ export function useSavedCatalog({
   const toggleFavorite = async (job: Job) => {
     const nextVal = !job.isFavorite;
     setOptimisticFavorites(prev => ({ ...prev, [job.id]: nextVal }));
-    setSelectedJob({ ...job, isFavorite: nextVal });
 
     try {
       const token = getAccessToken ? await getAccessToken() : null;
@@ -563,7 +562,6 @@ export function useSavedCatalog({
     } catch (err) {
       console.error('Error toggling favorite:', err);
       setOptimisticFavorites(prev => ({ ...prev, [job.id]: job.isFavorite ?? false }));
-      setSelectedJob(job);
     }
   };
 
@@ -575,7 +573,6 @@ export function useSavedCatalog({
       : [...currentFlags, flagName];
 
     setOptimisticFlags(prev => ({ ...prev, [job.id]: nextFlags }));
-    setSelectedJob({ ...job, flags: nextFlags });
 
     try {
       const token = getAccessToken ? await getAccessToken() : null;
@@ -604,7 +601,6 @@ export function useSavedCatalog({
     } catch (err: any) {
       console.error('Error updating flag:', err);
       setOptimisticFlags(prev => ({ ...prev, [job.id]: currentFlags }));
-      setSelectedJob(job);
       return { success: false, error: err.message };
     }
   };
@@ -613,7 +609,6 @@ export function useSavedCatalog({
   const setRecipeFlags = async (job: Job, nextFlags: string[]) => {
     const currentFlags = job.flags ?? [];
     setOptimisticFlags(prev => ({ ...prev, [job.id]: nextFlags }));
-    setSelectedJob({ ...job, flags: nextFlags });
 
     try {
       const token = getAccessToken ? await getAccessToken() : null;
@@ -642,7 +637,6 @@ export function useSavedCatalog({
     } catch (err: any) {
       console.error('Error updating flags:', err);
       setOptimisticFlags(prev => ({ ...prev, [job.id]: currentFlags }));
-      setSelectedJob(job);
       return { success: false, error: err.message };
     }
   };
@@ -654,9 +648,6 @@ export function useSavedCatalog({
     const currentCollectionIds = job?.collectionIds ?? [];
 
     setOptimisticCollections(prev => ({ ...prev, [jobId]: collectionIds }));
-    if (job) {
-      setSelectedJob({ ...job, collectionIds });
-    }
 
     try {
       const token = getAccessToken ? await getAccessToken() : null;
@@ -685,9 +676,6 @@ export function useSavedCatalog({
     } catch (err: any) {
       console.error('Error updating collections:', err);
       setOptimisticCollections(prev => ({ ...prev, [jobId]: currentCollectionIds }));
-      if (job) {
-        setSelectedJob(job);
-      }
       return { success: false, error: err.message };
     }
   };

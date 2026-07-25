@@ -130,6 +130,13 @@ export default function SavedCatalog({
   });
 
   const { collections, refreshCollections } = useCollections();
+
+  // Always read selectedJob from completedJobs so all optimistic overrides
+  // (isFavorite, flags, collectionIds) are immediately reflected in the UI
+  // without waiting for a history re-fetch.
+  const selectedJobResolved = selectedJob
+    ? (completedJobs.find(j => j.id === selectedJob.id) ?? selectedJob)
+    : null;
   const [isCollectionSheetOpen, setIsCollectionSheetOpen] = useState(false);
   const [collectionSheetJob, setCollectionSheetJob] = useState<Job | undefined>(undefined);
   const [collectionSheetBulkJobs, setCollectionSheetBulkJobs] = useState<Job[]>([]);
@@ -288,38 +295,37 @@ export default function SavedCatalog({
   // ---------------------------------------------------------------------------
   // Level 3: recipe detail
   // ---------------------------------------------------------------------------
-  if (selectedJob) {
+  if (selectedJobResolved) {
     return (
       <div className="flex flex-col gap-4">
-        {selectedJob.recipe && (
+        {selectedJobResolved.recipe && (
           <RecipeDetails
-            key={selectedJob.id}
-            recipe={selectedJob.recipe}
+            key={selectedJobResolved.id}
+            recipe={selectedJobResolved.recipe}
             onAddIngredients={onAddIngredients}
-            onDelete={() => handleDeleteJob({ stopPropagation: () => { } } as any, selectedJob.id)}
-            reelUrl={selectedJob.url}
-            createdAt={selectedJob.createdAt}
+            onDelete={() => handleDeleteJob({ stopPropagation: () => { } } as any, selectedJobResolved.id)}
+            reelUrl={selectedJobResolved.url}
+            createdAt={selectedJobResolved.createdAt}
             onBack={() => navigateCatalog(listRouteBeforeDetailRef.current)}
-            flags={selectedJob.flags}
+            flags={selectedJobResolved.flags}
             onNavigateToShoppingList={onNavigateToShoppingList}
             shoppingListCount={shoppingListCount}
             onRemixSuccess={onRemixSuccess}
             onReplaceCurrent={() => {
-              // Just refresh history — the job recipe was updated in-place in the DB
               fetchHistory?.();
             }}
-            isParentAvailable={selectedJob.recipe?.parentJobId ? history.some(j => j.id === selectedJob.recipe?.parentJobId) : false}
-            parentRecipeTitle={selectedJob.recipe?.parentRecipeTitle || (selectedJob.recipe?.parentJobId ? history.find(j => j.id === selectedJob.recipe?.parentJobId)?.recipe?.title : null)}
+            isParentAvailable={selectedJobResolved.recipe?.parentJobId ? history.some(j => j.id === selectedJobResolved.recipe?.parentJobId) : false}
+            parentRecipeTitle={selectedJobResolved.recipe?.parentRecipeTitle || (selectedJobResolved.recipe?.parentJobId ? history.find(j => j.id === selectedJobResolved.recipe?.parentJobId)?.recipe?.title : null)}
             onNavigateToRecipe={(recipeId) => {
               const parentJob = history.find(j => j.id === recipeId);
               if (parentJob) {
                 setSelectedJob(parentJob);
               }
             }}
-            onAssignCollections={() => handleAssignCollectionsClick(selectedJob)}
-            onManageFlags={() => handleManageFlagsClick(selectedJob)}
-            isFavorite={selectedJob.isFavorite}
-            onToggleFavorite={() => toggleFavorite(selectedJob)}
+            onAssignCollections={() => handleAssignCollectionsClick(selectedJobResolved)}
+            onManageFlags={() => handleManageFlagsClick(selectedJobResolved)}
+            isFavorite={selectedJobResolved.isFavorite}
+            onToggleFavorite={() => toggleFavorite(selectedJobResolved)}
           />
         )}
 
