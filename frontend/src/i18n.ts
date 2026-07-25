@@ -306,6 +306,7 @@ export const uiTranslations = {
           scraping: 'Video-Daten laden',
           downloading_media: 'Audio & Video herunterladen',
           extracting_frames: 'Videobilder extrahieren',
+          reading_photos: 'Fotos werden gelesen',
           extracting_recipe: 'Rezept vorbereiten',
           finalizing: 'Speichern & Fertigstellen'
         }
@@ -986,6 +987,7 @@ export const uiTranslations = {
           scraping: 'Fetching video data',
           downloading_media: 'Downloading audio & video',
           extracting_frames: 'Extracting video frames',
+          reading_photos: 'Reading your photos',
           extracting_recipe: 'Preparing recipe',
           finalizing: 'Saving & Finalizing'
         }

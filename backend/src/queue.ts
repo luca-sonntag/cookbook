@@ -30,6 +30,7 @@ async function processJob(job: Job): Promise<void> {
   let audioFilePath = '';
   let videoFilePath = '';
   let framePaths: string[] = [];
+  let photoUploadId: string | null = null;
 
   const heartbeat = setInterval(() => heartbeatJob(jobId), 30_000);
 
@@ -100,6 +101,51 @@ async function processJob(job: Job): Promise<void> {
       recipe.parentJobId = parentJob.id;
       recipe.parentRecipeTitle = parentJob.recipe.title;
       recipe.remixPrompt = job.prompt || null;
+
+      await updateJob(jobId, { status: 'completed', recipe, error: null });
+      return;
+    }
+
+    // Photo import: the user supplied their own photos of a cookbook page or a
+    // handwritten recipe card, so there is nothing to scrape or download from a
+    // third party. The photos take the role of the carousel slides and go into
+    // extractRecipe at full resolution; no grid is built and no cover frame is
+    // selected — a photographed page makes a poor cover, so the recipe emoji is
+    // the placeholder instead.
+    if (isPhotoJobUrl(url)) {
+      photoUploadId = photoUploadIdFromUrl(url);
+      // Both are guaranteed by the route that created the job; a job missing
+      // either can never find its photos again.
+      if (!photoUploadId || !job.userId) {
+        throw new AppError('PHOTO_IMPORT_EXPIRED', { message: 'Photo job is missing its upload id or owner.' });
+      }
+      const photoUserId = job.userId;
+
+      console.log(`[Job ${jobId}] Starting photo import ${photoUploadId}...`);
+      await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 20, stage: 'reading_photos' } as any });
+      await fs.mkdir(runDir, { recursive: true });
+
+      const { paths: photoPaths, bytes } = await downloadImportPhotos(photoUserId, photoUploadId, runDir);
+      if (photoPaths.length === 0) {
+        throw new AppError('PHOTO_IMPORT_EXPIRED', { message: 'No import photos found in storage for this job.' });
+      }
+      // Hand the photos to the shared temp-file cleanup in `finally`.
+      framePaths = photoPaths;
+      console.log(`[Job ${jobId}] Downloaded ${photoPaths.length} import photo(s) (${(bytes / (1024 * 1024)).toFixed(2)} MB).`);
+
+      await updateJob(jobId, { mediaBytes: bytes }).catch((err) =>
+        console.warn(`[Job ${jobId}] Failed to persist media_bytes: ${err.message}`),
+      );
+
+      await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 60, stage: 'extracting_recipe' } as any });
+      const recipe = await extractRecipe(undefined, undefined, '', undefined, runDir, userPrefs, undefined, photoPaths, 'photo');
+
+      console.log(`[Job ${jobId}] Recipe extracted from photos: "${recipe.title}"`);
+      await updateJob(jobId, { status: 'processing', recipe: { isProgress: true, percent: 90, stage: 'finalizing' } as any });
+
+      recipe.id = jobId;
+      recipe.imageUrl = null;
+      recipe.instagramHandle = null;
 
       await updateJob(jobId, { status: 'completed', recipe, error: null });
       return;
@@ -290,6 +336,14 @@ async function processJob(job: Job): Promise<void> {
     clearInterval(heartbeat);
     const cleanupPaths = [audioFilePath, videoFilePath, ...framePaths].filter(Boolean);
     await Promise.allSettled(cleanupPaths.map((p) => fs.unlink(p).catch(() => { })));
+    // Import photos are transient in Storage as well — drop them on success and
+    // on failure alike, so nothing waits for the 24h sweep. A failure to clean up
+    // must never turn a completed job into a failed one.
+    if (photoUploadId && job.userId) {
+      await deleteImportPhotos(job.userId, photoUploadId).catch((err) =>
+        console.warn(`[Job ${jobId}] Failed to delete import photos: ${err.message}`),
+      );
+    }
     console.log(`[Job ${jobId}] Temp files (including ${framePaths.length} individual frames) cleaned up. Run folder: ${runDir}`);
   }
 }
