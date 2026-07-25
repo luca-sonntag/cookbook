@@ -118,7 +118,7 @@ export default function CatalogFilters({
   };
 
   return (
-    <div className="sticky top-[var(--safe-area-inset-top)] z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-2.5 pt-3">
+    <div className="sticky top-[var(--app-sticky-top)] z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-2.5 pt-3">
       {/* Row 1: back + title + view/select toggles */}
       <div className="flex items-center gap-1 min-h-[44px]">
         {onBack && (
