@@ -654,9 +654,6 @@ export default function RecipeDetails({
             formatAmount={formatAmount}
             onAddIngredients={onAddIngredients ? handleAddToShoppingList : undefined}
             isAdded={isAdded}
-            servings={servings}
-            onDecreaseServings={() => setServings(s => Math.max(1, s - 1))}
-            onIncreaseServings={() => setServings(s => s + 1)}
           />
         </section>
 

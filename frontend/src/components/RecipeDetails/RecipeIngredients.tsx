@@ -2,7 +2,6 @@ import { Card, Button } from '@heroui/react';
 import { Check, Plus, Sparkles, Crown } from 'lucide-react';
 import type { Ingredient, Recipe } from '../../types';
 import AiNotice from '../AiNotice';
-import RecipeServingsStepper from './RecipeServingsStepper';
 import { useI18n } from '../../context/I18nContext';
 
 interface RecipeIngredientsProps {
@@ -18,9 +17,6 @@ interface RecipeIngredientsProps {
   formatAmount: (amount: number | undefined, unit: string | undefined) => string;
   onAddIngredients?: () => void;
   isAdded: boolean;
-  servings: number;
-  onDecreaseServings: () => void;
-  onIncreaseServings: () => void;
 }
 
 export default function RecipeIngredients({
@@ -36,9 +32,6 @@ export default function RecipeIngredients({
   formatAmount,
   onAddIngredients,
   isAdded,
-  servings,
-  onDecreaseServings,
-  onIncreaseServings
 }: RecipeIngredientsProps) {
   const { t, translateCategory } = useI18n();
 
