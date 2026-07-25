@@ -535,6 +535,7 @@ export const uiTranslations = {
     catalog: {
       savedOn: 'Gespeichert am {date}',
       viewReel: 'Quelle ansehen',
+      photoImport: 'Foto-Import',
       title: 'Rezepte',
       emptyTitle: 'Keine gespeicherten Rezepte',
       emptyDesc: 'Extrahiere Rezepte im "Neues Rezept" Tab, um sie hier zu speichern!',
@@ -1230,6 +1231,7 @@ export const uiTranslations = {
     catalog: {
       savedOn: 'Saved on {date}',
       viewReel: 'View Source',
+      photoImport: 'Photo import',
       title: 'Recipes',
       emptyTitle: 'No Saved Recipes',
       emptyDesc: 'Extract recipes in the "Extract New" tab to save them here!',
