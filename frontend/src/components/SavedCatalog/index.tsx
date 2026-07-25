@@ -197,7 +197,11 @@ export default function SavedCatalog({
   const appliedRouteRef = useRef<string | null>(null);
   useEffect(() => {
     if (!isCatalogListRoute(catalogSubPath)) {
+      // Navigating back to home: reset filters and search
       appliedRouteRef.current = null;
+      setFilters(EMPTY_FILTERS);
+      setSearchQuery('');
+      setSortBy('newest');
       return;
     }
     if (appliedRouteRef.current === catalogSubPath) return;
