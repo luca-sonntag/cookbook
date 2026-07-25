@@ -78,9 +78,8 @@ export default function RecipeInstructions({
         </div>
       )}
 
-      {/* The tab is already labelled "Instructions", so the list needs no
-          heading and no extra card around it. */}
       <div>
+        <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">{t('recipe.stepByStep')}</h3>
         <div className="flex flex-col gap-4">
           {recipe.instructions.map((step) => {
             const isChecked = !!checkedSteps[step.step];
