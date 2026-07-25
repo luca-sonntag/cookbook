@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Card, Tabs } from '@heroui/react';
+import { Tabs } from '@heroui/react';
 import type { Recipe, Ingredient } from '../../types';
 import { useRecipeScaling } from '../../hooks/useRecipeScaling';
 import { useRecipeProgress } from '../../hooks/useRecipeProgress';
@@ -12,8 +12,9 @@ import { useTimerManager } from '../../hooks/useTimerManager';
 
 // Import subcomponents
 import RecipeHeader from './RecipeHeader';
-import RecipeStats from './RecipeStats';
-import RecipeNutrition from './RecipeNutrition';
+import RecipeMetaStrip from './RecipeMetaStrip';
+import RecipeInfoSheet from './RecipeInfoSheet';
+import RecipeStickyBar from './RecipeStickyBar';
 import RecipeIngredients from './RecipeIngredients';
 import RecipeInstructions from './RecipeInstructions';
 import RecipeActionDock from './RecipeActionDock';
@@ -85,7 +86,24 @@ export default function RecipeDetails({
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
+  const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const { pendingNavigation, setPendingNavigation } = useTimerManager();
+
+  // Drives the compact title row inside the sticky tab bar: a zero-height
+  // sentinel sits right below the title block, so as soon as it leaves the
+  // viewport the header has scrolled away and the bar takes over the title.
+  const [collapseSentinel, setCollapseSentinel] = useState<HTMLDivElement | null>(null);
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  useEffect(() => {
+    if (!collapseSentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsHeaderCollapsed(!entry.isIntersecting),
+      // Trip once the sentinel passes under the app's sticky top region.
+      { rootMargin: '-64px 0px 0px 0px', threshold: 0 }
+    );
+    observer.observe(collapseSentinel);
+    return () => observer.disconnect();
+  }, [collapseSentinel]);
 
   // Swipe-to-switch between the ingredients and steps tabs (with slide animation)
   const { tabsProps, containerProps, panelProps } = useSwipeableTabs({
@@ -258,6 +276,28 @@ export default function RecipeDetails({
 
   // Get nutritional info (either reel-level or aggregated per-ingredient AI estimates)
   const { nutritionalValues, isAiEstimated, hasNutritionInfo } = useRecipeNutrition(recipe);
+
+  // Prep + cook collapsed into the single figure shown in the meta strip. Both
+  // fields may be legacy strings ("20 Min."), so pull the leading number out.
+  const totalTimeLabel = useMemo(() => {
+    const minutesOf = (time: any): number | null => {
+      if (time === undefined || time === null || time === '') return null;
+      if (typeof time === 'number') return time;
+      const match = String(time).match(/\d+/);
+      return match ? parseInt(match[0], 10) : null;
+    };
+    const total = [minutesOf(recipe.prepTime), minutesOf(recipe.cookTime)]
+      .filter((v): v is number => v !== null)
+      .reduce((sum, v) => sum + v, 0);
+    return total > 0 ? t('recipe.minutes', { count: total }) : null;
+  }, [recipe.prepTime, recipe.cookTime, t]);
+
+  // Per-serving calories for the meta strip; the full table lives in the sheet.
+  const metaCalories = useMemo(() => {
+    const raw = nutritionalValues?.calories;
+    if (raw === undefined || raw === null) return null;
+    return raw > 0 ? Math.round(raw) : null;
+  }, [nutritionalValues]);
 
   // Sort ingredient groups based on categoryOrder
   const sortedIngredients = useMemo(() => {
@@ -487,71 +527,50 @@ export default function RecipeDetails({
   };
 
   return (
-    <article className="flex flex-col mt-3 gap-6">
-      <Card className="glass-panel p-6 rounded-2xl overflow-hidden">
-        {/* Recipe Title & Gallery */}
-        <RecipeHeader
-          recipe={recipe}
-          reelUrl={reelUrl}
-          createdAt={createdAt}
-          onBack={onBack}
-          onNavigateToShoppingList={onAddIngredients ? handleAddAndNavigateToShoppingList : onNavigateToShoppingList}
-          onDelete={onDelete}
-          onCopyRecipe={copyRecipe}
-          isCopied={isCopied}
-          isParentAvailable={isParentAvailable}
-          onNavigateToRecipe={onNavigateToRecipe}
-          parentRecipeTitle={parentRecipeTitle}
-          onAssignCollections={onAssignCollections}
-          onManageFlags={onManageFlags}
-          flags={flags}
-        />
+    <article className="flex flex-col mt-3">
+      {/* Recipe Title & Gallery */}
+      <RecipeHeader
+        recipe={recipe}
+        reelUrl={reelUrl}
+        createdAt={createdAt}
+        onBack={onBack}
+        onNavigateToShoppingList={onAddIngredients ? handleAddAndNavigateToShoppingList : onNavigateToShoppingList}
+        onDelete={onDelete}
+        onCopyRecipe={copyRecipe}
+        isCopied={isCopied}
+        isParentAvailable={isParentAvailable}
+        onNavigateToRecipe={onNavigateToRecipe}
+        parentRecipeTitle={parentRecipeTitle}
+        onAssignCollections={onAssignCollections}
+        onManageFlags={onManageFlags}
+        flags={flags}
+      />
 
-        {/* Recipe Stats (Prep/Cook Time, Servings) */}
-        <RecipeStats
-          prepTime={recipe.prepTime}
-          cookTime={recipe.cookTime}
+      {/* Key figures at a glance; the full breakdown opens in a bottom sheet. */}
+      <div className="mt-3">
+        <RecipeMetaStrip
+          totalTimeLabel={totalTimeLabel}
           servings={servings}
-          onDecreaseServings={() => setServings(s => Math.max(1, s - 1))}
-          onIncreaseServings={() => setServings(s => s + 1)}
-          formatTimeValue={formatTimeValue}
+          calories={hasNutritionInfo ? metaCalories : null}
+          isPremium={isPremium}
+          onOpenDetails={() => setIsInfoSheetOpen(true)}
         />
+      </div>
 
-        {/* Nutrition estimate */}
-        {hasNutritionInfo && nutritionalValues && (
-          <RecipeNutrition
-            nutritionalValues={nutritionalValues}
-            isAiEstimated={isAiEstimated}
-            showTotalNutrition={showTotalNutrition}
-            onToggleTotalNutrition={handleToggleTotalNutrition}
-            getNutritionDisplayValue={getNutritionDisplayValue}
-          />
-        )}
-
-        {/* AI generated content disclaimer */}
-        <p className="mt-4 text-[10px] text-gray-400 dark:text-gray-500 text-center leading-normal select-none">
-          {t('recipe.aiGeneratedDisclaimer')}
-        </p>
-      </Card>
+      {/* Sentinel for the sticky bar's collapsed title row (see effect above). */}
+      <div ref={setCollapseSentinel} aria-hidden="true" className="h-px" />
 
       {/* Tabbed view for recipe items */}
-      <Tabs {...tabsProps} variant="secondary" className="w-full">
-        <Tabs.ListContainer className="w-full">
-          <Tabs.List className="flex w-full mb-4 overflow-x-auto scrollbar-none">
-            <Tabs.Tab id="ingredients" className="flex-1 flex-shrink-0 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
-              {t('recipe.tabIngredients')}
-              <Tabs.Indicator className="bg-emerald-600 dark:bg-emerald-500" />
-            </Tabs.Tab>
-            <Tabs.Tab id="steps" className="flex-1 flex-shrink-0 px-3 text-center py-2 text-sm font-semibold transition-all cursor-pointer !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap">
-              {t('recipe.tabInstructions')}
-              <Tabs.Indicator className="bg-emerald-600 dark:bg-emerald-500" />
-            </Tabs.Tab>
-          </Tabs.List>
-        </Tabs.ListContainer>
+      <Tabs {...tabsProps} variant="secondary" className="w-full mt-3">
+        <RecipeStickyBar
+          recipeTitle={recipe.title}
+          isCollapsed={isHeaderCollapsed}
+          onBack={onBack}
+        />
 
         {/* Swipeable panel area: the visible panel follows the finger and the
             neighbouring tab slides in once the swipe passes the threshold. */}
-        <div {...containerProps}>
+        <div {...containerProps} className="mt-4">
           <div {...panelProps}>
             {/* Ingredients tab */}
             <Tabs.Panel id="ingredients">
@@ -568,6 +587,9 @@ export default function RecipeDetails({
                 formatAmount={formatAmount}
                 onAddIngredients={onAddIngredients ? handleAddToShoppingList : undefined}
                 isAdded={isAdded}
+                servings={servings}
+                onDecreaseServings={() => setServings(s => Math.max(1, s - 1))}
+                onIncreaseServings={() => setServings(s => s + 1)}
               />
             </Tabs.Panel>
 
@@ -634,6 +656,23 @@ export default function RecipeDetails({
           onReplaceCurrent={onReplaceCurrent!}
         />
       )}
+
+      {/* Times, servings, nutrition and the AI disclaimer on demand */}
+      <RecipeInfoSheet
+        isOpen={isInfoSheetOpen}
+        onClose={() => setIsInfoSheetOpen(false)}
+        prepTime={recipe.prepTime}
+        cookTime={recipe.cookTime}
+        formatTimeValue={formatTimeValue}
+        servings={servings}
+        onDecreaseServings={() => setServings(s => Math.max(1, s - 1))}
+        onIncreaseServings={() => setServings(s => s + 1)}
+        nutritionalValues={hasNutritionInfo ? nutritionalValues : null}
+        isAiEstimated={isAiEstimated}
+        showTotalNutrition={showTotalNutrition}
+        onToggleTotalNutrition={handleToggleTotalNutrition}
+        getNutritionDisplayValue={getNutritionDisplayValue}
+      />
 
       {/* Premium Upgrade Modal */}
       <PremiumModal
