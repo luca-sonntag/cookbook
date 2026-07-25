@@ -20,7 +20,7 @@ import CookbookHome from './CookbookHome';
 import BulkActionBar from './BulkActionBar';
 import CatalogEmptyState from './CatalogEmptyState';
 import CatalogLoadingState from './CatalogLoadingState';
-import { buildListRoute, isCatalogListRoute, parseListRoute, type CatalogPreset } from './catalogRoutes';
+import { buildListRoute, isCatalogListRoute, parseListRoute, getBaseFiltersForPreset, type CatalogPreset } from './catalogRoutes';
 
 interface SavedCatalogProps {
   history: Job[];
@@ -112,7 +112,6 @@ export default function SavedCatalog({
     setSearchQuery,
     filters,
     setFilters,
-    resetFilters,
     activeFilterCount,
     isSelectMode,
     setIsSelectMode,
@@ -221,40 +220,10 @@ export default function SavedCatalog({
     }
     appliedRouteRef.current = catalogSubPath ?? null;
 
-    switch (preset.kind) {
-      case 'favorites':
-        setSearchQuery('');
-        setFilters({ ...EMPTY_FILTERS, favoritesOnly: true });
-        setSortBy('newest');
-        break;
-      case 'quick':
-        setSearchQuery('');
-        setFilters({ ...EMPTY_FILTERS, maxTime: 30 });
-        setSortBy('newest');
-        break;
-      case 'collection':
-        setSearchQuery('');
-        setFilters({ ...EMPTY_FILTERS, collectionIds: [preset.id] });
-        setSortBy('newest');
-        break;
-      case 'flag':
-        setSearchQuery('');
-        setFilters({ ...EMPTY_FILTERS, flags: [preset.name] });
-        setSortBy('newest');
-        break;
-      case 'recent':
-        setSearchQuery('');
-        setFilters(EMPTY_FILTERS);
-        setSortBy('recent');
-        break;
-      case 'search':
-        // Do not clear searchQuery when in search view
-        break;
-      default:
-        setSearchQuery('');
-        setFilters(EMPTY_FILTERS);
-        setSortBy('newest');
-        break;
+    if (preset.kind !== 'search') {
+      setSearchQuery('');
+      setFilters(getBaseFiltersForPreset(preset));
+      setSortBy(preset.kind === 'recent' ? 'recent' : 'newest');
     }
   }, [catalogSubPath, preset, setFilters, setSearchQuery, setSortBy]);
 
@@ -484,7 +453,7 @@ export default function SavedCatalog({
             <button
               type="button"
               onClick={() => {
-                resetFilters();
+                setFilters(getBaseFiltersForPreset(preset));
                 setSearchQuery('');
               }}
               className="px-4 py-2 text-xs font-bold rounded-full bg-emerald-600 text-white hover:bg-emerald-500 active:scale-95 transition-all cursor-pointer"
