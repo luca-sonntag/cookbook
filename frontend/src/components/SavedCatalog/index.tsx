@@ -73,6 +73,13 @@ export default function SavedCatalog({
   const isListLevel = !selectedJob && isCatalogListRoute(catalogSubPath);
   const preset = useMemo(() => parseListRoute(catalogSubPath), [catalogSubPath]);
 
+  // Track previous isListLevel to detect transitions from list → home
+  const prevIsListLevelRef = useRef(isListLevel);
+  const justNavigatedBackFromList = prevIsListLevelRef.current && !isListLevel;
+  useEffect(() => {
+    prevIsListLevelRef.current = isListLevel;
+  }, [isListLevel]);
+
   // Swipe-back / mobile back out of the detail view returns to whichever level
   // the recipe was opened from — the list route, or `null` for the cookbook
   // home. Frozen while a recipe is open so the detail route can't overwrite it.
@@ -227,12 +234,14 @@ export default function SavedCatalog({
 
   // Automatically transition to the list level (Level 2) if search query
   // or active filter count becomes greater than 0 while on Cookbook Home (Level 1).
-  // Nur auslösen, wenn wir NICHT im Detail-View sind (selectedJob ist null).
+  // Nur auslösen, wenn wir NICHT im Detail-View sind (selectedJob ist null)
+  // und wenn wir NICHT gerade von der Liste zurück zur Home navigiert haben.
   useEffect(() => {
+    if (justNavigatedBackFromList) return; // Don't auto-transition when navigating back from list to home
     if (!isListLevel && !selectedJob && (searchQuery || activeFilterCount > 0)) {
       navigateCatalog(buildListRoute({ kind: 'search' }));
     }
-  }, [isListLevel, selectedJob, searchQuery, activeFilterCount, navigateCatalog]);
+  }, [isListLevel, selectedJob, searchQuery, activeFilterCount, navigateCatalog, justNavigatedBackFromList]);
 
   const openList = useCallback((target: CatalogPreset) => {
     navigateCatalog(buildListRoute(target));
