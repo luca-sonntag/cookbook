@@ -540,7 +540,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
             </Drawer.Body>
 
             {/* Footer: Transaction Card, Quick Chips & Message Input */}
-            <div className="border-t border-black/5 dark:border-white/5 p-4 flex flex-col gap-3.5 bg-white dark:bg-gray-900 flex-shrink-0">
+            <div className="border-t border-black/5 dark:border-white/5 pt-4 pb-[calc(1rem_+_var(--safe-area-inset-bottom))] px-4 flex flex-col gap-3.5 bg-white dark:bg-gray-900 flex-shrink-0">
 
               {/* Transaction Card — collected (staged) changes, applied together */}
               {pendingChanges.length > 0 && (
