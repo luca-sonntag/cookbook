@@ -87,7 +87,7 @@ export default function RecipeHeader({
             </div>
           )}
           {recipe.description && (
-            <div className="mt-1.5">
+            <div className="mt-2.5">
               <p
                 className={`text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words ${
                   isDescriptionExpanded || !isDescriptionLong ? '' : 'line-clamp-2'
@@ -107,7 +107,7 @@ export default function RecipeHeader({
             </div>
           )}
           {((flags && flags.length > 0) || onManageFlags) && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="flex flex-wrap gap-1.5 mt-3.5">
               {flags && flags.map((flag, idx) => (
                 <span
                   key={`flag-${idx}`}
@@ -130,7 +130,7 @@ export default function RecipeHeader({
             </div>
           )}
           {createdAt && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 font-medium">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 font-medium">
               {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
             </p>
           )}

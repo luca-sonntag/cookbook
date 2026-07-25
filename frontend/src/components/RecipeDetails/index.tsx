@@ -569,7 +569,7 @@ export default function RecipeDetails({
   };
 
   return (
-    <article className="flex flex-col mt-3">
+    <article className="flex flex-col">
       {/* Recipe Title & Gallery */}
       <RecipeHeader
         recipe={recipe}
@@ -589,7 +589,7 @@ export default function RecipeDetails({
       />
 
       {/* Sentinel for the sticky bar's collapsed title row (see effect above). */}
-      <div ref={setCollapseSentinel} aria-hidden="true" className="h-px" />
+      <div ref={setCollapseSentinel} aria-hidden="true" className="h-px mb-4" />
 
       {/* Smart Sticky Sub-navigation */}
       <RecipeStickyBar

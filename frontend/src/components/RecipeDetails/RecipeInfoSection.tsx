@@ -1,4 +1,4 @@
-import { Clock, Info, Utensils } from 'lucide-react';
+import { Clock, Utensils } from 'lucide-react';
 import RecipeNutrition from './RecipeNutrition';
 import RecipeServingsStepper from './RecipeServingsStepper';
 import { useI18n } from '../../context/I18nContext';
