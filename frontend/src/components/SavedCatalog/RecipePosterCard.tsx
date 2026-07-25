@@ -59,8 +59,8 @@ export default function RecipePosterCard({
         {isSelectMode && (
           <div
             className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all border ${isSelected
-                ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
-                : 'bg-black/40 backdrop-blur-sm border-white/30 text-white'
+              ? 'bg-emerald-500 border-emerald-500 text-white shadow-md'
+              : 'bg-black/40 backdrop-blur-sm border-white/30 text-white'
               }`}
           >
             {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
@@ -69,7 +69,7 @@ export default function RecipePosterCard({
 
         {/* Source platform */}
         {!isSelectMode && (
-          <div className="absolute bottom-1.5 left-1.5 z-[5] bg-gradient-to-br from-emerald-100/80 to-indigo-100/80 dark:from-emerald-950/80 dark:to-indigo-950/80 shadow-sm border border-black/10 dark:border-white/15 rounded-lg w-7 h-7 flex items-center justify-center pointer-events-none select-none">
+          <div className="absolute bottom-1.5 left-1.5 z-[5] bg-gradient-to-br from-emerald-100/85 to-indigo-100/85 dark:from-emerald-950/85 dark:to-indigo-950/85 border border-black/10 dark:border-white/15 rounded-lg w-7 h-7 flex items-center justify-center pointer-events-none select-none">
             <PlatformIcon platform={platform} className={`w-3.5 h-3.5 ${iconColor}`} />
           </div>
         )}
