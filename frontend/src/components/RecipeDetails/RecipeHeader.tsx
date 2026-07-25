@@ -4,7 +4,6 @@ import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Sta
 import type { Recipe } from '../../types';
 import RecipeImageGallery from '../RecipeImageGallery';
 import { useI18n } from '../../context/I18nContext';
-import { getCreatorHandle } from '../../utils/photoImport';
 
 interface RecipeHeaderProps {
   recipe: Recipe;
@@ -167,14 +166,11 @@ export default function RecipeHeader({
 
         {/* Creator handle + Title: no gap between handle and title, padded right so title wraps before buttons */}
         <div className={onToggleFavorite ? 'pr-[100px]' : 'pr-[52px]'}>
-          {(() => {
-            const handle = getCreatorHandle(recipe.instagramHandle, reelUrl, t('catalog.photoImport'));
-            return handle ? (
-              <div className="text-xs font-extrabold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-300 mb-0.5 leading-none select-none">
-                {handle}
-              </div>
-            ) : null;
-          })()}
+          {recipe.instagramHandle && (
+            <div className="text-xs font-extrabold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-300 mb-0.5 leading-none select-none">
+              {recipe.instagramHandle}
+            </div>
+          )}
           <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight break-words">{recipe.title}</h2>
         </div>
 
