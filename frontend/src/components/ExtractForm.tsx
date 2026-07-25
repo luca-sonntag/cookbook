@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, TextField, Label, Input, Button, FieldError, Spinner, Accordion } from '@heroui/react';
 import { BookOpen, Camera, Clipboard, Globe, HelpCircle, ImagePlus, Link2, X } from 'lucide-react';
 import { MAX_IMPORT_PHOTOS } from '../hooks/useRecipeExtraction';
@@ -169,6 +169,11 @@ export default function ExtractForm({
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const photosFull = photos.length >= MAX_IMPORT_PHOTOS;
 
+  // Preview URLs are derived once per selection and revoked when it changes —
+  // creating them inline during render would mint a new URL on every re-render.
+  const photoPreviews = useMemo(() => photos.map(photo => URL.createObjectURL(photo)), [photos]);
+  useEffect(() => () => photoPreviews.forEach(URL.revokeObjectURL), [photoPreviews]);
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = Array.from(e.target.files ?? []);
     // Reset so re-picking the very same file fires onChange again.
@@ -273,10 +278,9 @@ export default function ExtractForm({
                     {photos.map((photo, index) => (
                       <div key={`${photo.name}-${index}`} className="relative aspect-square rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
                         <img
-                          src={URL.createObjectURL(photo)}
+                          src={photoPreviews[index]}
                           alt=""
                           className="w-full h-full object-cover"
-                          onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
                         />
                         {/* The badge is the page order sent to the extractor. */}
                         <span className="absolute bottom-1 left-1 w-5 h-5 rounded-full bg-black/65 text-white text-[10px] font-bold flex items-center justify-center backdrop-blur-sm">
