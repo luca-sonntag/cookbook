@@ -33,6 +33,41 @@ $frontendDir = Split-Path -Parent $PSScriptRoot
 $androidDir = "$frontendDir\android"
 $versionFile = "$androidDir\version.properties"
 
+function Read-DotEnvValue {
+    param([string]$Path, [string]$Key)
+    if (-not (Test-Path $Path)) { return $null }
+    foreach ($line in Get-Content $Path) {
+        if ($line -match "^\s*$([regex]::Escape($Key))\s*=\s*(.*)$") {
+            return $Matches[1].Trim().Trim('"').Trim("'")
+        }
+    }
+    return $null
+}
+
+# ── 0. Frontend env guards ───────────────────────────────────────────
+# `npm run build` (production mode) reads .env.production, then .env for any
+# variable .env.production doesn't define. The backend verifies JWTs against
+# snagbite-prod, so an AAB built against any other Supabase project gets 401
+# on every authenticated endpoint (shipped broken as v1.1.6).
+$prodEnvPath = "$frontendDir\.env.production"
+$supabaseEnvPath = "$frontendDir\.env"
+if (Read-DotEnvValue $prodEnvPath 'VITE_SUPABASE_URL') { $supabaseEnvPath = $prodEnvPath }
+$frontendSupabaseUrl = Read-DotEnvValue $supabaseEnvPath 'VITE_SUPABASE_URL'
+if (-not $frontendSupabaseUrl) {
+    Write-Error "VITE_SUPABASE_URL is missing/empty in $supabaseEnvPath. Production builds must pin the snagbite-prod Supabase project in .env.production."
+    exit 1
+}
+if ($frontendSupabaseUrl -match 'nmphuwywxirervquvgoa') {
+    Write-Error "VITE_SUPABASE_URL in $supabaseEnvPath points to the DEV Supabase project (snagbite-dev) — its tokens are rejected by the production backend. Pin the snagbite-prod URL in .env.production."
+    exit 1
+}
+foreach ($envFile in @($prodEnvPath, "$frontendDir\.env")) {
+    if ((Read-DotEnvValue $envFile 'VITE_TEST_LOGIN') -eq 'true') {
+        Write-Error "VITE_TEST_LOGIN=true is set in $envFile — refusing to build a test-login release."
+        exit 1
+    }
+}
+
 # ── 1. Read current version ──────────────────────────────────────────
 if (-not (Test-Path $versionFile)) {
     Write-Error "version.properties not found at $versionFile"

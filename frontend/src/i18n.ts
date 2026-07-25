@@ -321,13 +321,6 @@ export const uiTranslations = {
         body: 'Dein Rezept „{title}“ ist bereit zum Kochen!',
       }
     },
-    api: {
-      title: 'Backend-Zugriffseinstellungen',
-      desc: 'Konfiguriere deinen geheimen API-Schlüssel, um mit den Backend-Endpunkten des Servers zu kommunizieren.',
-      keyLabel: 'API-Schlüssel',
-      keyPlaceholder: 'Geheimen API-Schlüssel eingeben',
-      close: 'Schließen',
-    },
     auth: {
       signInTitle: 'Melde dich an, um deine Rezepte zu verwalten',
       unexpectedError: 'Ein unerwarteter Fehler ist aufgetreten.',
@@ -450,7 +443,7 @@ export const uiTranslations = {
         failedCheck: 'Statusüberprüfung vom Server fehlgeschlagen.',
         failedExtraction: 'Die Rezept-Erstellung ist fehlgeschlagen.',
         lostConnection: 'Verbindung zum Backend-Server verloren.',
-        unauthorized: 'Nicht autorisiert. Bitte überprüfe deinen API-Schlüssel in den Einstellungen.',
+        unauthorized: 'Deine Sitzung ist abgelaufen oder ungültig. Bitte melde dich erneut an.',
         submitFailed: 'Auftrag konnte nicht übermittelt werden.',
         submissionError: 'Bei der Übermittlung ist ein Fehler aufgetreten.',
         serverError: 'Der Server hat keine gültige Antwort zurückgegeben. Bitte versuche es erneut.',
@@ -966,13 +959,6 @@ export const uiTranslations = {
         body: 'Your recipe "{title}" is ready to cook!',
       }
     },
-    api: {
-      title: 'Backend Access Settings',
-      desc: 'Configure your secret API Key to communicate with the server backend extractor endpoints.',
-      keyLabel: 'API Key',
-      keyPlaceholder: 'Enter secret API Key',
-      close: 'Close',
-    },
     auth: {
       signInTitle: 'Sign in to manage your recipes',
       unexpectedError: 'An unexpected error occurred.',
@@ -1095,7 +1081,7 @@ export const uiTranslations = {
         failedCheck: 'Failed to check status from server.',
         failedExtraction: 'The recipe creation failed.',
         lostConnection: 'Lost connection to backend server.',
-        unauthorized: 'Unauthorized. Please verify your API Key in Settings.',
+        unauthorized: 'Your session is expired or invalid. Please sign in again.',
         submitFailed: 'Failed to submit extraction job.',
         submissionError: 'An error occurred during submission.',
         serverError: 'The server returned an unexpected response. Please try again.',

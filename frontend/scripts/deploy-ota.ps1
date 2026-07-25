@@ -193,7 +193,24 @@ foreach ($envFile in @($envPath, "$frontendDir\.env")) {
         exit 1
     }
 }
+
+# The backend verifies JWTs against snagbite-prod; a bundle built against any
+# other Supabase project gets 401 on every authenticated endpoint (v1.1.6 bug).
+$supabaseEnvPath = "$frontendDir\.env"
+if ((Test-Path $prodEnvPath) -and (Read-DotEnvValue $prodEnvPath 'VITE_SUPABASE_URL')) {
+    $supabaseEnvPath = $prodEnvPath
+}
+$frontendSupabaseUrl = Read-DotEnvValue $supabaseEnvPath 'VITE_SUPABASE_URL'
+if (-not $frontendSupabaseUrl) {
+    Write-Error "VITE_SUPABASE_URL is missing/empty in $supabaseEnvPath. Production builds must pin the snagbite-prod Supabase project in .env.production."
+    exit 1
+}
+if ($frontendSupabaseUrl -match 'nmphuwywxirervquvgoa') {
+    Write-Error "VITE_SUPABASE_URL in $supabaseEnvPath points to the DEV Supabase project (snagbite-dev) — its tokens are rejected by the production backend. Pin the snagbite-prod URL in .env.production."
+    exit 1
+}
 Write-Host "  VITE_API_BASE_URL OK (from $envPath): $($parsedUri.Scheme)://$($parsedUri.Host)" -ForegroundColor Green
+Write-Host "  VITE_SUPABASE_URL OK (from $supabaseEnvPath): $frontendSupabaseUrl" -ForegroundColor Green
 
 # ── 2. Read native version (no bump — OTA never touches it) ──────────
 
