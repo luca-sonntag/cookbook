@@ -117,6 +117,7 @@ export default function SavedCatalog({
     allFlags,
     toggleFavorite,
     setRecipeFlags,
+    assignCollections,
     shelves,
     jobsByCollection,
     markOpened
@@ -335,10 +336,8 @@ export default function SavedCatalog({
           job={collectionSheetJob}
           selectedJobs={collectionSheetBulkJobs}
           initialMode={!collectionSheetJob && collectionSheetBulkJobs.length === 0 ? 'manage' : 'assign'}
-          onUpdated={() => {
-            fetchHistory?.();
-            refreshCollections();
-          }}
+          onAssign={assignCollections}
+          onUpdated={() => refreshCollections()}
         />
         <FlagSheet
           isOpen={isFlagSheetOpen}
@@ -347,7 +346,6 @@ export default function SavedCatalog({
           allExistingFlags={allExistingFlags}
           onSave={async (j, flags) => {
             await setRecipeFlags(j, flags);
-            fetchHistory?.();
           }}
         />
         <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
@@ -370,16 +368,12 @@ export default function SavedCatalog({
         job={collectionSheetJob}
         selectedJobs={collectionSheetBulkJobs}
         initialMode={
-          // No specific recipe / bulk context => open in management overview
-          // (no checkboxes); otherwise assign mode is default.
           !collectionSheetJob && collectionSheetBulkJobs.length === 0
             ? 'manage'
             : 'assign'
         }
-        onUpdated={() => {
-          fetchHistory?.();
-          refreshCollections();
-        }}
+        onAssign={assignCollections}
+        onUpdated={() => refreshCollections()}
       />
 
       <FlagSheet
@@ -389,7 +383,6 @@ export default function SavedCatalog({
         allExistingFlags={allExistingFlags}
         onSave={async (j, flags) => {
           await setRecipeFlags(j, flags);
-          fetchHistory?.();
         }}
       />
 
