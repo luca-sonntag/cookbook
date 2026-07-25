@@ -56,7 +56,7 @@ export default function RecipeHeader({
 
       {/* Recipe title header */}
       <div className="flex justify-between items-start gap-4">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 p-2">
           {recipe.instagramHandle && (
             <div className="text-xs font-extrabold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-300 mb-1.5 leading-none select-none">
               {recipe.instagramHandle}
@@ -89,9 +89,8 @@ export default function RecipeHeader({
           {recipe.description && (
             <div className="mt-2.5">
               <p
-                className={`text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words ${
-                  isDescriptionExpanded || !isDescriptionLong ? '' : 'line-clamp-2'
-                }`}
+                className={`text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words ${isDescriptionExpanded || !isDescriptionLong ? '' : 'line-clamp-2'
+                  }`}
               >
                 {recipe.description}
               </p>

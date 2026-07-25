@@ -38,6 +38,10 @@ export default function RecipeIngredients({
   return (
     <div className="flex flex-col gap-4 pb-4">
       <div>
+        <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+          <span className="w-1 h-5 bg-gradient-to-b from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400 rounded-full" />
+          <span>{t('recipe.tabIngredients')}</span>
+        </h3>
         {/* Header only carries the checklist hint. Servings stepper is managed at the top Details card. */}
         <div className="flex flex-col gap-2 mb-4 border-b border-black/5 dark:border-white/5 pb-2">
           <div className="flex justify-between items-center gap-2">

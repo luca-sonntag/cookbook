@@ -63,23 +63,11 @@ export default function RecipeInstructions({
         </div>
       </Card>
 
-      {/* Equipment as a wrapping chip row — the old two-column tile grid cost
-          roughly twice the height for the same handful of short labels. */}
-      {recipe.equipment && recipe.equipment.length > 0 && (
-        <div>
-          <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">{t('recipe.requiredEquipment')}</h3>
-          <ul className="flex flex-wrap gap-1.5">
-            {recipe.equipment.map((item, idx) => (
-              <li key={idx} className="py-1.5 px-3 bg-black/5 dark:bg-white/5 rounded-full border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       <div>
-        <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">{t('recipe.stepByStep')}</h3>
+        <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+          <span className="w-1 h-5 bg-gradient-to-b from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400 rounded-full" />
+          <span>{t('recipe.stepByStep')}</span>
+        </h3>
         <div className="flex flex-col gap-4">
           {recipe.instructions.map((step) => {
             const isChecked = !!checkedSteps[step.step];
@@ -124,6 +112,20 @@ export default function RecipeInstructions({
           })}
         </div>
       </div>
+
+      {/* Equipment as a wrapping chip row — integrated under instructions steps */}
+      {recipe.equipment && recipe.equipment.length > 0 && (
+        <div className="pt-4 border-t border-black/5 dark:border-white/5">
+          <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2.5 uppercase tracking-wider">{t('recipe.requiredEquipment')}</h3>
+          <ul className="flex flex-wrap gap-1.5">
+            {recipe.equipment.map((item, idx) => (
+              <li key={idx} className="py-1.5 px-3 bg-black/5 dark:bg-white/5 rounded-full border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {recipe.tips && recipe.tips.length > 0 && (
         <Card className="glass-panel p-5 rounded-2xl border border-emerald-500/10">
