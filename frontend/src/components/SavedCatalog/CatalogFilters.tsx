@@ -3,8 +3,8 @@ import { Button } from '@heroui/react';
 import { Search, List, LayoutGrid, CheckSquare, Square, ArrowLeft, Star, Tag, SlidersHorizontal, X, Clock } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import type { Collection } from '../../types';
-import type { CatalogFilterState, CatalogSort } from '../../hooks/useSavedCatalog';
-import { buildListRoute, parseListRoute, getBaseFiltersForPreset } from './catalogRoutes';
+import { EMPTY_FILTERS, type CatalogFilterState, type CatalogSort } from '../../hooks/useSavedCatalog';
+import { buildListRoute, parseListRoute } from './catalogRoutes';
 
 interface CatalogFiltersProps {
   title: string;
@@ -94,6 +94,12 @@ export default function CatalogFilters({
   };
   const removeTime = () => {
     setFilters({ ...filters, maxTime: 0 });
+    navigateToGeneralListIfNeeded();
+  };
+
+  const handleResetAll = () => {
+    setFilters(EMPTY_FILTERS);
+    setSearchQuery('');
     navigateToGeneralListIfNeeded();
   };
 
@@ -240,10 +246,7 @@ export default function CatalogFilters({
           ))}
           <button
             type="button"
-            onClick={() => {
-              const preset = catalogSubPath ? parseListRoute(catalogSubPath) : { kind: 'all' as const };
-              setFilters(getBaseFiltersForPreset(preset));
-            }}
+            onClick={handleResetAll}
             className="px-3 py-1.5 text-xs font-semibold rounded-full border border-black/10 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white whitespace-nowrap shrink-0 active:scale-95 transition-all cursor-pointer"
           >
             {t('catalog.resetFilters')}

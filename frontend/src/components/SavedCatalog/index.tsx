@@ -453,8 +453,11 @@ export default function SavedCatalog({
             <button
               type="button"
               onClick={() => {
-                setFilters(getBaseFiltersForPreset(preset));
+                setFilters(EMPTY_FILTERS);
                 setSearchQuery('');
+                if (preset.kind !== 'all' && preset.kind !== 'search') {
+                  navigateCatalog(buildListRoute({ kind: 'all' }));
+                }
               }}
               className="px-4 py-2 text-xs font-bold rounded-full bg-emerald-600 text-white hover:bg-emerald-500 active:scale-95 transition-all cursor-pointer"
             >
