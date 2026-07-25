@@ -44,7 +44,7 @@ function Read-DotEnvValue {
     return $null
 }
 
-# ── 0. Frontend env guards ───────────────────────────────────────────
+# -- 0. Frontend env guards -------------------------------------------
 # `npm run build` (production mode) reads .env.production, then .env for any
 # variable .env.production doesn't define. The backend verifies JWTs against
 # snagbite-prod, so an AAB built against any other Supabase project gets 401
@@ -58,17 +58,17 @@ if (-not $frontendSupabaseUrl) {
     exit 1
 }
 if ($frontendSupabaseUrl -match 'nmphuwywxirervquvgoa') {
-    Write-Error "VITE_SUPABASE_URL in $supabaseEnvPath points to the DEV Supabase project (snagbite-dev) — its tokens are rejected by the production backend. Pin the snagbite-prod URL in .env.production."
+    Write-Error "VITE_SUPABASE_URL in $supabaseEnvPath points to the DEV Supabase project (snagbite-dev) - its tokens are rejected by the production backend. Pin the snagbite-prod URL in .env.production."
     exit 1
 }
 foreach ($envFile in @($prodEnvPath, "$frontendDir\.env")) {
     if ((Read-DotEnvValue $envFile 'VITE_TEST_LOGIN') -eq 'true') {
-        Write-Error "VITE_TEST_LOGIN=true is set in $envFile — refusing to build a test-login release."
+        Write-Error "VITE_TEST_LOGIN=true is set in $envFile - refusing to build a test-login release."
         exit 1
     }
 }
 
-# ── 1. Read current version ──────────────────────────────────────────
+# -- 1. Read current version ------------------------------------------
 if (-not (Test-Path $versionFile)) {
     Write-Error "version.properties not found at $versionFile"
     exit 1
@@ -78,10 +78,10 @@ $versionContent = Get-Content $versionFile -Raw
 $currentCode = [int]([regex]::Match($versionContent, 'VERSION_CODE=(\d+)').Groups[1].Value)
 $currentName = [regex]::Match($versionContent, 'VERSION_NAME=(.+)').Groups[1].Value.Trim()
 
-# ── 2. Increment versionCode ─────────────────────────────────────────
+# -- 2. Increment versionCode -----------------------------------------
 $newCode = $currentCode + 1
 
-# ── 3. Bump versionName if requested ─────────────────────────────────
+# -- 3. Bump versionName if requested ---------------------------------
 $parts = $currentName.Split('.')
 $major = [int]$parts[0]
 $minor = [int]$parts[1]
@@ -94,7 +94,7 @@ switch ($Bump) {
 }
 $newName = "$major.$minor.$patch"
 
-# ── 4. Write updated version.properties ──────────────────────────────
+# -- 4. Write updated version.properties ------------------------------
 $newContent = "VERSION_CODE=$newCode`nVERSION_NAME=$newName`n"
 [System.IO.File]::WriteAllText($versionFile, $newContent)
 
@@ -110,7 +110,7 @@ Write-Host "$(' ' * (28 - "$currentName -> $newName".Length))|" -ForegroundColor
 Write-Host "  +------------------------------------------+" -ForegroundColor Cyan
 Write-Host ""
 
-# ── 5. Build frontend ────────────────────────────────────────────────
+# -- 5. Build frontend ------------------------------------------------
 Write-Host "[1/4] Building frontend..." -ForegroundColor Yellow
 Push-Location $frontendDir
 try {
@@ -121,7 +121,7 @@ try {
 }
 Write-Host "  Frontend build complete." -ForegroundColor Green
 
-# ── 6. Sync Capacitor ────────────────────────────────────────────────
+# -- 6. Sync Capacitor ------------------------------------------------
 Write-Host "[2/4] Syncing Capacitor..." -ForegroundColor Yellow
 Push-Location $frontendDir
 try {
@@ -132,7 +132,7 @@ try {
 }
 Write-Host "  Capacitor sync complete." -ForegroundColor Green
 
-# ── 7. Build AAB ─────────────────────────────────────────────────────
+# -- 7. Build AAB -----------------------------------------------------
 Write-Host "[3/4] Building release AAB..." -ForegroundColor Yellow
 Push-Location $androidDir
 try {
@@ -157,7 +157,7 @@ try {
 }
 Write-Host "  AAB build complete." -ForegroundColor Green
 
-# ── 8. Copy AAB to releases/ folder ──────────────────────────────────
+# -- 8. Copy AAB to releases/ folder ----------------------------------
 Write-Host "[4/4] Copying AAB to releases/..." -ForegroundColor Yellow
 $aabSource = "$androidDir\app\build\outputs\bundle\release\app-release.aab"
 $releasesDir = "$frontendDir\releases"
