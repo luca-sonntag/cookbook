@@ -1,4 +1,4 @@
-import { ArrowLeft, Crown } from 'lucide-react';
+import { ArrowLeft, Crown, Clock, Utensils, Flame } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 
 interface RecipeStickyBarProps {
@@ -20,7 +20,7 @@ interface RecipeStickyBarProps {
  * In the single-page layout, it provides a smart scroll spy sub-navigation:
  * - Highlights the section currently in view (Zutaten, Zubereitung, Details).
  * - Tapping a section smooth-scrolls the page directly to it.
- * - When collapsed (scrolled down), reveals the recipe title, compact details, and a back button.
+ * - When collapsed (scrolled down), reveals the recipe title, compact details with icons, and a back button.
  */
 export default function RecipeStickyBar({
   recipeTitle,
@@ -65,15 +65,20 @@ export default function RecipeStickyBar({
           <span className="text-sm font-bold text-gray-900 dark:text-white truncate leading-tight">
             {recipeTitle}
           </span>
-          <div className="flex items-center gap-2 text-[10px] text-gray-500 dark:text-gray-400 font-semibold select-none mt-0.5 leading-none">
+          <div className="flex items-center gap-3 text-[10px] text-gray-500 dark:text-gray-400 font-semibold select-none mt-0.5 leading-none">
             {totalTimeLabel && (
-              <span>{totalTimeLabel}</span>
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                {totalTimeLabel}
+              </span>
             )}
-            {totalTimeLabel && <span>·</span>}
-            <span>{t('recipe.servingsCount', { count: servings })}</span>
-            {calories !== null && <span>·</span>}
+            <span className="flex items-center gap-1">
+              <Utensils className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+              {t('recipe.servingsCount', { count: servings })}
+            </span>
             {calories !== null && (
-              <span className="inline-flex items-center gap-0.5">
+              <span className="flex items-center gap-1">
+                <Flame className="w-3 h-3 text-emerald-500 flex-shrink-0" />
                 {isPremium ? (
                   `${calories} kcal`
                 ) : (
