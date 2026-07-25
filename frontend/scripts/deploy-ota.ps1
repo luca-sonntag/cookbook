@@ -268,7 +268,7 @@ if (-not (Test-Path "$distDir\index.html")) {
 }
 $zipPath = Join-Path ([System.IO.Path]::GetTempPath()) "snagbite-$($bundleVersion -replace '[^\w\.-]', '_').zip"
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-& tar.exe -a -cf $zipPath -C $distDir .
+& tar.exe -a -cf $zipPath -C $distDir *
 if ($LASTEXITCODE -ne 0) { throw "tar.exe failed to create $zipPath" }
 
 $checksum = (Get-FileHash -Path $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()

@@ -182,7 +182,7 @@ Craft a deliberately broken bundle (don't use the deploy script — it rebuilds)
 ```powershell
 cd frontend; npm run build
 # break it: edit dist/index.html and point the main <script src> at a file that doesn't exist
-tar.exe -a -cf broken.zip -C dist .
+tar.exe -a -cf broken.zip -C dist *
 Get-FileHash broken.zip -Algorithm SHA256   # note lowercase hex
 ```
 
