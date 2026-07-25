@@ -39,11 +39,6 @@ export default function RecipeInfoSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-2">
-        <Info className="w-4 h-4 text-emerald-500" />
-        <span>{t('recipe.infoSheetTitle')}</span>
-      </h3>
-
       <div className="flex flex-col gap-3 pb-2">
         {/* Prep / cook time */}
         <div className="grid grid-cols-2 gap-2">
