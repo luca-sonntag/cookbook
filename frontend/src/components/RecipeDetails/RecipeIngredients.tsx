@@ -2,6 +2,7 @@ import { Card, Button } from '@heroui/react';
 import { Check, Plus, Sparkles, Crown } from 'lucide-react';
 import type { Ingredient, Recipe } from '../../types';
 import AiNotice from '../AiNotice';
+import RecipeServingsStepper from './RecipeServingsStepper';
 import { useI18n } from '../../context/I18nContext';
 
 interface RecipeIngredientsProps {
@@ -17,6 +18,9 @@ interface RecipeIngredientsProps {
   formatAmount: (amount: number | undefined, unit: string | undefined) => string;
   onAddIngredients?: () => void;
   isAdded: boolean;
+  servings: number;
+  onDecreaseServings: () => void;
+  onIncreaseServings: () => void;
 }
 
 export default function RecipeIngredients({
@@ -31,21 +35,29 @@ export default function RecipeIngredients({
   scaleFactor,
   formatAmount,
   onAddIngredients,
-  isAdded
+  isAdded,
+  servings,
+  onDecreaseServings,
+  onIncreaseServings
 }: RecipeIngredientsProps) {
   const { t, translateCategory } = useI18n();
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="glass-panel p-5 rounded-2xl">
-        <div className="flex flex-col gap-2 mb-4 border-b border-black/5 dark:border-white/5 pb-3">
-          <div className="flex flex-wrap justify-between items-baseline gap-2">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-              {t('recipe.ingredientsTitle')}
-            </h3>
-            <span className="text-xs text-gray-500 dark:text-gray-400 normal-case font-normal">
+    <div className="flex flex-col gap-4 pb-4">
+      <div>
+        {/* The tab is already labelled "Ingredients", so the header only carries
+            the checklist hint and the servings control that scales the list. */}
+        <div className="flex flex-col gap-2 mb-4 border-b border-black/5 dark:border-white/5 pb-2">
+          <div className="flex justify-between items-center gap-2">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               {t('recipe.ingredientsSubtitle')}
             </span>
+            <RecipeServingsStepper
+              variant="compact"
+              servings={servings}
+              onDecreaseServings={onDecreaseServings}
+              onIncreaseServings={onIncreaseServings}
+            />
           </div>
           {hasIngredientNutrition && (
             <div className="flex justify-start items-center gap-1.5">
@@ -150,7 +162,7 @@ export default function RecipeIngredients({
             )}
           </Button>
         )}
-      </Card>
+      </div>
 
       {recipe.alternativeIngredients && recipe.alternativeIngredients.length > 0 && (
         <Card className="glass-panel p-5 rounded-2xl">

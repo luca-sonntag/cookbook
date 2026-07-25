@@ -223,7 +223,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
     <>
       {/* Inline Gallery */}
       {availableImages.length > 1 ? (
-        <div className="-mt-6 -mx-6 mb-6 relative group">
+        <div className="-mx-4 mb-4 relative group">
           {overlayButtons}
           <div
             ref={scrollContainerRef}
@@ -242,7 +242,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
                     emoji={recipe.emoji}
                     draggable={false}
                     alt={`${recipe.title} - view ${idx + 1}`}
-                    className={`w-full h-56 object-cover object-center transition-transform duration-300 ${isDragging ? 'cursor-grabbing' : 'cursor-pointer'
+                    className={`w-full aspect-video object-cover object-center transition-transform duration-300 ${isDragging ? 'cursor-grabbing' : 'cursor-pointer'
                       }`}
                     onClick={() => handleImageClick(idx)}
                   />
@@ -255,20 +255,20 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
           </div>
         </div>
       ) : availableImages.length === 1 ? (
-        <div className="-mt-6 -mx-6 mb-6 bg-black/5 dark:bg-white/5 relative group">
+        <div className="-mx-4 mb-4 bg-black/5 dark:bg-white/5 relative group">
           {overlayButtons}
           <CachedImage
             src={availableImages[0]}
             emoji={recipe.emoji}
             alt={recipe.title}
-            className="w-full h-56 object-cover object-center cursor-pointer"
+            className="w-full aspect-video object-cover object-center cursor-pointer"
             onClick={() => {
               setFullscreenIndex(0);
             }}
           />
         </div>
       ) : (
-        <div className="-mt-6 -mx-6 mb-6 h-48 bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
+        <div className="-mx-4 mb-4 aspect-video bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
           {overlayButtons}
           {recipe.emoji ? (
             <span className="text-5xl select-none" role="img" aria-label="recipe emoji">

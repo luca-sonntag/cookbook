@@ -40,6 +40,12 @@ export default function RecipeHeader({
 }: RecipeHeaderProps) {
   const { t, language } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
+  // The description is clamped to two lines so the ingredient list starts
+  // higher up. Only offer the toggle for texts that actually get cut off —
+  // roughly two lines' worth of characters at the mobile width.
+  const isDescriptionLong = (recipe.description?.length ?? 0) > 90;
 
   const resolvedParentTitle = parentRecipeTitle || recipe.parentRecipeTitle;
 
@@ -49,7 +55,7 @@ export default function RecipeHeader({
       <RecipeImageGallery recipe={recipe} reelUrl={reelUrl} onBack={onBack} />
 
       {/* Recipe title header */}
-      <div className="flex justify-between items-start gap-4 pb-4 border-b border-black/5 dark:border-white/5">
+      <div className="flex justify-between items-start gap-4">
         <div className="min-w-0 flex-1">
           {recipe.instagramHandle && (
             <div className="text-xs font-extrabold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-300 mb-1.5 leading-none select-none">
@@ -80,7 +86,26 @@ export default function RecipeHeader({
               )}
             </div>
           )}
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed break-words">{recipe.description}</p>
+          {recipe.description && (
+            <div className="mt-1.5">
+              <p
+                className={`text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words ${
+                  isDescriptionExpanded || !isDescriptionLong ? '' : 'line-clamp-2'
+                }`}
+              >
+                {recipe.description}
+              </p>
+              {isDescriptionLong && (
+                <button
+                  type="button"
+                  onClick={() => setIsDescriptionExpanded(v => !v)}
+                  className="mt-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer outline-none border-none bg-transparent p-0"
+                >
+                  {isDescriptionExpanded ? t('recipe.descriptionLess') : t('recipe.descriptionMore')}
+                </button>
+              )}
+            </div>
+          )}
           {((flags && flags.length > 0) || onManageFlags) && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {flags && flags.map((flag, idx) => (

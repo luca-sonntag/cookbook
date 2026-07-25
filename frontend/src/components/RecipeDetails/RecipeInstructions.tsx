@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { ChevronRight, Play, Sparkles, Check, ChefHat } from 'lucide-react';
+import { Play, Sparkles, Check, ChefHat } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeInstructionText from '../RecipeInstructionText';
 import { useI18n } from '../../context/I18nContext';
@@ -33,7 +33,7 @@ export default function RecipeInstructions({
   const { isPremium } = useAuth();
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pb-4">
       {/* Cooking Progress Bar & Start Button Card */}
       <Card className="glass-panel p-5 rounded-2xl flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -63,22 +63,24 @@ export default function RecipeInstructions({
         </div>
       </Card>
 
+      {/* Equipment as a wrapping chip row — the old two-column tile grid cost
+          roughly twice the height for the same handful of short labels. */}
       {recipe.equipment && recipe.equipment.length > 0 && (
-        <Card className="glass-panel p-5 rounded-2xl">
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider">{t('recipe.requiredEquipment')}</h3>
-          <ul className="grid grid-cols-2 gap-2">
+        <div>
+          <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">{t('recipe.requiredEquipment')}</h3>
+          <ul className="flex flex-wrap gap-1.5">
             {recipe.equipment.map((item, idx) => (
-              <li key={idx} className="flex items-center gap-2 py-1.5 px-2.5 bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] rounded-lg border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
-                <ChevronRight className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                <span>{item}</span>
+              <li key={idx} className="py-1.5 px-3 bg-black/5 dark:bg-white/5 rounded-full border border-black/5 dark:border-white/5 text-xs text-gray-700 dark:text-gray-300">
+                {item}
               </li>
             ))}
           </ul>
-        </Card>
+        </div>
       )}
 
-      <Card className="glass-panel p-5 rounded-2xl">
-        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">{t('recipe.stepByStep')}</h3>
+      {/* The tab is already labelled "Instructions", so the list needs no
+          heading and no extra card around it. */}
+      <div>
         <div className="flex flex-col gap-4">
           {recipe.instructions.map((step) => {
             const isChecked = !!checkedSteps[step.step];
@@ -122,7 +124,7 @@ export default function RecipeInstructions({
             );
           })}
         </div>
-      </Card>
+      </div>
 
       {recipe.tips && recipe.tips.length > 0 && (
         <Card className="glass-panel p-5 rounded-2xl border border-emerald-500/10">
