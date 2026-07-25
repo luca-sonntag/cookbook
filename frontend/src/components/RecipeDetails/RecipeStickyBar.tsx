@@ -1,46 +1,42 @@
-import { Tabs } from '@heroui/react';
 import { ArrowLeft } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 
 interface RecipeStickyBarProps {
   recipeTitle: string;
-  /** True once the hero/title block has scrolled out of view. */
   isCollapsed: boolean;
   onBack?: () => void;
+  activeSection: 'ingredients' | 'instructions' | 'details';
+  onSectionClick: (sectionId: 'ingredients' | 'instructions' | 'details') => void;
 }
 
 /**
- * The ingredients/instructions switcher, pinned below the app's sticky top
- * region (see `--app-sticky-top`). Previously the tab list sat in the normal
- * flow roughly two screens down, so switching tabs mid-recipe meant scrolling
- * all the way back up.
- *
- * Once the title block is gone the bar reveals a compact header row with a back
- * arrow and the recipe title, so the user never loses track of which recipe
- * they are looking at.
- *
- * The `<Tabs>` root stays in `RecipeDetails/index.tsx` — only the list lives
- * here — so `useSwipeableTabs` keeps driving both the list and the panels.
+ * Pinned below the app's sticky top region (see `--app-sticky-top`).
+ * In the single-page layout, it provides a smart scroll spy sub-navigation:
+ * - Highlights the section currently in view (Zutaten, Zubereitung, Details).
+ * - Tapping a section smooth-scrolls the page directly to it.
+ * - When collapsed (scrolled down), reveals the recipe title and a back button.
  */
-export default function RecipeStickyBar({ recipeTitle, isCollapsed, onBack }: RecipeStickyBarProps) {
+export default function RecipeStickyBar({
+  recipeTitle,
+  isCollapsed,
+  onBack,
+  activeSection,
+  onSectionClick,
+}: RecipeStickyBarProps) {
   const { t } = useI18n();
 
-  // HeroUI's `variant="secondary"` (underline) styling is scoped to
-  // `.tabs--secondary > .tabs__list-container`. Wrapping the list in this
-  // sticky container breaks that direct-child relationship, so the underline
-  // look is re-applied explicitly on the slots below.
-  const tabClasses =
-    'flex-1 flex-shrink-0 px-3 text-center !h-auto py-3 !rounded-none text-sm font-semibold transition-all cursor-pointer !text-gray-500 dark:!text-gray-400 data-[selected=true]:!text-emerald-600 dark:data-[selected=true]:!text-emerald-400 hover:!text-gray-900 dark:hover:!text-white whitespace-nowrap';
-
-  const indicatorClasses =
-    '!top-auto !bottom-0 !h-0.5 !rounded-none !shadow-none bg-emerald-600 dark:bg-emerald-500';
+  const sections = [
+    { id: 'ingredients' as const, label: t('recipe.tabIngredients') },
+    { id: 'instructions' as const, label: t('recipe.tabInstructions') },
+    { id: 'details' as const, label: t('recipe.infoSheetTitle') },
+  ];
 
   return (
     <div className="sticky top-[var(--app-sticky-top)] z-30 -mx-4 px-4 bg-[#f9fafb]/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-black/5 dark:border-white/5">
       {/* Collapsed title row — only present once the hero has scrolled away. */}
       <div
         className={`flex items-center gap-2 overflow-hidden motion-safe:transition-all motion-safe:duration-200 ${
-          isCollapsed ? 'max-h-12 opacity-100 pt-2' : 'max-h-0 opacity-0'
+          isCollapsed ? 'max-h-12 opacity-100 pt-2' : 'max-h-0 opacity-0 pointer-events-none'
         }`}
         aria-hidden={!isCollapsed}
       >
@@ -60,18 +56,32 @@ export default function RecipeStickyBar({ recipeTitle, isCollapsed, onBack }: Re
         </span>
       </div>
 
-      <Tabs.ListContainer className="w-full !bg-transparent !rounded-none">
-        <Tabs.List className="flex w-full !p-0 overflow-x-auto scrollbar-none">
-          <Tabs.Tab id="ingredients" className={tabClasses}>
-            {t('recipe.tabIngredients')}
-            <Tabs.Indicator className={indicatorClasses} />
-          </Tabs.Tab>
-          <Tabs.Tab id="steps" className={tabClasses}>
-            {t('recipe.tabInstructions')}
-            <Tabs.Indicator className={indicatorClasses} />
-          </Tabs.Tab>
-        </Tabs.List>
-      </Tabs.ListContainer>
+      {/* Navigation tabs */}
+      <nav className="flex w-full mt-1.5" aria-label="Recipe Navigation">
+        {sections.map((section) => {
+          const isActive = activeSection === section.id;
+          return (
+            <button
+              key={section.id}
+              type="button"
+              onClick={() => onSectionClick(section.id)}
+              className={`flex-1 text-center py-3 text-sm font-semibold transition-all relative cursor-pointer outline-none border-none select-none ${
+                isActive
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <span>{section.label}</span>
+              {/* Smooth sliding scale underline */}
+              <span
+                className={`absolute bottom-0 inset-x-0 h-0.5 bg-emerald-600 dark:bg-emerald-500 transition-all duration-200 origin-center ${
+                  isActive ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
+                }`}
+              />
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }
