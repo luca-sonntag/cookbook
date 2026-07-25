@@ -1,10 +1,55 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import type { Job, Ingredient } from '../types';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import type { Job, Ingredient, Recipe } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
 import { useAuth } from '../context/AuthContext';
 import { deleteCachedImage } from '../utils/imageStore';
+import { markRecipeOpened, pruneRecentMap, readRecentMap, type RecentMap } from '../utils/recentRecipes';
 import { apiUrl } from '../api';
+
+/**
+ * Combinable filter facets. Values inside one facet are OR-ed, facets are
+ * AND-ed — the standard faceted-search semantics. This replaces the old
+ * single `activeFilter` string, which allowed exactly one criterion at a time.
+ */
+export interface CatalogFilterState {
+  favoritesOnly: boolean;
+  /** Max total time (prep + cook) in minutes; 0 = no time constraint. */
+  maxTime: number;
+  collectionIds: string[];
+  flags: string[];
+}
+
+export const EMPTY_FILTERS: CatalogFilterState = {
+  favoritesOnly: false,
+  maxTime: 0,
+  collectionIds: [],
+  flags: []
+};
+
+export const TIME_FILTER_OPTIONS = [15, 30, 60] as const;
+
+export type CatalogSort = 'newest' | 'recent' | 'title' | 'time';
+
+/** Number of recipes shown per horizontal shelf on the cookbook home. */
+export const SHELF_SIZE = 12;
+
+/** Total prep + cook time in minutes; tolerates legacy string values. */
+export function getTotalTime(recipe: Pick<Recipe, 'prepTime' | 'cookTime'> | undefined | null): number {
+  if (!recipe) return 0;
+  const toMinutes = (value: unknown) =>
+    typeof value === 'number' ? value : (parseInt(String(value ?? ''), 10) || 0);
+  return toMinutes(recipe.prepTime) + toMinutes(recipe.cookTime);
+}
+
+export function countActiveFilters(filters: CatalogFilterState): number {
+  return (
+    (filters.favoritesOnly ? 1 : 0) +
+    (filters.maxTime > 0 ? 1 : 0) +
+    filters.collectionIds.length +
+    filters.flags.length
+  );
+}
 
 interface UseSavedCatalogProps {
   history: Job[];
@@ -43,7 +88,8 @@ export function useSavedCatalog({
   }, [history, optimisticFavorites, optimisticFlags, optimisticCollections]);
 
 
-  // View Layout mode: 'card' or 'compact', persisted in localStorage
+  // View Layout mode: 'card' (2-column poster grid) or 'compact' (dense rows),
+  // persisted in localStorage
   const [viewMode, setViewMode] = useState<'card' | 'compact'>(() => {
     return (localStorage.getItem('recipe_catalog_view') as 'card' | 'compact') || 'card';
   });
@@ -52,18 +98,39 @@ export function useSavedCatalog({
     localStorage.setItem('recipe_catalog_view', viewMode);
   }, [viewMode]);
 
-  // State for search query & tag filters
+  // Search query & combinable filter facets (both ephemeral by design — a
+  // filter that silently survives an app restart is a classic "where are my
+  // recipes?" trap).
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [filters, setFilters] = useState<CatalogFilterState>(EMPTY_FILTERS);
+
+  const resetFilters = useCallback(() => setFilters(EMPTY_FILTERS), []);
+  const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
 
   // Sorting state persisted to localStorage
-  const [sortBy, setSortBy] = useState<'newest' | 'title' | 'time'>(() => {
-    return (localStorage.getItem('recipe_catalog_sort') as 'newest' | 'title' | 'time') || 'newest';
+  const [sortBy, setSortBy] = useState<CatalogSort>(() => {
+    const stored = localStorage.getItem('recipe_catalog_sort');
+    return (['newest', 'recent', 'title', 'time'] as const).includes(stored as CatalogSort)
+      ? (stored as CatalogSort)
+      : 'newest';
   });
 
   useEffect(() => {
     localStorage.setItem('recipe_catalog_sort', sortBy);
   }, [sortBy]);
+
+  // "Recently opened" tracking (localStorage, see utils/recentRecipes.ts)
+  const [recentMap, setRecentMap] = useState<RecentMap>(() => readRecentMap());
+
+  const markOpened = useCallback((jobId: string) => {
+    setRecentMap(markRecipeOpened(jobId));
+  }, []);
+
+  // Drop entries for deleted recipes once the history has loaded.
+  useEffect(() => {
+    if (completedJobs.length === 0) return;
+    setRecentMap(pruneRecentMap(new Set(completedJobs.map(j => j.id))));
+  }, [completedJobs]);
 
   // Derive unique flags from completed recipes
   const allFlags = useMemo(() => {
@@ -112,12 +179,16 @@ export function useSavedCatalog({
     return strTime;
   };
 
+  /** Total time rendered for the compact cards ("35 Min."), or null if unknown. */
+  const formatTotalTime = (recipe: any): string | null => {
+    const total = getTotalTime(recipe);
+    return total > 0 ? t('recipe.minutes', { count: total }) : null;
+  };
+
   // Fallback tagging logic for old recipes in the database
   // Programmatic duration badge calculation (Frontend only)
   const getDurationBadge = (recipe: any): string | null => {
-    const prep = typeof recipe.prepTime === 'number' ? recipe.prepTime : (parseInt(recipe.prepTime) || 0);
-    const cook = typeof recipe.cookTime === 'number' ? recipe.cookTime : (parseInt(recipe.cookTime) || 0);
-    const totalTime = prep + cook;
+    const totalTime = getTotalTime(recipe);
     if (totalTime > 0) {
       if (totalTime < 15) {
         return t('catalog.under15');
@@ -154,77 +225,111 @@ export function useSavedCatalog({
     return Array.from(tagsSet);
   }, [completedJobs, language]);
 
-  // Filter jobs based on search query and active filter chip
-  const filteredJobs = useMemo(() => {
-    const filtered = completedJobs.filter(job => {
-      const r = job.recipe!;
-
-      // 1. Search Query filter (matches title, description, tags, ingredients)
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = r.title.toLowerCase().includes(query);
-        const matchesDesc = r.description?.toLowerCase() || '';
-        const descMatches = matchesDesc.includes(query);
-        const matchesTags = getRecipeTags(r).some((tag: string) => tag.toLowerCase().includes(query));
-        const matchesIngredients = r.ingredients?.some(group =>
-          group.items?.some(ing => ing.name.toLowerCase().includes(query))
-        ) || false;
-
-        if (!matchesTitle && !descMatches && !matchesTags && !matchesIngredients) {
-          return false;
-        }
-      }
-
-      // 2. Chip Filter
-      if (activeFilter && activeFilter !== 'all') {
-        const tags = getRecipeTags(r);
-        if (activeFilter === 'under15') {
-          const prep = typeof r.prepTime === 'number' ? r.prepTime : (parseInt(String(r.prepTime)) || 0);
-          const cook = typeof r.cookTime === 'number' ? r.cookTime : (parseInt(String(r.cookTime)) || 0);
-          return (prep + cook) > 0 && (prep + cook) <= 15;
-        }
-        if (activeFilter === 'under30') {
-          const prep = typeof r.prepTime === 'number' ? r.prepTime : (parseInt(String(r.prepTime)) || 0);
-          const cook = typeof r.cookTime === 'number' ? r.cookTime : (parseInt(String(r.cookTime)) || 0);
-          return (prep + cook) > 0 && (prep + cook) <= 30;
-        }
-        if (activeFilter === 'favorites') {
-          return job.isFavorite === true;
-        }
-        if (activeFilter.startsWith('flag:')) {
-          const flag = activeFilter.substring(5);
-          return job.flags?.includes(flag) || false;
-        }
-        if (activeFilter.startsWith('collection:')) {
-          const colId = activeFilter.substring(11);
-          return job.collectionIds?.includes(colId) || false;
-        }
-        return tags.includes(activeFilter);
-      }
-
-      return true;
-    });
-
-    // Apply sorting
-    return [...filtered].sort((a, b) => {
-      if (sortBy === 'title') {
+  /** Applies the current sort order to any job subset. */
+  const sortJobs = useCallback((jobs: Job[], order: CatalogSort): Job[] => {
+    return [...jobs].sort((a, b) => {
+      if (order === 'title') {
         return (a.recipe?.title || '').localeCompare(b.recipe?.title || '', language);
       }
-      if (sortBy === 'time') {
-        const aPrep = typeof a.recipe?.prepTime === 'number' ? a.recipe.prepTime : 0;
-        const aCook = typeof a.recipe?.cookTime === 'number' ? a.recipe.cookTime : 0;
-        const aTime = aPrep + aCook;
-
-        const bPrep = typeof b.recipe?.prepTime === 'number' ? b.recipe.prepTime : 0;
-        const bCook = typeof b.recipe?.cookTime === 'number' ? b.recipe.cookTime : 0;
-        const bTime = bPrep + bCook;
-
-        return aTime - bTime;
+      if (order === 'time') {
+        return getTotalTime(a.recipe) - getTotalTime(b.recipe);
+      }
+      if (order === 'recent') {
+        const aSeen = recentMap[a.id] ?? 0;
+        const bSeen = recentMap[b.id] ?? 0;
+        // Never-opened recipes sink to the bottom, ordered by save date.
+        if (aSeen !== bSeen) return bSeen - aSeen;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
       // default: 'newest'
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [completedJobs, searchQuery, activeFilter, sortBy, language]);
+  }, [language, recentMap]);
+
+  /** Free-text match over title, description, tags and ingredient names. */
+  const matchesSearch = useCallback((job: Job, query: string): boolean => {
+    if (!query) return true;
+    const r = job.recipe!;
+    const needle = query.toLowerCase();
+    if (r.title.toLowerCase().includes(needle)) return true;
+    if ((r.description || '').toLowerCase().includes(needle)) return true;
+    if (getRecipeTags(r).some((tag: string) => tag.toLowerCase().includes(needle))) return true;
+    if (job.flags?.some(flag => flag.toLowerCase().includes(needle))) return true;
+    return r.ingredients?.some(group =>
+      group.items?.some(ing => ing.name.toLowerCase().includes(needle))
+    ) || false;
+  }, []);
+
+  /** Applies the search query plus an arbitrary facet set (unsorted). */
+  const applyFilters = useCallback((facets: CatalogFilterState, query: string): Job[] => {
+    return completedJobs.filter(job => {
+      if (!matchesSearch(job, query)) return false;
+
+      if (facets.favoritesOnly && job.isFavorite !== true) return false;
+
+      if (facets.maxTime > 0) {
+        const total = getTotalTime(job.recipe);
+        if (total <= 0 || total > facets.maxTime) return false;
+      }
+
+      if (facets.collectionIds.length > 0) {
+        const ids = job.collectionIds ?? [];
+        if (!facets.collectionIds.some(id => ids.includes(id))) return false;
+      }
+
+      if (facets.flags.length > 0) {
+        const flags = job.flags ?? [];
+        if (!facets.flags.some(flag => flags.includes(flag))) return false;
+      }
+
+      return true;
+    });
+  }, [completedJobs, matchesSearch]);
+
+  // Filter jobs: search AND every active facet, then sort
+  const filteredJobs = useMemo(
+    () => sortJobs(applyFilters(filters, searchQuery.trim().toLowerCase()), sortBy),
+    [applyFilters, filters, searchQuery, sortBy, sortJobs]
+  );
+
+  /** Live result count for a draft facet set — drives the filter sheet's CTA. */
+  const countMatches = useCallback(
+    (facets: CatalogFilterState) => applyFilters(facets, searchQuery.trim().toLowerCase()).length,
+    [applyFilters, searchQuery]
+  );
+
+  // ---------------------------------------------------------------------------
+  // Shelves for the cookbook home (level 1)
+  // ---------------------------------------------------------------------------
+
+  /** `{ items, total }` per shelf — `items` is capped, `total` drives "show all (N)". */
+  const shelves = useMemo(() => {
+    const favorites = completedJobs.filter(j => j.isFavorite);
+    const quick = completedJobs.filter(j => {
+      const total = getTotalTime(j.recipe);
+      return total > 0 && total <= 30;
+    });
+    const opened = completedJobs.filter(j => recentMap[j.id]);
+
+    return {
+      recent: { items: sortJobs(opened, 'recent').slice(0, SHELF_SIZE), total: opened.length },
+      favorites: { items: sortJobs(favorites, 'newest').slice(0, SHELF_SIZE), total: favorites.length },
+      quick: { items: sortJobs(quick, 'time').slice(0, SHELF_SIZE), total: quick.length },
+      newest: { items: sortJobs(completedJobs, 'newest').slice(0, SHELF_SIZE), total: completedJobs.length }
+    };
+  }, [completedJobs, recentMap, sortJobs]);
+
+  /** jobId list per collection, used for the collection tiles' cover mosaic. */
+  const jobsByCollection = useMemo(() => {
+    const map: Record<string, Job[]> = {};
+    // Newest first so a collection's cover reflects what was added last.
+    sortJobs(completedJobs, 'newest').forEach(job => {
+      (job.collectionIds ?? []).forEach(id => {
+        (map[id] ||= []).push(job);
+      });
+    });
+    return map;
+  }, [completedJobs, sortJobs]);
 
 
   // Helper to check if event target is inside an interactive element
@@ -303,6 +408,8 @@ export function useSavedCatalog({
         return next;
       });
     } else {
+      // Recency is recorded centrally in SavedCatalog once `selectedJob`
+      // changes, so deep links and notification taps count too.
       setSelectedJob(job);
     }
   };
@@ -371,9 +478,7 @@ export function useSavedCatalog({
 
       dialog.alert({
         title: t('recipe.addedToShopping'),
-        message: language === 'de'
-          ? `Zutaten aus ${totalAdded} Rezepten wurden erfolgreich hinzugefügt!`
-          : `Ingredients from ${totalAdded} recipes have been successfully added!`,
+        message: t('catalog.bulkAddedMessage', { count: totalAdded }),
         status: 'success'
       });
     }
@@ -400,7 +505,7 @@ export function useSavedCatalog({
           const imagesToDelete = r.imageUrls && r.imageUrls.length > 0
             ? r.imageUrls
             : (r.imageUrl ? [r.imageUrl] : []);
-          
+
           for (const imgUrl of imagesToDelete) {
             await deleteCachedImage(imgUrl);
           }
@@ -594,16 +699,20 @@ export function useSavedCatalog({
     setViewMode,
     searchQuery,
     setSearchQuery,
-    activeFilter,
-    setActiveFilter,
+    filters,
+    setFilters,
+    resetFilters,
+    activeFilterCount,
     isSelectMode,
     setIsSelectMode,
     selectedIds,
     setSelectedIds,
     addedRecipeIds,
     filteredJobs,
+    countMatches,
     allTags,
     formatTimeValue,
+    formatTotalTime,
     getDurationBadge,
     getRecipeTags,
     bindLongPress,
@@ -617,6 +726,11 @@ export function useSavedCatalog({
     toggleFavorite,
     toggleFlag,
     setRecipeFlags,
-    assignCollections
+    assignCollections,
+    // Shelves + recency
+    shelves,
+    jobsByCollection,
+    recentMap,
+    markOpened
   };
 }
