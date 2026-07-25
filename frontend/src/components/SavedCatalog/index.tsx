@@ -169,7 +169,7 @@ export default function SavedCatalog({
         return t('catalog.shelfRecent');
       case 'collection': {
         const col = collections.find(c => c.id === preset.id);
-        return col ? `${col.emoji} ${col.name}` : t('catalog.allRecipesTitle');
+        return col ? `${col.emoji ? col.emoji + ' ' : ''}${col.name}` : t('catalog.allRecipesTitle');
       }
       case 'flag':
         return preset.name;
