@@ -14,8 +14,9 @@ interface ErrorBannerProps {
   jobError: string | null;
   jobErrorCode?: string | null;
   jobErrorParams?: ErrorParams | null;
-  triggerExtraction: (url: string) => void;
-  url: string;
+  /** Re-runs the failed import. The caller decides what "again" means per input
+   *  channel — resubmitting the URL, or re-uploading the selected photos. */
+  onRetry: () => void;
 }
 
 export default function ErrorBanner({
@@ -24,8 +25,7 @@ export default function ErrorBanner({
   jobError,
   jobErrorCode,
   jobErrorParams,
-  triggerExtraction,
-  url
+  onRetry
 }: ErrorBannerProps) {
   const { t, language } = useI18n();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
@@ -63,7 +63,7 @@ export default function ErrorBanner({
             <Button
               size="sm"
               variant="tertiary"
-              onPress={() => triggerExtraction(url)}
+              onPress={onRetry}
               className="mt-3 h-8 gap-1.5 rounded-lg border border-red-500/20 bg-red-500/5 px-3 text-xs font-semibold text-red-600 hover:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/15"
             >
               <RefreshCw className="h-3.5 w-3.5" /> {t('error.retry')}

@@ -5,7 +5,7 @@ import type { Job } from './types';
 import { apiUrl } from './api';
 import { registerShareIntent, registerNotificationTap, hideSplashScreen, registerBackButtonHandler } from './native';
 import { parseSharedUrl } from './utils/shareUrl';
-import ExtractForm from './components/ExtractForm';
+import ExtractForm, { type ExtractMode } from './components/ExtractForm';
 import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog/index';
@@ -205,9 +205,16 @@ export default function App() {
     setUrlError,
     validateUrl,
     triggerExtraction,
+    photos,
+    setPhotos,
+    isUploadingPhotos,
+    triggerPhotoExtraction,
     limitStatus,
     fetchLimitStatus
   } = useRecipeExtraction(getAccessToken, handleExtractionSuccess, isPremiumOverride);
+
+  // Which input channel the Extract tab is showing (shared link vs. own photos).
+  const [extractMode, setExtractMode] = useState<ExtractMode>('link');
 
   const isViewingRecipe = !!selectedJob || (activeView === 'extract' && !!recipe);
 
@@ -525,6 +532,10 @@ export default function App() {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (extractMode === 'photo') {
+      triggerPhotoExtraction();
+      return;
+    }
     triggerExtraction(url);
   };
 
@@ -620,6 +631,11 @@ export default function App() {
               limitStatus={limitStatus}
               jobStatus={jobStatus}
               progress={progress}
+              mode={extractMode}
+              setMode={setExtractMode}
+              photos={photos}
+              setPhotos={setPhotos}
+              isUploadingPhotos={isUploadingPhotos}
               errorBanner={
                 <ErrorBanner
                   isPending={isPending}
@@ -627,8 +643,7 @@ export default function App() {
                   jobError={jobError}
                   jobErrorCode={jobErrorCode}
                   jobErrorParams={jobErrorParams}
-                  triggerExtraction={triggerExtraction}
-                  url={url}
+                  onRetry={() => extractMode === 'photo' ? triggerPhotoExtraction() : triggerExtraction(url)}
                 />
               }
             />

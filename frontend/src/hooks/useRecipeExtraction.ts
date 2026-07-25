@@ -5,6 +5,7 @@ import { useI18n } from '../context/I18nContext';
 import { apiUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { setCachedImage } from '../utils/imageStore';
+import { compressRecipePhotos } from '../utils/imageCompression';
 import { sendNativeNotification, requestNativeNotificationPermission, isNative } from '../native';
 
 /**
@@ -38,6 +39,15 @@ async function pullAndCacheFrames(jobId: string, token: string): Promise<void> {
 // URL (which previously produced a duplicate saved recipe).
 const PENDING_JOB_STORAGE_KEY = 'kb_pending_job_id';
 
+/** Maximum photos per import — mirrors MAX_IMPORT_PHOTOS in the backend. */
+export const MAX_IMPORT_PHOTOS = 5;
+
+/**
+ * Client-side budget for the combined base64 payload, kept below the route's
+ * server-side cap so an oversized set is downscaled instead of rejected.
+ */
+const MAX_PHOTOS_TOTAL_CHARS = 8_000_000;
+
 export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void, isPremiumOverride?: boolean) {
   const { t } = useI18n();
   const { user, refreshSession } = useAuth();
@@ -50,6 +60,10 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [url, setUrl] = useState('');
   const [urlError, setUrlError] = useState('');
+  // Photo import selection. Held here (like `url`) so the retry path can
+  // re-submit the same photos without the form having to hand them around.
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
   const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'alpha' | 'premium'; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null>(null);
 
   const fetchLimitStatus = useCallback(async () => {
@@ -174,6 +188,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setProgress(null);
           setIsPending(false);
           setUrl('');
+          setPhotos([]);
           localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
           
           // Send notification when recipe is ready
@@ -208,10 +223,16 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     }, 2000);
   }, [getAccessToken, onExtractionSuccess, t]);
 
-  const triggerExtraction = useCallback(async (targetUrl: string) => {
-    const cleanUrl = targetUrl.trim();
-    if (!validateUrl(cleanUrl)) return;
-
+  /**
+   * Shared submit path for both input channels: posts a job-creating request,
+   * unwraps the `{success, jobId}` envelope and starts polling. `buildBody` runs
+   * after the pending state is set, so slow client-side work (compressing
+   * photos) already shows a busy UI.
+   */
+  const submitExtraction = useCallback(async (
+    path: string,
+    buildBody: () => Promise<unknown>,
+  ) => {
     // Proactively request local notification permissions on native startup of extraction
     if (isNative()) {
       requestNativeNotificationPermission().catch(err => console.warn('Failed to request notifications permission:', err));
@@ -239,10 +260,12 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         headers['X-Simulate-Premium'] = 'true';
       }
 
-      const response = await fetch(apiUrl('/api/extract-recipe'), {
+      const body = await buildBody();
+
+      const response = await fetch(apiUrl(path), {
         method: 'POST',
         headers,
-        body: JSON.stringify({ url: cleanUrl })
+        body: JSON.stringify(body)
       });
 
       let data: any;
@@ -275,7 +298,33 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       setJobErrorParams(typed?.params ?? null);
       setIsPending(false);
     }
-  }, [getAccessToken, startPolling, validateUrl, fetchLimitStatus]);
+  }, [getAccessToken, startPolling, fetchLimitStatus, isPremiumOverride]);
+
+  const triggerExtraction = useCallback(async (targetUrl: string) => {
+    const cleanUrl = targetUrl.trim();
+    if (!validateUrl(cleanUrl)) return;
+
+    await submitExtraction('/api/extract-recipe', async () => ({ url: cleanUrl }));
+  }, [submitExtraction, validateUrl]);
+
+  /**
+   * Submits the currently selected photos of a physical recipe source. They are
+   * downscaled in the browser first — full camera resolution would blow the
+   * request budget without helping the OCR.
+   */
+  const triggerPhotoExtraction = useCallback(async (files?: File[]) => {
+    const selected = files ?? photos;
+    if (selected.length === 0 || selected.length > MAX_IMPORT_PHOTOS) return;
+
+    setIsUploadingPhotos(true);
+    try {
+      await submitExtraction('/api/extract-recipe/photos', async () => ({
+        photos: await compressRecipePhotos(selected, MAX_PHOTOS_TOTAL_CHARS),
+      }));
+    } finally {
+      setIsUploadingPhotos(false);
+    }
+  }, [photos, submitExtraction]);
 
   // Resume a still-running extraction after a reload/restart wiped in-memory
   // state (e.g. the app was backgrounded and killed by the OS, or the PWA was
@@ -311,6 +360,10 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     setUrlError,
     validateUrl,
     triggerExtraction,
+    photos,
+    setPhotos,
+    isUploadingPhotos,
+    triggerPhotoExtraction,
     limitStatus,
     fetchLimitStatus
   };
