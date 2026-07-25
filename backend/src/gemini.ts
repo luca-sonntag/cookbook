@@ -291,6 +291,14 @@ function imageMimeType(filePath: string): string {
   }
 }
 
+/**
+ * Where a set of full-resolution images came from. Both kinds go through the
+ * same upload path, but they need different reading instructions: carousel
+ * slides are designed graphics with the recipe typeset on them, photos are
+ * handheld shots of paper that may be skewed, glared or handwritten.
+ */
+export type ImageSourceKind = 'carousel' | 'photo';
+
 export async function extractRecipe(
   audioFilePath: string | undefined,
   mimeType: string | undefined,
@@ -299,7 +307,8 @@ export async function extractRecipe(
   logDir?: string,
   userPrefs?: UserPreferences,
   htmlContent?: string,
-  carouselImagePaths?: string[]
+  carouselImagePaths?: string[],
+  imageSourceKind: ImageSourceKind = 'carousel'
 ): Promise<Recipe> {
   if (!config.GEMINI_API_KEY || config.GEMINI_API_KEY === 'your_gemini_api_key_here') {
     throw new Error('Gemini API key is not configured in environment variables.');
@@ -398,11 +407,30 @@ export async function extractRecipe(
 
     const { targetLanguage, tempInstruction, unitSystemInstruction, languageInstruction } = getPromptUnitInstructions(userPrefs);
 
+    const isPhotoSource = imageSourceKind === 'photo' && !!carouselImagePaths?.length;
+
     const visualContextClause = carouselImagePaths?.length
-      ? ` and ${carouselImagePaths.length} images from a photo-carousel post in their original slide order. Recipe carousels typically show the finished dish plus slides where the ingredient list and step-by-step instructions are written as TEXT ON the images — carefully read ALL text visible in every image; it is the primary recipe source`
+      ? isPhotoSource
+        ? ` and ${carouselImagePaths.length} photo(s) the user took of a PHYSICAL recipe source — a cookbook page, a magazine clipping, or a handwritten recipe card — in page order. Carefully read ALL text visible in every photo, including cursive and old-fashioned handwriting; it is the primary and only recipe source`
+        : ` and ${carouselImagePaths.length} images from a photo-carousel post in their original slide order. Recipe carousels typically show the finished dish plus slides where the ingredient list and step-by-step instructions are written as TEXT ON the images — carefully read ALL text visible in every image; it is the primary recipe source`
       : gridImagePath
         ? ' and an image showing a 4x4 grid of 16 chronological frames extracted from the video to provide visual context (showing ingredients, cooking steps, and final plating)'
         : '';
+
+    // Reading photographed paper is a different job from reading designed slides:
+    // the pages belong to one recipe, the page carries furniture that is not part
+    // of it, and anything illegible must stay empty rather than be guessed.
+    const photoSourceRules = isPhotoSource
+      ? `
+14. Photographed Recipe Source: The photos are pages/sides of ONE single recipe in the order given.
+   a) A recipe continued across a second photo (or the back of a card) is still ONE recipe — do NOT set "containsMultipleRecipes" for that. Set it to true ONLY if the photos genuinely show two or more DIFFERENT dishes, each with its own title and its own ingredient list.
+   b) Ignore page furniture that is not part of the recipe: page numbers, running headers/footers, book or chapter titles, unrelated recipes partially visible at the edge of the page, and handwritten notes unrelated to cooking.
+   c) The photos may be skewed, rotated, curved along a book spine, or affected by glare and shadow — read through those distortions.
+   d) Transcribe amounts, units and oven temperatures EXACTLY as written. Do not round them and do not convert beyond the requested unit system.
+   e) If a word or an amount is genuinely illegible, leave that field empty instead of inventing a plausible value. NEVER invent ingredients or steps that are not written on the page or clearly implied by the written steps.
+   f) Old recipe cards are written tersely (e.g. "Butter, Zucker, Eier schaumig rühren"). Keep the steps just as terse — do not pad them with invented technique details.
+   g) If the photos contain no legible recipe at all, set "isRecipe" to false.`
+      : '';
 
     const prompt = `You are an expert recipe extractor. Analyze the provided content (which may include audio, website text, or video caption)${visualContextClause}.
     
@@ -428,13 +456,8 @@ Key Constraints:
 10. Serving Size Estimation: Identify the number of servings or portions the recipe makes. Look for clues like 'serves 4' or estimate based on the ingredient amounts (e.g., 500g chicken and 6 potatoes typically serves 3-4 people). Avoid defaulting to 1 serving if the ingredient amounts are clearly meant for a family-sized meal.
 11. Zero-Calorie & Low-Calorie Ingredients: Ingredients like water, ice, salt, or baking soda MUST have 0 calories, protein, carbs, and fat. For spices, seasonings, or herbs in small quantities (like teaspoons), focus your calculation energy on the high-calorie/high-macro ingredients (meats, oils, dairy, grains, starches) and estimate very small values (e.g., 5 kcal) or 0.
 12. Cooked vs. Raw/Dry States of Expandable Ingredients: ${COOKED_VS_RAW_INSTRUCTION}
-13. Common Pantry Staples: ${STAPLE_INGREDIENT_INSTRUCTION}
-
-Description/Caption:
-"""
-${caption}
-"""
-${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` : ''}`;
+13. Common Pantry Staples: ${STAPLE_INGREDIENT_INSTRUCTION}${photoSourceRules}
+${caption.trim() ? `\nDescription/Caption:\n"""\n${caption}\n"""` : ''}${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` : ''}`;
 
     contentParts.push(prompt);
 
@@ -449,6 +472,12 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
     const rawRecipe = JSON.parse(rawOutput);
 
     if (rawRecipe.isRecipe === false) {
+      // Photographed paper fails for a different reason than a wrong video — the
+      // recipe is usually there but unreadable, so the user needs shooting advice
+      // rather than "pick another post".
+      if (isPhotoSource) {
+        throw new AppError('PHOTO_UNREADABLE', { message: 'No legible recipe could be read from the submitted photos.' });
+      }
       throw new AppError('NOT_A_RECIPE', { message: 'The provided video does not appear to contain a food recipe.' });
     }
 
@@ -502,6 +531,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
         captionLength: caption.length,
         captionPreview: caption.slice(0, 300),
         carouselImageCount: carouselImagePaths?.length ?? 0,
+        imageSourceKind,
         prompt,
       },
       rawOutput,
@@ -526,6 +556,7 @@ ${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` :
         captionLength: caption.length,
         captionPreview: caption.slice(0, 300),
         carouselImageCount: carouselImagePaths?.length ?? 0,
+        imageSourceKind,
       },
       rawOutput,
       logDir,
