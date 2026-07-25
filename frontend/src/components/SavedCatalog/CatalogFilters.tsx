@@ -4,7 +4,7 @@ import { Search, List, LayoutGrid, CheckSquare, Square, ArrowLeft, Star, Tag, Sl
 import { useI18n } from '../../context/I18nContext';
 import type { Collection } from '../../types';
 import type { CatalogFilterState, CatalogSort } from '../../hooks/useSavedCatalog';
-import { buildListRoute, parseListRoute } from './catalogRoutes';
+import { buildListRoute, parseListRoute, getBaseFiltersForPreset } from './catalogRoutes';
 
 interface CatalogFiltersProps {
   title: string;
@@ -240,7 +240,10 @@ export default function CatalogFilters({
           ))}
           <button
             type="button"
-            onClick={() => setFilters({ favoritesOnly: false, maxTime: 0, collectionIds: [], flags: [] })}
+            onClick={() => {
+              const preset = catalogSubPath ? parseListRoute(catalogSubPath) : { kind: 'all' as const };
+              setFilters(getBaseFiltersForPreset(preset));
+            }}
             className="px-3 py-1.5 text-xs font-semibold rounded-full border border-black/10 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white whitespace-nowrap shrink-0 active:scale-95 transition-all cursor-pointer"
           >
             {t('catalog.resetFilters')}
