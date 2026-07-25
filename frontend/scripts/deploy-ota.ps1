@@ -5,7 +5,7 @@
 .DESCRIPTION
     This script:
     1. Guards against unsafe frontend env (loopback VITE_API_BASE_URL, test login)
-    2. Reads VERSION_NAME/VERSION_CODE from version.properties (never bumps them —
+    2. Reads VERSION_NAME/VERSION_CODE from version.properties (never bumps them -
        OTA only ships web assets, native versioning is untouched)
     3. Builds the frontend (npm run build)
     4. Derives the next bundle version from the DB: {VERSION_NAME}-ota.{n}
@@ -107,7 +107,7 @@ function Get-ActiveBundle {
 
 function Set-BundleActive {
     param([string]$Chan, [string]$Id)
-    # Deactivate the channel's current active row first — a partial unique
+    # Deactivate the channel's current active row first - a partial unique
     # index allows at most one active bundle per channel.
     Invoke-RestMethod -Method Patch -Headers $restHeaders `
         -Uri "$supabaseUrl/rest/v1/app_bundles?channel=eq.$Chan&active=is.true" `
@@ -125,22 +125,23 @@ if ($Rollback) {
 
     $active = Get-ActiveBundle $Channel
     if (-not $active) {
-        Write-Error "No active bundle on channel '$Channel' — nothing to roll back. Activate a row manually via the admin API or Supabase dashboard."
+        Write-Error "No active bundle on channel '$Channel' - nothing to roll back. Activate a row manually via the admin API or Supabase dashboard."
         exit 1
     }
 
+    $activeCreatedAt = $active.created_at
     $previous = Invoke-RestMethod -Method Get -Headers $restHeaders `
-        -Uri "$supabaseUrl/rest/v1/app_bundles?channel=eq.$Channel&active=is.false&created_at=lt.$($active.created_at)&order=created_at.desc&limit=1&select=*"
+        -Uri "$supabaseUrl/rest/v1/app_bundles?channel=eq.$Channel&active=is.false&created_at=lt.$activeCreatedAt&order=created_at.desc&limit=1&select=*"
     $previous = $previous | Select-Object -First 1
 
     if (-not $previous) {
         # No older bundle: just deactivate (devices fall back to their builtin
         # assets only after a native update; until then they keep the bundle
-        # they already run — this is the kill switch for NEW downloads).
+        # they already run - this is the kill switch for NEW downloads).
         Invoke-RestMethod -Method Patch -Headers $restHeaders `
             -Uri "$supabaseUrl/rest/v1/app_bundles?id=eq.$($active.id)" `
             -Body (@{ active = $false } | ConvertTo-Json) | Out-Null
-        Write-Host "  No previous bundle found. Deactivated $($active.version) — channel now serves no update." -ForegroundColor Yellow
+        Write-Host "  No previous bundle found. Deactivated $($active.version) - channel now serves no update." -ForegroundColor Yellow
         exit 0
     }
 
@@ -183,13 +184,13 @@ if (-not [Uri]::TryCreate($apiBaseUrl, [UriKind]::Absolute, [ref]$parsedUri) -or
 }
 $blockedHosts = @('0.0.0.0', '[0000:0000:0000:0000:0000:0000:0000:0000]')
 if ($parsedUri.IsLoopback -or $blockedHosts -contains $parsedUri.Host.ToLowerInvariant()) {
-    Write-Error "VITE_API_BASE_URL in $envPath points to a loopback address ('$($parsedUri.Host)') — shipping this OTA would brick networking on every device. Use the production backend origin."
+    Write-Error "VITE_API_BASE_URL in $envPath points to a loopback address ('$($parsedUri.Host)') - shipping this OTA would brick networking on every device. Use the production backend origin."
     exit 1
 }
 
 foreach ($envFile in @($envPath, "$frontendDir\.env")) {
     if ((Read-DotEnvValue $envFile 'VITE_TEST_LOGIN') -eq 'true') {
-        Write-Error "VITE_TEST_LOGIN=true is set in $envFile — refusing to ship a test-login build over OTA."
+        Write-Error "VITE_TEST_LOGIN=true is set in $envFile - refusing to ship a test-login build over OTA."
         exit 1
     }
 }
@@ -206,13 +207,13 @@ if (-not $frontendSupabaseUrl) {
     exit 1
 }
 if ($frontendSupabaseUrl -match 'nmphuwywxirervquvgoa') {
-    Write-Error "VITE_SUPABASE_URL in $supabaseEnvPath points to the DEV Supabase project (snagbite-dev) — its tokens are rejected by the production backend. Pin the snagbite-prod URL in .env.production."
+    Write-Error "VITE_SUPABASE_URL in $supabaseEnvPath points to the DEV Supabase project (snagbite-dev) - its tokens are rejected by the production backend. Pin the snagbite-prod URL in .env.production."
     exit 1
 }
 Write-Host "  VITE_API_BASE_URL OK (from $envPath): $($parsedUri.Scheme)://$($parsedUri.Host)" -ForegroundColor Green
 Write-Host "  VITE_SUPABASE_URL OK (from $supabaseEnvPath): $frontendSupabaseUrl" -ForegroundColor Green
 
-# ── 2. Read native version (no bump — OTA never touches it) ──────────
+# ── 2. Read native version (no bump - OTA never touches it) ──────────
 
 if (-not (Test-Path $versionFile)) {
     Write-Error "version.properties not found at $versionFile"
@@ -262,7 +263,7 @@ Write-Host "  Bundle version: $bundleVersion" -ForegroundColor White
 Write-Host "[4/6] Zipping dist/..." -ForegroundColor Yellow
 $distDir = "$frontendDir\dist"
 if (-not (Test-Path "$distDir\index.html")) {
-    Write-Error "dist/index.html not found — build output looks wrong."
+    Write-Error "dist/index.html not found - build output looks wrong."
     exit 1
 }
 $zipPath = Join-Path ([System.IO.Path]::GetTempPath()) "snagbite-$($bundleVersion -replace '[^\w\.-]', '_').zip"
@@ -309,7 +310,7 @@ $inserted = Invoke-RestMethod -Method Post -Headers $insertHeaders `
 $inserted = $inserted | Select-Object -First 1
 
 if ($NoActivate) {
-    Write-Host "  Row inserted (id $($inserted.id)) — NOT activated (-NoActivate)." -ForegroundColor Yellow
+    Write-Host "  Row inserted (id $($inserted.id)) - NOT activated (-NoActivate)." -ForegroundColor Yellow
 } else {
     Set-BundleActive $Channel $inserted.id
     Write-Host "  Bundle activated on channel '$Channel'." -ForegroundColor Green
