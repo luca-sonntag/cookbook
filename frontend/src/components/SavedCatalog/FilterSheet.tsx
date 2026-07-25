@@ -21,10 +21,6 @@ interface FilterSheetProps {
   allFlags: string[];
   /** Live count for the current draft, so the CTA can say how many remain. */
   countMatches: (filters: CatalogFilterState) => number;
-  /** Navigate within the catalog (optional, for route sync). */
-  onNavigateCatalog?: (subPath: string | null) => void;
-  /** Current catalog sub-path to detect if we're in a collection/list context. */
-  catalogSubPath?: string | null;
 }
 
 const SORT_OPTIONS: CatalogSort[] = ['newest', 'recent', 'title', 'time'];
@@ -56,9 +52,7 @@ export default function FilterSheet({
   sortBy,
   collections,
   allFlags,
-  countMatches,
-  onNavigateCatalog,
-  catalogSubPath
+  countMatches
 }: FilterSheetProps) {
   const { t } = useI18n();
   const [draft, setDraft] = useState<CatalogFilterState>(filters);
@@ -236,15 +230,6 @@ export default function FilterSheet({
                     className="flex-[2] py-3 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white shadow-md shadow-emerald-500/25 active:scale-[0.98] transition-all"
                     onPress={() => {
                       onApply(draft, draftSort);
-                      // If we're in a collection/list context and apply filters that change the context
-                      // (e.g., enabling favorites, changing collection filter), navigate to general list
-                      if (onNavigateCatalog && catalogSubPath) {
-                        const isInListContext = catalogSubPath.startsWith('list');
-                        if (isInListContext) {
-                          // Navigate to general list view to show the applied filters
-                          onNavigateCatalog('list');
-                        }
-                      }
                       onClose();
                     }}
                   >

@@ -519,14 +519,26 @@ export default function SavedCatalog({
         filters={filters}
         sortBy={sortBy}
         onApply={(next, nextSort) => {
+          // If we're in a collection context and the new filters don't include this collection,
+          // reset the collection filter and navigate to general list
+          if (isListLevel && preset.kind === 'collection') {
+            const stillInSameCollection = next.collectionIds.includes(preset.id);
+            if (!stillInSameCollection) {
+              // Reset collection filter, keep other filters
+              const filtersWithoutCollection = { ...next, collectionIds: [] };
+              setFilters(filtersWithoutCollection);
+              setSortBy(nextSort);
+              // Navigate to general list view
+              navigateCatalog(buildListRoute({ kind: 'all' }));
+              return;
+            }
+          }
           setFilters(next);
           setSortBy(nextSort);
         }}
         collections={collections}
         allFlags={allFlags}
         countMatches={countMatches}
-        onNavigateCatalog={navigateCatalog}
-        catalogSubPath={catalogSubPath}
       />
 
       {sheets}
