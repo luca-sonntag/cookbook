@@ -194,15 +194,19 @@ export default function SavedCatalog({
     switch (preset.kind) {
       case 'favorites':
         setFilters({ ...EMPTY_FILTERS, favoritesOnly: true });
+        setSortBy('newest');
         break;
       case 'quick':
         setFilters({ ...EMPTY_FILTERS, maxTime: 30 });
+        setSortBy('newest');
         break;
       case 'collection':
         setFilters({ ...EMPTY_FILTERS, collectionIds: [preset.id] });
+        setSortBy('newest');
         break;
       case 'flag':
         setFilters({ ...EMPTY_FILTERS, flags: [preset.name] });
+        setSortBy('newest');
         break;
       case 'recent':
         setFilters(EMPTY_FILTERS);
@@ -210,6 +214,7 @@ export default function SavedCatalog({
         break;
       default:
         setFilters(EMPTY_FILTERS);
+        setSortBy('newest');
         break;
     }
   }, [catalogSubPath, preset, setFilters, setSearchQuery, setSortBy]);
