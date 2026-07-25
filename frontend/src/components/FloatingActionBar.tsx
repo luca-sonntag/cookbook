@@ -32,9 +32,11 @@ export default function FloatingActionBar({ children, className = '', isHidden =
 
   // Only the translate is toggled: `animate-fade-in-up` runs with `forwards`,
   // so an opacity utility here would lose against the animation's held end
-  // frame. Sliding the bar fully past the bottom edge hides it just as well.
+  // frame. Sliding the bar fully past the bottom edge hides it just as well —
+  // the extra 8rem has to cover the largest `bottom-*` offset callers use
+  // (`bottom-28` on the recipe dock), otherwise the pill keeps peeking.
   const hiddenClasses = isHidden
-    ? 'translate-y-[calc(100%+2.5rem)] pointer-events-none'
+    ? 'translate-y-[calc(100%_+_8rem)] pointer-events-none'
     : 'translate-y-0';
 
   return (
