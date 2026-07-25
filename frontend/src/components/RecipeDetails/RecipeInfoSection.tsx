@@ -71,10 +71,6 @@ export default function RecipeInfoSection({
             getNutritionDisplayValue={getNutritionDisplayValue}
           />
         )}
-
-        <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center leading-normal select-none mt-2">
-          {t('recipe.aiGeneratedDisclaimer')}
-        </p>
       </div>
     </div>
   );
