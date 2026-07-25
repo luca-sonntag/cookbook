@@ -46,12 +46,12 @@ export default function RecipeInfoSection({
   const statValue = 'text-sm font-bold text-gray-900 dark:text-white';
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {/* Prep / cook times + servings grouped into one cohesive overview card. */}
       <div className="glass-panel rounded-2xl overflow-hidden">
         <div className="grid grid-cols-2">
           {/* Prep time */}
-          <div className="flex items-center gap-2.5 py-3.5 px-4">
+          <div className="flex items-center gap-3 py-4 px-4.5 sm:px-5">
             <div className={iconBadge}>
               <Clock className={iconClass} />
             </div>
@@ -61,7 +61,7 @@ export default function RecipeInfoSection({
             </div>
           </div>
           {/* Cook time */}
-          <div className="flex items-center gap-2.5 py-3.5 px-4 border-l border-black/5 dark:border-white/5">
+          <div className="flex items-center gap-3 py-4 px-4.5 sm:px-5 border-l border-black/5 dark:border-white/5">
             <div className={iconBadge}>
               <Utensils className={iconClass} />
             </div>
@@ -73,8 +73,8 @@ export default function RecipeInfoSection({
         </div>
 
         {/* Servings row */}
-        <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-t border-black/5 dark:border-white/5">
-          <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center justify-between gap-3 px-4.5 sm:px-5 py-3.5 border-t border-black/5 dark:border-white/5">
+          <div className="flex items-center gap-3 min-w-0">
             <div className={iconBadge}>
               <Users className={iconClass} />
             </div>

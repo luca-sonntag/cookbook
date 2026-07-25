@@ -28,11 +28,11 @@ export default function RecipeNutrition({
     <>
       <div
         onClick={() => !isPremium && setIsPremiumModalOpen(true)}
-        className={`glass-panel relative p-4 rounded-2xl transition-all duration-300 ${
+        className={`glass-panel relative p-4.5 sm:p-5 rounded-2xl transition-all duration-300 ${
           !isPremium ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''
         }`}
       >
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div className="flex items-center gap-1.5">
             <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{t('recipe.nutritionTitle')}</h4>
             {isAiEstimated && isPremium && <AiNotice type="badge" />}
