@@ -23,12 +23,16 @@ interface CookbookHomeProps {
   };
   allFlags: string[];
   formatTotalTime: (recipe: any) => string | null;
-  onOpenSearch: () => void;
   onOpenList: (preset: CatalogPreset) => void;
   onOpenRecipe: (e: React.MouseEvent, job: Job) => void;
   onToggleFavorite: (e: React.MouseEvent, job: Job) => void;
   onAddCollection: () => void;
   onManageCollections: () => void;
+  isSelectMode?: boolean;
+  selectedIds?: Set<string>;
+  addedRecipeIds?: Record<string, boolean>;
+  bindLongPress?: (id: string, job: Job) => any;
+  onDirectAdd?: (e: React.MouseEvent, job: Job) => void;
 }
 
 /**
@@ -43,27 +47,21 @@ export default function CookbookHome({
   shelves,
   allFlags,
   formatTotalTime,
-  onOpenSearch,
   onOpenList,
   onOpenRecipe,
   onToggleFavorite,
   onAddCollection,
-  onManageCollections
+  onManageCollections,
+  isSelectMode = false,
+  selectedIds = new Set(),
+  addedRecipeIds = {},
+  bindLongPress,
+  onDirectAdd
 }: CookbookHomeProps) {
   const { t } = useI18n();
 
   return (
-    <div className="flex flex-col gap-7 pb-4">
-      {/* Search entry — a button, not an input: focusing it takes the user to
-          the list level where the results actually live. */}
-      <button
-        type="button"
-        onClick={onOpenSearch}
-        className="flex items-center gap-2.5 w-full h-12 px-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-400 dark:text-gray-500 hover:border-emerald-500/30 active:scale-[0.99] transition-all cursor-pointer"
-      >
-        <Search className="w-5 h-5 shrink-0" />
-        <span className="text-base truncate">{t('catalog.searchPlaceholder')}</span>
-      </button>
+    <div className="flex flex-col gap-7 pb-4 pt-1">
 
       {/* Collections */}
       <section className="flex flex-col gap-2.5">
@@ -137,6 +135,11 @@ export default function CookbookHome({
         onOpenAll={() => onOpenList({ kind: 'recent' })}
         onOpenRecipe={onOpenRecipe}
         onToggleFavorite={onToggleFavorite}
+        isSelectMode={isSelectMode}
+        selectedIds={selectedIds}
+        addedRecipeIds={addedRecipeIds}
+        bindLongPress={bindLongPress}
+        onDirectAdd={onDirectAdd}
       />
 
       <RecipeShelf
@@ -148,6 +151,11 @@ export default function CookbookHome({
         onOpenAll={() => onOpenList({ kind: 'favorites' })}
         onOpenRecipe={onOpenRecipe}
         onToggleFavorite={onToggleFavorite}
+        isSelectMode={isSelectMode}
+        selectedIds={selectedIds}
+        addedRecipeIds={addedRecipeIds}
+        bindLongPress={bindLongPress}
+        onDirectAdd={onDirectAdd}
       />
 
       <RecipeShelf
@@ -159,6 +167,11 @@ export default function CookbookHome({
         onOpenAll={() => onOpenList({ kind: 'quick' })}
         onOpenRecipe={onOpenRecipe}
         onToggleFavorite={onToggleFavorite}
+        isSelectMode={isSelectMode}
+        selectedIds={selectedIds}
+        addedRecipeIds={addedRecipeIds}
+        bindLongPress={bindLongPress}
+        onDirectAdd={onDirectAdd}
       />
 
       <RecipeShelf
@@ -170,6 +183,11 @@ export default function CookbookHome({
         onOpenAll={() => onOpenList({ kind: 'all' })}
         onOpenRecipe={onOpenRecipe}
         onToggleFavorite={onToggleFavorite}
+        isSelectMode={isSelectMode}
+        selectedIds={selectedIds}
+        addedRecipeIds={addedRecipeIds}
+        bindLongPress={bindLongPress}
+        onDirectAdd={onDirectAdd}
       />
 
       {/* Labels */}
