@@ -140,20 +140,26 @@ export default function RecipeDetails({
 
   const scrollToSection = (sectionId: 'ingredients' | 'instructions' | 'details') => {
     const el = document.getElementById(sectionId);
-    if (el) {
-      const stickyTopHeight = parseInt(
-        getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
-        10
-      );
-      const offset = stickyTopHeight + 48 + 16;
-      const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-      const offsetPosition = elementPosition - offset;
+    if (!el) return;
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
-    }
+    const stickyTopHeight = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
+      10
+    );
+
+    // The sticky sub-nav is ~44px on its own, but grows to reveal the compact
+    // title row (~95px total) once the hero has scrolled away. Tapping any tab
+    // scrolls past the hero, so the bar is always in that taller collapsed state
+    // by the time the scroll settles — reserve its full height (measured, with a
+    // safe fallback) so the section heading lands clear of the bar rather than
+    // tucked underneath it.
+    const bar = document.getElementById('recipe-sticky-bar');
+    const barHeight = bar?.offsetHeight ?? 44;
+    const reserved = Math.max(barHeight, 96);
+    const offset = stickyTopHeight + reserved + 16;
+
+    const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
   };
 
   // Listen to state-based pending navigation (handles timing/mount delays)
