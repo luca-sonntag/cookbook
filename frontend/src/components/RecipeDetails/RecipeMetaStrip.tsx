@@ -10,13 +10,13 @@ interface RecipeMetaStripProps {
   /** Free users see a crown instead of the calorie value (premium gate). */
   isPremium: boolean;
   onScrollToDetails: () => void;
+  /** If true, renders a flat text flow without background, borders, padding, and chevron. */
+  flat?: boolean;
 }
 
 /**
- * A single tappable row summarising the recipe's key figures (total time,
- * servings, calories). Replaces the three stacked meta cards that used to push
- * the ingredient list a full screen down; the detail values live in
- * `RecipeInfoSection` (onScrollToDetails scrolls to it).
+ * A single tapping row or text flow summarising the recipe's key figures (total time,
+ * servings, calories). If flat=true, fits neatly inside the header under the title.
  */
 export default function RecipeMetaStrip({
   totalTimeLabel,
@@ -24,6 +24,7 @@ export default function RecipeMetaStrip({
   calories,
   isPremium,
   onScrollToDetails,
+  flat = false,
 }: RecipeMetaStripProps) {
   const { t } = useI18n();
 
@@ -35,9 +36,13 @@ export default function RecipeMetaStrip({
       type="button"
       onClick={onScrollToDetails}
       aria-label={t('recipe.metaDetails')}
-      className="w-full flex items-center gap-3 min-h-[44px] py-2.5 px-3 -mx-1 rounded-xl bg-gradient-to-br from-emerald-500/[0.05] via-transparent to-indigo-500/[0.05] border border-black/5 dark:border-white/5 text-left cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.99] outline-none"
+      className={
+        flat
+          ? "flex items-center min-h-[24px] mt-2.5 bg-transparent text-left cursor-pointer outline-none border-none p-0 select-none active:opacity-85"
+          : "w-full flex items-center gap-3 min-h-[44px] py-2.5 px-3 -mx-1 rounded-xl bg-gradient-to-br from-emerald-500/[0.05] via-transparent to-indigo-500/[0.05] border border-black/5 dark:border-white/5 text-left cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.99] outline-none"
+      }
     >
-      <div className="flex-1 flex items-center gap-3 overflow-x-auto scrollbar-none">
+      <div className="flex-1 flex items-center gap-4.5 overflow-x-auto scrollbar-none">
         {totalTimeLabel && (
           <span className={chipClasses}>
             <Clock className="w-4 h-4 text-emerald-500 flex-shrink-0" />
@@ -65,7 +70,7 @@ export default function RecipeMetaStrip({
         )}
       </div>
 
-      <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+      {!flat && <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />}
     </button>
   );
 }

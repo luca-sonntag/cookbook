@@ -10,7 +10,6 @@ import { useTimerManager } from '../../hooks/useTimerManager';
 
 // Import subcomponents
 import RecipeHeader from './RecipeHeader';
-import RecipeMetaStrip from './RecipeMetaStrip';
 import RecipeInfoSection from './RecipeInfoSection';
 import RecipeStickyBar from './RecipeStickyBar';
 import RecipeIngredients from './RecipeIngredients';
@@ -587,18 +586,12 @@ export default function RecipeDetails({
         onAssignCollections={onAssignCollections}
         onManageFlags={onManageFlags}
         flags={flags}
+        totalTimeLabel={totalTimeLabel}
+        servings={servings}
+        calories={hasNutritionInfo ? metaCalories : null}
+        isPremium={isPremium}
+        onScrollToDetails={() => scrollToSection('details')}
       />
-
-      {/* Key figures at a glance; scrolling to the details section at the bottom. */}
-      <div className="mt-3">
-        <RecipeMetaStrip
-          totalTimeLabel={totalTimeLabel}
-          servings={servings}
-          calories={hasNutritionInfo ? metaCalories : null}
-          isPremium={isPremium}
-          onScrollToDetails={() => scrollToSection('details')}
-        />
-      </div>
 
       {/* Sentinel for the sticky bar's collapsed title row (see effect above). */}
       <div ref={setCollapseSentinel} aria-hidden="true" className="h-px" />

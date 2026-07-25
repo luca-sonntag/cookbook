@@ -3,6 +3,7 @@ import { Popover, Button } from '@heroui/react';
 import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeImageGallery from '../RecipeImageGallery';
+import RecipeMetaStrip from './RecipeMetaStrip';
 import { useI18n } from '../../context/I18nContext';
 
 interface RecipeHeaderProps {
@@ -20,6 +21,13 @@ interface RecipeHeaderProps {
   onAssignCollections?: () => void;
   onManageFlags?: () => void;
   flags?: string[];
+  
+  // Meta strip properties passed down to render under title flat
+  totalTimeLabel: string | null;
+  servings: number;
+  calories: number | null;
+  isPremium: boolean;
+  onScrollToDetails: () => void;
 }
 
 export default function RecipeHeader({
@@ -36,7 +44,12 @@ export default function RecipeHeader({
   parentRecipeTitle,
   onAssignCollections,
   onManageFlags,
-  flags
+  flags,
+  totalTimeLabel,
+  servings,
+  calories,
+  isPremium,
+  onScrollToDetails,
 }: RecipeHeaderProps) {
   const { t, language } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -63,6 +76,15 @@ export default function RecipeHeader({
             </div>
           )}
           <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight break-words">{recipe.title}</h2>
+          
+          <RecipeMetaStrip
+            totalTimeLabel={totalTimeLabel}
+            servings={servings}
+            calories={calories}
+            isPremium={isPremium}
+            onScrollToDetails={onScrollToDetails}
+            flat
+          />
           {recipe.parentJobId && resolvedParentTitle && (
             <div className="mt-1.5 text-xs flex flex-wrap items-center gap-1 text-gray-500 dark:text-gray-400 leading-normal break-words">
               <span>{t('remix.parentLinkPrefix') || 'Abgewandelt von'}</span>
