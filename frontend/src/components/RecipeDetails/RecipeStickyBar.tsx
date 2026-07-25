@@ -26,9 +26,9 @@ export default function RecipeStickyBar({
   const { t } = useI18n();
 
   const sections = [
+    { id: 'details' as const, label: t('recipe.infoSheetTitle') },
     { id: 'ingredients' as const, label: t('recipe.tabIngredients') },
     { id: 'instructions' as const, label: t('recipe.tabInstructions') },
-    { id: 'details' as const, label: t('recipe.infoSheetTitle') },
   ];
 
   return (
