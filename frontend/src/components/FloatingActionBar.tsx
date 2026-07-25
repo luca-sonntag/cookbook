@@ -11,6 +11,11 @@ interface FloatingActionBarProps {
    * the vertical position (defaults to `bottom-6`).
    */
   className?: string;
+  /**
+   * Slides the bar out of view (downwards) without unmounting it, so it can be
+   * hidden while the user scrolls through content and brought back afterwards.
+   */
+  isHidden?: boolean;
 }
 
 /**
@@ -21,13 +26,20 @@ interface FloatingActionBarProps {
  * Content composition is up to the caller; the bar just provides the
  * frosted-glass container, the rounded-full shape and the soft shadow.
  */
-export default function FloatingActionBar({ children, className = '' }: FloatingActionBarProps) {
+export default function FloatingActionBar({ children, className = '', isHidden = false }: FloatingActionBarProps) {
   const hasBottomClass = className.split(' ').some(c => c.startsWith('bottom-') || c.includes(':bottom-'));
   const defaultBottom = hasBottomClass ? '' : 'bottom-6';
 
+  // Only the translate is toggled: `animate-fade-in-up` runs with `forwards`,
+  // so an opacity utility here would lose against the animation's held end
+  // frame. Sliding the bar fully past the bottom edge hides it just as well.
+  const hiddenClasses = isHidden
+    ? 'translate-y-[calc(100%+2.5rem)] pointer-events-none'
+    : 'translate-y-0';
+
   return (
     <div
-      className={`fixed ${defaultBottom} left-1/2 -translate-x-1/2 z-40 animate-fade-in-up ${className}`}
+      className={`fixed ${defaultBottom} left-1/2 -translate-x-1/2 z-40 animate-fade-in-up transition-transform duration-300 ease-in-out ${hiddenClasses} ${className}`}
     >
       <div className="flex items-center gap-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-2.5 rounded-full border border-black/10 dark:border-white/10 shadow-2xl">
         {children}

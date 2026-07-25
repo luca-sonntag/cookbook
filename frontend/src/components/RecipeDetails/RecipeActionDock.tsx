@@ -4,6 +4,7 @@ import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import FloatingActionBar, { FloatingDivider } from '../FloatingActionBar';
 import PremiumCrownBadge from '../PremiumCrownBadge';
+import { useHideOnScroll } from '../../hooks/useHideOnScroll';
 
 interface RecipeActionDockProps {
   totalStepsCount: number;
@@ -25,6 +26,10 @@ export default function RecipeActionDock({
   const { t } = useI18n();
   const { isPremium } = useAuth();
 
+  // Get out of the way while the user reads through the ingredient or step
+  // list; scrolling back up (or reaching the top) brings the dock back.
+  const isHidden = useHideOnScroll();
+
   const showStart = totalStepsCount > 0;
   const showRemix = !!recipeId && !!onRemixClick;
   const showShopping = !!onAddToCart;
@@ -35,7 +40,7 @@ export default function RecipeActionDock({
   const showShoppingDivider = showShopping && (showStart || showRemix);
 
   return (
-    <FloatingActionBar className="bottom-28">
+    <FloatingActionBar className="bottom-28" isHidden={isHidden}>
       {/* Start Cooking Button */}
       {showStart && (
         <Button
