@@ -148,15 +148,12 @@ export default function RecipeDetails({
     );
 
     // The sticky sub-nav is ~44px on its own, but grows to reveal the compact
-    // title row (~95px total) once the hero has scrolled away. Tapping any tab
-    // scrolls past the hero, so the bar is always in that taller collapsed state
-    // by the time the scroll settles — reserve its full height (measured, with a
-    // safe fallback) so the section heading lands clear of the bar rather than
-    // tucked underneath it.
+    // title row (~95px total) once the hero has scrolled away.
     const bar = document.getElementById('recipe-sticky-bar');
     const barHeight = bar?.offsetHeight ?? 44;
     const reserved = Math.max(barHeight, 96);
-    const offset = stickyTopHeight + reserved + 16;
+    // Reduced padding offset so the scroll target matches the scroll-spy activation threshold precisely
+    const offset = stickyTopHeight + reserved - 4;
 
     const elementPosition = el.getBoundingClientRect().top + window.scrollY;
     window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
