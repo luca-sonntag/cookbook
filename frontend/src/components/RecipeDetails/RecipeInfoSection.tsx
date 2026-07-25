@@ -51,7 +51,7 @@ export default function RecipeInfoSection({
       <div className="glass-panel rounded-2xl overflow-hidden">
         <div className="grid grid-cols-2">
           {/* Prep time */}
-          <div className="flex items-center justify-center gap-2.5 py-4 px-3">
+          <div className="flex items-center gap-2.5 py-3.5 px-4">
             <div className={iconBadge}>
               <Clock className={iconClass} />
             </div>
@@ -61,7 +61,7 @@ export default function RecipeInfoSection({
             </div>
           </div>
           {/* Cook time */}
-          <div className="flex items-center justify-center gap-2.5 py-4 px-3 border-l border-black/5 dark:border-white/5">
+          <div className="flex items-center gap-2.5 py-3.5 px-4 border-l border-black/5 dark:border-white/5">
             <div className={iconBadge}>
               <Utensils className={iconClass} />
             </div>
