@@ -586,11 +586,6 @@ export default function RecipeDetails({
         onAssignCollections={onAssignCollections}
         onManageFlags={onManageFlags}
         flags={flags}
-        totalTimeLabel={totalTimeLabel}
-        servings={servings}
-        calories={hasNutritionInfo ? metaCalories : null}
-        isPremium={isPremium}
-        onScrollToDetails={() => scrollToSection('details')}
       />
 
       {/* Sentinel for the sticky bar's collapsed title row (see effect above). */}
@@ -603,6 +598,10 @@ export default function RecipeDetails({
         onBack={onBack}
         activeSection={activeSection}
         onSectionClick={scrollToSection}
+        totalTimeLabel={totalTimeLabel}
+        servings={servings}
+        calories={hasNutritionInfo ? metaCalories : null}
+        isPremium={isPremium}
       />
 
       {/* Single scrollable layout containing all sections */}

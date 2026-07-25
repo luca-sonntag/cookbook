@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Crown } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 
 interface RecipeStickyBarProps {
@@ -7,6 +7,12 @@ interface RecipeStickyBarProps {
   onBack?: () => void;
   activeSection: 'ingredients' | 'instructions' | 'details';
   onSectionClick: (sectionId: 'ingredients' | 'instructions' | 'details') => void;
+  
+  // Compact summary props for the collapsed header
+  totalTimeLabel: string | null;
+  servings: number;
+  calories: number | null;
+  isPremium: boolean;
 }
 
 /**
@@ -14,7 +20,7 @@ interface RecipeStickyBarProps {
  * In the single-page layout, it provides a smart scroll spy sub-navigation:
  * - Highlights the section currently in view (Zutaten, Zubereitung, Details).
  * - Tapping a section smooth-scrolls the page directly to it.
- * - When collapsed (scrolled down), reveals the recipe title and a back button.
+ * - When collapsed (scrolled down), reveals the recipe title, compact details, and a back button.
  */
 export default function RecipeStickyBar({
   recipeTitle,
@@ -22,6 +28,10 @@ export default function RecipeStickyBar({
   onBack,
   activeSection,
   onSectionClick,
+  totalTimeLabel,
+  servings,
+  calories,
+  isPremium,
 }: RecipeStickyBarProps) {
   const { t } = useI18n();
 
@@ -36,7 +46,7 @@ export default function RecipeStickyBar({
       {/* Collapsed title row — only present once the hero has scrolled away. */}
       <div
         className={`flex items-center gap-2 overflow-hidden motion-safe:transition-all motion-safe:duration-200 ${
-          isCollapsed ? 'max-h-12 opacity-100 pt-2' : 'max-h-0 opacity-0 pointer-events-none'
+          isCollapsed ? 'max-h-14 opacity-100 pt-2' : 'max-h-0 opacity-0 pointer-events-none'
         }`}
         aria-hidden={!isCollapsed}
       >
@@ -51,9 +61,31 @@ export default function RecipeStickyBar({
             <ArrowLeft className="w-4 h-4" />
           </button>
         )}
-        <span className="text-sm font-bold text-gray-900 dark:text-white truncate">
-          {recipeTitle}
-        </span>
+        <div className="min-w-0 flex-1 flex flex-col justify-center">
+          <span className="text-sm font-bold text-gray-900 dark:text-white truncate leading-tight">
+            {recipeTitle}
+          </span>
+          <div className="flex items-center gap-2 text-[10px] text-gray-500 dark:text-gray-400 font-semibold select-none mt-0.5 leading-none">
+            {totalTimeLabel && (
+              <span>{totalTimeLabel}</span>
+            )}
+            {totalTimeLabel && <span>·</span>}
+            <span>{t('recipe.servingsCount', { count: servings })}</span>
+            {calories !== null && <span>·</span>}
+            {calories !== null && (
+              <span className="inline-flex items-center gap-0.5">
+                {isPremium ? (
+                  `${calories} kcal`
+                ) : (
+                  <>
+                    <span>kcal</span>
+                    <Crown className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
+                  </>
+                )}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Navigation tabs */}
