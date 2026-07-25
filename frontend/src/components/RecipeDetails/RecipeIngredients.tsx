@@ -43,12 +43,7 @@ export default function RecipeIngredients({
           <span>{t('recipe.tabIngredients')}</span>
         </h3>
         {/* Header only carries the checklist hint. Servings stepper is managed at the top Details card. */}
-        <div className="flex flex-col gap-2 mb-4 border-b border-black/5 dark:border-white/5 pb-2">
-          <div className="flex justify-between items-center gap-2">
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {t('recipe.ingredientsSubtitle')}
-            </span>
-          </div>
+        <div className="flex flex-col gap-2 mb-4 pb-2">
           {hasIngredientNutrition && (
             <div className="flex justify-start items-center gap-1.5">
               <button

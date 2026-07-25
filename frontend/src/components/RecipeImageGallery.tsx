@@ -223,7 +223,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
     <>
       {/* Inline Gallery */}
       {availableImages.length > 1 ? (
-        <div className="-mx-4 mb-4 relative group">
+        <div className="-mx-4 -mt-4 mb-4 relative group">
           {overlayButtons}
           <div
             ref={scrollContainerRef}
@@ -255,7 +255,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
           </div>
         </div>
       ) : availableImages.length === 1 ? (
-        <div className="-mx-4 mb-4 bg-black/5 dark:bg-white/5 relative group">
+        <div className="-mx-4 -mt-4 mb-4 bg-black/5 dark:bg-white/5 relative group">
           {overlayButtons}
           <CachedImage
             src={availableImages[0]}
@@ -268,7 +268,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
           />
         </div>
       ) : (
-        <div className="-mx-4 mb-4 aspect-video bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
+        <div className="-mx-4 -mt-4 mb-4 aspect-video bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-indigo-500/[0.04] border-b border-black/5 dark:border-white/5 relative flex items-center justify-center overflow-hidden">
           {overlayButtons}
           {recipe.emoji ? (
             <span className="text-5xl select-none" role="img" aria-label="recipe emoji">
