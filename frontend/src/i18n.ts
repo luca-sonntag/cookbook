@@ -424,7 +424,7 @@ export const uiTranslations = {
         photo: 'Foto',
       },
       photo: {
-        emptyTitle: 'Rette Omas Rezepte',
+        emptyTitle: 'Fotos hochladen',
         emptyHint: 'Fotografiere eine Kochbuchseite oder eine handgeschriebene Rezeptkarte – wir lesen das Rezept für dich aus.',
         takePhoto: 'Foto aufnehmen',
         fromGallery: 'Aus Galerie',
@@ -1120,7 +1120,7 @@ export const uiTranslations = {
         photo: 'Photo',
       },
       photo: {
-        emptyTitle: "Rescue grandma's recipes",
+        emptyTitle: "Upload photos",
         emptyHint: 'Photograph a cookbook page or a handwritten recipe card — we read the recipe out of it for you.',
         takePhoto: 'Take photo',
         fromGallery: 'From gallery',
