@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { Check, Plus, Sparkles, Crown } from 'lucide-react';
+import { Check, Plus, Sparkles, Crown, Carrot } from 'lucide-react';
 import type { Ingredient, Recipe } from '../../types';
 import AiNotice from '../AiNotice';
 import { useI18n } from '../../context/I18nContext';
@@ -35,13 +35,25 @@ export default function RecipeIngredients({
 }: RecipeIngredientsProps) {
   const { t, translateCategory } = useI18n();
 
+  const ingredientCount = sortedIngredients.reduce(
+    (sum, { group }) => sum + group.items.length,
+    0
+  );
+
   return (
     <div className="flex flex-col gap-4 pb-4">
       <div>
-        <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
-          <span className="w-1 h-5 bg-gradient-to-b from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400 rounded-full" />
-          <span>{t('recipe.tabIngredients')}</span>
-        </h3>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+            <Carrot className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('recipe.tabIngredients')}</h3>
+          {ingredientCount > 0 && (
+            <span className="ml-auto text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-full px-2.5 py-1 tabular-nums select-none">
+              {ingredientCount}
+            </span>
+          )}
+        </div>
         {/* Header only carries the checklist hint. Servings stepper is managed at the top Details card. */}
         <div className="flex flex-col gap-2 mb-4 pb-2">
           {hasIngredientNutrition && (

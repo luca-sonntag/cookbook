@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { Play, Sparkles, Check, ChefHat } from 'lucide-react';
+import { Play, Sparkles, Check, ChefHat, CookingPot } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeInstructionText from '../RecipeInstructionText';
 import { useI18n } from '../../context/I18nContext';
@@ -36,10 +36,17 @@ export default function RecipeInstructions({
     <div className="flex flex-col gap-4 pb-4">
       {/* Cooking Progress Bar & Start Button Card */}
       <div>
-        <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
-          <span className="w-1 h-5 bg-gradient-to-b from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400 rounded-full" />
-          <span>{t('recipe.stepByStep')}</span>
-        </h3>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+            <CookingPot className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('recipe.stepByStep')}</h3>
+          {totalStepsCount > 0 && (
+            <span className="ml-auto text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-full px-2.5 py-1 tabular-nums select-none">
+              {totalStepsCount}
+            </span>
+          )}
+        </div>
 
         {/* Equipment as a wrapping chip row — integrated under instructions steps */}
         {recipe.equipment && recipe.equipment.length > 0 && (
