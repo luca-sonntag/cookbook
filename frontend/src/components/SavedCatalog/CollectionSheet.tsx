@@ -239,7 +239,7 @@ export default function CollectionSheet({
       <Drawer>
         <Drawer.Backdrop isOpen={isOpen} onOpenChange={(open) => { if (!open) onClose(); }} className="!z-[100]">
           <Drawer.Content placement="bottom" className="!z-[100]">
-            <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 max-h-[85vh] flex flex-col">
+            <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 max-h-[85vh] flex flex-col pb-[calc(1.5rem_+_var(--safe-area-inset-bottom))]">
               <Drawer.Handle />
 
               {/* Header */}
