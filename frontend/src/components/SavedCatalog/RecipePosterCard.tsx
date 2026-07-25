@@ -71,7 +71,7 @@ export default function RecipePosterCard({
 
         {/* Source platform */}
         {!isSelectMode && (
-          <div className="absolute bottom-1.5 left-1.5 z-[5] bg-black/[0.08] dark:bg-white/[0.08] backdrop-blur-md border border-black/10 dark:border-white/10 rounded-lg w-7 h-7 flex items-center justify-center pointer-events-none select-none">
+          <div className="absolute bottom-1.5 left-1.5 z-[5] bg-white/25 dark:bg-black/25 backdrop-blur-md shadow-sm rounded-lg w-7 h-7 flex items-center justify-center pointer-events-none select-none">
             <PlatformIcon platform={platform} className={`w-3.5 h-3.5 ${iconColor}`} />
           </div>
         )}
