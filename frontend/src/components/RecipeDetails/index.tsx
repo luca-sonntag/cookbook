@@ -86,7 +86,7 @@ export default function RecipeDetails({
   const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
   const { pendingNavigation, setPendingNavigation } = useTimerManager();
 
-  const [activeSection, setActiveSection] = useState<'ingredients' | 'instructions' | 'details'>('ingredients');
+  const [activeSection, setActiveSection] = useState<'ingredients' | 'instructions' | 'details'>('details');
 
   // Drives the compact title row inside the sticky tab bar: a zero-height
   // sentinel sits right below the title block, so as soon as it leaves the
@@ -614,6 +614,28 @@ export default function RecipeDetails({
 
       {/* Single scrollable layout containing all sections */}
       <div className="flex flex-col gap-8 mt-5 pb-16">
+        {/* Info & Nutrition Details section */}
+        <section
+          id="details"
+          style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}
+        >
+          <RecipeInfoSection
+            prepTime={recipe.prepTime}
+            cookTime={recipe.cookTime}
+            formatTimeValue={formatTimeValue}
+            servings={servings}
+            onDecreaseServings={() => setServings(s => Math.max(1, s - 1))}
+            onIncreaseServings={() => setServings(s => s + 1)}
+            nutritionalValues={hasNutritionInfo ? nutritionalValues : null}
+            isAiEstimated={isAiEstimated}
+            showTotalNutrition={showTotalNutrition}
+            onToggleTotalNutrition={handleToggleTotalNutrition}
+            getNutritionDisplayValue={getNutritionDisplayValue}
+          />
+        </section>
+
+        <hr className="border-black/5 dark:border-white/5" />
+
         {/* Ingredients section */}
         <section
           id="ingredients"
@@ -655,28 +677,6 @@ export default function RecipeDetails({
             progressPercent={progressPercent}
             onStartCooking={handleStartCooking}
             formatAmount={formatAmount}
-          />
-        </section>
-
-        <hr className="border-black/5 dark:border-white/5" />
-
-        {/* Info & Nutrition Details section */}
-        <section
-          id="details"
-          style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}
-        >
-          <RecipeInfoSection
-            prepTime={recipe.prepTime}
-            cookTime={recipe.cookTime}
-            formatTimeValue={formatTimeValue}
-            servings={servings}
-            onDecreaseServings={() => setServings(s => Math.max(1, s - 1))}
-            onIncreaseServings={() => setServings(s => s + 1)}
-            nutritionalValues={hasNutritionInfo ? nutritionalValues : null}
-            isAiEstimated={isAiEstimated}
-            showTotalNutrition={showTotalNutrition}
-            onToggleTotalNutrition={handleToggleTotalNutrition}
-            getNutritionDisplayValue={getNutritionDisplayValue}
           />
         </section>
       </div>
