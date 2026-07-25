@@ -8,7 +8,8 @@ interface FloatingActionBarProps {
   children: ReactNode;
   /**
    * Additional classes applied to the outermost fixed wrapper, e.g. to control
-   * the vertical position (defaults to `bottom-6`).
+   * the vertical position (defaults to 1.5rem plus the device safe-area
+   * bottom inset).
    */
   className?: string;
 }
@@ -23,7 +24,7 @@ interface FloatingActionBarProps {
  */
 export default function FloatingActionBar({ children, className = '' }: FloatingActionBarProps) {
   const hasBottomClass = className.split(' ').some(c => c.startsWith('bottom-') || c.includes(':bottom-'));
-  const defaultBottom = hasBottomClass ? '' : 'bottom-6';
+  const defaultBottom = hasBottomClass ? '' : 'bottom-[calc(1.5rem_+_var(--safe-area-inset-bottom))]';
 
   return (
     <div

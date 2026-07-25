@@ -629,7 +629,7 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar */}
       {(() => {
         const isBottomBarHidden = (activeView === 'history' && isCatalogSelectMode) || activeView === 'admin';
-        const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out pb-safe ${isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+        const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out ${isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
           }`;
 
         return (
