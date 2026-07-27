@@ -3,6 +3,7 @@
 ## Features
 
 - Werbeanzeigen während extraktion
+- Rezepte manuell ändern und speichern
 
 ## Improvements
 
