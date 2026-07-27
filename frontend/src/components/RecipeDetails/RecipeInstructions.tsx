@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { Play, Sparkles, Check, ChefHat, CookingPot } from 'lucide-react';
+import { Play, Sparkles, Check, ChefHat, CookingPot, NotebookPen } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeInstructionText from '../RecipeInstructionText';
 import { useI18n } from '../../context/I18nContext';
@@ -148,6 +148,18 @@ export default function RecipeInstructions({
               </li>
             ))}
           </ul>
+        </Card>
+      )}
+
+      {recipe.notes && recipe.notes.trim().length > 0 && (
+        <Card className="glass-panel p-5 rounded-2xl border border-amber-500/10">
+          <h3 className="text-sm font-bold text-amber-500 mb-3 uppercase tracking-wider flex items-center gap-1.5">
+            <NotebookPen className="w-4 h-4" />
+            <span>{t('recipe.notesTitle')}</span>
+          </h3>
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words">
+            {recipe.notes}
+          </p>
         </Card>
       )}
     </div>
