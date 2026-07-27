@@ -67,30 +67,5 @@ export function getParentIngredient(ing: {
     }
   }
 
-  // 3. Regex Heuristics
-  // e.g. "Zitronensaft" -> "Zitrone"
-  const suffixMatch = cleanName.match(/^(.+?)(abrieb|schale|saft)$/i);
-  if (suffixMatch && suffixMatch[1].length >= 3) {
-    const rawRoot = suffixMatch[1];
-    const capitalizedName = rawRoot.charAt(0).toUpperCase() + rawRoot.slice(1);
-    return {
-      name: capitalizedName,
-      baseName: rawRoot,
-      unit: 'Stück',
-    };
-  }
-
-  // e.g. "Knoblauchzehe" / "Knoblauchzehen"
-  const zeheMatch = cleanName.match(/^(.+?)zehe(n)?$/i);
-  if (zeheMatch && zeheMatch[1].length >= 3) {
-    const rawRoot = zeheMatch[1];
-    const capitalizedName = rawRoot.charAt(0).toUpperCase() + rawRoot.slice(1);
-    return {
-      name: capitalizedName,
-      baseName: rawRoot,
-      unit: 'Zehe',
-    };
-  }
-
   return null;
 }
