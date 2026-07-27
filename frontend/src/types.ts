@@ -1,6 +1,14 @@
+export interface ParentIngredientInfo {
+  name: string;
+  baseName: string;
+  unit?: string;
+  yieldFactor?: number;
+}
+
 export interface Ingredient {
   name: string;
   baseName?: string;
+  parentIngredient?: ParentIngredientInfo;
   replacedOriginal?: string;
   amount: number;
   unit: string;
@@ -101,6 +109,7 @@ export interface ShoppingListItem {
   id: string;
   name: string;
   baseName?: string;
+  parentIngredient?: ParentIngredientInfo;
   amount: number;
   unit: string;
   recipeId?: string;
@@ -115,12 +124,14 @@ export interface ShoppingListItem {
 export interface AggregatedShoppingItem {
   name: string;
   baseName?: string;
+  parentIngredient?: ParentIngredientInfo;
   unit: string;
   amount: number;
   checked: boolean;
   category?: string;
   modifier?: string;
   sources: { recipeId?: string; recipeTitle?: string; amount: number; unit: string }[];
+  subItems?: { name: string; amount: number; unit: string; recipeTitle?: string }[];
 }
 
 
