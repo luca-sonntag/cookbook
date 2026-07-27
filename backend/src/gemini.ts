@@ -141,7 +141,7 @@ const recipeSchema = {
           },
           description: {
             type: FunctionDeclarationSchemaType.STRING,
-            description: 'The detailed description of the instruction step. Whenever an ingredient from the ingredients list is mentioned, tag it inline using the format [word in text](ing:baseName). For example: "Die [Eigelbe](ing:Ei) und das [Ei](ing:Ei) mit dem [Parmesan](ing:Parmesan) verrühren."',
+            description: 'The detailed description of the instruction step. Whenever an ingredient from the ingredients list is mentioned, tag it inline using the format [word in text](ing:baseName) where baseName is the English baseName of the ingredient. For example: "Die [Eigelbe](ing:egg yolk) und das [Ei](ing:egg) mit dem [Parmesan](ing:parmesan) verrühren."',
           },
         },
         required: ['step', 'description'],
