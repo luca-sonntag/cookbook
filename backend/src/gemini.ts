@@ -457,7 +457,7 @@ Key Constraints:
 11. Zero-Calorie & Low-Calorie Ingredients: Ingredients like water, ice, salt, or baking soda MUST have 0 calories, protein, carbs, and fat. For spices, seasonings, or herbs in small quantities (like teaspoons), focus your calculation energy on the high-calorie/high-macro ingredients (meats, oils, dairy, grains, starches) and estimate very small values (e.g., 5 kcal) or 0.
 12. Cooked vs. Raw/Dry States of Expandable Ingredients: ${COOKED_VS_RAW_INSTRUCTION}
 13. Common Pantry Staples: ${STAPLE_INGREDIENT_INSTRUCTION}${photoSourceRules}
-14. Inline Ingredient Tagging: In every step description, whenever an ingredient from the ingredients list is used or referenced, you MUST format its mention using the inline syntax `[exact word used in text](ing:baseName)`. `baseName` MUST match the `baseName` (or `name` if `baseName` is not set) of the corresponding ingredient in the ingredients list. Examples:
+14. Inline Ingredient Tagging: In every step description, whenever an ingredient from the ingredients list is used or referenced, you MUST format its mention using the inline syntax '[exact word used in text](ing:baseName)'. 'baseName' MUST match the 'baseName' (or 'name' if 'baseName' is not set) of the corresponding ingredient in the ingredients list. Examples:
    - Ingredients: Eigelb (baseName: Ei), Ei (baseName: Ei), Parmesan (baseName: Parmesan)
    - Step description: "Die [Eigelbe](ing:Ei) und das [Ei](ing:Ei) zusammen mit dem [Parmesan](ing:Parmesan) verrühren."
    - Do NOT tag equipment or non-ingredient words. Make sure the brackets wrap the natural word as it appears in the sentence.

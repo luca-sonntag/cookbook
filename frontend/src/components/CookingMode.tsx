@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import type { Recipe, Ingredient } from '../types';
 import { useCookingMode } from '../hooks/useCookingMode';
-import { textMentionsTerm } from '../utils/ingredientMatch';
+import { extractInlineIngredientTags, textMentionsTerm } from '../utils/ingredientMatch';
 import RecipeInstructionText from './RecipeInstructionText';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
@@ -131,18 +131,35 @@ export default function CookingMode({
   }, [recipe.ingredients]);
 
   // Find ingredients mentioned in a specific step description.
-  // Matching is word-boundary based (see textMentionsTerm) so "Ei" never matches
-  // inside "Eigelb"/"Eiweiß", and entries are de-duplicated by normalized name.
+  // First tries LLM inline tags `[word](ing:baseName)`. Falls back to word boundary match for legacy recipes.
   const getIngredientsForStep = (description: string) => {
     if (!description) return [];
     const mentioned: Ingredient[] = [];
     const seen = new Set<string>();
 
+    const inlineTags = extractInlineIngredientTags(description);
+
+    if (inlineTags.length > 0) {
+      inlineTags.forEach(tag => {
+        const targetBase = tag.baseName.toLowerCase();
+        // Match ingredient by baseName or name
+        const match = allIngredients.find(ing =>
+          ing.baseName?.toLowerCase() === targetBase || ing.name.toLowerCase() === targetBase
+        );
+        if (match) {
+          const key = match.name.trim().toLowerCase();
+          if (!seen.has(key)) {
+            seen.add(key);
+            mentioned.push(match);
+          }
+        }
+      });
+      return mentioned;
+    }
+
+    // Legacy fallback for recipes created before inline tagging
     allIngredients.forEach(ing => {
       const nameHit = textMentionsTerm(ing.name, description);
-      // Fall back to baseName only when it is specific enough (>= 4 chars) to
-      // avoid conflating distinct ingredients that share a generic base such as
-      // "Ei" (set on both "Eigelb" and "Eiweiß").
       const baseHit = !nameHit
         && (ing.baseName?.trim().length ?? 0) >= 4
         && textMentionsTerm(ing.baseName, description);
