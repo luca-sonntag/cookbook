@@ -141,7 +141,7 @@ const recipeSchema = {
           },
           description: {
             type: FunctionDeclarationSchemaType.STRING,
-            description: 'The detailed description of the instruction step. Whenever an ingredient from the ingredients list is mentioned, tag it inline using the format [word in text](ing:baseName) where baseName is the English baseName of the ingredient. For example: "Die [Eigelbe](ing:egg yolk) und das [Ei](ing:egg) mit dem [Parmesan](ing:parmesan) verrühren."',
+            description: 'The concise, direct description of the instruction step (avoid conversational filler words like "anschließend", "danach", "dann", "jetzt"). Keep sentences short, clear, and action-oriented. Whenever an ingredient from the ingredients list is mentioned, tag it inline using the format [word in text](ing:baseName) where baseName is the English baseName of the ingredient. For example: "Das [Ei](ing:egg) mit dem [Parmesan](ing:parmesan) verrühren."',
           },
         },
         required: ['step', 'description'],
@@ -461,6 +461,7 @@ Key Constraints:
    - Ingredients: Eigelb (baseName: egg yolk), Ei (baseName: egg), Parmesan (baseName: parmesan)
    - Step description: "Die [Eigelbe](ing:egg yolk) und das [Ei](ing:egg) zusammen mit dem [Parmesan](ing:parmesan) verrühren."
    - Do NOT tag equipment or non-ingredient words. Make sure the brackets wrap the natural word as it appears in the sentence.
+15. Concise, Direct Instruction Steps: Write instruction step descriptions as short, clear, action-oriented sentences. Eliminate conversational filler words, narrative transitions, and redundancies (such as "anschließend", "danach", "dann", "jetzt", "als Nächstes", "nun", "wunderschön"). Split long multi-action steps into distinct, bite-sized steps so each step is easy to follow while cooking.
 ${caption.trim() ? `\nDescription/Caption:\n"""\n${caption}\n"""` : ''}${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` : ''}`;
 
     contentParts.push(prompt);
