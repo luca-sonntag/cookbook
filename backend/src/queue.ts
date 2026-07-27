@@ -58,7 +58,7 @@ async function processJob(job: Job): Promise<void> {
             'german': 'German',
             'english': 'English'
           };
-          
+
           let recipeLanguage: string | undefined;
           if (meta.language) {
             recipeLanguage = languageMap[meta.language.toLowerCase()];
@@ -423,7 +423,7 @@ export function startQueue(pollIntervalMs = 2000): void {
     () => reclaimExpiredJobs(config.WORKER_LEASE_TIMEOUT_MINUTES).catch(console.error),
     60_000
   );
-  
+
   // Run cleanup once at startup, then every 12 hours.
   // Local debug run-dirs are pruned after 30 days; the persistent gemini_logs
   // table is pruned after 90 days (wider than the 30-day metrics window).
@@ -449,7 +449,8 @@ export function startQueue(pollIntervalMs = 2000): void {
     const runNotifTick = () => {
       void notificationTick().catch((err) => console.error('[notifications] tick error:', err));
     };
-    runNotifTick();
+    // Delay initial tick by 3 seconds so attached debuggers have time to register breakpoints
+    setTimeout(runNotifTick, 3000);
     const notifMs = Math.max(1, config.NOTIFICATION_TICK_MINUTES) * 60 * 1000;
     notificationInterval = setInterval(runNotifTick, notifMs);
     console.log(`Smart notification worker started (every ${config.NOTIFICATION_TICK_MINUTES} min).`);
