@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { Recipe, Ingredient } from '../types';
 import { useCookingMode } from '../hooks/useCookingMode';
+import { extractInlineIngredientTags, textMentionsTerm } from '../utils/ingredientMatch';
 import RecipeInstructionText from './RecipeInstructionText';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
@@ -129,27 +130,44 @@ export default function CookingMode({
     return recipe.ingredients ? recipe.ingredients.flatMap(g => g.items) : [];
   }, [recipe.ingredients]);
 
-  // Find ingredients mentioned in a specific step description
+  // Find ingredients mentioned in a specific step description.
+  // First tries LLM inline tags `[word](ing:baseName)`. Falls back to word boundary match for legacy recipes.
   const getIngredientsForStep = (description: string) => {
     if (!description) return [];
     const mentioned: Ingredient[] = [];
+    const seen = new Set<string>();
 
-    const isMatch = (term: string | undefined, text: string) => {
-      if (!term) return false;
-      const lowerTerm = term.toLowerCase();
-      const lowerText = text.toLowerCase();
+    const inlineTags = extractInlineIngredientTags(description);
 
-      if (term.length <= 3) {
-        const escapedTerm = term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const regex = new RegExp(`(?<=^|[\\s.,:;!?()\\[\\]{}'"\\-\\/])${escapedTerm}(?=$|[\\s.,:;!?()\\[\\]{}'"\\-\\/])`, 'i');
-        return regex.test(text);
-      }
-      return lowerText.includes(lowerTerm);
-    };
+    if (inlineTags.length > 0) {
+      inlineTags.forEach(tag => {
+        const targetBase = tag.baseName.toLowerCase();
+        // Match ingredient by baseName or name
+        const match = allIngredients.find(ing =>
+          ing.baseName?.toLowerCase() === targetBase || ing.name.toLowerCase() === targetBase
+        );
+        if (match) {
+          const key = match.name.trim().toLowerCase();
+          if (!seen.has(key)) {
+            seen.add(key);
+            mentioned.push(match);
+          }
+        }
+      });
+      return mentioned;
+    }
 
+    // Legacy fallback for recipes created before inline tagging
     allIngredients.forEach(ing => {
-      if (isMatch(ing.baseName, description) || isMatch(ing.name, description)) {
-        if (!mentioned.some(m => m.name === ing.name)) {
+      const nameHit = textMentionsTerm(ing.name, description);
+      const baseHit = !nameHit
+        && (ing.baseName?.trim().length ?? 0) >= 4
+        && textMentionsTerm(ing.baseName, description);
+
+      if (nameHit || baseHit) {
+        const key = (ing.name || '').trim().toLowerCase();
+        if (key && !seen.has(key)) {
+          seen.add(key);
           mentioned.push(ing);
         }
       }

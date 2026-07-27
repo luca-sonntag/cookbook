@@ -1,6 +1,14 @@
+export interface ParentIngredientInfo {
+  name: string;
+  baseName: string;
+  unit?: string;
+  yieldFactor?: number;
+}
+
 export interface Ingredient {
   name: string;
   baseName?: string;
+  parentIngredient?: ParentIngredientInfo;
   replacedOriginal?: string;
   amount: number;
   unit: string;

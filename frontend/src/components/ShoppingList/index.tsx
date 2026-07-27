@@ -5,6 +5,7 @@ import type { AggregatedShoppingItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
+import { formatQuantity } from '../../utils/formatQuantity';
 
 // Import subcomponents
 import CustomItemForm from './CustomItemForm';
@@ -99,9 +100,10 @@ export default function ShoppingList({
 
   const formatItemAmount = (amount: number, unit: string) => {
     if (!amount) return '';
-    const rounded = Math.round(amount * 100) / 100;
+    const numberStr = formatQuantity(amount, unit);
+    if (!numberStr) return '';
     const unitStr = unit ? ` ${unit}` : '';
-    return `${rounded}${unitStr}`;
+    return `${numberStr}${unitStr}`;
   };
 
   const handleClearAll = async () => {

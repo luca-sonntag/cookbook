@@ -28,6 +28,11 @@ export default function ShoppingListItem({
 
   const animationClass = isCollapsing ? 'animate-item-collapse' : 'animate-item-expand';
 
+  const hasDistinctSubItems = item.subItems && item.subItems.some(s => s.name.toLowerCase().trim() !== item.name.toLowerCase().trim());
+  const subItemsSummary = hasDistinctSubItems && item.subItems
+    ? item.subItems.map(s => `${formatItemAmount(s.amount, s.unit)} ${s.name}`).join(', ')
+    : null;
+
   // Compact, dimmed row used inside the "Erledigt" drawer.
   if (isChecked) {
     return (
@@ -44,7 +49,11 @@ export default function ShoppingListItem({
           <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate">
             {amountStr && <span className="font-semibold mr-1.5">{amountStr}</span>}
             <span>{item.name}</span>
-            {item.modifier && <span className="ml-1 font-normal">({item.modifier})</span>}
+            {subItemsSummary ? (
+              <span className="ml-1 font-normal opacity-75">({subItemsSummary})</span>
+            ) : item.modifier ? (
+              <span className="ml-1 font-normal">({item.modifier})</span>
+            ) : null}
           </span>
         </button>
         <button
@@ -74,13 +83,17 @@ export default function ShoppingListItem({
               {amountStr}
             </span>
           )}
-          <span className="text-sm font-medium text-gray-800 dark:text-gray-100 min-w-0 leading-tight">
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-100 min-w-0 leading-tight flex flex-col">
             <span className="break-words">{item.name}</span>
-            {item.modifier && (
+            {subItemsSummary ? (
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-normal leading-none mt-0.5">
+                ({subItemsSummary})
+              </span>
+            ) : item.modifier ? (
               <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
                 ({item.modifier})
               </span>
-            )}
+            ) : null}
           </span>
         </button>
 

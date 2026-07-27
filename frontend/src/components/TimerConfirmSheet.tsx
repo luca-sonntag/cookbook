@@ -3,6 +3,7 @@ import { Button, Drawer } from '@heroui/react';
 import { Clock, Minus, Play, Plus } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useTimerManager } from '../hooks/useTimerManager';
+import { stripInlineIngredientTags } from '../utils/ingredientMatch';
 
 interface TimerConfirmSheetProps {
   isOpen: boolean;
@@ -86,7 +87,7 @@ export default function TimerConfirmSheet({
               <Drawer.Body>
                 {/* Label */}
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-5 leading-relaxed italic">
-                  „{label}"
+                  „{stripInlineIngredientTags(label)}"
                 </p>
 
                 {/* Duration display with ± stepper */}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Recipe } from '../types';
+import { formatQuantity } from '../utils/formatQuantity';
 
 export function useRecipeScaling(recipe: Recipe) {
   const recipeId = recipe.id || recipe.title;
@@ -32,52 +33,7 @@ export function useRecipeScaling(recipe: Recipe) {
 
   const formatAmount = (amount: number | undefined | null, unit: string | undefined | null) => {
     if (!amount) return '';
-    const scaled = amount * scaleFactor;
-
-    const lowerUnit = (unit || '').toLowerCase().trim();
-    const isWeightOrVolume = ['g', 'ml', 'kg', 'l', 'gramm', 'milliliter', 'liter', 'kilogramm'].includes(lowerUnit);
-
-    // For weights, volumes, or large values, display as rounded whole numbers or decimals
-    if (isWeightOrVolume || scaled >= 20) {
-      if (scaled % 1 === 0) {
-        return scaled.toString();
-      }
-      if (scaled >= 10) {
-        return Math.round(scaled).toString();
-      }
-      return (Math.round(scaled * 10) / 10).toString();
-    }
-
-    // Otherwise, use mixed fractions for clean home-cooking measurements
-    const tolerance = 0.05;
-    const intPart = Math.floor(scaled);
-    const decPart = scaled - intPart;
-
-    let fractionStr = '';
-    if (Math.abs(decPart - 0.25) < tolerance) {
-      fractionStr = '¼';
-    } else if (Math.abs(decPart - 0.5) < tolerance) {
-      fractionStr = '½';
-    } else if (Math.abs(decPart - 0.75) < tolerance) {
-      fractionStr = '¾';
-    } else if (Math.abs(decPart - 0.333) < tolerance) {
-      fractionStr = '⅓';
-    } else if (Math.abs(decPart - 0.666) < tolerance) {
-      fractionStr = '⅔';
-    } else if (Math.abs(decPart - 0.125) < tolerance) {
-      fractionStr = '⅛';
-    } else if (decPart > 0.95) {
-      return (intPart + 1).toString();
-    } else if (decPart < 0.05) {
-      return intPart.toString();
-    } else {
-      return (Math.round(scaled * 10) / 10).toString();
-    }
-
-    if (intPart === 0) {
-      return fractionStr;
-    }
-    return `${intPart} ${fractionStr}`;
+    return formatQuantity(amount * scaleFactor, unit);
   };
 
   const formatNutritionValue = (val: string | number | undefined | null) => {

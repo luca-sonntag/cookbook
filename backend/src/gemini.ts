@@ -79,11 +79,30 @@ const recipeSchema = {
                 },
                 baseName: {
                   type: FunctionDeclarationSchemaType.STRING,
-                  description: 'The core standard noun in singular form used as a database key to group similar ingredients (e.g. if name is "rote Zwiebeln", baseName is "Zwiebel").',
+                  description: 'The core standard noun in singular form strictly in ENGLISH used as a universal database key to group similar ingredients across recipes in any language (e.g., if name is "rote Zwiebeln" or "oignons rouges", baseName MUST be "onion"; if name is "Eigelb", baseName MUST be "egg yolk"; if name is "Parmesan", baseName MUST be "parmesan").',
+                },
+                parentIngredient: {
+                  type: FunctionDeclarationSchemaType.OBJECT,
+                  description: 'Set ONLY if this ingredient is a derived component/part that is NOT bought separately as its own package in stores (e.g. for "Eigelb" or "Eiweiß", parentIngredient MUST be { "name": "Ei", "baseName": "egg", "unit": "Stück" }; for "Zitronenabrieb" or "Zitronensaft", parentIngredient MUST be { "name": "Zitrone", "baseName": "lemon", "unit": "Stück" }; for "Knoblauchzehe", parentIngredient MUST be { "name": "Knoblauch", "baseName": "garlic", "unit": "Zehe" }). Leave empty or null if the ingredient is already a standalone primary grocery item sold separately in stores (e.g. "Hähnchenbrust", "Hähnchenkeule", "Rinderhackfleisch", "Butter", "Parmesan" MUST leave parentIngredient empty/null).',
+                  properties: {
+                    name: {
+                      type: FunctionDeclarationSchemaType.STRING,
+                      description: 'The clean raw grocery product name in recipe language (e.g. "Ei", "Zitrone", "Knoblauch").',
+                    },
+                    baseName: {
+                      type: FunctionDeclarationSchemaType.STRING,
+                      description: 'The English baseName for the raw parent grocery product (e.g. "egg", "lemon", "garlic").',
+                    },
+                    unit: {
+                      type: FunctionDeclarationSchemaType.STRING,
+                      description: 'The default grocery unit (e.g. "Stück", "Knolle", "Zehe").',
+                    },
+                  },
+                  required: ['name', 'baseName'],
                 },
                 replacedOriginal: {
                   type: FunctionDeclarationSchemaType.STRING,
-                  description: 'If you replaced an ingredient from the original recipe during a remix, provide the original ingredient name here so it can be crossed out.',
+                  description: 'MUST be null or left empty for initial recipe extractions. Set ONLY during recipe remixes when an ingredient was explicitly replaced or modified from the original recipe.',
                 },
                 amount: {
                   type: FunctionDeclarationSchemaType.NUMBER,
@@ -141,7 +160,7 @@ const recipeSchema = {
           },
           description: {
             type: FunctionDeclarationSchemaType.STRING,
-            description: 'The detailed description of the instruction step.',
+            description: 'The concise, direct description of the instruction step (avoid conversational filler words and redundant details). Keep sentences short, clear, and action-oriented. Whenever an ingredient from the ingredients list is mentioned, tag it inline using [word in text](ing:baseName) (where baseName is the English baseName). Whenever a cooking duration/time span is mentioned, tag it inline using [time text](timer:duration_in_seconds). For example: "Das [Ei](ing:egg) mit dem [Parmesan](ing:parmesan) verrühren. Danach ca. [15 Minuten](timer:900) kochen lassen."',
           },
         },
         required: ['step', 'description'],
@@ -457,6 +476,15 @@ Key Constraints:
 11. Zero-Calorie & Low-Calorie Ingredients: Ingredients like water, ice, salt, or baking soda MUST have 0 calories, protein, carbs, and fat. For spices, seasonings, or herbs in small quantities (like teaspoons), focus your calculation energy on the high-calorie/high-macro ingredients (meats, oils, dairy, grains, starches) and estimate very small values (e.g., 5 kcal) or 0.
 12. Cooked vs. Raw/Dry States of Expandable Ingredients: ${COOKED_VS_RAW_INSTRUCTION}
 13. Common Pantry Staples: ${STAPLE_INGREDIENT_INSTRUCTION}${photoSourceRules}
+14. Inline Ingredient Tagging: In every step description, whenever an ingredient from the ingredients list is used or referenced, you MUST format its mention using the inline syntax '[exact word used in text](ing:baseName)'. 'baseName' MUST match the English 'baseName' (or 'name' if 'baseName' is not set) of the corresponding ingredient in the ingredients list. Examples:
+   - Ingredients: Eigelb (baseName: egg yolk), Ei (baseName: egg), Parmesan (baseName: parmesan)
+   - Step description: "Die [Eigelbe](ing:egg yolk) und das [Ei](ing:egg) zusammen mit dem [Parmesan](ing:parmesan) verrühren."
+   - Do NOT tag equipment or non-ingredient words. Make sure the brackets wrap the natural word as it appears in the sentence.
+15. Concise, Direct Instruction Steps: Write instruction step descriptions as short, clear, action-oriented sentences. Eliminate conversational filler words, narrative transitions, and redundancies. Split long multi-action steps into distinct, bite-sized steps so each step is easy to follow while cooking.
+16. Inline Timer Tagging: In every step description, whenever a cooking duration or time span is mentioned (e.g. "15 Minuten", "1,5 Stunden", "30 Sekunden"), you MUST format it using the inline syntax '[exact time text](timer:duration_in_seconds)'. Calculate the total duration in seconds and put it in the timer parameter. Examples:
+   - "Ca. [15 Minuten](timer:900) garen."
+   - "Für [1,5 Stunden](timer:5400) köcheln lassen."
+   - "Etwa [45 Sekunden](timer:45) anbraten."
 ${caption.trim() ? `\nDescription/Caption:\n"""\n${caption}\n"""` : ''}${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` : ''}`;
 
     contentParts.push(prompt);
@@ -497,6 +525,17 @@ ${caption.trim() ? `\nDescription/Caption:\n"""\n${caption}\n"""` : ''}${htmlCon
     }
     delete (recipe as any).hasExplicitNutritionalValues;
     delete (recipe as any).containsMultipleRecipes;
+
+    // Remove any hallucinated replacedOriginal fields during initial extractions
+    if (recipe.ingredients) {
+      recipe.ingredients.forEach(cat => {
+        if (cat.items) {
+          cat.items.forEach(ing => {
+            delete ing.replacedOriginal;
+          });
+        }
+      });
+    }
 
     // Clean up transcript if there were no spoken words
     if (

@@ -3,6 +3,7 @@ import { Check, Plus, Sparkles, Crown, Carrot } from 'lucide-react';
 import type { Ingredient, Recipe } from '../../types';
 import AiNotice from '../AiNotice';
 import { useI18n } from '../../context/I18nContext';
+import { getParentIngredient } from '../../utils/ingredientTaxonomy';
 
 interface RecipeIngredientsProps {
   recipe: Recipe;
@@ -89,6 +90,8 @@ export default function RecipeIngredients({
                   const name = ing.name;
                   const uniqueId = `${name}-${originalIdx}-${idx}`;
                   const isChecked = !!checkedIngredients[uniqueId];
+                  const parent = getParentIngredient(ing);
+                  const showParentBadge = parent && parent.name.toLowerCase().trim() !== name.toLowerCase().trim();
 
                   return (
                     <li
@@ -107,6 +110,11 @@ export default function RecipeIngredients({
                           <span className="text-xs text-red-500/70 line-through mx-1.5">{ing.replacedOriginal}</span>
                         )}
                         <span>{name}</span>
+                        {showParentBadge && (
+                          <span className="text-xs text-gray-400 dark:text-gray-400 ml-1 font-normal">
+                            {t('recipe.parentDerivedLabel', { parent: parent.name })}
+                          </span>
+                        )}
                         {ing.modifier && (
                           <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
                             ({ing.modifier})
