@@ -13,7 +13,7 @@
 Die detaillierte technische Dokumentation wurde modular in den Ordner [`docs/architecture/`](file:///c:/Users/lucas/source/repos/cookbook/docs/architecture) ausgelagert. Greife gezielt auf die entsprechenden Dateien zu, wenn du an den jeweiligen Modulen arbeitest:
 
 1. 📸 [**Scraping-Layer & Import-Kanäle**](file:///c:/Users/lucas/source/repos/cookbook/docs/architecture/scraping-and-imports.md)
-   * Apify Provider-Chain (`social-video-downloader` Actor & local `yt-dlp` Fallback)
+   * RapidAPI Scraper Provider (Primary), local `yt-dlp` & Apify Actor Fallbacks
    * Bilderkarussell-Posts (Multi-Image Slides) & Handle-Extraktion
    * Foto-Import (Rezeptkarten/Kochbuchseiten OCR, `photo://` synthetische URLs, Supabase `recipe-photos` Storage Hand-off)
 
