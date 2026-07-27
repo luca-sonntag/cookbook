@@ -79,7 +79,26 @@ const recipeSchema = {
                 },
                 baseName: {
                   type: FunctionDeclarationSchemaType.STRING,
-                  description: 'The core standard noun in singular form strictly in ENGLISH used as a universal database key to group similar ingredients across recipes in any language (e.g., if name is "rote Zwiebeln" or "oignons rouges", baseName MUST be "onion"; if name is "Eigelb", baseName MUST be "egg yolk" or "egg"; if name is "Parmesan", baseName MUST be "parmesan").',
+                  description: 'The core standard noun in singular form strictly in ENGLISH used as a universal database key to group similar ingredients across recipes in any language (e.g., if name is "rote Zwiebeln" or "oignons rouges", baseName MUST be "onion"; if name is "Eigelb", baseName MUST be "egg yolk"; if name is "Parmesan", baseName MUST be "parmesan").',
+                },
+                parentIngredient: {
+                  type: FunctionDeclarationSchemaType.OBJECT,
+                  description: 'Set ONLY if this ingredient is a derived component/part of a primary raw grocery product bought in the store (e.g. for "Eigelb" or "Eiweiß", parentIngredient MUST be { "name": "Ei", "baseName": "egg", "unit": "Stück" }; for "Zitronenabrieb" or "Zitronensaft", parentIngredient MUST be { "name": "Zitrone", "baseName": "lemon", "unit": "Stück" }; for "Knoblauchzehe", parentIngredient MUST be { "name": "Knoblauch", "baseName": "garlic", "unit": "Zehe" }). Leave empty or omit if the ingredient is already a raw primary grocery item.',
+                  properties: {
+                    name: {
+                      type: FunctionDeclarationSchemaType.STRING,
+                      description: 'The clean raw grocery product name in recipe language (e.g. "Ei", "Zitrone", "Knoblauch").',
+                    },
+                    baseName: {
+                      type: FunctionDeclarationSchemaType.STRING,
+                      description: 'The English baseName for the raw parent grocery product (e.g. "egg", "lemon", "garlic").',
+                    },
+                    unit: {
+                      type: FunctionDeclarationSchemaType.STRING,
+                      description: 'The default grocery unit (e.g. "Stück", "Knolle", "Zehe").',
+                    },
+                  },
+                  required: ['name', 'baseName'],
                 },
                 replacedOriginal: {
                   type: FunctionDeclarationSchemaType.STRING,
