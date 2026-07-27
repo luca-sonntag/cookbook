@@ -61,6 +61,16 @@ Der Rezept-Katalog ist als **Kochbuch mit drei Ebenen** aufgebaut:
 
 ---
 
+## 5. 🛒 Smarte Einkaufsliste & Zutat-Taxonomie (`useShoppingList.ts` & `ingredientTaxonomy.ts`)
+
+* **Generische Rohstoff-Konsolidierung (Parent Ingredients):**
+  * Rezepte behalten ihre präzisen Zubereitungszutaten (z. B. *2 Eigelb*, *1 TL Zitronenabrieb*, *3 Knoblauchzehen*).
+  * **Taxonomie-Engine (`ingredientTaxonomy.ts`):** Mapped Teilzutaten und Derivate automatisch auf übergeordnete Rohstoff-Einkaufsartikel (z. B. *Eigelb / Eiweiß ➔ Ei*, *Zitronenabrieb / Zitronensaft ➔ Zitrone*, *Knoblauchzehe ➔ Knoblauch*).
+  * **Aggregations-Logik (`useShoppingList.ts`):** Fasst Zutaten desselben Rohstoffs auf der Einkaufsliste zusammen (z. B. 2 Stück Eigelb + 1 Stück Ei = **3 Stück Ei**).
+  * **Sub-Item Breakdown UI (`ShoppingListItem.tsx`):** Blendet unter der aggregierten Hauptzeile die Zusammensetzung der Originalzutaten (z. B. *„(2 Stück Eigelb, 1 Stück Ei)“*) transparent ein.
+
+---
+
 ## 5. 💎 Freemium Gating System
 
 * **Tiers:** Free, Alpha, Premium (`user.app_metadata.tier`).
