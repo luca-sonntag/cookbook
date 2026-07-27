@@ -69,7 +69,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
     const rangeSeparator = `(?:–|—|-|bis|to|a|al|et|and|or|ve)`;
     const tempPattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*${rangeSeparator}\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:Fahrenheit|Celsius|stopniach|degrees|stopnie|stopnia|degree|grados|degrés|graden|derece|stopni|grado|degré|graus|gradi|grau|Grad|°[CF]?)(?![a-zA-Z0-9])`;
     const timePattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*${rangeSeparator}\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:Sekunden|segundos|secondes|Minuten|minutes|minutos|Stunden|godzina|godziny|seconds|secondi|sekunda|seconde|secondo|segundo|sekundy|minuti|dakika|minuts|minuta|minuto|minute|minuty|heures|godzin|stunde|saniye|sekund|second|minut|hours|horas|godz\\.|heure|min\\.|mins|hour|hora|std\\.|godz|uren|saat|sek\\.|secs|sec\\.|sec\\.|seg\\.|min|dk\\.|std|hrs|hr\\.|ore|ora|uur|sek|sec|seg|sn\\.|dk|hr|u\\.|h\\.|sn|u|h)(?![a-zA-Z0-9])`;
-    const inlineTagPattern = `\\[[^\\]]+\\]\\(ing:[^)]+\\)`;
+    const inlineTagPattern = `\\[[^\\]]+\\]\\((?:ing|timer):[^)]+\\)`;
 
     // Legacy terms building for equipment or untagged legacy recipes
     const legacyTerms: {
@@ -80,7 +80,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
     }[] = [];
 
     // Check if text has any inline tags
-    const hasInlineTags = /\[[^\]]+\]\(ing:[^)]+\)/.test(text);
+    const hasInlineTags = /\[[^\]]+\]\((?:ing|timer):[^)]+\)/.test(text);
 
     if (!hasInlineTags) {
       allIngredients.forEach(ing => {
@@ -134,11 +134,11 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
     return (
       <>
         {parts.map((part, index) => {
-          // 1. Check for Inline Tag: [word](ing:baseName)
-          const inlineMatch = part.match(/^\[([^\]]+)\]\(ing:([^)]+)\)$/);
-          if (inlineMatch) {
-            const wordInText = inlineMatch[1];
-            const targetBase = inlineMatch[2].trim().toLowerCase();
+          // 1a. Check for Inline Ingredient Tag: [word](ing:baseName)
+          const inlineIngMatch = part.match(/^\[([^\]]+)\]\(ing:([^)]+)\)$/);
+          if (inlineIngMatch) {
+            const wordInText = inlineIngMatch[1];
+            const targetBase = inlineIngMatch[2].trim().toLowerCase();
             const matchedIng = allIngredients.find(ing =>
               ing.baseName?.toLowerCase() === targetBase || ing.name.toLowerCase() === targetBase
             );
@@ -176,11 +176,42 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                           )}
                         </div>
                       ) : (
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{inlineMatch[2]}</span>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{inlineIngMatch[2]}</span>
                       )}
                     </Popover.Dialog>
                   </Popover.Content>
                 </Popover>
+              </span>
+            );
+          }
+
+          // 1b. Check for Inline Timer Tag: [time text](timer:seconds)
+          const inlineTimerMatch = part.match(/^\[([^\]]+)\]\(timer:(\d+)\)$/);
+          if (inlineTimerMatch) {
+            const timeText = inlineTimerMatch[1];
+            const seconds = parseInt(inlineTimerMatch[2], 10);
+            const canTimer = seconds >= 15;
+
+            return (
+              <span
+                key={index}
+                onClick={canTimer ? (e) => {
+                  e.stopPropagation();
+                  if (!isPremium) {
+                    setPremiumOpen(true);
+                    return;
+                  }
+                  setTimerSheet({ isOpen: true, seconds, label: text });
+                } : undefined}
+                className={`inline-flex items-center gap-0.5 font-semibold transition-all select-none ${
+                  canTimer
+                    ? 'text-blue-600 dark:text-blue-500 cursor-pointer hover:underline decoration-blue-500/30 underline-offset-4 active:scale-95'
+                    : 'text-gray-500 dark:text-gray-400 cursor-default'
+                }`}
+                title={canTimer ? 'Timer starten / Start timer' : undefined}
+              >
+                <Clock className="w-4 h-4 text-blue-500 dark:text-blue-400 shrink-0 inline align-text-bottom" />
+                {timeText}
               </span>
             );
           }
