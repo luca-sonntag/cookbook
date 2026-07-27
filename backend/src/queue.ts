@@ -7,7 +7,7 @@ import { downloadMedia } from './scrapers/download.js';
 import { extractRecipe, remixRecipe } from './gemini.js';
 import { pruneOldGeminiLogs } from './logger.js';
 import { isPhotoJobUrl, photoUploadIdFromUrl, downloadImportPhotos, deleteImportPhotos, sweepOldPhotoImports } from './photoImport.js';
-import type { Job, ProgressData } from './types.js';
+import type { Job } from './types.js';
 import { config } from './config.js';
 import { AppError, serializeJobError } from './errors.js';
 
