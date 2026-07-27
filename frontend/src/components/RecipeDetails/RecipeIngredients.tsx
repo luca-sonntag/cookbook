@@ -111,8 +111,8 @@ export default function RecipeIngredients({
                         )}
                         <span>{name}</span>
                         {showParentBadge && (
-                          <span className="inline-flex items-center ml-2 text-[10px] font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-500/15 px-2 py-0.5 rounded-full select-none align-middle whitespace-nowrap">
-                            {t('recipe.parentDerivedLabel', { parent: parent.name })}
+                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
+                            ({t('recipe.parentDerivedLabel', { parent: parent.name })})
                           </span>
                         )}
                         {ing.modifier && (
