@@ -111,7 +111,7 @@ export default function RecipeIngredients({
                         )}
                         <span>{name}</span>
                         {showParentBadge && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-1 font-normal">
+                          <span className="text-xs text-gray-400 dark:text-gray-400 ml-1 font-normal">
                             {t('recipe.parentDerivedLabel', { parent: parent.name })}
                           </span>
                         )}
