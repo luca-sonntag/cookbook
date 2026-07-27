@@ -141,7 +141,7 @@ const recipeSchema = {
           },
           description: {
             type: FunctionDeclarationSchemaType.STRING,
-            description: 'The concise, direct description of the instruction step (avoid conversational filler words and redundant details). Keep sentences short, clear, and action-oriented. Whenever an ingredient from the ingredients list is mentioned, tag it inline using the format [word in text](ing:baseName) where baseName is the English baseName of the ingredient. For example: "Das [Ei](ing:egg) mit dem [Parmesan](ing:parmesan) verrühren."',
+            description: 'The concise, direct description of the instruction step (avoid conversational filler words and redundant details). Keep sentences short, clear, and action-oriented. Whenever an ingredient from the ingredients list is mentioned, tag it inline using [word in text](ing:baseName) (where baseName is the English baseName). Whenever a cooking duration/time span is mentioned, tag it inline using [time text](timer:duration_in_seconds). For example: "Das [Ei](ing:egg) mit dem [Parmesan](ing:parmesan) verrühren. Danach ca. [15 Minuten](timer:900) kochen lassen."',
           },
         },
         required: ['step', 'description'],
@@ -462,6 +462,10 @@ Key Constraints:
    - Step description: "Die [Eigelbe](ing:egg yolk) und das [Ei](ing:egg) zusammen mit dem [Parmesan](ing:parmesan) verrühren."
    - Do NOT tag equipment or non-ingredient words. Make sure the brackets wrap the natural word as it appears in the sentence.
 15. Concise, Direct Instruction Steps: Write instruction step descriptions as short, clear, action-oriented sentences. Eliminate conversational filler words, narrative transitions, and redundancies. Split long multi-action steps into distinct, bite-sized steps so each step is easy to follow while cooking.
+16. Inline Timer Tagging: In every step description, whenever a cooking duration or time span is mentioned (e.g. "15 Minuten", "1,5 Stunden", "30 Sekunden"), you MUST format it using the inline syntax '[exact time text](timer:duration_in_seconds)'. Calculate the total duration in seconds and put it in the timer parameter. Examples:
+   - "Ca. [15 Minuten](timer:900) garen."
+   - "Für [1,5 Stunden](timer:5400) köcheln lassen."
+   - "Etwa [45 Sekunden](timer:45) anbraten."
 ${caption.trim() ? `\nDescription/Caption:\n"""\n${caption}\n"""` : ''}${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` : ''}`;
 
     contentParts.push(prompt);
