@@ -1,6 +1,7 @@
 import { Bell, X, Timer } from 'lucide-react';
 import { useTimerManager } from '../hooks/useTimerManager';
 import { useI18n } from '../context/I18nContext';
+import { stripInlineIngredientTags } from '../utils/ingredientMatch';
 
 /** Compute remaining seconds from a timer's endAt timestamp */
 function getRemainingSeconds(endAt: number): number {
@@ -73,7 +74,7 @@ export default function TimerBanner() {
 
                 <div className="flex flex-col min-w-0">
                   <span className="text-[11px] font-semibold text-white/85 truncate leading-snug">
-                    {timer.label}
+                    {stripInlineIngredientTags(timer.label)}
                   </span>
                   <span className="text-sm font-extrabold text-white tabular-nums leading-tight">
                     {isFinished
