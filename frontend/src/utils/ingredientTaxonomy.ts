@@ -8,33 +8,33 @@ interface KnownTaxonomyRule {
 
 const KNOWN_TAXONOMY_RULES: KnownTaxonomyRule[] = [
   {
-    targetNames: ['eigelb', 'eiweiß', 'eigelbe', 'eiweiße'],
-    targetBaseNames: ['egg yolk', 'egg white', 'egg-yolk', 'egg-white'],
+    targetNames: ['ei', 'eier', 'eigelb', 'eiweiß', 'eigelbe', 'eiweiße'],
+    targetBaseNames: ['egg', 'eggs', 'egg yolk', 'egg white', 'egg-yolk', 'egg-white'],
     parent: { name: 'Ei', baseName: 'egg', unit: 'Stück' },
   },
   {
-    targetNames: ['zitronenabrieb', 'zitronenschale', 'zitronensaft', 'zitronenabrieb (bio)'],
-    targetBaseNames: ['lemon zest', 'lemon juice', 'lemon peel'],
+    targetNames: ['zitrone', 'zitronen', 'zitronenabrieb', 'zitronenschale', 'zitronensaft', 'zitronenabrieb (bio)'],
+    targetBaseNames: ['lemon', 'lemons', 'lemon zest', 'lemon juice', 'lemon peel'],
     parent: { name: 'Zitrone', baseName: 'lemon', unit: 'Stück' },
   },
   {
-    targetNames: ['orangenabrieb', 'orangenschale', 'orangensaft'],
-    targetBaseNames: ['orange zest', 'orange juice', 'orange peel'],
+    targetNames: ['orange', 'orangen', 'orangenabrieb', 'orangenschale', 'orangensaft'],
+    targetBaseNames: ['orange', 'oranges', 'orange zest', 'orange juice', 'orange peel'],
     parent: { name: 'Orange', baseName: 'orange', unit: 'Stück' },
   },
   {
-    targetNames: ['limettenabrieb', 'limettenschale', 'limettensaft'],
-    targetBaseNames: ['lime zest', 'lime juice', 'lime peel'],
+    targetNames: ['limette', 'limetten', 'limettenabrieb', 'limettenschale', 'limettensaft'],
+    targetBaseNames: ['lime', 'limes', 'lime zest', 'lime juice', 'lime peel'],
     parent: { name: 'Limette', baseName: 'lime', unit: 'Stück' },
   },
   {
-    targetNames: ['knoblauchzehe', 'knoblauchzehen'],
-    targetBaseNames: ['garlic clove', 'garlic cloves'],
+    targetNames: ['knoblauch', 'knoblauchzehe', 'knoblauchzehen'],
+    targetBaseNames: ['garlic', 'garlic clove', 'garlic cloves'],
     parent: { name: 'Knoblauch', baseName: 'garlic', unit: 'Zehe' },
   },
   {
-    targetNames: ['hähnchenbrust', 'hähnchenkeule', 'hähncheninnenfilet', 'hähnchenbrustfilet'],
-    targetBaseNames: ['chicken breast', 'chicken thigh', 'chicken fillet'],
+    targetNames: ['hähnchen', 'huhn', 'hähnchenbrust', 'hähnchenkeule', 'hähncheninnenfilet', 'hähnchenbrustfilet'],
+    targetBaseNames: ['chicken', 'chicken breast', 'chicken thigh', 'chicken fillet'],
     parent: { name: 'Hähnchen', baseName: 'chicken', unit: 'g' },
   },
 ];

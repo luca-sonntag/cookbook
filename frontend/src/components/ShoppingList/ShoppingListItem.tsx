@@ -28,7 +28,8 @@ export default function ShoppingListItem({
 
   const animationClass = isCollapsing ? 'animate-item-collapse' : 'animate-item-expand';
 
-  const subItemsSummary = item.subItems && item.subItems.length > 0
+  const hasDistinctSubItems = item.subItems && item.subItems.some(s => s.name.toLowerCase().trim() !== item.name.toLowerCase().trim());
+  const subItemsSummary = hasDistinctSubItems && item.subItems
     ? item.subItems.map(s => `${formatItemAmount(s.amount, s.unit)} ${s.name}`).join(', ')
     : null;
 
