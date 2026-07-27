@@ -1,0 +1,163 @@
+import { Capacitor } from '@capacitor/core';
+import { PushNotifications } from '@capacitor/push-notifications';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { apiUrl } from './api';
+import { isNative } from './native';
+
+// ─── Smart AI push notifications (FCM) ────────────────────────────────────────
+//
+// Remote push is Android-only (Capacitor) and complements the local-notification
+// path in native.ts (which handles cooking timers). Registration captures the
+// FCM device token and hands it to the backend, which stores it and sends the
+// AI-generated pushes. Tapping a push routes into the app via `onTap`, mirroring
+// registerNotificationTap() for local notifications.
+
+const PUSH_CHANNEL_ID = 'ai-suggestions';
+
+let currentToken: string | null = null;
+let listenersBound = false;
+
+/** What a tapped push carries in its data payload (set by the backend worker). */
+export interface PushTapPayload {
+  type?: string;
+  jobId?: string;
+  route?: string;
+  remixIdea?: string;
+}
+
+async function ensureSuggestionsChannel(): Promise<void> {
+  if (Capacitor.getPlatform() !== 'android') return;
+  try {
+    await PushNotifications.createChannel({
+      id: PUSH_CHANNEL_ID,
+      name: 'Recipe suggestions',
+      description: 'Personalized recipe ideas from your cookbook',
+      importance: 4, // HIGH — heads-up banner
+      visibility: 1,
+      vibration: true,
+    });
+  } catch (err) {
+    console.warn('Failed to create push channel:', err);
+  }
+}
+
+/**
+ * POST the FCM token to the backend so this device can receive pushes. Requires
+ * an access token from the auth context. Best-effort — network failures are
+ * logged, not thrown (registration retries on the next app open).
+ */
+async function sendTokenToBackend(token: string, getAccessToken: () => Promise<string | null>): Promise<void> {
+  try {
+    const jwt = await getAccessToken();
+    if (!jwt) return;
+    const res = await fetch(apiUrl('/api/push/tokens'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
+      body: JSON.stringify({ token, platform: Capacitor.getPlatform() }),
+    });
+    if (!res.ok) console.warn('Failed to register push token:', res.status);
+  } catch (err) {
+    console.warn('Failed to register push token:', err);
+  }
+}
+
+/**
+ * Request permission and register this device for remote push. Returns `true`
+ * when registration was initiated (permission granted). No-op returning `false`
+ * on web. Safe to call repeatedly.
+ */
+export async function enablePushNotifications(
+  getAccessToken: () => Promise<string | null>,
+): Promise<boolean> {
+  if (!isNative()) return false;
+  try {
+    let perm = await PushNotifications.checkPermissions();
+    if (perm.receive === 'prompt' || perm.receive === 'prompt-with-rationale') {
+      perm = await PushNotifications.requestPermissions();
+    }
+    if (perm.receive !== 'granted') return false;
+
+    await ensureSuggestionsChannel();
+
+    // Bind the token/registration listeners exactly once before registering.
+    if (!listenersBound) {
+      listenersBound = true;
+      PushNotifications.addListener('registration', (token) => {
+        currentToken = token.value;
+        void sendTokenToBackend(token.value, getAccessToken);
+      });
+      PushNotifications.addListener('registrationError', (err) => {
+        console.warn('Push registration error:', err);
+      });
+    }
+
+    await PushNotifications.register();
+    return true;
+  } catch (err) {
+    console.warn('enablePushNotifications failed:', err);
+    return false;
+  }
+}
+
+/**
+ * Unregister this device: tell the backend to drop the token so no further
+ * pushes are sent here. Called when the user disables notifications in Settings.
+ */
+export async function disablePushNotifications(
+  getAccessToken: () => Promise<string | null>,
+): Promise<void> {
+  if (!isNative()) return;
+  const token = currentToken;
+  if (!token) return;
+  try {
+    const jwt = await getAccessToken();
+    if (!jwt) return;
+    await fetch(apiUrl('/api/push/tokens'), {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
+      body: JSON.stringify({ token }),
+    });
+  } catch (err) {
+    console.warn('disablePushNotifications failed:', err);
+  }
+}
+
+/**
+ * Register a handler for taps on a delivered push. Also shows a foreground push
+ * as a local notification so it isn't silently swallowed while the app is open.
+ * Returns a cleanup function. No-op on web.
+ */
+export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void): () => void {
+  if (!isNative()) return () => {};
+
+  const actionHandle = PushNotifications.addListener(
+    'pushNotificationActionPerformed',
+    (action) => {
+      onTap((action.notification.data ?? {}) as PushTapPayload);
+    },
+  );
+
+  // Foreground receipt: surface it as a local notification so the user still sees it.
+  const receivedHandle = PushNotifications.addListener('pushNotificationReceived', (notification) => {
+    const title = notification.title ?? '';
+    const body = notification.body ?? '';
+    if (!title && !body) return;
+    LocalNotifications.schedule({
+      notifications: [
+        {
+          id: Math.floor(Math.random() * 1_000_000) + 1000,
+          title,
+          body,
+          channelId: PUSH_CHANNEL_ID,
+          smallIcon: 'ic_stat_icon',
+          extra: notification.data ?? {},
+        },
+      ],
+    }).catch((err) => console.warn('Foreground push local-notification failed:', err));
+  });
+
+  return () => {
+    actionHandle.then((h) => h.remove()).catch(() => {});
+    receivedHandle.then((h) => h.remove()).catch(() => {});
+  };
+}

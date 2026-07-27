@@ -4,6 +4,7 @@ import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
 import type { Job } from './types';
 import { apiUrl } from './api';
 import { registerShareIntent, registerNotificationTap, hideSplashScreen, registerBackButtonHandler } from './native';
+import { registerPushTapHandler, enablePushNotifications } from './push';
 import { parseSharedUrl } from './utils/shareUrl';
 import ExtractForm, { type ExtractMode } from './components/ExtractForm';
 import ErrorBanner from './components/ErrorBanner';
@@ -427,6 +428,28 @@ export default function App() {
       dismissAllFinished();
     });
   }, [dismissAllFinished]);
+
+  // Smart AI push notifications: route taps into the app. A push carries a
+  // `jobId` (open that recipe), a `route` (e.g. the extract tab for reactivation
+  // nudges), or neither (just open the app).
+  useEffect(() => {
+    return registerPushTapHandler((payload) => {
+      if (payload.jobId) {
+        navigate('history', payload.jobId);
+      } else if (payload.route === 'extract') {
+        navigate('extract');
+      }
+    });
+  }, [navigate]);
+
+  // Re-register this device for remote push whenever a signed-in user has
+  // notifications enabled (refreshes the FCM token server-side on each launch).
+  useEffect(() => {
+    if (!user) return;
+    if (user.user_metadata?.notifications_enabled === true) {
+      void enablePushNotifications(getAccessToken);
+    }
+  }, [user, getAccessToken]);
 
   // Allow Settings to re-open the onboarding guide via a decoupled event,
   // avoiding threading the hook's state through props into SettingsView.

@@ -46,6 +46,25 @@ export interface Config {
   NTFY_TOPIC?: string;
   TELEGRAM_BOT_TOKEN?: string;
   TELEGRAM_CHAT_ID?: string;
+  // ── Smart AI push notifications ──
+  /** Master feature flag for the AI push-notification worker. Default off. */
+  NOTIFICATIONS_ENABLED: boolean;
+  /** Firebase project id that owns the FCM app (for the HTTP v1 endpoint). */
+  FCM_PROJECT_ID?: string;
+  /** Firebase service-account credentials as a JSON string, or a path to the JSON file. */
+  FCM_SERVICE_ACCOUNT_JSON?: string;
+  /** How often the notification worker tick runs, in minutes. */
+  NOTIFICATION_TICK_MINUTES: number;
+  /** Local-time hour (0-23) the daily send window opens. */
+  NOTIFICATION_SEND_WINDOW_START: number;
+  /** Local-time hour (0-23) the daily send window closes. */
+  NOTIFICATION_SEND_WINDOW_END: number;
+  /** Hard cap on notifications sent to one user per rolling 7 days (max 1/day is always enforced). */
+  NOTIFICATION_MAX_PER_WEEK: number;
+  /** IANA timezone used when a user has no notification_timezone set. */
+  NOTIFICATION_DEFAULT_TZ: string;
+  /** When true, the worker generates + logs but never actually sends to FCM (local testing). */
+  NOTIFICATION_DRY_RUN: boolean;
 }
 
 // Validation helper
@@ -93,6 +112,15 @@ export const config: Config = {
   NTFY_TOPIC: process.env.NTFY_TOPIC,
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
   TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID,
+  NOTIFICATIONS_ENABLED: getEnv('NOTIFICATIONS_ENABLED', 'false') === 'true',
+  FCM_PROJECT_ID: process.env.FCM_PROJECT_ID,
+  FCM_SERVICE_ACCOUNT_JSON: process.env.FCM_SERVICE_ACCOUNT_JSON,
+  NOTIFICATION_TICK_MINUTES: parseInt(getEnv('NOTIFICATION_TICK_MINUTES', '15'), 10),
+  NOTIFICATION_SEND_WINDOW_START: parseInt(getEnv('NOTIFICATION_SEND_WINDOW_START', '17'), 10),
+  NOTIFICATION_SEND_WINDOW_END: parseInt(getEnv('NOTIFICATION_SEND_WINDOW_END', '20'), 10),
+  NOTIFICATION_MAX_PER_WEEK: parseInt(getEnv('NOTIFICATION_MAX_PER_WEEK', '3'), 10),
+  NOTIFICATION_DEFAULT_TZ: getEnv('NOTIFICATION_DEFAULT_TZ', 'Europe/Vienna'),
+  NOTIFICATION_DRY_RUN: getEnv('NOTIFICATION_DRY_RUN', 'false') === 'true',
 };
 
 /**

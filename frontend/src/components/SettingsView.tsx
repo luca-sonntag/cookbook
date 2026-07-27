@@ -12,6 +12,7 @@ import { APP_VERSION_LABEL } from '../version';
 import { getActiveOtaVersion } from '../utils/otaUpdater';
 import { LEGAL_URLS } from '../legal';
 import PremiumUpgradeCard from './PremiumUpgradeCard';
+import NotificationSettings from './NotificationSettings';
 
 function SettingInfo({ text }: { text: string }) {
   return (
@@ -348,6 +349,9 @@ export default function SettingsView() {
 
         </div>
       </div>
+
+      {/* Notifications Section */}
+      <NotificationSettings />
 
       {/* Section: Admin */}
       {isAdmin && (

@@ -5,6 +5,7 @@ import { Recipe } from './types.js';
 import { writeGeminiLog, estimateCost, type TokenUsage } from './logger.js';
 import { AppError } from './errors.js';
 import { withRetry } from './retry.js';
+import type { Candidate } from './notifications/types.js';
 
 // Initialize Gemini Generative AI and File Manager
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -1264,5 +1265,116 @@ Respond in JSON only: {"chips":[{"category":"remix","label":"…","prompt":"…"
       input: { recipeId: recipe.id, recipeTitle: recipe.title },
     });
     return [];
+  }
+}
+
+export interface NotificationCopy {
+  title: string;
+  body: string;
+}
+
+/**
+ * Phrase a single push notification from a pre-selected candidate. The server
+ * has already decided *what* to say (type + raw slots); Gemini only turns those
+ * facts into a short, warm, non-spammy push in the user's language. This is the
+ * "hybrid" step — no selection happens here.
+ *
+ * Returns null on failure so the worker can simply skip this user for this tick
+ * (a template fallback is deliberately avoided to keep copy quality consistent).
+ */
+export async function generateNotificationCopy(
+  candidate: Candidate,
+  language: string = 'de',
+): Promise<NotificationCopy | null> {
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+  const langName = language === 'en' ? 'English' : 'German';
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: config.GEMINI_MODEL,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            title: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'Short push title, max ~40 chars, may include one fitting emoji.',
+            },
+            body: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'One-sentence push body, max ~120 chars, warm and inviting.',
+            },
+          },
+          required: ['title', 'body'],
+        },
+        temperature: 0.8,
+      } as any,
+    });
+
+    const prompt = `You write a single mobile push notification for "Snagbite", a personal recipe cookbook app.
+
+Goal: a short, warm, non-spammy nudge that makes the user want to cook a recipe they already saved. Never sound like an ad or use ALL CAPS. At most one emoji, only if it fits.
+
+Notification type: "${candidate.type}"
+Facts to use (do NOT invent anything beyond these):
+${JSON.stringify(candidate.slots)}
+
+Guidance by type:
+- seasonal / holiday_event: tie the saved recipe to the current season/occasion.
+- saved_reminder / dormant_rediscovery / anniversary: gently remind them of a recipe they saved a while ago.
+- collection_nudge: reference the collection name and how many recipes it holds.
+- weekday_suggestion / quick_win / occasion_servings: fit the day/time/effort.
+- taste_affinity / ingredient_spotlight / creator_affinity: reference the pattern in their cookbook.
+- nutrition_goal: mention the protein/nutrition angle.
+- remix_nudge: suggest transforming the recipe (use "remixIdea").
+- milestone: celebrate their saving streak/count (no specific recipe).
+- reactivation: encourage them to extract/save a new recipe (they have few or none).
+
+Both "title" and "body" MUST be in ${langName}.
+
+Respond in JSON only: {"title":"…","body":"…"}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const parsed = JSON.parse(text) as NotificationCopy;
+
+    const usageMeta = result.response.usageMetadata;
+    const tokenUsage: TokenUsage | undefined = usageMeta
+      ? {
+        promptTokens: usageMeta.promptTokenCount ?? 0,
+        candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+        totalTokens: usageMeta.totalTokenCount ?? 0,
+      }
+      : undefined;
+    const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
+
+    void writeGeminiLog({
+      timestamp,
+      requestType: 'notification_copy',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: true,
+      input: { type: candidate.type, category: candidate.category, jobId: candidate.jobId },
+      rawOutput: text,
+      tokenUsage,
+      costEstimate,
+    });
+
+    if (!parsed?.title || !parsed?.body) return null;
+    return { title: parsed.title.trim(), body: parsed.body.trim() };
+  } catch (err: any) {
+    console.error('[generateNotificationCopy] Error:', err?.message ?? err);
+    void writeGeminiLog({
+      timestamp,
+      requestType: 'notification_copy',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: false,
+      error: err?.message ?? String(err),
+      input: { type: candidate.type, category: candidate.category, jobId: candidate.jobId },
+    });
+    return null;
   }
 }
