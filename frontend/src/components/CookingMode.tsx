@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { Recipe, Ingredient } from '../types';
 import { useCookingMode } from '../hooks/useCookingMode';
+import { textMentionsTerm } from '../utils/ingredientMatch';
 import RecipeInstructionText from './RecipeInstructionText';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
@@ -129,27 +130,27 @@ export default function CookingMode({
     return recipe.ingredients ? recipe.ingredients.flatMap(g => g.items) : [];
   }, [recipe.ingredients]);
 
-  // Find ingredients mentioned in a specific step description
+  // Find ingredients mentioned in a specific step description.
+  // Matching is word-boundary based (see textMentionsTerm) so "Ei" never matches
+  // inside "Eigelb"/"Eiweiß", and entries are de-duplicated by normalized name.
   const getIngredientsForStep = (description: string) => {
     if (!description) return [];
     const mentioned: Ingredient[] = [];
-
-    const isMatch = (term: string | undefined, text: string) => {
-      if (!term) return false;
-      const lowerTerm = term.toLowerCase();
-      const lowerText = text.toLowerCase();
-
-      if (term.length <= 3) {
-        const escapedTerm = term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const regex = new RegExp(`(?<=^|[\\s.,:;!?()\\[\\]{}'"\\-\\/])${escapedTerm}(?=$|[\\s.,:;!?()\\[\\]{}'"\\-\\/])`, 'i');
-        return regex.test(text);
-      }
-      return lowerText.includes(lowerTerm);
-    };
+    const seen = new Set<string>();
 
     allIngredients.forEach(ing => {
-      if (isMatch(ing.baseName, description) || isMatch(ing.name, description)) {
-        if (!mentioned.some(m => m.name === ing.name)) {
+      const nameHit = textMentionsTerm(ing.name, description);
+      // Fall back to baseName only when it is specific enough (>= 4 chars) to
+      // avoid conflating distinct ingredients that share a generic base such as
+      // "Ei" (set on both "Eigelb" and "Eiweiß").
+      const baseHit = !nameHit
+        && (ing.baseName?.trim().length ?? 0) >= 4
+        && textMentionsTerm(ing.baseName, description);
+
+      if (nameHit || baseHit) {
+        const key = (ing.name || '').trim().toLowerCase();
+        if (key && !seen.has(key)) {
+          seen.add(key);
           mentioned.push(ing);
         }
       }
