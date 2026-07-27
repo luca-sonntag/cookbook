@@ -53,8 +53,8 @@ phrasing (the "hybrid" step — Gemini never selects, only writes copy).
 
 - `frontend/src/push.ts` — permission + `@capacitor/push-notifications`
   registration, token upload, foreground display, tap routing.
-- `frontend/src/components/NotificationSettings.tsx` — master toggle + the 5
-  opt-in group toggles (persisted to `user_metadata`).
+- `frontend/src/components/NotificationSettings.tsx` — single master toggle (persisted to `user_metadata`, enabling all 5 categories by default).
+- `frontend/src/components/NotificationPrompt.tsx` — soft opt-in consent prompt shown after N (>= 2) saved recipes, triggering OS notification permission and master toggle on agreement.
 - Android: `POST_NOTIFICATIONS` permission + FCM default icon/color/channel
   meta-data in `AndroidManifest.xml`; the `com.google.gms.google-services`
   plugin is already wired in `android/**/build.gradle` (applies only when

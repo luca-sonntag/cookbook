@@ -19,6 +19,7 @@ import WelcomeGuide from './components/WelcomeGuide';
 import AlphaWelcome from './components/AlphaWelcome';
 import AdminView from './components/AdminView';
 import TrialBanner from './components/TrialBanner';
+import NotificationPrompt from './components/NotificationPrompt';
 import PremiumModal from './components/PremiumModal';
 
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
@@ -608,6 +609,9 @@ export default function App() {
 
         {/* One-time trial banner for free users */}
         <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
+
+        {/* Soft opt-in notification prompt (triggered after N saved recipes) */}
+        {!isViewingRecipe && <NotificationPrompt savedCount={history.length} />}
 
         {/* ALWAYS-MOUNTED VIEWS — hidden via HTML `hidden` attribute (display:none)
             instead of conditional rendering. This preserves component state,

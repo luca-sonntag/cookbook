@@ -320,7 +320,15 @@ export const uiTranslations = {
       recipeReady: {
         title: 'Rezept bereit',
         body: 'Dein Rezept „{title}“ ist bereit zum Kochen!',
-      }
+      },
+      prompt: {
+        badge: 'Smarte Empfehlungen',
+        title: 'Willst du smarte Rezept-Tipps? 🍳',
+        description: 'Erhalte persönliche Ideen aus deinem Kochbuch – genau dann, wenn du Inspiration brauchst. Nie spammy, jederzeit abbestellbar.',
+        enable: 'Ja, gerne!',
+        later: 'Später',
+        dismiss: 'Benachrichtigungshinweis schließen',
+      },
     },
     auth: {
       signInTitle: 'Melde dich an, um deine Rezepte zu verwalten',
@@ -1022,7 +1030,15 @@ export const uiTranslations = {
       recipeReady: {
         title: 'Recipe Ready',
         body: 'Your recipe "{title}" is ready to cook!',
-      }
+      },
+      prompt: {
+        badge: 'Smart recommendations',
+        title: 'Want smart recipe tips? 🍳',
+        description: 'Get personalized ideas from your cookbook right when you need inspiration. Never spammy, turn off anytime.',
+        enable: 'Yes, please!',
+        later: 'Later',
+        dismiss: 'Dismiss notification hint',
+      },
     },
     auth: {
       signInTitle: 'Sign in to manage your recipes',

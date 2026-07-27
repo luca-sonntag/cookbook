@@ -7,30 +7,6 @@ import { isNative } from '../native';
 
 // The five opt-in groups. Ids match the backend NotificationCategory union.
 const CATEGORY_IDS = ['seasonal', 'reminders', 'timing', 'taste', 'motivation'] as const;
-type CategoryId = (typeof CATEGORY_IDS)[number];
-
-const CATEGORY_LABELS: Record<CategoryId, { de: string; en: string; descDe: string; descEn: string }> = {
-  seasonal: {
-    de: 'Saisonales & Anlässe', en: 'Seasonal & occasions',
-    descDe: 'Passend zu Jahreszeit und Feiertagen', descEn: 'Matched to the season and holidays',
-  },
-  reminders: {
-    de: 'Erinnerungen', en: 'Reminders',
-    descDe: 'Gespeicherte Rezepte, die auf dich warten', descEn: 'Saved recipes waiting for you',
-  },
-  timing: {
-    de: 'Zeit & Wochentag', en: 'Time & weekday',
-    descDe: 'Ideen passend zu Tag und Uhrzeit', descEn: 'Ideas that fit the day and time',
-  },
-  taste: {
-    de: 'Auf deinen Geschmack', en: 'Your taste',
-    descDe: 'Passend zu deinen Lieblingszutaten & -küchen', descEn: 'Based on your favorite ingredients & cuisines',
-  },
-  motivation: {
-    de: 'Meilensteine & Motivation', en: 'Milestones & motivation',
-    descDe: 'Kleine Anstöße und Erfolge', descEn: 'Little nudges and wins',
-  },
-};
 
 function Toggle({ on, onClick, disabled, label }: { on: boolean; onClick: () => void; disabled?: boolean; label: string }) {
   return (
@@ -60,12 +36,6 @@ export default function NotificationSettings() {
   const [busy, setBusy] = useState(false);
 
   const enabled = user?.user_metadata?.notifications_enabled === true;
-  const rawCategories = user?.user_metadata?.notification_categories;
-  const categories: Set<CategoryId> = new Set(
-    Array.isArray(rawCategories) && rawCategories.length > 0
-      ? (rawCategories.filter((c: string) => (CATEGORY_IDS as readonly string[]).includes(c)) as CategoryId[])
-      : CATEGORY_IDS,
-  );
 
   const timezone = (() => {
     try {
@@ -88,26 +58,14 @@ export default function NotificationSettings() {
         }
         await updateUserMetadata({
           notifications_enabled: true,
-          notification_categories: Array.from(categories),
+          notification_categories: Array.from(CATEGORY_IDS),
           ...(timezone ? { notification_timezone: timezone } : {}),
+          notification_prompt_dismissed: true,
         });
       } else {
         await disablePushNotifications(getAccessToken);
         await updateUserMetadata({ notifications_enabled: false });
       }
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleCategoryToggle = async (id: CategoryId) => {
-    if (busy) return;
-    const next = new Set(categories);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setBusy(true);
-    try {
-      await updateUserMetadata({ notification_categories: Array.from(next) });
     } finally {
       setBusy(false);
     }
@@ -121,7 +79,7 @@ export default function NotificationSettings() {
 
       <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
         {/* Master toggle */}
-        <div className="p-4 flex items-center justify-between gap-3 border-b border-black/5 dark:border-white/5">
+        <div className="p-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0">
               <Bell className="w-5 h-5" />
@@ -139,35 +97,6 @@ export default function NotificationSettings() {
           </div>
           <Toggle on={enabled} onClick={handleMasterToggle} disabled={busy} label="Toggle notifications" />
         </div>
-
-        {/* Category toggles (only when enabled) */}
-        {enabled &&
-          CATEGORY_IDS.map((id, idx) => {
-            const labels = CATEGORY_LABELS[id];
-            return (
-              <div
-                key={id}
-                className={`p-4 flex items-center justify-between gap-3 ${
-                  idx < CATEGORY_IDS.length - 1 ? 'border-b border-black/5 dark:border-white/5' : ''
-                }`}
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-                    {isDe ? labels.de : labels.en}
-                  </p>
-                  <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 font-medium">
-                    {isDe ? labels.descDe : labels.descEn}
-                  </p>
-                </div>
-                <Toggle
-                  on={categories.has(id)}
-                  onClick={() => handleCategoryToggle(id)}
-                  disabled={busy}
-                  label={`Toggle ${id}`}
-                />
-              </div>
-            );
-          })}
       </div>
     </div>
   );
