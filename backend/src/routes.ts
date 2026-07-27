@@ -5,7 +5,6 @@ import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
 import { getLlmMetrics } from './adminMetrics.js';
 import { AppError, sendAppError } from './errors.js';
-import type { Recipe, Ingredient, IngredientGroup, InstructionStep } from './types.js';
 import { randomUUID } from 'node:crypto';
 import { MAX_IMPORT_PHOTOS, deleteImportPhotos, photoJobUrl, uploadImportPhoto } from './photoImport.js';
 
@@ -1037,113 +1036,6 @@ apiRouter.patch('/jobs/:id/flags', async (req: Request, res: Response): Promise<
     res.status(200).json({ success: true, message: 'Custom flags updated.' });
   } catch (error: any) {
     if (!(error instanceof AppError)) console.error('Error updating custom flags:', error);
-    sendAppError(res, error);
-  }
-});
-
-/**
- * Merge a client-edited recipe onto the stored one. User-editable fields are
- * coerced into a safe shape; server-controlled fields (identity, images, lineage)
- * are always taken from the stored recipe so the client can never overwrite them.
- */
-function sanitizeEditedRecipe(incoming: any, original: Recipe): Recipe {
-  const str = (v: any, fallback = ''): string => (typeof v === 'string' ? v : fallback);
-  const num = (v: any): number | null => {
-    if (v === null || v === undefined || v === '') return null;
-    const n = typeof v === 'number' ? v : parseFloat(String(v).replace(',', '.'));
-    return Number.isFinite(n) ? n : null;
-  };
-
-  const sanitizeIngredient = (ing: any): Ingredient | null => {
-    const name = str(ing?.name).trim();
-    if (!name) return null;
-    const amount = num(ing?.amount);
-    return {
-      ...ing,
-      name,
-      amount: amount === null ? 0 : amount,
-      unit: str(ing?.unit).trim(),
-    };
-  };
-
-  const groups: IngredientGroup[] = Array.isArray(incoming?.ingredients)
-    ? incoming.ingredients
-        .map((g: any): IngredientGroup => ({
-          name: str(g?.name),
-          items: (Array.isArray(g?.items) ? g.items : [])
-            .map(sanitizeIngredient)
-            .filter((i: Ingredient | null): i is Ingredient => i !== null),
-        }))
-        .filter((g: IngredientGroup) => g.items.length > 0)
-    : original.ingredients;
-
-  const instructions: InstructionStep[] = Array.isArray(incoming?.instructions)
-    ? incoming.instructions
-        .map((s: any, i: number): InstructionStep => ({ step: i + 1, description: str(s?.description).trim() }))
-        .filter((s: InstructionStep) => s.description.length > 0)
-    : original.instructions;
-
-  const equipment: string[] = Array.isArray(incoming?.equipment)
-    ? incoming.equipment.map((e: any) => str(e).trim()).filter((e: string) => e.length > 0)
-    : original.equipment;
-
-  const servings = num(incoming?.servings);
-  const title = str(incoming?.title, original.title).trim() || original.title;
-  const notes = typeof incoming?.notes === 'string' ? incoming.notes.slice(0, 4000) : original.notes;
-
-  return {
-    ...original,
-    title,
-    description: str(incoming?.description, original.description),
-    servings: servings && servings > 0 ? servings : original.servings,
-    ingredients: groups,
-    instructions,
-    equipment,
-    tips: Array.isArray(incoming?.tips)
-      ? incoming.tips.map((tp: any) => str(tp)).filter((tp: string) => tp.length > 0)
-      : original.tips,
-    notes,
-    // Server-controlled fields — never trust the client for these.
-    id: original.id,
-    imageUrl: original.imageUrl ?? null,
-    imageUrls: original.imageUrls ?? (original.imageUrl ? [original.imageUrl] : []),
-    parentJobId: original.parentJobId,
-    parentRecipeTitle: original.parentRecipeTitle,
-    transcript: original.transcript ?? null,
-  };
-}
-
-/**
- * Endpoint to persist manual edits to a saved recipe's content.
- * PATCH /api/jobs/:id/recipe
- * Body: { recipe: Recipe }
- *
- * Lets the user directly edit ingredients, steps, servings, notes, etc. of a saved
- * recipe without going through the AI. Ownership is enforced via getJob; images and
- * lineage are preserved from the stored recipe.
- */
-apiRouter.patch('/jobs/:id/recipe', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const incoming = req.body?.recipe;
-
-    if (!incoming || typeof incoming !== 'object') {
-      throw new AppError('INVALID_FIELD', { params: { field: 'recipe' } });
-    }
-
-    const job = await getJob(id, req.userId!);
-    if (!job || !job.recipe) {
-      throw new AppError('RECIPE_NOT_FOUND');
-    }
-
-    const merged = sanitizeEditedRecipe(incoming, job.recipe);
-
-    await updateJob(id, { recipe: merged as any, status: 'completed' });
-
-    const updatedJob = await getJob(id, req.userId!);
-    res.status(200).json({ success: true, updatedRecipeJson: updatedJob?.recipe });
-  } catch (error: any) {
-    if (!(error instanceof AppError)) console.error('Error updating recipe:', error);
     sendAppError(res, error);
   }
 });

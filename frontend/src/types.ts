@@ -58,8 +58,6 @@ export interface Recipe {
   equipment: string[];
   nutritionalValues?: NutritionalValues;
   tips?: string[];
-  /** Free-form, user-authored notes about the recipe (distinct from AI `tips`). */
-  notes?: string;
   alternativeIngredients?: AlternativeIngredient[];
   transcript?: string | null;
   imageUrl?: string | null;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Star, Pencil } from 'lucide-react';
+import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Star } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeImageGallery from '../RecipeImageGallery';
 import { useI18n } from '../../context/I18nContext';
@@ -20,7 +20,6 @@ interface RecipeHeaderProps {
   parentRecipeTitle?: string | null;
   onAssignCollections?: () => void;
   onManageFlags?: () => void;
-  onEditRecipe?: () => void;
   flags?: string[];
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
@@ -40,7 +39,6 @@ export default function RecipeHeader({
   parentRecipeTitle,
   onAssignCollections,
   onManageFlags,
-  onEditRecipe,
   flags,
   isFavorite = false,
   onToggleFavorite,
@@ -91,19 +89,6 @@ export default function RecipeHeader({
             </Popover.Trigger>
             <Popover.Content placement="bottom end" className="p-1.5 min-w-[180px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
               <div className="flex flex-col w-full">
-                {onEditRecipe && (
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      onEditRecipe();
-                    }}
-                    className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
-                  >
-                    <Pencil className="w-4 h-4 text-emerald-500" />
-                    <span>{t('recipe.editRecipe')}</span>
-                  </button>
-                )}
-
                 {onAssignCollections && (
                   <button
                     onClick={() => {

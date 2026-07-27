@@ -17,7 +17,6 @@ import RecipeInstructions from './RecipeInstructions';
 import RecipeActionDock from './RecipeActionDock';
 import CookingMode from '../CookingMode';
 import RecipeCopilot from './RecipeCopilot';
-import RecipeEditor from './RecipeEditor';
 import { useAuth } from '../../context/AuthContext';
 import PremiumModal from '../PremiumModal';
 
@@ -86,7 +85,6 @@ export default function RecipeDetails({
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
   const { pendingNavigation, setPendingNavigation } = useTimerManager();
@@ -594,7 +592,6 @@ export default function RecipeDetails({
         parentRecipeTitle={parentRecipeTitle}
         onAssignCollections={onAssignCollections}
         onManageFlags={onManageFlags}
-        onEditRecipe={recipe.id && onReplaceCurrent ? () => setIsEditorOpen(true) : undefined}
         flags={flags}
         isFavorite={isFavorite}
         onToggleFavorite={onToggleFavorite}
@@ -717,15 +714,6 @@ export default function RecipeDetails({
           formatAmount={formatAmount}
           initialStepOverride={initialStepOverride}
           onRemixSuccess={onRemixSuccess}
-          onReplaceCurrent={onReplaceCurrent}
-        />
-      )}
-
-      {/* Manual Recipe Editor Overlay (mounted only while editing) */}
-      {isEditorOpen && recipe.id && onReplaceCurrent && (
-        <RecipeEditor
-          recipe={recipe}
-          onClose={() => setIsEditorOpen(false)}
           onReplaceCurrent={onReplaceCurrent}
         />
       )}
