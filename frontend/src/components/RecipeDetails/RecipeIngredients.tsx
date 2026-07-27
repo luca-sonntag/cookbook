@@ -92,6 +92,8 @@ export default function RecipeIngredients({
                   const isChecked = !!checkedIngredients[uniqueId];
                   const parent = getParentIngredient(ing);
                   const showParentBadge = parent && parent.name.toLowerCase().trim() !== name.toLowerCase().trim();
+                  const parentText = showParentBadge ? t('recipe.parentDerivedLabel', { parent: parent.name }) : null;
+                  const ingredientDetails = [parentText, ing.modifier].filter(Boolean).join(', ');
 
                   return (
                     <li
@@ -110,14 +112,9 @@ export default function RecipeIngredients({
                           <span className="text-xs text-red-500/70 line-through mx-1.5">{ing.replacedOriginal}</span>
                         )}
                         <span>{name}</span>
-                        {showParentBadge && (
+                        {ingredientDetails && (
                           <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
-                            ({t('recipe.parentDerivedLabel', { parent: parent.name })})
-                          </span>
-                        )}
-                        {ing.modifier && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
-                            ({ing.modifier})
+                            ({ingredientDetails})
                           </span>
                         )}
                         {ing.isStaple && (
