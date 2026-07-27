@@ -1,12 +1,9 @@
-import { useState } from 'react';
 import { Card, Button } from '@heroui/react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { resolveErrorCode } from '../i18n';
 import { isRetryableError } from '../errorCodes';
 import type { ErrorParams } from '../errorCodes';
-import PremiumHint from './PremiumHint';
-import PremiumModal from './PremiumModal';
 
 interface ErrorBannerProps {
   isPending: boolean;
@@ -28,22 +25,11 @@ export default function ErrorBanner({
   onRetry
 }: ErrorBannerProps) {
   const { t, language } = useI18n();
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
   if (isPending || jobStatus !== 'failed') return null;
 
   if (jobErrorCode === 'RATE_LIMIT_EXCEEDED') {
-    return (
-      <>
-        <PremiumHint
-          variant="banner"
-          onClick={() => setIsPremiumModalOpen(true)}
-          label={t('premium.hint.extractUnlimited')}
-          cta={t('premium.hint.upgrade')}
-        />
-        <PremiumModal isOpen={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen} />
-      </>
-    );
+    return null;
   }
 
   const canRetry = isRetryableError(jobErrorCode, jobError);
