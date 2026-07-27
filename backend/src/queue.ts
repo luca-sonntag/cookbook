@@ -446,11 +446,12 @@ export function startQueue(pollIntervalMs = 2000): void {
   // push. Fully gated by NOTIFICATIONS_ENABLED (no-ops otherwise). Runs in-process
   // with the worker so it reuses db/gemini/logger directly.
   if (config.NOTIFICATIONS_ENABLED) {
+    const runNotifTick = () => {
+      void notificationTick().catch((err) => console.error('[notifications] tick error:', err));
+    };
+    runNotifTick();
     const notifMs = Math.max(1, config.NOTIFICATION_TICK_MINUTES) * 60 * 1000;
-    notificationInterval = setInterval(
-      () => { void notificationTick().catch((err) => console.error('[notifications] tick error:', err)); },
-      notifMs,
-    );
+    notificationInterval = setInterval(runNotifTick, notifMs);
     console.log(`Smart notification worker started (every ${config.NOTIFICATION_TICK_MINUTES} min).`);
   }
 }
