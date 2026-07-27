@@ -7,7 +7,7 @@
 
 ## Improvements
 
-- Wenn Timer gestartet soll eine Android Notification erscheinen, die anzeigt das der Timer mit verbleibender Zeit läuft und eine Möglichkeit geben den Timer zu stoppen
+- Local first Server sync architektur
 
 - Collections sollen nicht jedes mal komplett neu geladen werden
 
