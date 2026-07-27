@@ -14,35 +14,6 @@ interface RecipeInstructionTextProps {
   stepNum?: number;
 }
 
-// ─── Time parsing helper ──────────────────────────────────────────────────────
-
-/**
- * Converts a matched time string like "15 Minuten", "1,5 Stunden", "30 min" into seconds.
- * Returns 0 if parsing fails.
- */
-function parseTimeToSeconds(timeStr: string): number {
-  const s = timeStr.toLowerCase().trim();
-
-  // Extract the first numeric value (supports decimals with . or ,)
-  const numMatch = s.match(/(\d+(?:[.,]\d+)?)/);
-  if (!numMatch) return 0;
-  const value = parseFloat(numMatch[1].replace(',', '.'));
-
-  // Detect unit
-  const isHour = /stunden?|hours?|heures?|horas?|ore|uur|saat|std\.?|hrs?\.?|h\.?|godz\.?|godzin|godziny\b/.test(s);
-  const isMinute = /minuten?|minutes?|minutos?|minuti|minuts?|minuty|minute?|minuta|minuty|dakika|min\.?|mins?\.?|dk\.?\b/.test(s);
-  const isSecond = /sekunden?|seconds?|segundos?|secondes?|secondi|sekunda|sekundy|sekund|sekunde|saniye|sek\.?|secs?\.?|sec\.?|seg\.?|sn\.?\b/.test(s);
-
-  if (isHour) return Math.round(value * 3600);
-  if (isMinute) return Math.round(value * 60);
-  if (isSecond) return Math.round(value);
-
-  // Fallback: treat as minutes if no unit detected
-  return Math.round(value * 60);
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export default function RecipeInstructionText({ text, recipe, formatAmount, stepNum }: RecipeInstructionTextProps) {
   const { t } = useI18n();
   const { isPremium } = useAuth();
@@ -62,13 +33,12 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
     return recipe.ingredients ? recipe.ingredients.flatMap(g => g.items) : [];
   }, [recipe.ingredients]);
 
-  // Highlights ingredients, equipment, temperatures, and time spans in instructions text
+  // Highlights ingredients, equipment, temperatures, and timers in instruction text
   const renderedContent = useMemo(() => {
     if (!text) return text;
 
     const rangeSeparator = `(?:–|—|-|bis|to|a|al|et|and|or|ve)`;
     const tempPattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*${rangeSeparator}\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:Fahrenheit|Celsius|stopniach|degrees|stopnie|stopnia|degree|grados|degrés|graden|derece|stopni|grado|degré|graus|gradi|grau|Grad|°[CF]?)(?![a-zA-Z0-9])`;
-    const timePattern = `\\b\\d+(?:[.,]\\d+)?(?:\\s*${rangeSeparator}\\s*\\d+(?:[.,]\\d+)?)?\\s*(?:Sekunden|segundos|secondes|Minuten|minutes|minutos|Stunden|godzina|godziny|seconds|secondi|sekunda|seconde|secondo|segundo|sekundy|minuti|dakika|minuts|minuta|minuto|minute|minuty|heures|godzin|stunde|saniye|sekund|second|minut|hours|horas|godz\\.|heure|min\\.|mins|hour|hora|std\\.|godz|uren|saat|sek\\.|secs|sec\\.|sec\\.|seg\\.|min|dk\\.|std|hrs|hr\\.|ore|ora|uur|sek|sec|seg|sn\\.|dk|hr|u\\.|h\\.|sn|u|h)(?![a-zA-Z0-9])`;
     const inlineTagPattern = `\\[[^\\]]+\\]\\((?:ing|timer):[^)]+\\)`;
 
     // Legacy terms building for equipment or untagged legacy recipes
@@ -79,7 +49,6 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
       info: string;
     }[] = [];
 
-    // Check if text has any inline tags
     const hasInlineTags = /\[[^\]]+\]\((?:ing|timer):[^)]+\)/.test(text);
 
     if (!hasInlineTags) {
@@ -127,14 +96,14 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
       return esc;
     });
 
-    const patterns = [inlineTagPattern, tempPattern, timePattern, ...escapedLegacyTerms].filter(Boolean);
+    const patterns = [inlineTagPattern, tempPattern, ...escapedLegacyTerms].filter(Boolean);
     const regex = new RegExp(`(${patterns.join('|')})`, 'gi');
 
     const parts = text.split(regex);
     return (
       <>
         {parts.map((part, index) => {
-          // 1a. Check for Inline Ingredient Tag: [word](ing:baseName)
+          // 1a. Inline Ingredient Tag: [word](ing:baseName)
           const inlineIngMatch = part.match(/^\[([^\]]+)\]\(ing:([^)]+)\)$/);
           if (inlineIngMatch) {
             const wordInText = inlineIngMatch[1];
@@ -185,7 +154,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
             );
           }
 
-          // 1b. Check for Inline Timer Tag: [time text](timer:seconds)
+          // 1b. Inline Timer Tag: [time text](timer:seconds)
           const inlineTimerMatch = part.match(/^\[([^\]]+)\]\(timer:(\d+)\)$/);
           if (inlineTimerMatch) {
             const timeText = inlineTimerMatch[1];
@@ -216,7 +185,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
             );
           }
 
-          // 2. Check for Temperature match
+          // 2. Temperature match
           const isTemp = new RegExp(`^${tempPattern}$`, 'i').test(part);
           if (isTemp) {
             return (
@@ -229,37 +198,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
             );
           }
 
-          // 3. Check for Timespan match — render as clickable timer trigger
-          const isTime = new RegExp(`^${timePattern}$`, 'i').test(part);
-          if (isTime) {
-            const seconds = parseTimeToSeconds(part);
-            const canTimer = seconds >= 15;
-
-            return (
-              <span
-                key={index}
-                onClick={canTimer ? (e) => {
-                  e.stopPropagation();
-                  if (!isPremium) {
-                    setPremiumOpen(true);
-                    return;
-                  }
-                  setTimerSheet({ isOpen: true, seconds, label: text });
-                } : undefined}
-                className={`inline-flex items-center gap-0.5 font-semibold transition-all select-none ${
-                  canTimer
-                    ? 'text-blue-600 dark:text-blue-500 cursor-pointer hover:underline decoration-blue-500/30 underline-offset-4 active:scale-95'
-                    : 'text-gray-500 dark:text-gray-400 cursor-default'
-                }`}
-                title={canTimer ? 'Timer starten / Start timer' : undefined}
-              >
-                <Clock className="w-4 h-4 text-blue-500 dark:text-blue-400 shrink-0 inline align-text-bottom" />
-                {part}
-              </span>
-            );
-          }
-
-          // 4. Legacy term match (Equipment or Untagged ingredient)
+          // 3. Legacy term match (Equipment or Untagged ingredient)
           const matched = uniqueLegacyTerms.find(t => part.toLowerCase() === t.term);
           if (matched) {
             const isIng = matched.type === 'ingredient';
