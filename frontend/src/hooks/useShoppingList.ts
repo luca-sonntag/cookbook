@@ -3,6 +3,7 @@ import type { Ingredient, ShoppingListItem, AggregatedShoppingItem } from '../ty
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
 import { useI18n } from '../context/I18nContext';
+import { getParentIngredient } from '../utils/ingredientTaxonomy';
 
 export function useShoppingList() {
   const { isPremium } = useAuth();
@@ -54,6 +55,7 @@ export function useShoppingList() {
         id: `${recipeId}-${encodeURIComponent(ing.name)}-${idx}-${Date.now()}`,
         name: ing.name,
         baseName: ing.baseName,
+        parentIngredient: ing.parentIngredient || getParentIngredient(ing) || undefined,
         modifier: ing.modifier,
         amount: ing.amount || 0,
         unit: ing.unit || '',
@@ -94,9 +96,14 @@ export function useShoppingList() {
 
     saveList(prevList =>
       prevList.map(item => {
-        const matchName = (item.baseName || item.name).toLowerCase().trim() === keyName;
-        const matchModifier = (item.modifier || '').toLowerCase().trim() === keyModifier;
-        if (matchName && matchModifier && item.unit.toLowerCase().trim() === keyUnit) {
+        const parent = getParentIngredient(item);
+        const effectiveKeyName = parent ? parent.baseName : (item.baseName || item.name);
+        const matchName = effectiveKeyName.toLowerCase().trim() === keyName;
+        const matchModifier = parent ? true : (item.modifier || '').toLowerCase().trim() === keyModifier;
+        const effectiveUnit = parent ? (parent.unit || item.unit) : item.unit;
+        const matchUnit = effectiveUnit.toLowerCase().trim() === keyUnit;
+
+        if (matchName && matchModifier && matchUnit) {
           return { ...item, checked: targetChecked };
         }
         return item;
@@ -112,9 +119,12 @@ export function useShoppingList() {
 
     saveList(prevList =>
       prevList.filter(item => {
-        const matchName = (item.baseName || item.name).toLowerCase().trim() === keyName;
-        const matchModifier = (item.modifier || '').toLowerCase().trim() === keyModifier;
-        const matchUnit = item.unit.toLowerCase().trim() === keyUnit;
+        const parent = getParentIngredient(item);
+        const effectiveKeyName = parent ? parent.baseName : (item.baseName || item.name);
+        const matchName = effectiveKeyName.toLowerCase().trim() === keyName;
+        const matchModifier = parent ? true : (item.modifier || '').toLowerCase().trim() === keyModifier;
+        const effectiveUnit = parent ? (parent.unit || item.unit) : item.unit;
+        const matchUnit = effectiveUnit.toLowerCase().trim() === keyUnit;
         return !(matchName && matchModifier && matchUnit);
       })
     );
@@ -130,14 +140,19 @@ export function useShoppingList() {
     saveList(prevList => prevList.filter(item => !item.checked));
   };
 
-  // Aggregate items: group by lowercase name and unit.
+  // Aggregate items: group by raw parent ingredient or lowercase name/unit.
   const aggregatedList = useMemo(() => {
     const uncheckedMap = new Map<string, AggregatedShoppingItem>();
     const checkedMap = new Map<string, AggregatedShoppingItem>();
 
     shoppingList.forEach(item => {
-      const groupKeyName = item.baseName || item.name;
-      const key = `${groupKeyName.toLowerCase().trim()}|${(item.modifier || '').toLowerCase().trim()}|${item.unit.toLowerCase().trim()}`;
+      const parent = getParentIngredient(item);
+      const groupKeyName = parent ? parent.baseName : (item.baseName || item.name);
+      const displayName = parent ? parent.name : item.name;
+      const displayUnit = parent ? (parent.unit || item.unit) : item.unit;
+      const displayModifier = parent ? undefined : item.modifier;
+
+      const key = `${groupKeyName.toLowerCase().trim()}|${(displayModifier || '').toLowerCase().trim()}|${displayUnit.toLowerCase().trim()}`;
       const targetMap = item.checked ? checkedMap : uncheckedMap;
 
       const existing = targetMap.get(key);
@@ -145,6 +160,19 @@ export function useShoppingList() {
         existing.amount += item.amount;
         if (!existing.category && item.category) {
           existing.category = item.category;
+        }
+        if (existing.subItems) {
+          const sub = existing.subItems.find(s => s.name.toLowerCase() === item.name.toLowerCase() && s.recipeTitle === item.recipeTitle);
+          if (sub) {
+            sub.amount += item.amount;
+          } else {
+            existing.subItems.push({
+              name: item.name,
+              amount: item.amount,
+              unit: item.unit,
+              recipeTitle: item.recipeTitle
+            });
+          }
         }
         // Avoid duplicate sources for the same recipe
         const hasSource = existing.sources.some(s => s.recipeId === item.recipeId);
@@ -163,11 +191,19 @@ export function useShoppingList() {
           }
         }
       } else {
-        targetMap.set(key, {
-          name: item.name, // Keep the display name of the first item
-          baseName: item.baseName,
-          modifier: item.modifier,
+        const initialSubItems = parent ? [{
+          name: item.name,
+          amount: item.amount,
           unit: item.unit,
+          recipeTitle: item.recipeTitle
+        }] : undefined;
+
+        targetMap.set(key, {
+          name: displayName,
+          baseName: groupKeyName,
+          parentIngredient: parent || undefined,
+          modifier: displayModifier,
+          unit: displayUnit,
           amount: item.amount,
           checked: item.checked,
           category: item.category,
@@ -176,7 +212,8 @@ export function useShoppingList() {
             recipeTitle: item.recipeTitle,
             amount: item.amount,
             unit: item.unit
-          }]
+          }],
+          subItems: initialSubItems
         });
       }
     });

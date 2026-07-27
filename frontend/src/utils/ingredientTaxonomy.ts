@@ -1,4 +1,4 @@
-import { Ingredient, ParentIngredientInfo } from '../types';
+import type { ParentIngredientInfo } from '../types';
 
 interface KnownTaxonomyRule {
   targetNames: string[];
