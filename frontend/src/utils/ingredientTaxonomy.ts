@@ -32,11 +32,6 @@ const KNOWN_TAXONOMY_RULES: KnownTaxonomyRule[] = [
     targetBaseNames: ['garlic', 'garlic clove', 'garlic cloves'],
     parent: { name: 'Knoblauch', baseName: 'garlic', unit: 'Zehe' },
   },
-  {
-    targetNames: ['hähnchen', 'huhn', 'hähnchenbrust', 'hähnchenkeule', 'hähncheninnenfilet', 'hähnchenbrustfilet'],
-    targetBaseNames: ['chicken', 'chicken breast', 'chicken thigh', 'chicken fillet'],
-    parent: { name: 'Hähnchen', baseName: 'chicken', unit: 'g' },
-  },
 ];
 
 /**
