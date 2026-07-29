@@ -56,33 +56,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# --- Git Pre-flight checks (only if run standalone) ---
-if ($env:SNAGBITE_DEPLOY_ORCHESTRATOR -ne "true") {
-    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-    Push-Location $repoRoot
-    try {
-        while ($true) {
-            $status = & git status --porcelain
-            if (-not $status) {
-                break
-            }
+. "$PSScriptRoot/git-utils.ps1"
 
-            Write-Host ""
-            Write-Host "WARNING: You have uncommitted changes in the repository:" -ForegroundColor Yellow
-            & git status -s
-            Write-Host ""
-            Write-Host "Please commit or stash your changes in another terminal before continuing." -ForegroundColor Yellow
-            Write-Host "Press Enter to check again, or type 'abort' to exit." -ForegroundColor Cyan
-            
-            $input = Read-Host "Choice"
-            if ($input.Trim().ToLower() -eq "abort") {
-                throw "Deployment aborted due to uncommitted changes."
-            }
-        }
-    } finally {
-        Pop-Location
-    }
-}
+# --- Git Pre-flight checks (only if run standalone) ---
+Assert-GitClean
 
 $frontendDir = Split-Path -Parent $PSScriptRoot
 $androidDir  = Join-Path $frontendDir 'android'
@@ -137,27 +114,20 @@ Write-Host "  [OK] Uploaded $($aab.Name) to the $Track track." -ForegroundColor 
 Write-Host "  URL: https://play.google.com/console" -ForegroundColor DarkGray
 Write-Host ""
 
-# --- 6. Commit and Push version.properties (only if run standalone) ---
+# --- 6. Commit, Merge to Master, and Tag (only if run standalone) ---
 if ($env:SNAGBITE_DEPLOY_ORCHESTRATOR -ne "true" -and -not $SkipBuild) {
-    $repoRoot = Split-Path -Parent $frontendDir
-    Push-Location $repoRoot
-    try {
-        $versionFileRel = "frontend/android/version.properties"
-        $diff = & git diff --name-only $versionFileRel
-        if ($diff) {
-            $versionContent = Get-Content $versionFileRel -Raw
-            $versionName = [regex]::Match($versionContent, 'VERSION_NAME=(.+)').Groups[1].Value.Trim()
-            $versionCode = [regex]::Match($versionContent, 'VERSION_CODE=(\d+)').Groups[1].Value.Trim()
+    $versionFileRel = "frontend/android/version.properties"
+    $repoRoot = Get-GitRepoRoot
+    $versionFilePath = Join-Path $repoRoot $versionFileRel
+    if (Test-Path $versionFilePath) {
+        $versionContent = Get-Content $versionFilePath -Raw
+        $versionName = [regex]::Match($versionContent, 'VERSION_NAME=(.+)').Groups[1].Value.Trim()
+        $versionCode = [regex]::Match($versionContent, 'VERSION_CODE=(\d+)').Groups[1].Value.Trim()
 
-            Write-Host "Committing version bump..." -ForegroundColor Yellow
-            & git add $versionFileRel
-            & git commit -m "chore(version): bump app version to $versionName ($versionCode)"
-            
-            $currentBranch = (& git branch --show-current).Trim()
-            Write-Host "Pushing version bump to origin $currentBranch..." -ForegroundColor Yellow
-            & git push origin $currentBranch
-        }
-    } finally {
-        Pop-Location
+        Invoke-GitMasterMergeAndTag `
+            -TagName "v$versionName" `
+            -TagMessage "App Release v$versionName (Code $versionCode)" `
+            -FileToCommit $versionFileRel `
+            -CommitMessage "chore(version): bump app version to $versionName ($versionCode)"
     }
 }

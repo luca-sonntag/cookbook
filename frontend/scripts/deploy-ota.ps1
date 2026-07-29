@@ -153,32 +153,10 @@ if ($Rollback) {
     exit 0
 }
 
-# --- Git Pre-flight checks (only if run standalone) ---
-if ($env:SNAGBITE_DEPLOY_ORCHESTRATOR -ne "true") {
-    Push-Location $repoRoot
-    try {
-        while ($true) {
-            $status = & git status --porcelain
-            if (-not $status) {
-                break
-            }
+. "$PSScriptRoot/git-utils.ps1"
 
-            Write-Host ""
-            Write-Host "WARNING: You have uncommitted changes in the repository:" -ForegroundColor Yellow
-            & git status -s
-            Write-Host ""
-            Write-Host "Please commit or stash your changes in another terminal before continuing." -ForegroundColor Yellow
-            Write-Host "Press Enter to check again, or type 'abort' to exit." -ForegroundColor Cyan
-            
-            $input = Read-Host "Choice"
-            if ($input.Trim().ToLower() -eq "abort") {
-                throw "Deployment aborted due to uncommitted changes."
-            }
-        }
-    } finally {
-        Pop-Location
-    }
-}
+# --- Git Pre-flight checks (only if run standalone) ---
+Assert-GitClean
 
 # ── 1. Frontend env guards ───────────────────────────────────────────
 # A loopback VITE_API_BASE_URL baked into an OTA bundle would brick networking
@@ -345,38 +323,13 @@ if ($NoActivate) {
 
 Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
 
-# ── 8. Create and Push Git Tag ────────────────────────────────────────
+# ── 8. Merge to Master and Tag ─────────────────────────────────────────
 
-Write-Host "[7/7] Creating and pushing Git tag..." -ForegroundColor Yellow
-Push-Location $repoRoot
-try {
-    $tagName = "v$bundleVersion"
-    $tagMessage = "OTA release $bundleVersion ($Channel channel)"
-
-    $tagExists = & git tag -l $tagName
-    if ($tagExists) {
-        Write-Host "  Tag $tagName already exists. Re-tagging..." -ForegroundColor Yellow
-        & git tag -d $tagName 2>$null | Out-Null
-        & git push origin --delete $tagName 2>$null | Out-Null
-    }
-
-    Write-Host "  Creating tag $tagName..." -ForegroundColor White
-    & git tag -a $tagName -m $tagMessage
-    if ($LASTEXITCODE -ne 0) { throw "git tag failed" }
-
-    $currentBranch = (& git branch --show-current).Trim()
-    if ($currentBranch) {
-        Write-Host "  Pushing tag $tagName to origin $currentBranch..." -ForegroundColor White
-        & git push origin $tagName
-        if ($LASTEXITCODE -ne 0) { throw "git push origin $tagName failed" }
-    } else {
-        Write-Host "  Pushing tag $tagName to origin..." -ForegroundColor White
-        & git push origin $tagName
-        if ($LASTEXITCODE -ne 0) { throw "git push origin $tagName failed" }
-    }
-    Write-Host "  [OK] Git tag $tagName created and pushed." -ForegroundColor Green
-} finally {
-    Pop-Location
+Write-Host "[7/7] Merging develop to master and pushing Git tag..." -ForegroundColor Yellow
+if ($env:SNAGBITE_DEPLOY_ORCHESTRATOR -ne "true") {
+    Invoke-GitMasterMergeAndTag `
+        -TagName "v$bundleVersion" `
+        -TagMessage "OTA release $bundleVersion ($Channel channel)"
 }
 
 Write-Host ""

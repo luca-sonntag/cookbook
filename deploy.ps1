@@ -57,44 +57,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# --- Safe Git Wrappers (preventing stderr false-positives under Stop policy) ---
-
-function Get-GitOutput {
-    param(
-        [string[]]$Arguments
-    )
-    $oldEap = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
-    try {
-        $output = & git $Arguments
-        $exitCode = $LASTEXITCODE
-        if ($exitCode -ne 0) {
-            throw "Git command failed with exit code ${exitCode}: git $Arguments"
-        }
-        return $output
-    } finally {
-        $ErrorActionPreference = $oldEap
-    }
-}
-
-function Run-Git {
-    param(
-        [string[]]$Arguments,
-        [switch]$IgnoreError
-    )
-    $oldEap = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
-    try {
-        & git $Arguments
-        $exitCode = $LASTEXITCODE
-        if ($exitCode -ne 0 -and -not $IgnoreError) {
-            throw "Git command failed with exit code ${exitCode}: git $Arguments"
-        }
-        return $exitCode
-    } finally {
-        $ErrorActionPreference = $oldEap
-    }
-}
+. "$PSScriptRoot/frontend/scripts/git-utils.ps1"
 
 # --- Frontend .env Safety Guard ---
 
@@ -163,30 +126,9 @@ $global:originalDevelopCommit = $null
 $global:rollbackNeeded = $false
 $global:rollbackTag = $null
 
-function Check-GitStatus {
-    while ($true) {
-        $status = Get-GitOutput -Arguments @("status", "--porcelain")
-        if (-not $status) {
-            break
-        }
-
-        Write-Host ""
-        Write-Host "WARNING: You have uncommitted changes in the repository:" -ForegroundColor Yellow
-        & git status -s
-        Write-Host ""
-        Write-Host "Please commit or stash your changes in another terminal before continuing." -ForegroundColor Yellow
-        Write-Host "Press Enter to check again, or type 'abort' to exit." -ForegroundColor Cyan
-        
-        $input = Read-Host "Choice"
-        if ($input.Trim().ToLower() -eq "abort") {
-            throw "Deployment aborted due to uncommitted changes."
-        }
-    }
-}
-
 function Initialize-GitState {
     # Check if working directory is clean, prompting the user if it isn't
-    Check-GitStatus
+    Assert-GitClean
 
     $global:originalBranch = (Get-GitOutput -Arguments @("branch", "--show-current")).ToString().Trim()
     $global:originalMasterCommit = (Get-GitOutput -Arguments @("rev-parse", "master")).ToString().Trim()
@@ -290,39 +232,7 @@ function Merge-AndDeployBackend {
     Write-Host "Discarding build-generated file modifications to ensure clean checkout..." -ForegroundColor Yellow
     Run-Git -Arguments @("checkout", "--", ".")
 
-    # Switch to master
-    Write-Host "Switching to master branch..." -ForegroundColor Yellow
-    Run-Git -Arguments @("checkout", "master")
-
-    # Pull latest master
-    Write-Host "Pulling latest master from remote..." -ForegroundColor Yellow
-    Run-Git -Arguments @("pull", "origin", "master")
-
-    # Merge develop into master
-    Write-Host "Merging develop into master..." -ForegroundColor Yellow
-    Run-Git -Arguments @("merge", "develop", "--no-edit")
-
-    # Check and manage tag
-    $tagExists = (Get-GitOutput -Arguments @("tag", "-l", "v$versionName"))
-    if ($tagExists) {
-        Write-Host "Tag v$versionName already exists locally/remotely. Re-tagging..." -ForegroundColor Yellow
-        Run-Git -Arguments @("tag", "-d", "v$versionName")
-        # Try to delete remote tag (best effort)
-        Run-Git -Arguments @("push", "origin", "--delete", "v$versionName") -IgnoreError
-    }
-
-    # Create tag
-    Write-Host "Creating release tag v$versionName..." -ForegroundColor Yellow
-    Run-Git -Arguments @("tag", "-a", "v$versionName", "-m", "Release v$versionName (Code $versionCode)")
-
-    # Push to origin (deploys backend on Railway)
-    Write-Host "Pushing master branch and tags to origin..." -ForegroundColor Yellow
-    Run-Git -Arguments @("push", "origin", "master")
-    Run-Git -Arguments @("push", "origin", "v$versionName")
-
-    # Switch back to original branch
-    Write-Host "Switching back to original branch $global:originalBranch..." -ForegroundColor Yellow
-    Run-Git -Arguments @("checkout", $global:originalBranch)
+    Invoke-GitMasterMergeAndTag -TagName "v$versionName" -TagMessage "Release v$versionName (Code $versionCode)"
 }
 
 # --- Main Entry Point ---
