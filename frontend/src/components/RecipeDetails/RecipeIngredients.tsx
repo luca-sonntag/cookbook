@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { Check, Plus, Sparkles, Crown, Carrot } from 'lucide-react';
+import { Check, Plus, Flame, Crown, Salad } from 'lucide-react';
 import type { Ingredient, Recipe } from '../../types';
 import AiNotice from '../AiNotice';
 import { useI18n } from '../../context/I18nContext';
@@ -8,8 +8,6 @@ import { getParentIngredient } from '../../utils/ingredientTaxonomy';
 interface RecipeIngredientsProps {
   recipe: Recipe;
   sortedIngredients: Array<{ group: { name: string; items: Ingredient[] }; originalIdx: number }>;
-  checkedIngredients: Record<string, boolean>;
-  toggleIngredient: (id: string) => void;
   showIngredientNutrition: boolean;
   onToggleIngredientNutrition: () => void;
   hasIngredientNutrition: boolean;
@@ -23,8 +21,6 @@ interface RecipeIngredientsProps {
 export default function RecipeIngredients({
   recipe,
   sortedIngredients,
-  checkedIngredients,
-  toggleIngredient,
   showIngredientNutrition,
   onToggleIngredientNutrition,
   hasIngredientNutrition,
@@ -44,29 +40,28 @@ export default function RecipeIngredients({
   return (
     <div className="flex flex-col gap-4 pb-4">
       <div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-            <Carrot className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+              <Salad className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('recipe.tabIngredients')}</h3>
+            {ingredientCount > 0 && (
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-full px-2.5 py-1 tabular-nums select-none">
+                {ingredientCount}
+              </span>
+            )}
           </div>
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('recipe.tabIngredients')}</h3>
-          {ingredientCount > 0 && (
-            <span className="ml-auto text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-full px-2.5 py-1 tabular-nums select-none">
-              {ingredientCount}
-            </span>
-          )}
-        </div>
-        {/* Header only carries the checklist hint. Servings stepper is managed at the top Details card. */}
-        <div className="flex flex-col gap-2 mb-4 pb-2">
           {hasIngredientNutrition && (
-            <div className="flex justify-start items-center gap-1.5">
+            <div className="flex items-center gap-1.5 ml-auto">
               <button
                 onClick={onToggleIngredientNutrition}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold select-none cursor-pointer transition-all border ${showIngredientNutrition
-                  ? 'bg-emerald-500/10 dark:bg-emerald-400/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:opacity-90'
-                  : 'bg-black/5 dark:bg-white/5 border-transparent text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium select-none cursor-pointer transition-all ${showIngredientNutrition
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
               >
-                <Sparkles className={`w-3.5 h-3.5 ${showIngredientNutrition ? 'text-emerald-500 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`} />
+                <Flame className={`w-3.5 h-3.5 ${showIngredientNutrition ? 'text-emerald-500' : 'text-gray-400 dark:text-gray-500'}`} />
                 <span>{t('recipe.showNutritionPerIngredient')}</span>
                 {!isPremium && <Crown className="w-3 h-3 text-amber-500 fill-amber-500 ml-0.5" />}
               </button>
@@ -74,82 +69,72 @@ export default function RecipeIngredients({
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-6">
-          {sortedIngredients.map(({ group, originalIdx }, sortedIdx) => (
-            <div key={sortedIdx} className="flex flex-col gap-2.5">
-              {recipe.ingredients.length > 1 && (
-                <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider px-3 border-l-2 border-emerald-500 flex items-center gap-1.5">
-                  <span>{translateCategory(group.name)}</span>
-                </h4>
-              )}
-              <ul className="flex flex-col gap-2">
-                {group.items.map((ing, idx) => {
-                  const scaledAmount = formatAmount(ing.amount, ing.unit);
-                  const amountStr = scaledAmount ? `${scaledAmount} ` : '';
-                  const unitStr = ing.unit ? `${ing.unit} ` : '';
-                  const name = ing.name;
-                  const uniqueId = `${name}-${originalIdx}-${idx}`;
-                  const isChecked = !!checkedIngredients[uniqueId];
-                  const parent = getParentIngredient(ing);
-                  const showParentBadge = parent && parent.name.toLowerCase().trim() !== name.toLowerCase().trim();
+        <Card className="glass-panel p-5 rounded-2xl flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
+            {sortedIngredients.map(({ group, originalIdx }, sortedIdx) => (
+              <div key={sortedIdx} className="flex flex-col gap-1.5">
+                {recipe.ingredients.length > 1 && (
+                  <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-2.5 border-l-2 border-gray-300 dark:border-gray-700 flex items-center gap-1.5 mt-2">
+                    <span>{translateCategory(group.name)}</span>
+                  </h4>
+                )}
+                <ul className="flex flex-col gap-1">
+                  {group.items.map((ing, idx) => {
+                    const scaledAmount = formatAmount(ing.amount, ing.unit);
+                    const amountStr = scaledAmount ? `${scaledAmount} ` : '';
+                    const unitStr = ing.unit ? `${ing.unit} ` : '';
+                    const name = ing.name;
+                    const uniqueId = `${name}-${originalIdx}-${idx}`;
+                    const parent = getParentIngredient(ing);
+                    const showParentBadge = parent && parent.name.toLowerCase().trim() !== name.toLowerCase().trim();
 
-                  return (
-                    <li
-                      key={uniqueId}
-                      onClick={() => toggleIngredient(uniqueId)}
-                      className="flex items-start gap-3.5 py-2 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
-                    >
-                      <div className={`w-5.5 h-5.5 rounded-md border flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
-                        }`}>
-                        {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
-                      </div>
-                      <span className={`text-sm select-none transition-all ${isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
-                        }`}>
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap flex-shrink-0">{amountStr}{unitStr}</span>
-                        {ing.replacedOriginal && (
-                          <span className="text-xs text-red-500/70 line-through mx-1.5">{ing.replacedOriginal}</span>
-                        )}
-                        <span>{name}</span>
-                        {showParentBadge && (
-                          <span className="text-xs text-gray-400 dark:text-gray-400 ml-1 font-normal">
-                            {t('recipe.parentDerivedLabel', { parent: parent.name })}
-                          </span>
-                        )}
-                        {ing.modifier && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
-                            ({ing.modifier})
-                          </span>
-                        )}
-                        {ing.isStaple && (
-                          <span className="inline-flex items-center ml-2 text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full uppercase tracking-wide select-none align-middle whitespace-nowrap no-underline">
-                            {t('recipe.staplePillLabel')}
-                          </span>
-                        )}
-                        {showIngredientNutrition && (() => {
-                          const parts = [];
-                          if (ing.calories) parts.push(`${Math.round(ing.calories * scaleFactor)} kcal`);
-                          if (ing.protein) parts.push(`${Math.round(ing.protein * scaleFactor * 10) / 10}g ${t('recipe.nutritionProteinShort')}`);
-                          if (ing.carbs) parts.push(`${Math.round(ing.carbs * scaleFactor * 10) / 10}g ${t('recipe.nutritionCarbsShort')}`);
-                          if (ing.fat) parts.push(`${Math.round(ing.fat * scaleFactor * 10) / 10}g ${t('recipe.nutritionFatShort')}`);
-
-                          if (parts.length === 0) return null;
-                          return (
-                            <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 font-medium select-none text-left">
-                              <span className="bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md inline-block">
-                                {parts.join(' | ')}
-                              </span>
+                    return (
+                      <li
+                        key={uniqueId}
+                        className="flex items-baseline gap-2 py-1"
+                      >
+                        <span className="w-20 text-right pr-2.5 border-r border-black/5 dark:border-white/10 font-semibold text-emerald-600 dark:text-emerald-400 text-sm whitespace-nowrap flex-shrink-0">{amountStr || '\u00A0'}{unitStr || '\u00A0'}</span>
+                        <div className="flex-1 text-sm text-gray-800 dark:text-gray-200 pl-1.5">
+                          {ing.replacedOriginal && (
+                            <span className="text-xs text-red-500/70 line-through mr-1.5">{ing.replacedOriginal}</span>
+                          )}
+                          <span>{name}</span>
+                          {showParentBadge && (
+                            <span className="text-xs text-gray-400 dark:text-gray-400 ml-1 font-normal">
+                              {t('recipe.parentDerivedLabel', { parent: parent.name })}
                             </span>
-                          );
-                        })()}
-                        {ing.notes && <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">{ing.notes}</span>}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
-        </div>
+                          )}
+                          {ing.modifier && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
+                              ({ing.modifier})
+                            </span>
+                          )}
+                          {showIngredientNutrition && (() => {
+                            const parts = [];
+                            if (ing.calories) parts.push(`${Math.round(ing.calories * scaleFactor)} kcal`);
+                            if (ing.protein) parts.push(`${Math.round(ing.protein * scaleFactor * 10) / 10}g ${t('recipe.nutritionProteinShort')}`);
+                            if (ing.carbs) parts.push(`${Math.round(ing.carbs * scaleFactor * 10) / 10}g ${t('recipe.nutritionCarbsShort')}`);
+                            if (ing.fat) parts.push(`${Math.round(ing.fat * scaleFactor * 10) / 10}g ${t('recipe.nutritionFatShort')}`);
+
+                            if (parts.length === 0) return null;
+                            return (
+                              <span className="block mt-1 text-[11px] text-gray-400 dark:text-gray-500 font-medium select-none text-left">
+                                <span className="bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md inline-block">
+                                  {parts.join(' | ')}
+                                </span>
+                              </span>
+                            );
+                          })()}
+                          {ing.notes && <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">{ing.notes}</span>}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </Card>
         {onAddIngredients && (
           <Button
             className={`w-full mt-5 py-3.5 rounded-xl font-semibold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-white h-12 text-sm ${isAdded ? 'bg-emerald-500' : 'bg-emerald-600 hover:bg-emerald-500'
