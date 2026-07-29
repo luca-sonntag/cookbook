@@ -61,12 +61,12 @@ export default function RecipeNutrition({
                   {t('recipe.nutritionCalories')}
                 </span>
               </div>
-              {/* Secondary: protein · carbs · fat — compact muted row */}
-              <div className="flex items-center gap-1.5 mt-0.5 text-[9px] sm:text-[10px] text-gray-400 dark:text-gray-500 tabular-nums">
+              {/* Secondary: protein · carbs · fat — slightly muted but readable */}
+              <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-gray-600 dark:text-gray-400 tabular-nums font-medium">
                 <span>{getNutritionDisplayValue(nutritionalValues.protein, 'g', false, true)} {t('recipe.nutritionProtein')}</span>
-                <span className="opacity-40">·</span>
+                <span className="opacity-30">·</span>
                 <span>{getNutritionDisplayValue(nutritionalValues.carbs, 'g', false, true)} {t('recipe.nutritionCarbs')}</span>
-                <span className="opacity-40">·</span>
+                <span className="opacity-30">·</span>
                 <span>{getNutritionDisplayValue(nutritionalValues.fat, 'g', false, true)} {t('recipe.nutritionFat')}</span>
               </div>
             </div>
