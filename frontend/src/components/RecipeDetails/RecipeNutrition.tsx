@@ -51,7 +51,7 @@ export default function RecipeNutrition({
             </div>
 
             {/* 4-column grid — calories prominent, macros secondary */}
-            <div className={`grid grid-cols-4 gap-1.5 text-left transition-all duration-300 ${!isPremium ? 'filter blur-sm select-none pointer-events-none opacity-30' : ''}`}>
+            <div className={`grid grid-cols-4 gap-1.5 text-left items-center transition-all duration-300 ${!isPremium ? 'filter blur-sm select-none pointer-events-none opacity-30' : ''}`}>
               {/* Calories — primary focal value */}
               <div>
                 <div className="text-gray-900 dark:text-white text-base font-bold tabular-nums leading-tight">
