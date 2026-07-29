@@ -204,3 +204,18 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('recipe-photos', 'recipe-photos', false)
 ON CONFLICT (id) DO NOTHING;
+
+
+-- --- soft-delete for jobs ---
+
+-- Jobs are never physically deleted; instead deleted_at is stamped.
+-- This prevents users from circumventing the rate-limit window by deleting
+-- completed extractions — getExtractionsForUserInTimeframe deliberately
+-- does NOT filter by deleted_at so soft-deleted jobs still consume quota.
+ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS deleted_at timestamptz DEFAULT NULL;
+
+-- Partial index: speeds up the most common query pattern (only live jobs).
+CREATE INDEX IF NOT EXISTS jobs_user_not_deleted_idx
+  ON public.jobs (user_id, created_at DESC)
+  WHERE deleted_at IS NULL;
+
