@@ -32,7 +32,7 @@ export default function RecipeNutrition({
     <>
       <div
         onClick={() => !isPremium && setIsPremiumModalOpen(true)}
-        className={`relative px-4.5 py-3.5 sm:px-5 sm:py-4 transition-all duration-300 ${
+        className={`relative py-4 px-4.5 sm:px-5 transition-all duration-300 ${
           !isPremium ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''
         }`}
       >
@@ -57,39 +57,39 @@ export default function RecipeNutrition({
               </span>
             </div>
 
-            {/* 4 Nutritional Values evenly spread */}
-            <div className={`grid grid-cols-4 gap-1 text-center text-xs transition-all duration-300 ${
+            {/* 4 Nutritional Values aligned left */}
+            <div className={`grid grid-cols-4 gap-1.5 text-left text-xs transition-all duration-300 ${
               !isPremium ? 'filter blur-sm select-none pointer-events-none opacity-30' : ''
             }`}>
               <div>
-                <div className="text-gray-900 dark:text-white text-xs sm:text-sm font-semibold tabular-nums">
+                <div className="text-gray-900 dark:text-white text-xs sm:text-sm font-bold tabular-nums">
                   {getNutritionDisplayValue(nutritionalValues.calories, 'kcal', false, false)}
                 </div>
-                <div className="text-[9px] sm:text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">
+                <div className="text-[9px] sm:text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                   {t('recipe.nutritionCalories')}
                 </div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white text-xs sm:text-sm font-semibold tabular-nums">
+                <div className="text-gray-900 dark:text-white text-xs sm:text-sm font-bold tabular-nums">
                   {getNutritionDisplayValue(nutritionalValues.protein, 'g', false, true)}
                 </div>
-                <div className="text-[9px] sm:text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">
+                <div className="text-[9px] sm:text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                   {t('recipe.nutritionProtein')}
                 </div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white text-xs sm:text-sm font-semibold tabular-nums">
+                <div className="text-gray-900 dark:text-white text-xs sm:text-sm font-bold tabular-nums">
                   {getNutritionDisplayValue(nutritionalValues.carbs, 'g', false, true)}
                 </div>
-                <div className="text-[9px] sm:text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">
+                <div className="text-[9px] sm:text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                   {t('recipe.nutritionCarbs')}
                 </div>
               </div>
               <div>
-                <div className="text-gray-900 dark:text-white text-xs sm:text-sm font-semibold tabular-nums">
+                <div className="text-gray-900 dark:text-white text-xs sm:text-sm font-bold tabular-nums">
                   {getNutritionDisplayValue(nutritionalValues.fat, 'g', false, true)}
                 </div>
-                <div className="text-[9px] sm:text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">
+                <div className="text-[9px] sm:text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                   {t('recipe.nutritionFat')}
                 </div>
               </div>
