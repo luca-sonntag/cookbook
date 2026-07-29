@@ -153,6 +153,33 @@ if ($Rollback) {
     exit 0
 }
 
+# --- Git Pre-flight checks (only if run standalone) ---
+if ($env:SNAGBITE_DEPLOY_ORCHESTRATOR -ne "true") {
+    Push-Location $repoRoot
+    try {
+        while ($true) {
+            $status = & git status --porcelain
+            if (-not $status) {
+                break
+            }
+
+            Write-Host ""
+            Write-Host "WARNING: You have uncommitted changes in the repository:" -ForegroundColor Yellow
+            & git status -s
+            Write-Host ""
+            Write-Host "Please commit or stash your changes in another terminal before continuing." -ForegroundColor Yellow
+            Write-Host "Press Enter to check again, or type 'abort' to exit." -ForegroundColor Cyan
+            
+            $input = Read-Host "Choice"
+            if ($input.Trim().ToLower() -eq "abort") {
+                throw "Deployment aborted due to uncommitted changes."
+            }
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
 # ── 1. Frontend env guards ───────────────────────────────────────────
 # A loopback VITE_API_BASE_URL baked into an OTA bundle would brick networking
 # on every device that installs it (same guard as deploy.ps1 for Play builds).
@@ -163,7 +190,7 @@ Write-Host "  |  Snagbite OTA Bundle Deployer            |" -ForegroundColor Cya
 Write-Host "  +------------------------------------------+" -ForegroundColor Cyan
 Write-Host ""
 
-Write-Host "[1/6] Validating frontend env..." -ForegroundColor Yellow
+Write-Host "[1/7] Validating frontend env..." -ForegroundColor Yellow
 
 $envPath = "$frontendDir\.env"
 $prodEnvPath = "$frontendDir\.env.production"
@@ -228,7 +255,7 @@ Write-Host "  Native version: $versionName ($versionCode) | minVersionCode: $Min
 
 # ── 3. Build frontend ────────────────────────────────────────────────
 
-Write-Host "[2/6] Building frontend..." -ForegroundColor Yellow
+Write-Host "[2/7] Building frontend..." -ForegroundColor Yellow
 Push-Location $frontendDir
 try {
     npm run build
@@ -240,7 +267,7 @@ Write-Host "  Frontend build complete." -ForegroundColor Green
 
 # ── 4. Next bundle version from DB: {VERSION_NAME}-ota.{n} ───────────
 
-Write-Host "[3/6] Deriving next bundle version..." -ForegroundColor Yellow
+Write-Host "[3/7] Deriving next bundle version..." -ForegroundColor Yellow
 $existing = Invoke-RestMethod -Method Get -Headers $restHeaders `
     -Uri "$supabaseUrl/rest/v1/app_bundles?channel=eq.$Channel&version=like.$versionName-ota.*&select=version"
 
@@ -260,7 +287,7 @@ Write-Host "  Bundle version: $bundleVersion" -ForegroundColor White
 # tar.exe (bsdtar) writes forward-slash entry paths; Compress-Archive on
 # PS 5.1 emits backslashes that break unzipping on Android.
 
-Write-Host "[4/6] Zipping dist/..." -ForegroundColor Yellow
+Write-Host "[4/7] Zipping dist/..." -ForegroundColor Yellow
 $distDir = "$frontendDir\dist"
 if (-not (Test-Path "$distDir\index.html")) {
     Write-Error "dist/index.html not found - build output looks wrong."
@@ -278,7 +305,7 @@ Write-Host "  SHA256: $checksum" -ForegroundColor White
 
 # ── 6. Upload to Supabase Storage ────────────────────────────────────
 
-Write-Host "[5/6] Uploading to app-bundles/$storagePath..." -ForegroundColor Yellow
+Write-Host "[5/7] Uploading to app-bundles/$storagePath..." -ForegroundColor Yellow
 $uploadHeaders = @{
     'apikey'        = $serviceKey
     'Authorization' = "Bearer $serviceKey"
@@ -292,7 +319,7 @@ Write-Host "  Upload complete." -ForegroundColor Green
 
 # ── 7. Insert row + activate ─────────────────────────────────────────
 
-Write-Host "[6/6] Registering bundle..." -ForegroundColor Yellow
+Write-Host "[6/7] Registering bundle..." -ForegroundColor Yellow
 $insertBody = @{
     channel          = $Channel
     version          = $bundleVersion
@@ -318,10 +345,45 @@ if ($NoActivate) {
 
 Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
 
+# ── 8. Create and Push Git Tag ────────────────────────────────────────
+
+Write-Host "[7/7] Creating and pushing Git tag..." -ForegroundColor Yellow
+Push-Location $repoRoot
+try {
+    $tagName = "v$bundleVersion"
+    $tagMessage = "OTA release $bundleVersion ($Channel channel)"
+
+    $tagExists = & git tag -l $tagName
+    if ($tagExists) {
+        Write-Host "  Tag $tagName already exists. Re-tagging..." -ForegroundColor Yellow
+        & git tag -d $tagName 2>$null | Out-Null
+        & git push origin --delete $tagName 2>$null | Out-Null
+    }
+
+    Write-Host "  Creating tag $tagName..." -ForegroundColor White
+    & git tag -a $tagName -m $tagMessage
+    if ($LASTEXITCODE -ne 0) { throw "git tag failed" }
+
+    $currentBranch = (& git branch --show-current).Trim()
+    if ($currentBranch) {
+        Write-Host "  Pushing tag $tagName to origin $currentBranch..." -ForegroundColor White
+        & git push origin $tagName
+        if ($LASTEXITCODE -ne 0) { throw "git push origin $tagName failed" }
+    } else {
+        Write-Host "  Pushing tag $tagName to origin..." -ForegroundColor White
+        & git push origin $tagName
+        if ($LASTEXITCODE -ne 0) { throw "git push origin $tagName failed" }
+    }
+    Write-Host "  [OK] Git tag $tagName created and pushed." -ForegroundColor Green
+} finally {
+    Pop-Location
+}
+
 Write-Host ""
 Write-Host "  [OK] OTA bundle published!" -ForegroundColor Green
 Write-Host "  Channel:  $Channel" -ForegroundColor White
 Write-Host "  Version:  $bundleVersion" -ForegroundColor White
+Write-Host "  Git Tag:  v$bundleVersion" -ForegroundColor White
 Write-Host "  Checksum: $checksum" -ForegroundColor White
 Write-Host "  URL:      $supabaseUrl/storage/v1/object/public/app-bundles/$storagePath" -ForegroundColor White
 Write-Host ""
