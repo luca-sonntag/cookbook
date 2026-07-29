@@ -43,18 +43,12 @@ export default function RecipeNutrition({
           </div>
 
           <div className="flex-1 min-w-0">
-            {/* Top Header Row: NÄHRWERTE label on left, pro Portion on right */}
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className={statLabel}>
-                  {t('recipe.nutritionTitle')}
-                </span>
-                {isAiEstimated && isPremium && <AiNotice type="badge" />}
-              </div>
-
-              <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded select-none flex-shrink-0">
-                {t('recipe.nutritionPerServing')}
+            {/* Top Header Row: NÄHRWERTE (PRO PORTION) label */}
+            <div className="flex items-center gap-1.5 min-w-0 mb-1">
+              <span className={statLabel}>
+                {t('recipe.nutritionTitle')} ({t('recipe.nutritionPerServing')})
               </span>
+              {isAiEstimated && isPremium && <AiNotice type="badge" />}
             </div>
 
             {/* 4 Nutritional Values aligned left with 14px (text-sm) font */}
