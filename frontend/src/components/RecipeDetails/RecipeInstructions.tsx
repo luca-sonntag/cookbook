@@ -47,36 +47,10 @@ export default function RecipeInstructions({
         )}
       </div>
 
-      {/* Main Cohesive Card Group (Equipment + Progress + Steps) */}
+      {/* Main Cohesive Card Group (Progress + Equipment + Steps) */}
       <div className="glass-panel rounded-2xl overflow-hidden">
-        {/* 1. Required Equipment */}
-        {recipe.equipment && recipe.equipment.length > 0 && (
-          <div className="px-5 py-4.5 sm:px-6 sm:py-5.5">
-            <div className="flex items-center gap-3.5 sm:gap-4">
-              <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                <Utensils className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500 mb-2 block">
-                  {t('recipe.requiredEquipment')}
-                </span>
-                <ul className="flex flex-wrap gap-2">
-                  {recipe.equipment.map((item, idx) => (
-                    <li
-                      key={idx}
-                      className="py-1 px-3.5 bg-black/5 dark:bg-white/5 rounded-full border border-black/5 dark:border-white/5 text-xs font-medium text-gray-700 dark:text-gray-300 select-none"
-                    >
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 2. Cooking Progress Bar & Start Button */}
-        <div className={`px-5 py-5 sm:px-6 sm:py-6 ${recipe.equipment && recipe.equipment.length > 0 ? 'border-t border-black/5 dark:border-white/5' : ''}`}>
+        {/* 1. Cooking Progress Bar & Start Button */}
+        <div className="px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex items-center gap-3.5 sm:gap-4">
             <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
               <ListChecks className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
@@ -111,6 +85,32 @@ export default function RecipeInstructions({
             </div>
           </div>
         </div>
+
+        {/* 2. Required Equipment */}
+        {recipe.equipment && recipe.equipment.length > 0 && (
+          <div className="px-5 py-4.5 sm:px-6 sm:py-5.5 border-t border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-3.5 sm:gap-4">
+              <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                <Utensils className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500 mb-2 block">
+                  {t('recipe.requiredEquipment')}
+                </span>
+                <ul className="flex flex-wrap gap-2">
+                  {recipe.equipment.map((item, idx) => (
+                    <li
+                      key={idx}
+                      className="py-1 px-3.5 bg-black/5 dark:bg-white/5 rounded-full border border-black/5 dark:border-white/5 text-xs font-medium text-gray-700 dark:text-gray-300 select-none"
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 3. Steps List with Dividers */}
         {recipe.instructions && recipe.instructions.length > 0 && (
