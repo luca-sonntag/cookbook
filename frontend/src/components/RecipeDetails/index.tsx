@@ -246,11 +246,8 @@ export default function RecipeDetails({
     const finalVal = isTotal ? numericVal * servings : numericVal;
 
     const displayUnit = originalUnit || unit;
-    const isKcal = displayUnit.toLowerCase() === 'kcal';
 
-    const rounded = isKcal
-      ? Math.round(finalVal)
-      : Math.round(finalVal * 10) / 10;
+    const rounded = Math.round(finalVal);
 
     if (includeUnit) {
       return `${rounded}${displayUnit}`;

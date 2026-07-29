@@ -491,7 +491,7 @@ export const uiTranslations = {
       nutritionTotal: 'Gesamt',
       nutritionCalories: 'kcal',
       nutritionProtein: 'Eiweiß',
-      nutritionCarbs: 'Kohlenhydrate',
+      nutritionCarbs: 'Kohlenh.',
       nutritionFat: 'Fett',
       nutritionProteinShort: 'E',
       nutritionCarbsShort: 'K',
