@@ -154,8 +154,9 @@ export default function RecipeDetails({
     const bar = document.getElementById('recipe-sticky-bar');
     const barHeight = bar?.offsetHeight ?? 44;
     const reserved = Math.max(barHeight, 96);
-    // Reduced padding offset so the scroll target matches the scroll-spy activation threshold precisely
-    const offset = stickyTopHeight + reserved - 4;
+    // Extra padding so the section heading lands below the sticky bar with
+    // a comfortable gap — keeps the tab switch and the visual starting point in sync.
+    const offset = stickyTopHeight + reserved + 20;
 
     const elementPosition = el.getBoundingClientRect().top + window.scrollY;
     window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
