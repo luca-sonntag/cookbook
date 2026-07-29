@@ -32,9 +32,8 @@ export default function RecipeNutrition({
     <>
       <div
         onClick={() => !isPremium && setIsPremiumModalOpen(true)}
-        className={`relative pt-2.5 pb-3 px-4.5 sm:px-5 transition-all duration-300 ${
-          !isPremium ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''
-        }`}
+        className={`relative pt-2.5 pb-3 px-4.5 sm:px-5 transition-all duration-300 ${!isPremium ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''
+          }`}
       >
         <div className="flex items-center gap-3">
           {/* Green Circle Badge matching Clock / Utensils / Users */}
@@ -44,7 +43,7 @@ export default function RecipeNutrition({
 
           <div className="flex-1 min-w-0">
             {/* Top Header Row: NÄHRWERTE (PRO PORTION) label */}
-            <div className="flex items-center gap-1.5 min-w-0 mb-1">
+            <div className="flex items-center gap-1.5 min-w-0">
               <span className={statLabel}>
                 {t('recipe.nutritionTitle')} ({t('recipe.nutritionPerServing')})
               </span>
@@ -52,9 +51,8 @@ export default function RecipeNutrition({
             </div>
 
             {/* 4 Nutritional Values aligned left with 14px (text-sm) font */}
-            <div className={`grid grid-cols-4 gap-1.5 text-left text-xs transition-all duration-300 ${
-              !isPremium ? 'filter blur-sm select-none pointer-events-none opacity-30' : ''
-            }`}>
+            <div className={`grid grid-cols-4 gap-1.5 text-left text-xs transition-all duration-300 ${!isPremium ? 'filter blur-sm select-none pointer-events-none opacity-30' : ''
+              }`}>
               <div>
                 <div className="text-gray-900 dark:text-white text-sm font-bold tabular-nums">
                   {getNutritionDisplayValue(nutritionalValues.calories, 'kcal', false, false)}
@@ -102,9 +100,9 @@ export default function RecipeNutrition({
         )}
       </div>
 
-      <PremiumModal 
-        isOpen={isPremiumModalOpen} 
-        onOpenChange={setIsPremiumModalOpen} 
+      <PremiumModal
+        isOpen={isPremiumModalOpen}
+        onOpenChange={setIsPremiumModalOpen}
       />
     </>
   );
