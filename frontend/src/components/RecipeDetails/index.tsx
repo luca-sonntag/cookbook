@@ -4,7 +4,6 @@ import { useRecipeScaling } from '../../hooks/useRecipeScaling';
 import { useRecipeProgress } from '../../hooks/useRecipeProgress';
 import { useRecipeNutrition } from '../../hooks/useRecipeNutrition';
 import { categoryOrder, legacyCategoryMap } from '../../i18n';
-import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
 import { useTimerManager } from '../../hooks/useTimerManager';
 
@@ -19,6 +18,7 @@ import CookingMode from '../CookingMode';
 import RecipeCopilot from './RecipeCopilot';
 import { useAuth } from '../../context/AuthContext';
 import PremiumModal from '../PremiumModal';
+import ShoppingConfirmSheet from './ShoppingConfirmSheet';
 
 interface RecipeDetailsProps {
   recipe: Recipe;
@@ -60,14 +60,11 @@ export default function RecipeDetails({
   isFavorite = false,
   onToggleFavorite
 }: RecipeDetailsProps) {
-  const dialog = useDialog();
   const { t, translateCategory } = useI18n();
 
   // Checklists state (persisted in localStorage)
   const {
-    checkedIngredients,
     checkedSteps,
-    toggleIngredient,
     toggleStep
   } = useRecipeProgress(recipe);
 
@@ -88,6 +85,8 @@ export default function RecipeDetails({
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
   const { pendingNavigation, setPendingNavigation } = useTimerManager();
+  const [isShoppingConfirmOpen, setIsShoppingConfirmOpen] = useState(false);
+  const [shouldNavigateAfterAdd, setShouldNavigateAfterAdd] = useState(false);
 
   const [activeSection, setActiveSection] = useState<'ingredients' | 'instructions' | 'details'>('details');
 
@@ -377,74 +376,27 @@ export default function RecipeDetails({
   }, [recipe.ingredients]);
 
   const handleAddToShoppingList = () => {
+    setShouldNavigateAfterAdd(false);
+    setIsShoppingConfirmOpen(true);
+  };
+
+  const handleAddAndNavigateToShoppingList = () => {
+    setShouldNavigateAfterAdd(true);
+    setIsShoppingConfirmOpen(true);
+  };
+
+  const handleConfirmShoppingListSelection = (itemsToAdd: Ingredient[]) => {
     if (!onAddIngredients) return;
-
-    const itemsToAdd: Ingredient[] = [];
-    sortedIngredients.forEach(({ group, originalIdx }) => {
-      group.items.forEach((ing, idx) => {
-        const uniqueId = `${ing.name}-${originalIdx}-${idx}`;
-        const isChecked = !!checkedIngredients[uniqueId];
-        if (!isChecked) {
-          const baseAmount = ing.amount || 0;
-          const scaledAmount = baseAmount * scaleFactor;
-          itemsToAdd.push({
-            name: ing.name,
-            amount: scaledAmount,
-            unit: ing.unit || '',
-            notes: ing.notes,
-            modifier: ing.modifier,
-            category: group.name
-          });
-        }
-      });
-    });
-
-    if (itemsToAdd.length === 0) {
-      dialog.alert({
-        title: t('recipe.alreadyAddedTitle'),
-        message: t('recipe.alreadyAddedMessage'),
-        status: 'warning'
-      });
-      return;
-    }
+    if (itemsToAdd.length === 0) return;
 
     const recipeId = recipe.id || recipe.title;
     onAddIngredients(itemsToAdd, recipeId, recipe.title);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
-  };
 
-  const handleAddAndNavigateToShoppingList = () => {
-    // Add ingredients silently (without warning alert) if there are any to add
-    const itemsToAdd: Ingredient[] = [];
-    sortedIngredients.forEach(({ group, originalIdx }) => {
-      group.items.forEach((ing, idx) => {
-        const uniqueId = `${ing.name}-${originalIdx}-${idx}`;
-        const isChecked = !!checkedIngredients[uniqueId];
-        if (!isChecked) {
-          const baseAmount = ing.amount || 0;
-          const scaledAmount = baseAmount * scaleFactor;
-          itemsToAdd.push({
-            name: ing.name,
-            amount: scaledAmount,
-            unit: ing.unit || '',
-            notes: ing.notes,
-            modifier: ing.modifier,
-            category: group.name
-          });
-        }
-      });
-    });
-
-    if (itemsToAdd.length > 0 && onAddIngredients) {
-      const recipeId = recipe.id || recipe.title;
-      onAddIngredients(itemsToAdd, recipeId, recipe.title);
-      setIsAdded(true);
-      setTimeout(() => setIsAdded(false), 2000);
+    if (shouldNavigateAfterAdd) {
+      onNavigateToShoppingList?.();
     }
-
-    // Always navigate
-    onNavigateToShoppingList?.();
   };
 
   // Build a human-readable ingredient line, e.g. "200 g Mehl (gesiebt) (Bio)"
@@ -645,8 +597,6 @@ export default function RecipeDetails({
           <RecipeIngredients
             recipe={recipe}
             sortedIngredients={sortedIngredients}
-            checkedIngredients={checkedIngredients}
-            toggleIngredient={toggleIngredient}
             showIngredientNutrition={isPremium && showIngredientNutrition}
             onToggleIngredientNutrition={handleToggleIngredientNutrition}
             hasIngredientNutrition={hasIngredientNutrition}
@@ -733,6 +683,17 @@ export default function RecipeDetails({
       <PremiumModal
         isOpen={isPremiumModalOpen}
         onOpenChange={setIsPremiumModalOpen}
+      />
+
+      {/* Shopping Confirm Drawer */}
+      <ShoppingConfirmSheet
+        isOpen={isShoppingConfirmOpen}
+        onClose={() => setIsShoppingConfirmOpen(false)}
+        recipe={recipe}
+        sortedIngredients={sortedIngredients}
+        scaleFactor={scaleFactor}
+        formatAmount={formatAmount}
+        onConfirm={handleConfirmShoppingListSelection}
       />
     </article>
   );
