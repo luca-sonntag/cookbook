@@ -1,4 +1,4 @@
-import { Card, Button } from '@heroui/react';
+import { Button } from '@heroui/react';
 import { Play, Sparkles, Check, ChefHat, CookingPot, Utensils } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeInstructionText from '../RecipeInstructionText';
@@ -34,7 +34,7 @@ export default function RecipeInstructions({
 
   return (
     <div className="flex flex-col gap-4 pb-4">
-      {/* Section Header (OUTSIDE cards) */}
+      {/* Section Header (OUTSIDE card) */}
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
           <CookingPot className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
@@ -47,103 +47,112 @@ export default function RecipeInstructions({
         )}
       </div>
 
-      {/* Equipment Card */}
-      {recipe.equipment && recipe.equipment.length > 0 && (
-        <Card className="glass-panel p-4 sm:p-4.5 rounded-2xl flex flex-col gap-2.5">
-          <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">
-            {t('recipe.requiredEquipment')}
-          </span>
-          <ul className="flex flex-wrap gap-2">
-            {recipe.equipment.map((item, idx) => (
-              <li
-                key={idx}
-                className="inline-flex items-center gap-1.5 py-1.5 px-3 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 dark:border-emerald-500/30 rounded-xl text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-2xs transition-all"
-              >
-                <Utensils className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
-
-      {/* Cooking Progress Bar & Start Button Card */}
-      <Card className="glass-panel p-4.5 sm:p-5 rounded-2xl flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div className="flex-1">
-            <div className="flex justify-between items-center mb-1.5">
-              <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">{t('recipe.cookingProgress')}</span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                {t('recipe.progressSteps', { completed: completedStepsCount, total: totalStepsCount, percent: Math.round(progressPercent) })}
+      {/* Main Cohesive Card Group (Equipment + Progress + Steps) */}
+      <div className="glass-panel rounded-2xl overflow-hidden">
+        {/* 1. Required Equipment */}
+        {recipe.equipment && recipe.equipment.length > 0 && (
+          <div className="px-4.5 py-4 sm:px-5">
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <Utensils className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+              <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">
+                {t('recipe.requiredEquipment')}
               </span>
             </div>
-            <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
-              <div
-                className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
+            <ul className="flex flex-wrap gap-2">
+              {recipe.equipment.map((item, idx) => (
+                <li
+                  key={idx}
+                  className="inline-flex items-center gap-1.5 py-1.5 px-3 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 dark:border-emerald-500/30 rounded-xl text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-2xs transition-all"
+                >
+                  <Utensils className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
+        )}
 
-          <Button
-            className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all flex-shrink-0 self-start sm:self-center"
-            onPress={onStartCooking}
-          >
-            <Play className="w-4 h-4 fill-white" />
-            <span>{t('recipe.startCooking')}</span>
-            {!isPremium && <PremiumCrownBadge />}
-          </Button>
-        </div>
-      </Card>
-
-      {/* Cooking Steps Card Container */}
-      {recipe.instructions && recipe.instructions.length > 0 && (
-        <Card className="glass-panel rounded-2xl overflow-hidden divide-y divide-black/5 dark:divide-white/5 border-none p-0">
-          {recipe.instructions.map((step) => {
-            const isChecked = !!checkedSteps[step.step];
-            const isActive = step.step === activeStepNum;
-
-            return (
-              <div
-                key={step.step}
-                onClick={() => toggleStep(step.step)}
-                className={`flex items-start gap-3.5 p-4 sm:p-4.5 cursor-pointer transition-all duration-200 ${
-                  isActive
-                    ? 'bg-emerald-500/10 dark:bg-emerald-500/15'
-                    : isChecked
-                      ? 'bg-black/[0.01] dark:bg-white/[0.01] opacity-65'
-                      : 'hover:bg-black/5 dark:hover:bg-white/5'
-                }`}
-              >
-                <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
-                  }`}>
-                  {isChecked ? (
-                    <Check className="w-3 h-3 text-white" />
-                  ) : (
-                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{step.step}</span>
-                  )}
+        {/* 2. Cooking Progress Bar & Start Button */}
+        <div className={`px-4.5 py-4 sm:px-5 ${recipe.equipment && recipe.equipment.length > 0 ? 'border-t border-black/5 dark:border-white/5' : ''}`}>
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div className="flex-1">
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">{t('recipe.cookingProgress')}</span>
                 </div>
-                <div className="flex-1 flex flex-col gap-1 min-w-0">
-                  {isActive && (
-                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 animate-pulse" />
-                      {t('recipe.currentStep')}
-                    </span>
-                  )}
-                  <span className={`text-sm leading-relaxed block select-none transition-all ${isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
-                    }`}>
-                    <RecipeInstructionText text={step.description} recipe={recipe} formatAmount={formatAmount} stepNum={step.step} />
-                  </span>
-                </div>
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                  {t('recipe.progressSteps', { completed: completedStepsCount, total: totalStepsCount, percent: Math.round(progressPercent) })}
+                </span>
               </div>
-            );
-          })}
-        </Card>
-      )}
+              <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+
+            <Button
+              className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all flex-shrink-0 self-start sm:self-center"
+              onPress={onStartCooking}
+            >
+              <Play className="w-4 h-4 fill-white" />
+              <span>{t('recipe.startCooking')}</span>
+              {!isPremium && <PremiumCrownBadge />}
+            </Button>
+          </div>
+        </div>
+
+        {/* 3. Steps List with Dividers */}
+        {recipe.instructions && recipe.instructions.length > 0 && (
+          <div className="border-t border-black/5 dark:border-white/5 divide-y divide-black/5 dark:divide-white/5">
+            {recipe.instructions.map((step) => {
+              const isChecked = !!checkedSteps[step.step];
+              const isActive = step.step === activeStepNum;
+
+              return (
+                <div
+                  key={step.step}
+                  onClick={() => toggleStep(step.step)}
+                  className={`flex items-start gap-3.5 px-4.5 py-4 sm:px-5 cursor-pointer transition-all duration-200 ${
+                    isActive
+                      ? 'bg-emerald-500/10 dark:bg-emerald-500/15'
+                      : isChecked
+                        ? 'bg-black/[0.01] dark:bg-white/[0.01] opacity-65'
+                        : 'hover:bg-black/5 dark:hover:bg-white/5'
+                  }`}
+                >
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-black/20 dark:border-white/20'
+                    }`}>
+                    {isChecked ? (
+                      <Check className="w-3 h-3 text-white" />
+                    ) : (
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{step.step}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 flex flex-col gap-1 min-w-0">
+                    {isActive && (
+                      <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 animate-pulse" />
+                        {t('recipe.currentStep')}
+                      </span>
+                    )}
+                    <span className={`text-sm leading-relaxed block select-none transition-all ${isChecked ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'
+                      }`}>
+                      <RecipeInstructionText text={step.description} recipe={recipe} formatAmount={formatAmount} stepNum={step.step} />
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Tips Card */}
       {recipe.tips && recipe.tips.length > 0 && (
-        <Card className="glass-panel p-4.5 sm:p-5 rounded-2xl border border-emerald-500/10">
+        <div className="glass-panel p-4.5 sm:p-5 rounded-2xl border border-emerald-500/10">
           <h3 className="text-xs font-bold text-emerald-500 mb-3 uppercase tracking-wider flex items-center gap-1.5">
             <ChefHat className="w-4 h-4" />
             <span>{t('recipe.tipsTitle')}</span>
@@ -158,7 +167,7 @@ export default function RecipeInstructions({
               </li>
             ))}
           </ul>
-        </Card>
+        </div>
       )}
     </div>
   );
