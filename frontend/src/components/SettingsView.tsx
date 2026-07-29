@@ -43,7 +43,7 @@ const getInitials = (email?: string) => {
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
-  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, setIsPremiumOverride, isAdmin } = useAuth();
+  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, isPremiumOverride, setIsPremiumOverride, isAdmin } = useAuth();
   const dialog = useDialog();
   const { navigate } = useHashRouter();
   const [theme, setTheme] = useTheme();
@@ -522,16 +522,16 @@ export default function SettingsView() {
           </div>
           <button
             type="button"
-            onClick={() => setIsPremiumOverride(!isPremium)}
+            onClick={() => setIsPremiumOverride(!isPremiumOverride)}
             className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none border-2 shrink-0 ${
-              isPremium
+              isPremiumOverride
                 ? 'bg-violet-500 border-violet-500'
                 : 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600'
             }`}
             aria-label="Toggle simulate premium"
           >
             <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-              isPremium ? 'translate-x-6' : 'translate-x-0'
+              isPremiumOverride ? 'translate-x-6' : 'translate-x-0'
             }`} />
           </button>
         </div>
