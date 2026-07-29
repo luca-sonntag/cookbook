@@ -52,54 +52,63 @@ export default function RecipeInstructions({
         {/* 1. Required Equipment */}
         {recipe.equipment && recipe.equipment.length > 0 && (
           <div className="px-4.5 py-4 sm:px-5">
-            <div className="flex items-center gap-1.5 mb-2.5">
-              <Utensils className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-              <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">
-                {t('recipe.requiredEquipment')}
-              </span>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                <Utensils className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500 mb-1.5 block">
+                  {t('recipe.requiredEquipment')}
+                </span>
+                <ul className="flex flex-wrap gap-1.5">
+                  {recipe.equipment.map((item, idx) => (
+                    <li
+                      key={idx}
+                      className="py-1 px-3 bg-black/5 dark:bg-white/5 rounded-full border border-black/5 dark:border-white/5 text-xs font-medium text-gray-700 dark:text-gray-300 select-none"
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-            <ul className="flex flex-wrap gap-1.5">
-              {recipe.equipment.map((item, idx) => (
-                <li
-                  key={idx}
-                  className="py-1 px-3 bg-black/5 dark:bg-white/5 rounded-full border border-black/5 dark:border-white/5 text-xs font-medium text-gray-700 dark:text-gray-300 select-none"
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
           </div>
         )}
 
         {/* 2. Cooking Progress Bar & Start Button */}
         <div className={`px-4.5 py-4 sm:px-5 ${recipe.equipment && recipe.equipment.length > 0 ? 'border-t border-black/5 dark:border-white/5' : ''}`}>
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-            <div className="flex-1">
-              <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <ListChecks className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">{t('recipe.cookingProgress')}</span>
-                </div>
-                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                  {t('recipe.progressSteps', { completed: completedStepsCount, total: totalStepsCount, percent: Math.round(progressPercent) })}
-                </span>
-              </div>
-              <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+              <ListChecks className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
             </div>
 
-            <Button
-              className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all flex-shrink-0 self-start sm:self-center"
-              onPress={onStartCooking}
-            >
-              <Play className="w-4 h-4 fill-white" />
-              <span>{t('recipe.startCooking')}</span>
-              {!isPremium && <PremiumCrownBadge />}
-            </Button>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">{t('recipe.cookingProgress')}</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                      {t('recipe.progressSteps', { completed: completedStepsCount, total: totalStepsCount, percent: Math.round(progressPercent) })}
+                    </span>
+                  </div>
+                  <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all flex-shrink-0 self-start sm:self-center"
+                  onPress={onStartCooking}
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  <span>{t('recipe.startCooking')}</span>
+                  {!isPremium && <PremiumCrownBadge />}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 
