@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { Play, Sparkles, Check, ChefHat, CookingPot, Utensils, ListChecks } from 'lucide-react';
+import { Play, Sparkles, Check, ChefHat, Utensils, ListChecks } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeInstructionText from '../RecipeInstructionText';
 import { useI18n } from '../../context/I18nContext';
@@ -37,7 +37,7 @@ export default function RecipeInstructions({
       {/* Section Header (OUTSIDE card) */}
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-          <CookingPot className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
+          <ChefHat className="w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400" />
         </div>
         <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('recipe.stepByStep')}</h3>
         {totalStepsCount > 0 && (
