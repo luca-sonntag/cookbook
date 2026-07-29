@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { Play, Sparkles, Check, ChefHat, CookingPot, Utensils } from 'lucide-react';
+import { Play, Sparkles, Check, ChefHat, CookingPot, Utensils, ListChecks } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeInstructionText from '../RecipeInstructionText';
 import { useI18n } from '../../context/I18nContext';
@@ -58,14 +58,13 @@ export default function RecipeInstructions({
                 {t('recipe.requiredEquipment')}
               </span>
             </div>
-            <ul className="flex flex-wrap gap-2">
+            <ul className="flex flex-wrap gap-1.5">
               {recipe.equipment.map((item, idx) => (
                 <li
                   key={idx}
-                  className="inline-flex items-center gap-1.5 py-1.5 px-3 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 dark:border-emerald-500/30 rounded-xl text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-2xs transition-all"
+                  className="py-1 px-3 bg-black/5 dark:bg-white/5 rounded-full border border-black/5 dark:border-white/5 text-xs font-medium text-gray-700 dark:text-gray-300 select-none"
                 >
-                  <Utensils className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                  <span>{item}</span>
+                  {item}
                 </li>
               ))}
             </ul>
@@ -78,7 +77,7 @@ export default function RecipeInstructions({
             <div className="flex-1">
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                  <ListChecks className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                   <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">{t('recipe.cookingProgress')}</span>
                 </div>
                 <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
