@@ -8,16 +8,14 @@ import { Lock, Flame } from 'lucide-react';
 interface RecipeNutritionProps {
   nutritionalValues: any;
   isAiEstimated: boolean;
-  showTotalNutrition: boolean;
-  onToggleTotalNutrition: (isTotal: boolean) => void;
+  showTotalNutrition?: boolean;
+  onToggleTotalNutrition?: (isTotal: boolean) => void;
   getNutritionDisplayValue: (val: any, unit?: string, isTotal?: boolean, includeUnit?: boolean) => string;
 }
 
 export default function RecipeNutrition({
   nutritionalValues,
   isAiEstimated,
-  showTotalNutrition,
-  onToggleTotalNutrition,
   getNutritionDisplayValue
 }: RecipeNutritionProps) {
   const { t } = useI18n();
@@ -36,7 +34,7 @@ export default function RecipeNutrition({
           !isPremium ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''
         }`}
       >
-        {/* Top row with Flame icon badge + dezent title on left, switcher on right */}
+        {/* Top row with Flame icon badge + dezent title on left, static pro Portion label on right */}
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className={iconBadge}>
@@ -50,36 +48,10 @@ export default function RecipeNutrition({
             </div>
           </div>
           
-          {/* Subtle Portion / Gesamt Switcher */}
-          <div 
-            onClick={(e) => !isPremium && e.stopPropagation()}
-            className={`inline-flex bg-black/5 dark:bg-white/5 p-0.5 rounded-lg border border-black/5 dark:border-white/5 select-none flex-shrink-0 ${
-              !isPremium ? 'opacity-50 pointer-events-none' : ''
-            }`}
-          >
-            <button
-              type="button"
-              onClick={() => onToggleTotalNutrition(false)}
-              className={`px-2.5 py-1 rounded-md text-[11px] transition-all cursor-pointer outline-none border-none text-center ${
-                !showTotalNutrition
-                  ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
-              }`}
-            >
-              {t('recipe.nutritionPerServing')}
-            </button>
-            <button
-              type="button"
-              onClick={() => onToggleTotalNutrition(true)}
-              className={`px-2.5 py-1 rounded-md text-[11px] transition-all cursor-pointer outline-none border-none text-center ${
-                showTotalNutrition
-                  ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
-              }`}
-            >
-              {t('recipe.nutritionTotal')}
-            </button>
-          </div>
+          {/* Subtle static badge */}
+          <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-md select-none flex-shrink-0">
+            {t('recipe.nutritionPerServing')}
+          </span>
         </div>
 
         {/* Nutritional Values Grid */}
@@ -87,19 +59,19 @@ export default function RecipeNutrition({
           !isPremium ? 'filter blur-sm select-none pointer-events-none opacity-30' : ''
         }`}>
           <div>
-            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.calories, 'kcal', showTotalNutrition, false)}</div>
+            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.calories, 'kcal', false, false)}</div>
             <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionCalories')}</div>
           </div>
           <div>
-            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.protein, 'g', showTotalNutrition, true)}</div>
+            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.protein, 'g', false, true)}</div>
             <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionProtein')}</div>
           </div>
           <div>
-            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.carbs, 'g', showTotalNutrition, true)}</div>
+            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.carbs, 'g', false, true)}</div>
             <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionCarbs')}</div>
           </div>
           <div>
-            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.fat, 'g', showTotalNutrition, true)}</div>
+            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.fat, 'g', false, true)}</div>
             <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionFat')}</div>
           </div>
         </div>
