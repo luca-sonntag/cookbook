@@ -16,3 +16,4 @@ temp-downloads/
 .claude/
 *.afdesign*
 frontend/releases/
+*firebase-adminsdk*.json
