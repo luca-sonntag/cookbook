@@ -114,7 +114,7 @@ export default function RecipeInstructions({
                 <div
                   key={step.step}
                   onClick={() => toggleStep(step.step)}
-                  className={`flex items-start gap-3.5 px-4.5 py-4 sm:px-5 cursor-pointer transition-all duration-200 ${
+                  className={`flex items-start gap-4 sm:gap-4.5 px-5 py-5.5 sm:px-6 sm:py-6 cursor-pointer transition-all duration-200 ${
                     isActive
                       ? 'bg-emerald-500/10 dark:bg-emerald-500/15'
                       : isChecked
