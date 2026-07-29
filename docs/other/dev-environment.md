@@ -21,8 +21,7 @@ Preview-URL am PR  ──►  am Handy öffnen  ──►  Test-User bereits ein
 
 Der native Android-Build (Play Store) ist davon **unberührt** — der Web-Preview ist nur der
 schnelle Test-Loop. Native-only Funktionen (nativer Google-Login, RevenueCat-Kauf, lokale
-Notifications) laufen im Browser nicht; der Test-User-Login und der `kb_simulate_premium`-Dev-
-Override decken das für Feature-Tests ab.
+Notifications) laufen im Browser nicht; der Test-User-Login deckt das für Feature-Tests ab.
 
 ---
 

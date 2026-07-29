@@ -39,7 +39,7 @@ let isWebShareProcessed = false;
 export default function App() {
   const dialog = useDialog();
   const { t } = useI18n();
-  const { user, loading: authLoading, getAccessToken, isPremiumOverride } = useAuth();
+  const { user, loading: authLoading, getAccessToken } = useAuth();
 
   // ── URL-based routing ────────────────────────────────────────────────────
   const { tab: activeView, subPath, navigate, replace } = useHashRouter();
@@ -211,7 +211,7 @@ export default function App() {
     triggerPhotoExtraction,
     limitStatus,
     fetchLimitStatus
-  } = useRecipeExtraction(getAccessToken, handleExtractionSuccess, isPremiumOverride);
+  } = useRecipeExtraction(getAccessToken, handleExtractionSuccess);
 
   // Which input channel the Extract tab is showing (shared link vs. own photos).
   const [extractMode, setExtractMode] = useState<ExtractMode>('link');
@@ -342,7 +342,7 @@ export default function App() {
     if (initialSyncDone && activeView === 'extract' && user) {
       fetchLimitStatus();
     }
-  }, [activeView, user, isPremiumOverride, fetchLimitStatus, initialSyncDone]);
+  }, [activeView, user, fetchLimitStatus, initialSyncDone]);
 
   // Hide native splash screen when app is fully ready
   useEffect(() => {

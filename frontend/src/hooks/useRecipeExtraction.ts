@@ -48,7 +48,7 @@ export const MAX_IMPORT_PHOTOS = 5;
  */
 const MAX_PHOTOS_TOTAL_CHARS = 8_000_000;
 
-export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void, isPremiumOverride?: boolean) {
+export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void) {
   const { t } = useI18n();
   const { user, refreshSession } = useAuth();
   const [isPending, setIsPending] = useState(false);
@@ -74,9 +74,6 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       const headers: Record<string, string> = {
         'Authorization': `Bearer ${token}`
       };
-      if (isPremiumOverride) {
-        headers['X-Simulate-Premium'] = 'true';
-      }
 
       const response = await fetch(apiUrl('/api/extractions/limit'), {
         headers
@@ -103,7 +100,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     } catch (err) {
       console.warn('Failed to fetch rate limit status:', err);
     }
-  }, [getAccessToken, isPremiumOverride, user, refreshSession]);
+  }, [getAccessToken, user, refreshSession]);
 
   const validateUrl = useCallback((testUrl: string): boolean => {
     const trimmed = testUrl.trim();
@@ -256,9 +253,6 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       };
-      if (isPremiumOverride) {
-        headers['X-Simulate-Premium'] = 'true';
-      }
 
       const body = await buildBody();
 
@@ -298,7 +292,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       setJobErrorParams(typed?.params ?? null);
       setIsPending(false);
     }
-  }, [getAccessToken, startPolling, fetchLimitStatus, isPremiumOverride]);
+  }, [getAccessToken, startPolling, fetchLimitStatus]);
 
   const triggerExtraction = useCallback(async (targetUrl: string) => {
     const cleanUrl = targetUrl.trim();

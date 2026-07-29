@@ -88,7 +88,7 @@ export default function ExtractForm({
   isUploadingPhotos
 }: ExtractFormProps) {
   const { t } = useI18n();
-  const { user, isPremium, isPremiumOverride, hasTrialAvailable, trialDays, trialLoading } = useAuth();
+  const { user, isPremium, hasTrialAvailable, trialDays, trialLoading } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
   // React to TrialBanner dismissal so the upgrade card re-appears as soon
@@ -102,8 +102,8 @@ export default function ExtractForm({
   }, []);
 
   // Cookbook is full → block new extractions and steer to upgrade.
-  // Premium/Unlimited users (including overrides) never get capped.
-  const isRealPremium = user?.app_metadata?.tier === 'premium' || isPremiumOverride;
+  // Premium/Unlimited users never get capped.
+  const isRealPremium = user?.app_metadata?.tier === 'premium';
   const cookbookFull = !isRealPremium && !!limitStatus?.cookbookFull;
   const extractionLimitReached = !isRealPremium && !cookbookFull && !!limitStatus && limitStatus.limit >= 0 && limitStatus.remaining <= 0;
   const blockedByLimit = cookbookFull || extractionLimitReached;

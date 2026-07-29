@@ -139,13 +139,6 @@ async function enforceExtractionQuota(req: Request): Promise<void> {
     console.warn(`Failed to fetch user metadata for gating checks:`, err);
   }
 
-  // Dev-override: allow simulating premium in development environments
-  if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
-    if (!user) user = { id: userId, app_metadata: {} };
-    if (!user.app_metadata) user.app_metadata = {};
-    user.app_metadata.tier = 'premium';
-  }
-
   const premium = isPremiumUser(user);
 
   // Enforce the cookbook cap: free accounts may only keep a limited number of
@@ -368,13 +361,6 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
       let user: any = null;
       user = await fetchAndSyncUser(req.userId!);
 
-      // Dev-override: allow simulating premium in development environments
-      if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
-        if (!user) user = { id: req.userId, app_metadata: {} };
-        if (!user.app_metadata) user.app_metadata = {};
-        user.app_metadata.tier = 'premium';
-      }
-
       if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
@@ -384,9 +370,6 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for remix premium check:`, err);
-      if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
-        isPremium = true;
-      }
     }
 
     if (!isPremium) {
@@ -548,13 +531,6 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
       user = await fetchAndSyncUser(req.userId!);
     } catch (err) {
       console.warn(`Failed to fetch user metadata for rate limit status:`, err);
-    }
-
-    // Dev-override: allow simulating premium in development environments
-    if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
-      if (!user) user = { id: req.userId, app_metadata: {} };
-      if (!user.app_metadata) user.app_metadata = {};
-      user.app_metadata.tier = 'premium';
     }
 
     if (user) {
@@ -855,13 +831,6 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
     try {
       user = await fetchAndSyncUser(req.userId!);
 
-      // Dev-override: allow simulating premium in development environments
-      if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
-        if (!user) user = { id: req.userId, app_metadata: {} };
-        if (!user.app_metadata) user.app_metadata = {};
-        user.app_metadata.tier = 'premium';
-      }
-
       if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
@@ -871,9 +840,6 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for chat premium check:`, err);
-      if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
-        isPremium = true;
-      }
     }
 
     if (!isPremium) {
@@ -960,13 +926,6 @@ async function checkPremium(req: Request): Promise<boolean> {
   try {
     let user = await fetchAndSyncUser(req.userId!);
 
-    // Dev-override: allow simulating premium in development environments
-    if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
-      if (!user) user = { id: req.userId, app_metadata: {} };
-      if (!user.app_metadata) user.app_metadata = {};
-      user.app_metadata.tier = 'premium';
-    }
-
     if (user) {
       const meta = user.app_metadata || {};
       isPremium = meta.tier === 'premium' ||
@@ -976,9 +935,6 @@ async function checkPremium(req: Request): Promise<boolean> {
     }
   } catch (err) {
     console.warn(`Failed to fetch user metadata for premium check:`, err);
-    if (process.env.NODE_ENV !== 'production' && req.headers['x-simulate-premium'] === 'true') {
-      isPremium = true;
-    }
   }
   return isPremium;
 }

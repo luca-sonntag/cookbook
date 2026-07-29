@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, FlaskConical, ChevronRight, HelpCircle, MessageSquare, Shield, ScrollText, Building2, ExternalLink } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, ChevronRight, HelpCircle, MessageSquare, Shield, ScrollText, Building2, ExternalLink } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
@@ -43,7 +43,7 @@ const getInitials = (email?: string) => {
 
 export default function SettingsView() {
   const { t, language, setLanguage } = useI18n();
-  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, isPremiumOverride, setIsPremiumOverride, isAdmin } = useAuth();
+  const { signOut, user, autoSignedIn, updateUserMetadata, deleteAccount, isPremium, isAdmin } = useAuth();
   const dialog = useDialog();
   const { navigate } = useHashRouter();
   const [theme, setTheme] = useTheme();
@@ -53,7 +53,6 @@ export default function SettingsView() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   // Version of the running OTA web bundle, null on stock (builtin) installs.
   const [otaVersion, setOtaVersion] = useState<string | null>(null);
-  const isDev = import.meta.env.DEV;
 
   useEffect(() => {
     getActiveOtaVersion().then(setOtaVersion).catch(() => {});
@@ -509,33 +508,6 @@ export default function SettingsView() {
           </button>
         </div>
       </div>
-
-      {/* Simulate Premium - Dev Only */}
-      {isDev && (
-        <div className="mx-2 p-4 rounded-2xl border border-dashed border-violet-400/40 dark:border-violet-500/30 bg-violet-500/5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <FlaskConical className="w-4 h-4 text-violet-500 shrink-0" />
-            <div>
-              <p className="text-xs font-bold text-violet-700 dark:text-violet-300">Simulate Premium</p>
-              <p className="text-[10px] text-violet-500/70 dark:text-violet-400/60">Dev-only toggle</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsPremiumOverride(!isPremiumOverride)}
-            className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none border-2 shrink-0 ${
-              isPremiumOverride
-                ? 'bg-violet-500 border-violet-500'
-                : 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600'
-            }`}
-            aria-label="Toggle simulate premium"
-          >
-            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-              isPremiumOverride ? 'translate-x-6' : 'translate-x-0'
-            }`} />
-          </button>
-        </div>
-      )}
 
       <div className="flex justify-center mt-4 mb-8">
         <p className="text-xs text-gray-400 dark:text-gray-600 font-medium">
