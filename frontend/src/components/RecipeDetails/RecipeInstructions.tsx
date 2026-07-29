@@ -1,5 +1,5 @@
 import { Card, Button } from '@heroui/react';
-import { Play, Sparkles, Check, ChefHat, CookingPot } from 'lucide-react';
+import { Play, Sparkles, Check, ChefHat, CookingPot, Utensils } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeInstructionText from '../RecipeInstructionText';
 import { useI18n } from '../../context/I18nContext';
@@ -53,10 +53,14 @@ export default function RecipeInstructions({
           <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">
             {t('recipe.requiredEquipment')}
           </span>
-          <ul className="flex flex-wrap gap-1.5">
+          <ul className="flex flex-wrap gap-2">
             {recipe.equipment.map((item, idx) => (
-              <li key={idx} className="py-1 px-3 bg-black/5 dark:bg-white/5 rounded-full border border-black/5 dark:border-white/5 text-xs font-medium text-gray-700 dark:text-gray-300">
-                {item}
+              <li
+                key={idx}
+                className="inline-flex items-center gap-1.5 py-1.5 px-3 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 dark:border-emerald-500/30 rounded-xl text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-2xs transition-all"
+              >
+                <Utensils className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                <span>{item}</span>
               </li>
             ))}
           </ul>
