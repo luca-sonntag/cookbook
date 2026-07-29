@@ -98,6 +98,8 @@ export interface Job {
   collectionIds?: string[];
   /** Total bytes of media (audio + video) downloaded by the worker for this job. */
   mediaBytes?: number;
+  /** ISO timestamp set when a user "deletes" the job (soft-delete). NULL means the job is live. */
+  deletedAt?: string | null;
 }
 
 export interface Collection {
