@@ -22,10 +22,6 @@ export default function RecipeNutrition({
   const { isPremium } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
-  const iconBadge =
-    'w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0';
-  const iconClass = 'w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400';
-
   const statLabel =
     'text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500';
 
@@ -37,47 +33,55 @@ export default function RecipeNutrition({
           !isPremium ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''
         }`}
       >
-        <div className="flex items-center gap-3">
-          {/* Flame Icon Badge on left matching Vorbereitung / Portionen */}
-          <div className={iconBadge}>
-            <Flame className={iconClass} />
+        {/* Top Header Row: Flame Icon + NÄHRWERTE label on left, pro Portion on right */}
+        <div className="flex items-center justify-between gap-3 mb-2.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Flame className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+            <span className={statLabel}>
+              {t('recipe.nutritionTitle')}
+            </span>
+            {isAiEstimated && isPremium && <AiNotice type="badge" />}
           </div>
 
-          <div className="flex-1 min-w-0 flex flex-col gap-2">
-            {/* Header row: NÄHRWERTE label on left, static pro Portion label on right */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className={statLabel}>
-                  {t('recipe.nutritionTitle')}
-                </span>
-                {isAiEstimated && isPremium && <AiNotice type="badge" />}
-              </div>
-              
-              <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded select-none flex-shrink-0">
-                {t('recipe.nutritionPerServing')}
-              </span>
-            </div>
+          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded select-none flex-shrink-0">
+            {t('recipe.nutritionPerServing')}
+          </span>
+        </div>
 
-            {/* Nutritional Values Grid */}
-            <div className={`grid grid-cols-4 gap-1 sm:gap-2 text-center text-xs transition-all duration-300 ${
-              !isPremium ? 'filter blur-sm select-none pointer-events-none opacity-30' : ''
-            }`}>
-              <div>
-                <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.calories, 'kcal', false, false)}</div>
-                <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionCalories')}</div>
-              </div>
-              <div>
-                <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.protein, 'g', false, true)}</div>
-                <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionProtein')}</div>
-              </div>
-              <div>
-                <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.carbs, 'g', false, true)}</div>
-                <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionCarbs')}</div>
-              </div>
-              <div>
-                <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">{getNutritionDisplayValue(nutritionalValues.fat, 'g', false, true)}</div>
-                <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{t('recipe.nutritionFat')}</div>
-              </div>
+        {/* 4 Nutritional Values evenly spread across full width */}
+        <div className={`grid grid-cols-4 gap-1 sm:gap-2 text-center text-xs transition-all duration-300 ${
+          !isPremium ? 'filter blur-sm select-none pointer-events-none opacity-30' : ''
+        }`}>
+          <div>
+            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">
+              {getNutritionDisplayValue(nutritionalValues.calories, 'kcal', false, false)}
+            </div>
+            <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">
+              {t('recipe.nutritionCalories')}
+            </div>
+          </div>
+          <div>
+            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">
+              {getNutritionDisplayValue(nutritionalValues.protein, 'g', false, true)}
+            </div>
+            <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">
+              {t('recipe.nutritionProtein')}
+            </div>
+          </div>
+          <div>
+            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">
+              {getNutritionDisplayValue(nutritionalValues.carbs, 'g', false, true)}
+            </div>
+            <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">
+              {t('recipe.nutritionCarbs')}
+            </div>
+          </div>
+          <div>
+            <div className="text-gray-900 dark:text-white text-sm sm:text-base font-semibold tabular-nums">
+              {getNutritionDisplayValue(nutritionalValues.fat, 'g', false, true)}
+            </div>
+            <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">
+              {t('recipe.nutritionFat')}
             </div>
           </div>
         </div>
