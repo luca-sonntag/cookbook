@@ -3,7 +3,7 @@ import AiNotice from '../AiNotice';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import PremiumModal from '../PremiumModal';
-import { Lock } from 'lucide-react';
+import { Lock, Flame } from 'lucide-react';
 
 interface RecipeNutritionProps {
   nutritionalValues: any;
@@ -24,6 +24,10 @@ export default function RecipeNutrition({
   const { isPremium } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
+  const iconBadge =
+    'w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0';
+  const iconClass = 'w-[18px] h-[18px] text-emerald-600 dark:text-emerald-400';
+
   return (
     <>
       <div
@@ -32,16 +36,24 @@ export default function RecipeNutrition({
           !isPremium ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''
         }`}
       >
-        {/* Top row with optional AI notice and subtle portion/total switcher */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div>
-            {isAiEstimated && isPremium && <AiNotice type="badge" />}
+        {/* Top row with Flame icon badge + dezent title on left, switcher on right */}
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={iconBadge}>
+              <Flame className={iconClass} />
+            </div>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">
+                {t('recipe.nutritionTitle')}
+              </span>
+              {isAiEstimated && isPremium && <AiNotice type="badge" />}
+            </div>
           </div>
           
           {/* Subtle Portion / Gesamt Switcher */}
           <div 
             onClick={(e) => !isPremium && e.stopPropagation()}
-            className={`inline-flex bg-black/5 dark:bg-white/5 p-0.5 rounded-lg border border-black/5 dark:border-white/5 select-none ${
+            className={`inline-flex bg-black/5 dark:bg-white/5 p-0.5 rounded-lg border border-black/5 dark:border-white/5 select-none flex-shrink-0 ${
               !isPremium ? 'opacity-50 pointer-events-none' : ''
             }`}
           >
