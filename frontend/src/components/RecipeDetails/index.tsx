@@ -115,8 +115,11 @@ export default function RecipeDetails({
         getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
         10
       );
-      // Offset corresponds to status bar/timers + sub-navigation (48px) + offset buffer
-      const offset = stickyTopHeight + 48 + 64;
+      // Offset corresponds to status bar/timers + sub-navigation (48px) + offset buffer.
+      // The extra buffer (120 px instead of 64 px) makes the tab switch earlier so
+      // that it already highlights the incoming section while its heading is still
+      // slightly below the sticky bar — prevents the "tab doesn't switch on click" feel.
+      const offset = stickyTopHeight + 48 + 120;
       const scrollPosition = window.scrollY + offset;
 
       for (const sectionId of sections) {
