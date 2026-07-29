@@ -34,7 +34,7 @@ Web-Assets der nativen App können Over-The-Air (OTA) aktualisiert werden, ohne 
 ### Backend & Client Workflow
 * **Endpoint `POST /api/app-updates/check` (`backend/src/appUpdates.ts`):** Vor auth-gated Router gemountet. Erhält `{ channel, versionCode, currentBundleVersion }` und antwortet mit Update-Metadaten oder `{ update: false }`.
 * **Client Updater (`frontend/src/utils/otaUpdater.ts`):** Inert auf Web/Dev. Beim Boot sofort `CapacitorUpdater.notifyAppReady()` (Anti-Brick-Contract: verhindert Revert zum vorherigen Bundle). Lädt bei Update das Zip herunter (`download`) und setzt `next({id})` für die Anwendung beim nächsten Relaunch.
-* **Deploy-Skript (`frontend/scripts/deploy-ota.ps1` / `npm run deploy:ota`):** Baut Frontend (`npm run build`), ermittelt nächste Bundle-Version, packt Zip per `tar.exe`, berechnet SHA256-Checksum, lädt ins Storage hoch und aktiviert die Row in Supabase.
+* **Deploy-Skript (`frontend/scripts/deploy-ota.ps1` / `npm run deploy:ota`):** Baut Frontend (`npm run build`), ermittelt nächste Bundle-Version (`{VERSION_NAME}-ota.{n}`), packt Zip per `tar.exe`, berechnet SHA256-Checksum, lädt ins Storage hoch, aktiviert die Row in Supabase und erstellt/pusht automatisch ein Git Tag (`v{VERSION_NAME}-ota.{n}`).
 
 ### Rollback-Ebenen
 1. **Server-Rollback:** `active`-Flags flippen via Admin-PATCH (`/api/admin/app-bundles/:id`) oder Supabase Dashboard.
