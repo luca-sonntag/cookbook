@@ -586,9 +586,13 @@ export default function App() {
         {/* One-time trial banner for free users */}
         <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
 
-        {/* CONDITIONAL RENDERING OF VIEWS */}
-        {activeView === 'extract' ? (
-          recipe ? (
+        {/* ALWAYS-MOUNTED VIEWS — hidden via HTML `hidden` attribute (display:none)
+            instead of conditional rendering. This preserves component state,
+            scroll positions, and avoids costly re-mounts on every tab switch. */}
+
+        {/* EXTRACT TAB */}
+        <div hidden={activeView !== 'extract'} aria-hidden={activeView !== 'extract' || undefined}>
+          {recipe ? (
             /* Recipe Detail View — hides extract inputs once extraction is done */
             <RecipeDetails
               key={recipe.id || recipe.title}
@@ -647,9 +651,11 @@ export default function App() {
                 />
               }
             />
-          )
-        ) : activeView === 'history' ? (
-          /* SAVED RECIPES TAB */
+          )}
+        </div>
+
+        {/* HISTORY / SAVED RECIPES TAB */}
+        <div hidden={activeView !== 'history'} aria-hidden={activeView !== 'history' || undefined}>
           <SavedCatalog
             history={history}
             historyLoaded={historyLoaded}
@@ -681,8 +687,10 @@ export default function App() {
             catalogSubPath={subPath}
             onNavigateCatalog={navigateCatalog}
           />
-        ) : activeView === 'shopping-list' ? (
-          /* SHOPPING LIST TAB */
+        </div>
+
+        {/* SHOPPING LIST TAB */}
+        <div hidden={activeView !== 'shopping-list'} aria-hidden={activeView !== 'shopping-list' || undefined}>
           <ShoppingList
             aggregatedList={aggregatedList}
             addCustomItem={addCustomItem}
@@ -691,13 +699,15 @@ export default function App() {
             clearAll={clearAll}
             clearChecked={clearChecked}
           />
-        ) : activeView === 'admin' ? (
-          /* ADMIN DASHBOARD VIEW */
-          <AdminView onBack={() => navigate('settings')} />
-        ) : (
-          /* SETTINGS TAB */
+        </div>
+
+        {/* SETTINGS TAB */}
+        <div hidden={activeView !== 'settings'} aria-hidden={activeView !== 'settings' || undefined}>
           <SettingsView />
-        )}
+        </div>
+
+        {/* ADMIN TAB — stays conditional: large (61 KB), rarely used, no state worth preserving */}
+        {activeView === 'admin' && <AdminView onBack={() => navigate('settings')} />}
       </main>
 
       {/* Global Premium Modal (shared by TrialBanner and other components) */}
