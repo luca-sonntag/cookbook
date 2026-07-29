@@ -74,7 +74,6 @@ Der Rezept-Katalog ist als **Kochbuch mit drei Ebenen** aufgebaut:
 ## 5. 💎 Freemium Gating System
 
 * **Tiers:** Free, Alpha, Premium (`user.app_metadata.tier`).
-* **Dev-Override:** `localStorage['kb_simulate_premium']` steuert Dev-Modus-Simulation (nur `import.meta.env.DEV`).
 * **Gating-Punkte:**
   * **Free:** 3 Extraktionen/Tag, max. 5 gespeicherte Rezepte, max. 1 Rezept auf Einkaufsliste, Nährwerte geblurt, Timer/Kochmodus/Copilot/Sammlungen/Labels gesperrt.
   * **Alpha:** 10 Extraktionen/Tag, max. 20 gespeicherte Rezepte, alle Features freigeschaltet.

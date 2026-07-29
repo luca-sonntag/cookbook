@@ -23,6 +23,8 @@ interface JobRow {
   is_favorite?: boolean;
   flags?: string[];
   media_bytes?: number;
+  /** NULL = live job; ISO timestamp = soft-deleted */
+  deleted_at?: string | null;
 }
 
 // ── Supabase client (lazy singleton) ─────────────────────────────────────────
@@ -70,6 +72,7 @@ function rowToJob(row: JobRow): Job {
     isFavorite: row.is_favorite ?? false,
     flags: row.flags ?? [],
     mediaBytes: row.media_bytes ?? 0,
+    deletedAt: row.deleted_at ?? null,
   };
   if (job.recipe) {
     normalizeRecipe(job.recipe, job.id);
@@ -96,6 +99,7 @@ function jobToRow(updates: Partial<Job>): Partial<JobRow> {
   if (updates.isFavorite !== undefined) row.is_favorite = updates.isFavorite;
   if (updates.flags !== undefined) row.flags = updates.flags;
   if (updates.mediaBytes !== undefined) row.media_bytes = updates.mediaBytes;
+  if (updates.deletedAt !== undefined) row.deleted_at = updates.deletedAt;
   return row;
 }
 
@@ -260,7 +264,7 @@ export async function claimNextJob(workerId: string): Promise<Job | null> {
   return rowToJob(rows[0]);
 }
 
-/** Find a completed job by URL (normalized), scoped to userId. */
+/** Find a completed job by URL (normalized), scoped to userId. Excludes soft-deleted jobs. */
 export async function findCompletedJobByUrl(url: string, userId: string): Promise<Job | null> {
   const { data, error } = await getClient()
     .from('jobs')
@@ -268,6 +272,7 @@ export async function findCompletedJobByUrl(url: string, userId: string): Promis
     .eq('status', 'completed')
     .eq('user_id', userId)
     .eq('url_normalized', normalizeUrl(url))
+    .is('deleted_at', null)
     .returns<JobRow[]>()
     .limit(1);
 
@@ -275,7 +280,7 @@ export async function findCompletedJobByUrl(url: string, userId: string): Promis
   return data.length > 0 ? rowToJob(data[0]) : null;
 }
 
-/** Find a still-running (not yet completed/failed) job by URL (normalized), scoped to userId. */
+/** Find a still-running (not yet completed/failed) job by URL (normalized), scoped to userId. Excludes soft-deleted jobs. */
 export async function findActiveJobByUrl(url: string, userId: string): Promise<Job | null> {
   const { data, error } = await getClient()
     .from('jobs')
@@ -283,6 +288,7 @@ export async function findActiveJobByUrl(url: string, userId: string): Promise<J
     .in('status', ['pending', 'scraping', 'processing'])
     .eq('user_id', userId)
     .eq('url_normalized', normalizeUrl(url))
+    .is('deleted_at', null)
     .returns<JobRow[]>()
     .limit(1);
 
@@ -290,12 +296,13 @@ export async function findActiveJobByUrl(url: string, userId: string): Promise<J
   return data.length > 0 ? rowToJob(data[0]) : null;
 }
 
-/** Retrieve all jobs for a user, newest first. */
+/** Retrieve all non-deleted jobs for a user, newest first. */
 export async function getAllJobs(userId: string): Promise<Job[]> {
   const { data, error } = await getClient()
     .from('jobs')
     .select()
     .eq('user_id', userId)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .returns<JobRow[]>();
 
@@ -317,16 +324,25 @@ export async function getAllJobs(userId: string): Promise<Job[]> {
   return jobs;
 }
 
-/** Delete a job by ID, scoped to userId. Returns `true` if deleted, `false` if not found. */
+/**
+ * Soft-delete a job by setting deleted_at, scoped to userId.
+ * Returns `true` if updated, `false` if not found or already deleted.
+ *
+ * IMPORTANT: this intentionally keeps the row in the database so that
+ * getExtractionsForUserInTimeframe() still counts it against the rate limit.
+ * Users cannot bypass the extraction quota by deleting their jobs.
+ */
 export async function deleteJob(id: string, userId: string): Promise<boolean> {
-  const { error, count } = await getClient()
+  const { data, error } = await getClient()
     .from('jobs')
-    .delete({ count: 'exact' })
+    .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .is('deleted_at', null)  // only mark once; ignore if already deleted
+    .select('id');
 
-  if (error) throw wrapError(`Failed to delete job ${id}`, error);
-  return (count ?? 0) > 0;
+  if (error) throw wrapError(`Failed to soft-delete job ${id}`, error);
+  return (data?.length ?? 0) > 0;
 }
 
 /**
@@ -529,14 +545,15 @@ export async function countActiveJobsForUser(userId: string): Promise<number> {
   return count ?? 0;
 }
 
-/** Count a user's saved recipes (completed cookbook entries, including remixes). */
+/** Count a user's saved (non-deleted) recipes (completed cookbook entries, including remixes). */
 export async function countCompletedRecipesForUser(userId: string): Promise<number> {
   const { count, error } = await getClient()
     .from('jobs')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('status', 'completed')
-    .not('recipe', 'is', null);
+    .not('recipe', 'is', null)
+    .is('deleted_at', null);
 
   if (error) throw wrapError('Failed to count completed recipes', error);
   return count ?? 0;

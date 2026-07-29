@@ -64,6 +64,13 @@ html.dark body {
   color: #f3f4f6;
 }
 
+/* Ensure the HTML `hidden` attribute always wins over Tailwind utility classes
+   (e.g. `flex`, `grid`) that could override `display: none`. Used by the
+   always-mounted tab panels in App.tsx to hide inactive views. */
+[hidden] {
+  display: none !important;
+}
+
 /* Custom animations for premium interactions */
 @keyframes pulse-slow {
   0%, 100% { opacity: 1; }

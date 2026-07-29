@@ -17,3 +17,4 @@ temp-downloads/
 *.afdesign*
 frontend/releases/
 *firebase-adminsdk*.json
+docs/FEATURE_IDEAS.md

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
 
 export function useCollections() {
-  const { getAccessToken, isPremiumOverride } = useAuth();
+  const { getAccessToken } = useAuth();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,11 +17,8 @@ export function useCollections() {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    if (isPremiumOverride) {
-      headers['X-Simulate-Premium'] = 'true';
-    }
     return headers;
-  }, [getAccessToken, isPremiumOverride]);
+  }, [getAccessToken]);
 
   const refreshCollections = useCallback(async () => {
     setLoading(true);

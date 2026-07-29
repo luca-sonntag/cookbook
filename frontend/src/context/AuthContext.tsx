@@ -96,7 +96,6 @@ interface AuthState {
   autoSignedIn: boolean;
   authError: string | null;
   isPremium: boolean;
-  isPremiumOverride: boolean;
   isAdmin: boolean;
   /** True when RevenueCat offerings include at least one package with a free trial (introPrice.price === 0). */
   hasTrialAvailable: boolean;
@@ -106,7 +105,6 @@ interface AuthState {
   trialLoading: boolean;
   /** Re-fetch trial info from RevenueCat (e.g. after the user dismisses the banner). */
   refreshTrialInfo: () => Promise<void>;
-  setIsPremiumOverride: (value: boolean) => void;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   signInWithGoogle: () => Promise<{ error?: string }>;
@@ -131,26 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [trialLoading, setTrialLoading] = useState(true);
   const trialLoadedRef = useRef(false);
 
-  // Development-only Premium simulator state
-  const [isPremiumOverride, setIsPremiumOverrideState] = useState<boolean>(() => {
-    if (import.meta.env.DEV) {
-      return localStorage.getItem('kb_simulate_premium') === 'true';
-    }
-    return false;
-  });
-
-  const setIsPremiumOverride = useCallback((value: boolean) => {
-    if (import.meta.env.DEV) {
-      if (value) {
-        localStorage.setItem('kb_simulate_premium', 'true');
-      } else {
-        localStorage.removeItem('kb_simulate_premium');
-      }
-      setIsPremiumOverrideState(value);
-    }
-  }, []);
-
-  const isPremium = isPremiumOverride || user?.app_metadata?.tier === 'premium' || user?.app_metadata?.tier === 'alpha';
+  const isPremium = user?.app_metadata?.tier === 'premium' || user?.app_metadata?.tier === 'alpha';
 
   const refreshSession = useCallback(async () => {
     const { data, error } = await supabase.auth.refreshSession();
@@ -444,7 +423,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [getAccessToken, signOut]);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, isPremiumOverride, isAdmin, hasTrialAvailable, trialDays, trialLoading, refreshTrialInfo, setIsPremiumOverride, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount, refreshSession }}>
+    <AuthContext.Provider value={{ user, session, loading, autoSignedIn, authError, isPremium, isAdmin, hasTrialAvailable, trialDays, trialLoading, refreshTrialInfo, signIn, signUp, signInWithGoogle, signOut, getAccessToken, updateUserMetadata, deleteAccount, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );

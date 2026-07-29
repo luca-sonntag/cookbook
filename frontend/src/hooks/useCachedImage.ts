@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCachedImage, setCachedImage } from '../utils/imageStore';
+import { getCachedImage, setCachedImage, getMemoryCachedImage } from '../utils/imageStore';
 import { compressImage, PREVIEW_PROFILE } from '../utils/imageCompression';
 import { apiUrl } from '../api';
 
@@ -28,11 +28,28 @@ async function compressAndConvertToBase64(url: string): Promise<string> {
 
 /**
  * Custom hook to manage client-side image caching.
- * Checks IndexedDB first, falls back to fetching, compressing, and caching.
+ *
+ * Cache hierarchy (managed by imageStore.ts):
+ *   L1 — module-level Map in imageStore (synchronous, zero-latency, session-scoped)
+ *   L2 — IndexedDB (persisted across page reloads, async)
+ *   L3 — network fetch via /api/image proxy (compress → save to L1 + L2)
+ *
+ * useState is initialised synchronously from the L1 cache so that images
+ * which have already been loaded this session never show a loading flash,
+ * even when the component is re-mounted or the tab is switched.
  */
 export function useCachedImage(originalUrl: string | null | undefined) {
-  const [src, setSrc] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // Synchronous lazy initializer: if the image is already in the L1 memory
+  // cache (imageStore module-level Map), set src immediately — no async, no flash.
+  const [src, setSrc] = useState<string | null>(() => {
+    if (!originalUrl) return null;
+    return getMemoryCachedImage(originalUrl);
+  });
+  const [isLoading, setIsLoading] = useState(() => {
+    if (!originalUrl) return false;
+    // Already in memory → no loading needed.
+    return getMemoryCachedImage(originalUrl) === null;
+  });
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
@@ -43,13 +60,21 @@ export function useCachedImage(originalUrl: string | null | undefined) {
       return;
     }
 
+    // L1 synchronous hit: already in memory cache — nothing async needed.
+    const memorySrc = getMemoryCachedImage(originalUrl);
+    if (memorySrc !== null) {
+      setSrc(memorySrc);
+      setIsLoading(false);
+      return;
+    }
+
     let isMounted = true;
     setIsLoading(true);
     setError(null);
 
     async function loadAndCache() {
       try {
-        // 1. Check IndexedDB cache
+        // getCachedImage checks L1 first, then L2 (IndexedDB), and promotes L2→L1.
         const cached = await getCachedImage(originalUrl!);
         if (cached) {
           if (isMounted) {
@@ -71,10 +96,10 @@ export function useCachedImage(originalUrl: string | null | undefined) {
           return;
         }
 
-        // 2. If not cached, fetch, compress, and convert to Base64
+        // L3: Fetch, compress, and convert to Base64
         const base64 = await compressAndConvertToBase64(originalUrl!);
-        
-        // 3. Save to IndexedDB cache
+
+        // setCachedImage writes to both L1 (memory) and L2 (IndexedDB).
         await setCachedImage(originalUrl!, base64);
 
         if (isMounted) {

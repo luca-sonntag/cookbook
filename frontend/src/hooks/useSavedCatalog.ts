@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import type { Job, Ingredient, Recipe } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
-import { useAuth } from '../context/AuthContext';
 import { deleteCachedImage } from '../utils/imageStore';
 import { markRecipeOpened, pruneRecentMap, readRecentMap, type RecentMap } from '../utils/recentRecipes';
 import { apiUrl } from '../api';
@@ -70,7 +69,6 @@ export function useSavedCatalog({
 }: UseSavedCatalogProps) {
   const dialog = useDialog();
   const { t, language } = useI18n();
-  const { isPremiumOverride } = useAuth();
 
   const [optimisticFavorites, setOptimisticFavorites] = useState<Record<string, boolean>>({});
   const [optimisticFlags, setOptimisticFlags] = useState<Record<string, string[]>>({});
@@ -546,9 +544,6 @@ export function useSavedCatalog({
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       };
-      if (isPremiumOverride) {
-        headers['X-Simulate-Premium'] = 'true';
-      }
 
       const response = await fetch(apiUrl(`/api/jobs/${job.id}/favorite`), {
         method: 'PATCH',
@@ -582,9 +577,6 @@ export function useSavedCatalog({
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       };
-      if (isPremiumOverride) {
-        headers['X-Simulate-Premium'] = 'true';
-      }
 
       const response = await fetch(apiUrl(`/api/jobs/${job.id}/flags`), {
         method: 'PATCH',
@@ -618,9 +610,6 @@ export function useSavedCatalog({
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       };
-      if (isPremiumOverride) {
-        headers['X-Simulate-Premium'] = 'true';
-      }
 
       const response = await fetch(apiUrl(`/api/jobs/${job.id}/flags`), {
         method: 'PATCH',
@@ -657,9 +646,6 @@ export function useSavedCatalog({
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       };
-      if (isPremiumOverride) {
-        headers['X-Simulate-Premium'] = 'true';
-      }
 
       const response = await fetch(apiUrl(`/api/jobs/${jobId}/collections`), {
         method: 'PATCH',
