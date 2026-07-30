@@ -133,9 +133,32 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
   const actionHandle = PushNotifications.addListener(
     'pushNotificationActionPerformed',
     (action) => {
-      onTap((action.notification.data ?? {}) as PushTapPayload);
+      console.log('[push] pushNotificationActionPerformed event:', action);
+      const data = (action.notification?.data ?? {}) as any;
+      const jobId = data.jobId || data.recipeId || (action.notification as any)?.extra?.jobId;
+      onTap({
+        ...data,
+        jobId: jobId || data.jobId,
+      });
     },
   );
+
+  // Check for delivered notifications on launch/mount (handles cold start / killed app taps)
+  PushNotifications.getDeliveredNotifications()
+    .then((delivered) => {
+      if (delivered?.notifications && delivered.notifications.length > 0) {
+        console.log('[push] Delivered notifications on mount:', delivered.notifications);
+        for (const n of delivered.notifications) {
+          const data = (n.data ?? {}) as any;
+          const jobId = data.jobId || data.recipeId;
+          if (jobId) {
+            onTap({ ...data, jobId });
+            break;
+          }
+        }
+      }
+    })
+    .catch((err) => console.warn('[push] Error checking delivered notifications:', err));
 
   // Foreground receipt: surface it as a local notification so the user still sees it.
   const receivedHandle = PushNotifications.addListener('pushNotificationReceived', (notification) => {
