@@ -54,11 +54,13 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [showFailedJobs, setShowFailedJobs] = useState(false);
   const [triggeringPush, setTriggeringPush] = useState(false);
+  const [pushResult, setPushResult] = useState<{ usersScanned: number; deliveredCount: number; logs: string[] } | null>(null);
 
   const handleTriggerPush = async () => {
     setTriggeringPush(true);
     setError(null);
     setSuccessMessage(null);
+    setPushResult(null);
     try {
       const token = await getAccessToken();
       const res = await fetch(apiUrl('/api/admin/notifications/trigger'), {
@@ -69,7 +71,8 @@ export default function AdminView({ onBack }: AdminViewProps) {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setSuccessMessage(isDe ? 'Push-Notification Worker getriggert!' : 'Push notification worker tick triggered!');
+        setPushResult(data.result || null);
+        setSuccessMessage(isDe ? `Push-Notification Worker getriggert! (${data.result?.deliveredCount ?? 0} zugestellt)` : `Push notification worker executed! (${data.result?.deliveredCount ?? 0} delivered)`);
       } else {
         setError(data.message || (isDe ? 'Fehler beim Triggern.' : 'Failed to trigger notifications.'));
       }
@@ -510,6 +513,22 @@ export default function AdminView({ onBack }: AdminViewProps) {
                     )}
                   </Button>
                 </div>
+
+                {pushResult && pushResult.logs && pushResult.logs.length > 0 && (
+                  <div className="mt-2 pt-3 border-t border-black/5 dark:border-white/5 flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-gray-500 dark:text-gray-400">
+                      <span>{isDe ? 'Ergebnis-Protokoll:' : 'Execution Logs:'}</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-mono">{pushResult.deliveredCount} {isDe ? 'Zugestellt' : 'Delivered'}</span>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto bg-black text-gray-200 p-3 rounded-xl text-[10px] leading-relaxed space-y-1 font-mono">
+                      {pushResult.logs.map((log, idx) => (
+                        <div key={idx} className={log.startsWith('DELIVERED') ? 'text-emerald-400 font-bold' : log.includes('No registered') || log.includes('Outside') || log.includes('Already') ? 'text-amber-300' : 'text-gray-300'}>
+                          {log}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </Card>
             </div>
           </Tabs.Panel>

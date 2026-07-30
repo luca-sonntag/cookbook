@@ -156,40 +156,46 @@ function tapData(candidate: Candidate): Record<string, string> {
   return data;
 }
 
+export interface NotificationTickResult {
+  usersScanned: number;
+  deliveredCount: number;
+  logs: string[];
+}
+
 /** Process one opted-in user for the current tick. Never throws. */
-async function processUser(user: NotificationUser, now: Date, force = false): Promise<void> {
+async function processUser(user: NotificationUser, now: Date, force = false): Promise<string> {
   try {
     const tz = (user.metadata.notification_timezone as string) || config.NOTIFICATION_DEFAULT_TZ;
     const local = localParts(now, tz);
 
     // Only inside the evening send window (bypassed if force=true).
     if (!force && (local.hour < config.NOTIFICATION_SEND_WINDOW_START || local.hour >= config.NOTIFICATION_SEND_WINDOW_END)) {
-      return;
+      return `User ${user.id}: Outside evening send window (${local.hour}:00, allowed ${config.NOTIFICATION_SEND_WINDOW_START}-${config.NOTIFICATION_SEND_WINDOW_END}).`;
     }
 
     // Frequency capping: max 1/day and max N/week (bypassed if force=true).
     if (!force) {
       const recent = await getRecentNotifications(user.id, 7);
       const sentToday = recent.some((r) => dateKeyInTz(r.sentAt, tz) === local.dateKey);
-      if (sentToday) return;
-      if (recent.length >= config.NOTIFICATION_MAX_PER_WEEK) return;
+      if (sentToday) return `User ${user.id}: Already received notification today.`;
+      if (recent.length >= config.NOTIFICATION_MAX_PER_WEEK) return `User ${user.id}: Weekly limit reached (${recent.length}/${config.NOTIFICATION_MAX_PER_WEEK}).`;
     }
 
     // Need at least one device (skip cheap work otherwise, unless dry-run).
     if (!config.NOTIFICATION_DRY_RUN) {
       const tokens = await getActivePushTokens(user.id);
-      if (tokens.length === 0) return;
+      if (tokens.length === 0) return `User ${user.id}: No registered push tokens found in DB.`;
     }
 
     const candidate = await chooseForUser(user, now, local);
-    if (!candidate) return;
+    if (!candidate) return `User ${user.id}: No candidate notification type matched (needs saved recipes or history).`;
 
     const copy = await generateNotificationCopy(candidate, resolveLanguage(user));
-    if (!copy) return;
+    if (!copy) return `User ${user.id}: AI copy generation returned null.`;
 
     const message: FcmMessage = { title: copy.title, body: copy.body, data: tapData(candidate) };
     const delivered = await deliver(user.id, candidate, message);
-    if (!delivered) return;
+    if (!delivered) return `User ${user.id}: Delivery failed or FCM not configured.`;
 
     await insertNotificationLog({
       userId: user.id,
@@ -198,8 +204,12 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
       jobId: candidate.jobId,
       title: copy.title,
     });
+
+    return `DELIVERED user=${user.id} title="${copy.title}" type=${candidate.type}`;
   } catch (err: any) {
-    console.warn(`[notifications] user ${user.id} failed: ${err?.message ?? err}`);
+    const msg = `User ${user.id} failed: ${err?.message ?? err}`;
+    console.warn(`[notifications] ${msg}`);
+    return msg;
   }
 }
 
@@ -211,24 +221,42 @@ let ticking = false;
  * feature flag; when FCM isn't configured we only run in dry-run mode.
  * Pass options.force = true to bypass send windows & frequency caps for testing.
  */
-export async function notificationTick(options: { force?: boolean } = {}): Promise<void> {
-  if (!config.NOTIFICATIONS_ENABLED && !options.force) return;
-  if (!config.NOTIFICATION_DRY_RUN && !isFcmConfigured() && !options.force) {
-    console.warn('[notifications] enabled but FCM not configured — skipping tick.');
-    return;
+export async function notificationTick(options: { force?: boolean } = {}): Promise<NotificationTickResult> {
+  const result: NotificationTickResult = { usersScanned: 0, deliveredCount: 0, logs: [] };
+
+  if (!config.NOTIFICATIONS_ENABLED && !options.force) {
+    result.logs.push('NOTIFICATIONS_ENABLED is false in backend config.');
+    return result;
   }
-  if (ticking) return;
+  if (!config.NOTIFICATION_DRY_RUN && !isFcmConfigured() && !options.force) {
+    result.logs.push('FCM service account is not configured on server.');
+    return result;
+  }
+  if (ticking) {
+    result.logs.push('Notification tick is already in progress.');
+    return result;
+  }
   ticking = true;
 
   const now = new Date();
   try {
     const users = await listNotificationUsers();
+    result.usersScanned = users.length;
+    if (users.length === 0) {
+      result.logs.push('No users with notifications_enabled === true found in Supabase Auth user_metadata.');
+    }
     for (const user of users) {
-      await processUser(user, now, options.force);
+      const log = await processUser(user, now, options.force);
+      result.logs.push(log);
+      if (log.startsWith('DELIVERED')) {
+        result.deliveredCount++;
+      }
     }
   } catch (err: any) {
+    result.logs.push(`Tick error: ${err?.message ?? err}`);
     console.error('[notifications] tick failed:', err?.message ?? err);
   } finally {
     ticking = false;
   }
+  return result;
 }

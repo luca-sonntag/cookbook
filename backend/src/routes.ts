@@ -1236,8 +1236,8 @@ apiRouter.get('/admin/check', (req: Request, res: Response): void => {
 apiRouter.post('/admin/notifications/trigger', requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const force = req.body?.force !== false;
-    void notificationTick({ force });
-    res.json({ success: true, message: `Push notification worker tick triggered (force=${force}).` });
+    const result = await notificationTick({ force });
+    res.json({ success: true, message: `Push notification worker tick executed.`, result });
   } catch (error) {
     if (!(error instanceof AppError)) console.error('Error triggering push notifications:', error);
     sendAppError(res, error);
