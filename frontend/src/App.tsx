@@ -29,6 +29,9 @@ import { useHashRouter } from './hooks/useHashRouter';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
 import { readCachedHistory, writeCachedHistory, clearCachedHistory, getMemoryHistory } from './utils/recipeStore';
+import { reconcileHistory } from './utils/reconcile';
+import { getPendingOps, clearOutbox, queueDeleteJob } from './utils/outbox';
+import { useOfflineSync } from './hooks/useOfflineSync';
 import { useTimerManager } from './hooks/useTimerManager';
 import { useOnboarding } from './hooks/useOnboarding';
 import { useAlphaWelcome } from './hooks/useAlphaWelcome';
@@ -53,6 +56,10 @@ export default function App() {
   // changes identity on every token refresh and would thrash the fetch effect).
   const userIdRef = useRef<string | null>(null);
   useEffect(() => { userIdRef.current = user?.id ?? null; }, [user]);
+
+  // Drives the write-outbox: flushes queued offline mutations on start,
+  // reconnect and app resume. Mounted once here at the app root.
+  useOfflineSync();
   const [initialSyncDone, setInitialSyncDone] = useState(false);
   const [isCatalogSelectMode, setIsCatalogSelectMode] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
@@ -181,11 +188,15 @@ export default function App() {
       const data = await response.json();
       if (response.ok && data.success) {
         const jobs: Job[] = data.jobs || [];
-        setHistory(jobs);
-        // Persist the fresh server snapshot so the next cold start — online or
-        // offline — paints the cookbook instantly from the local cache.
         const uid = userIdRef.current;
-        if (uid) void writeCachedHistory(uid, jobs);
+        // Overlay not-yet-synced local writes onto server truth so a refresh
+        // never flickers a pending favorite/delete back to its old value.
+        const pending = uid ? await getPendingOps(uid) : [];
+        const merged = reconcileHistory(jobs, pending);
+        setHistory(merged);
+        // Persist the best-known state so the next cold start — online or
+        // offline — paints the cookbook instantly from the local cache.
+        if (uid) void writeCachedHistory(uid, merged);
       }
     } catch (err) {
       console.error('Failed to fetch history:', err);
@@ -288,10 +299,13 @@ export default function App() {
     let cancelled = false;
     // Resolve the L1 (sync) and L2 (IndexedDB) reads through one promise so the
     // effect body performs no synchronous setState, and the cache never clobbers
-    // a fetch that already populated `history` (prev.length === 0 guard).
-    Promise.resolve(getMemoryHistory(uid) ?? readCachedHistory(uid)).then(cached => {
+    // a fetch that already populated `history` (prev.length === 0 guard). Pending
+    // outbox ops are overlaid so an offline-mutated state survives a cold start.
+    Promise.resolve(getMemoryHistory(uid) ?? readCachedHistory(uid)).then(async cached => {
       if (cancelled || !cached || cached.length === 0) return;
-      setHistory(prev => (prev.length === 0 ? cached : prev));
+      const merged = reconcileHistory(cached, await getPendingOps(uid));
+      if (cancelled) return;
+      setHistory(prev => (prev.length === 0 ? merged : prev));
       setHistoryLoaded(true);
     });
     return () => { cancelled = true; };
@@ -365,6 +379,7 @@ export default function App() {
     // recipes to the next. The arriving user's hydrate/fetch effects repopulate.
     if (prevId && prevId !== currentId) {
       void clearCachedHistory(prevId);
+      void clearOutbox(prevId);
       setHistory([]);
     }
 
@@ -489,47 +504,26 @@ export default function App() {
       return;
     }
 
-    try {
-      const job = history.find(j => j.id === id);
-      if (job?.recipe) {
-        const r = job.recipe;
-        const imagesToDelete = r.imageUrls && r.imageUrls.length > 0
-          ? r.imageUrls
-          : (r.imageUrl ? [r.imageUrl] : []);
-
-        for (const imgUrl of imagesToDelete) {
-          await deleteCachedImage(imgUrl);
-        }
+    // Best-effort local image cache cleanup for the deleted recipe.
+    const job = history.find(j => j.id === id);
+    if (job?.recipe) {
+      const r = job.recipe;
+      const imagesToDelete = r.imageUrls && r.imageUrls.length > 0
+        ? r.imageUrls
+        : (r.imageUrl ? [r.imageUrl] : []);
+      for (const imgUrl of imagesToDelete) {
+        void deleteCachedImage(imgUrl);
       }
+    }
 
-      const token = await getAccessToken();
-      if (!token) return;
-      const response = await fetch(apiUrl(`/api/jobs/${id}`), {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        fetchHistory();
-        if (selectedJob?.id === id) {
-          navigate('history');
-        }
-      } else {
-        dialog.alert({
-          title: t('app.dialog.deleteError.title'),
-          message: t('app.dialog.deleteError.message'),
-          status: 'danger'
-        });
-      }
-    } catch (err) {
-      console.error('Error deleting recipe:', err);
-      dialog.alert({
-        title: t('app.dialog.connectionError.title'),
-        message: t('app.dialog.connectionError.message'),
-        status: 'danger'
-      });
+    // Remove immediately; the outbox durably syncs the delete and retries on
+    // reconnect (the server soft-delete is idempotent), so no blocking request
+    // or error dialog is needed — it works the same offline.
+    setHistory(prev => prev.filter(j => j.id !== id));
+    const uid = userIdRef.current;
+    if (uid) queueDeleteJob(uid, id);
+    if (selectedJob?.id === id) {
+      navigate('history');
     }
   };
 

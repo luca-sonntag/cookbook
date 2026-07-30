@@ -4,7 +4,8 @@ import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
 import { deleteCachedImage } from '../utils/imageStore';
 import { markRecipeOpened, pruneRecentMap, readRecentMap, type RecentMap } from '../utils/recentRecipes';
-import { apiUrl } from '../api';
+import { useAuth } from '../context/AuthContext';
+import { queueFavorite, queueFlags, queueCollections, queueDeleteJob } from '../utils/outbox';
 
 /**
  * Combinable filter facets. Values inside one facet are OR-ed, facets are
@@ -63,27 +64,29 @@ export function useSavedCatalog({
   history,
   setSelectedJob,
   onAddIngredients,
-  fetchHistory,
-  getAccessToken,
   onSelectModeChange
 }: UseSavedCatalogProps) {
   const dialog = useDialog();
   const { t, language } = useI18n();
+  const { user } = useAuth();
 
   const [optimisticFavorites, setOptimisticFavorites] = useState<Record<string, boolean>>({});
   const [optimisticFlags, setOptimisticFlags] = useState<Record<string, string[]>>({});
   const [optimisticCollections, setOptimisticCollections] = useState<Record<string, string[]>>({});
+  // Recipes hidden by a queued (possibly offline) delete — filtered out of the
+  // catalog immediately; the outbox syncs the delete and retries on reconnect.
+  const [optimisticDeleted, setOptimisticDeleted] = useState<Set<string>>(new Set());
 
   const completedJobs = useMemo(() => {
     return history
-      .filter(h => h.status === 'completed' && h.recipe)
+      .filter(h => h.status === 'completed' && h.recipe && !optimisticDeleted.has(h.id))
       .map(job => ({
         ...job,
         isFavorite: optimisticFavorites[job.id] !== undefined ? optimisticFavorites[job.id] : (job.isFavorite ?? false),
         flags: optimisticFlags[job.id] !== undefined ? optimisticFlags[job.id] : (job.flags ?? []),
         collectionIds: optimisticCollections[job.id] !== undefined ? optimisticCollections[job.id] : (job.collectionIds ?? [])
       }));
-  }, [history, optimisticFavorites, optimisticFlags, optimisticCollections]);
+  }, [history, optimisticFavorites, optimisticFlags, optimisticCollections, optimisticDeleted]);
 
 
   // View Layout mode: 'card' (2-column poster grid) or 'compact' (dense rows),
@@ -495,72 +498,41 @@ export function useSavedCatalog({
 
     if (!confirmed) return;
 
-    const deletePromises = Array.from(selectedIds).map(async (id) => {
-      try {
-        const job = completedJobs.find(j => j.id === id);
-        if (job?.recipe) {
-          const r = job.recipe;
-          const imagesToDelete = r.imageUrls && r.imageUrls.length > 0
-            ? r.imageUrls
-            : (r.imageUrl ? [r.imageUrl] : []);
-
-          for (const imgUrl of imagesToDelete) {
-            await deleteCachedImage(imgUrl);
-          }
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      const job = completedJobs.find(j => j.id === id);
+      if (job?.recipe) {
+        const r = job.recipe;
+        const imagesToDelete = r.imageUrls && r.imageUrls.length > 0
+          ? r.imageUrls
+          : (r.imageUrl ? [r.imageUrl] : []);
+        for (const imgUrl of imagesToDelete) {
+          void deleteCachedImage(imgUrl);
         }
-
-        const token = getAccessToken ? await getAccessToken() : null;
-        if (!token) return;
-        await fetch(apiUrl(`/api/jobs/${id}`), {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-      } catch (err) {
-        console.error('Error deleting recipe:', id, err);
       }
-    });
+      if (user) queueDeleteJob(user.id, id);
+    }
 
-    await Promise.all(deletePromises);
+    // Hide the deleted recipes immediately; the outbox durably syncs each
+    // delete and retries on reconnect (server soft-delete is idempotent).
+    setOptimisticDeleted(prev => {
+      const next = new Set(prev);
+      ids.forEach(id => next.add(id));
+      return next;
+    });
     setIsSelectMode(false);
     setSelectedIds(new Set());
-
-    if (fetchHistory) {
-      fetchHistory();
-    }
   };
 
-  // Toggle favorite status via PATCH /api/jobs/:id/favorite
+  // Toggle favorite — optimistic UI, durably queued to the outbox (works
+  // offline; the server PATCH writes an absolute value, so it is retry-safe).
   const toggleFavorite = async (job: Job) => {
     const nextVal = !job.isFavorite;
     setOptimisticFavorites(prev => ({ ...prev, [job.id]: nextVal }));
-
-    try {
-      const token = getAccessToken ? await getAccessToken() : null;
-      if (!token) return;
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-
-      const response = await fetch(apiUrl(`/api/jobs/${job.id}/favorite`), {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({ isFavorite: nextVal })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update favorite status');
-      }
-    } catch (err) {
-      console.error('Error toggling favorite:', err);
-      setOptimisticFavorites(prev => ({ ...prev, [job.id]: job.isFavorite ?? false }));
-    }
+    if (user) queueFavorite(user.id, job.id, nextVal);
   };
 
-  // Toggle custom flag/tag via PATCH /api/jobs/:id/flags
+  // Toggle a custom flag/tag — optimistic UI + outbox.
   const toggleFlag = async (job: Job, flagName: string) => {
     const currentFlags = job.flags ?? [];
     const nextFlags = currentFlags.includes(flagName)
@@ -568,102 +540,23 @@ export function useSavedCatalog({
       : [...currentFlags, flagName];
 
     setOptimisticFlags(prev => ({ ...prev, [job.id]: nextFlags }));
-
-    try {
-      const token = getAccessToken ? await getAccessToken() : null;
-      if (!token) return { success: false };
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-
-      const response = await fetch(apiUrl(`/api/jobs/${job.id}/flags`), {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({ flags: nextFlags })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update flags');
-      }
-
-      return { success: true };
-    } catch (err: any) {
-      console.error('Error updating flag:', err);
-      setOptimisticFlags(prev => ({ ...prev, [job.id]: currentFlags }));
-      return { success: false, error: err.message };
-    }
+    if (user) queueFlags(user.id, job.id, nextFlags);
+    return { success: true };
   };
 
-  // Set custom flags/tags list directly via PATCH /api/jobs/:id/flags
+  // Set the custom flags/tags list directly — optimistic UI + outbox.
   const setRecipeFlags = async (job: Job, nextFlags: string[]) => {
-    const currentFlags = job.flags ?? [];
     setOptimisticFlags(prev => ({ ...prev, [job.id]: nextFlags }));
-
-    try {
-      const token = getAccessToken ? await getAccessToken() : null;
-      if (!token) return { success: false };
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-
-      const response = await fetch(apiUrl(`/api/jobs/${job.id}/flags`), {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({ flags: nextFlags })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update flags');
-      }
-
-      return { success: true };
-    } catch (err: any) {
-      console.error('Error updating flags:', err);
-      setOptimisticFlags(prev => ({ ...prev, [job.id]: currentFlags }));
-      return { success: false, error: err.message };
-    }
+    if (user) queueFlags(user.id, job.id, nextFlags);
+    return { success: true };
   };
 
 
-  // Assign collections via PATCH /api/jobs/:id/collections
+  // Assign collections to a recipe — optimistic UI + outbox.
   const assignCollections = async (jobId: string, collectionIds: string[]) => {
-    const job = completedJobs.find(j => j.id === jobId);
-    const currentCollectionIds = job?.collectionIds ?? [];
-
     setOptimisticCollections(prev => ({ ...prev, [jobId]: collectionIds }));
-
-    try {
-      const token = getAccessToken ? await getAccessToken() : null;
-      if (!token) return { success: false };
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-
-      const response = await fetch(apiUrl(`/api/jobs/${jobId}/collections`), {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({ collectionIds })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update collections');
-      }
-
-      return { success: true };
-    } catch (err: any) {
-      console.error('Error updating collections:', err);
-      setOptimisticCollections(prev => ({ ...prev, [jobId]: currentCollectionIds }));
-      return { success: false, error: err.message };
-    }
+    if (user) queueCollections(user.id, jobId, collectionIds);
+    return { success: true };
   };
 
   return {
