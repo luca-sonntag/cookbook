@@ -3,6 +3,7 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { apiUrl } from './api';
 import { isNative } from './native';
+import { getCachedImage } from './utils/imageStore';
 
 // ─── Smart AI push notifications (FCM) ────────────────────────────────────────
 //
@@ -161,19 +162,39 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
     .catch((err) => console.warn('[push] Error checking delivered notifications:', err));
 
   // Foreground receipt: surface it as a local notification so the user still sees it.
-  const receivedHandle = PushNotifications.addListener('pushNotificationReceived', (notification) => {
-    const title = notification.title ?? '';
-    const body = notification.body ?? '';
+  const receivedHandle = PushNotifications.addListener('pushNotificationReceived', async (notification) => {
+    const title = notification.title || (notification.data as any)?.title || '';
+    const body = notification.body || (notification.data as any)?.body || '';
     if (!title && !body) return;
+
+    const data = (notification.data ?? {}) as any;
+    const rawImg = data.imageUrl || data.image || (notification as any).image;
+    let largeIcon: string | undefined = undefined;
+
+    if (rawImg) {
+      try {
+        const cached = await getCachedImage(rawImg);
+        if (cached) {
+          largeIcon = cached;
+        } else if (rawImg.startsWith('http://') || rawImg.startsWith('https://')) {
+          largeIcon = rawImg;
+        }
+      } catch (err) {
+        console.warn('Failed to resolve cached image for push notification:', err);
+      }
+    }
+
     LocalNotifications.schedule({
       notifications: [
         {
           id: Math.floor(Math.random() * 1_000_000) + 1000,
           title,
           body,
+          largeBody: body,
           channelId: PUSH_CHANNEL_ID,
           smallIcon: 'ic_stat_icon',
-          extra: notification.data ?? {},
+          largeIcon,
+          extra: data,
         },
       ],
     }).catch((err) => console.warn('Foreground push local-notification failed:', err));
