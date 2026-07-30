@@ -6,6 +6,20 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ## 📜 Chronologische Übersicht
 
+### 2026-07-30: Rollback-basierte Optimistic Updates & cache-loser History-Fetch
+
+* **Ersetzter Code / Anti-Pattern:**
+  - Direkte `fetch()`-Mutationen mit *Rollback bei Fehler* in `useSavedCatalog.ts` (`toggleFavorite`/`toggleFlag`/`setRecipeFlags`/`assignCollections` sowie der DELETE-Loop in `handleBulkDelete`): Offline-Änderungen gingen verloren, ein Netzfehler rollte die Optimistic-State zurück.
+  - `handleDeleteJob` in `App.tsx` als blockierender DELETE-Request mit Fehler-Dialog.
+  - `fetchHistory` als einzige Quelle des Katalogs *ohne* lokalen Cache — bei Kaltstart ohne Netz (`token === null`) blieb das Kochbuch leer.
+* **Ersetzt durch:**
+  - Durable **Write-Outbox** (`utils/outbox.ts` + reine `utils/reconcile.ts`): Job-Level-Ops werden eingereiht, lokal angewandt und bei Reconnect gedrained (LWW, Backoff-Retry). Optimistic-Maps bleiben nur für sofortiges In-Session-Feedback (kein Rollback mehr).
+  - **Read-Cache** (`utils/recipeStore.ts`) + Pending-Overlay (`reconcileHistory`) bei Hydrate/`fetchHistory` → Sofort-Start und Offline-Lesbarkeit.
+  - Flush-Trigger via `hooks/useOfflineSync.ts` (Start/`online`/App-Resume).
+* **Betroffene Dateien:** `frontend/src/App.tsx`, `frontend/src/hooks/useSavedCatalog.ts`, `frontend/src/utils/recipeStore.ts`, `frontend/src/utils/outbox.ts`, `frontend/src/utils/reconcile.ts`, `frontend/src/hooks/useOfflineSync.ts`.
+
+---
+
 ### 2026-07-29: Zutaten-Koch-Checkliste & Auto-Check von Vorratsartikeln (Staples)
 
 * **Ersetzter Code / Anti-Pattern:**

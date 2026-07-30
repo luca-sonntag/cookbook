@@ -51,6 +51,18 @@ Der Rezept-Katalog ist als **Kochbuch mit drei Ebenen** aufgebaut:
 
 ---
 
+## 3a. 📴 Offline-First-Schicht (Kochbuch-Cache & Write-Outbox)
+
+Gezielt **Offline-First** (nicht striktes Local-First): Rezept-*Erzeugung* bleibt server-/onlinegebunden (Scraping + Gemini), aber gespeicherte Rezepte sind offline les-/kochbar und Metadaten-Änderungen funktionieren offline. Konflikte lösen **Last-Write-Wins** (keine geräteübergreifende Echtzeit-Sync). Geteilte IndexedDB `snagbite-offline` v1 mit zwei Stores.
+
+* **Read-Cache (`frontend/src/utils/recipeStore.ts`):** Store `history`, Key = Supabase-User-ID, Value = kompletter Jobs-Array (`{ jobs, cachedAt, schema }`). L1(Memory)+L2(IndexedDB) wie `imageStore.ts`. `App.tsx` hydriert `history` beim Kaltstart sofort aus dem Cache (kein Spinner, auch offline) und schreibt bei jedem `fetchHistory` die frische Server-Snapshot zurück. Purge bei Logout/Account-Wechsel.
+* **Write-Outbox (`frontend/src/utils/outbox.ts` + reine Logik in `utils/reconcile.ts`):** Store `outbox` (Key `id`, Index `by-user`). Job-Level-Ops `favorite | flags | collections | deleteJob` werden durabel eingereiht (coalescing/LWW), lokal auf die Snapshot angewandt und über die **bestehenden**, retry-sicheren Endpoints gedrained (Single-Flight via Web Locks; 401→einmal Refresh, transient→Backoff-Retry, permanent 4xx→geparkt).
+* **Overlay (`reconcileHistory`):** Pending-Ops werden bei Hydrate und `fetchHistory` über die Server-Truth gelegt → un-geflushte Writes überleben Neustart ohne Flicker.
+* **Trigger (`hooks/useOfflineSync.ts`):** Flush bei App-Start, `online`-Event und Capacitor-App-Resume; exponiert Pending/Failed-Zähler.
+* **Nicht enthalten (Follow-up):** Collection-*Entitäts*-CRUD (`useCollections.ts`) bleibt vorerst online.
+
+---
+
 ## 4. ⏱️ In-App Koch-Timer (`TimerContext`)
 
 * **Interaktive Badges:** Zeit-Angaben in Zubereitungsschritten sind klickbar (blau unterstrichen).
