@@ -28,6 +28,7 @@ import { useAuth } from './context/AuthContext';
 import { useHashRouter } from './hooks/useHashRouter';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
+import { readCachedHistory, writeCachedHistory, clearCachedHistory, getMemoryHistory } from './utils/recipeStore';
 import { useTimerManager } from './hooks/useTimerManager';
 import { useOnboarding } from './hooks/useOnboarding';
 import { useAlphaWelcome } from './hooks/useAlphaWelcome';
@@ -47,6 +48,11 @@ export default function App() {
   // History & multi-view states
   const [history, setHistory] = useState<Job[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  // Current user id, mirrored into a ref so the stable `fetchHistory` callback
+  // can key the offline cache without taking `user` as a dependency (which
+  // changes identity on every token refresh and would thrash the fetch effect).
+  const userIdRef = useRef<string | null>(null);
+  useEffect(() => { userIdRef.current = user?.id ?? null; }, [user]);
   const [initialSyncDone, setInitialSyncDone] = useState(false);
   const [isCatalogSelectMode, setIsCatalogSelectMode] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
@@ -174,7 +180,12 @@ export default function App() {
       });
       const data = await response.json();
       if (response.ok && data.success) {
-        setHistory(data.jobs || []);
+        const jobs: Job[] = data.jobs || [];
+        setHistory(jobs);
+        // Persist the fresh server snapshot so the next cold start — online or
+        // offline — paints the cookbook instantly from the local cache.
+        const uid = userIdRef.current;
+        if (uid) void writeCachedHistory(uid, jobs);
       }
     } catch (err) {
       console.error('Failed to fetch history:', err);
@@ -265,6 +276,27 @@ export default function App() {
   // so the handler always closes over the latest state.
   }, [activeView, selectedJob, isCatalogList, recipe, navigate, setRecipe, setUrl]);
 
+  // Instant offline paint: hydrate the cookbook from the local IndexedDB cache
+  // before the network fetch resolves, so the catalog appears immediately on a
+  // cold start — even fully offline — instead of waiting on GET /api/jobs. The
+  // fetchHistory() refresh below then overwrites + re-persists with server truth.
+  // Guarded with `prev.length === 0` so a fast network fetch that already
+  // populated `history` is never clobbered by the (slower) cache read.
+  useEffect(() => {
+    if (authLoading || !user) return;
+    const uid = user.id;
+    let cancelled = false;
+    // Resolve the L1 (sync) and L2 (IndexedDB) reads through one promise so the
+    // effect body performs no synchronous setState, and the cache never clobbers
+    // a fetch that already populated `history` (prev.length === 0 guard).
+    Promise.resolve(getMemoryHistory(uid) ?? readCachedHistory(uid)).then(cached => {
+      if (cancelled || !cached || cached.length === 0) return;
+      setHistory(prev => (prev.length === 0 ? cached : prev));
+      setHistoryLoaded(true);
+    });
+    return () => { cancelled = true; };
+  }, [authLoading, user]);
+
   // Fetch history on load. Waits for AuthContext's own initial getSession()
   // to settle first (authLoading) instead of firing immediately on mount —
   // otherwise this call and AuthContext's race to refresh the access token
@@ -327,6 +359,14 @@ export default function App() {
 
     const prevId = prevUserIdRef.current;
     prevUserIdRef.current = currentId;
+
+    // On logout or account switch, purge the departing user's offline cache and
+    // drop in-memory history so a shared device never shows one account's
+    // recipes to the next. The arriving user's hydrate/fetch effects repopulate.
+    if (prevId && prevId !== currentId) {
+      void clearCachedHistory(prevId);
+      setHistory([]);
+    }
 
     if (!prevId && currentId) {
       const params = new URLSearchParams(window.location.search);
