@@ -157,21 +157,23 @@ function tapData(candidate: Candidate): Record<string, string> {
 }
 
 /** Process one opted-in user for the current tick. Never throws. */
-async function processUser(user: NotificationUser, now: Date): Promise<void> {
+async function processUser(user: NotificationUser, now: Date, force = false): Promise<void> {
   try {
     const tz = (user.metadata.notification_timezone as string) || config.NOTIFICATION_DEFAULT_TZ;
     const local = localParts(now, tz);
 
-    // Only inside the evening send window.
-    if (local.hour < config.NOTIFICATION_SEND_WINDOW_START || local.hour >= config.NOTIFICATION_SEND_WINDOW_END) {
+    // Only inside the evening send window (bypassed if force=true).
+    if (!force && (local.hour < config.NOTIFICATION_SEND_WINDOW_START || local.hour >= config.NOTIFICATION_SEND_WINDOW_END)) {
       return;
     }
 
-    // Frequency capping: max 1/day and max N/week (rolling 7 days).
-    const recent = await getRecentNotifications(user.id, 7);
-    const sentToday = recent.some((r) => dateKeyInTz(r.sentAt, tz) === local.dateKey);
-    if (sentToday) return;
-    if (recent.length >= config.NOTIFICATION_MAX_PER_WEEK) return;
+    // Frequency capping: max 1/day and max N/week (bypassed if force=true).
+    if (!force) {
+      const recent = await getRecentNotifications(user.id, 7);
+      const sentToday = recent.some((r) => dateKeyInTz(r.sentAt, tz) === local.dateKey);
+      if (sentToday) return;
+      if (recent.length >= config.NOTIFICATION_MAX_PER_WEEK) return;
+    }
 
     // Need at least one device (skip cheap work otherwise, unless dry-run).
     if (!config.NOTIFICATION_DRY_RUN) {
@@ -207,10 +209,11 @@ let ticking = false;
  * One pass over all opted-in users. Guarded so overlapping ticks (a slow pass
  * outrunning the interval) don't run concurrently. Enabled/disabled by the
  * feature flag; when FCM isn't configured we only run in dry-run mode.
+ * Pass options.force = true to bypass send windows & frequency caps for testing.
  */
-export async function notificationTick(): Promise<void> {
-  if (!config.NOTIFICATIONS_ENABLED) return;
-  if (!config.NOTIFICATION_DRY_RUN && !isFcmConfigured()) {
+export async function notificationTick(options: { force?: boolean } = {}): Promise<void> {
+  if (!config.NOTIFICATIONS_ENABLED && !options.force) return;
+  if (!config.NOTIFICATION_DRY_RUN && !isFcmConfigured() && !options.force) {
     console.warn('[notifications] enabled but FCM not configured — skipping tick.');
     return;
   }
@@ -221,7 +224,7 @@ export async function notificationTick(): Promise<void> {
   try {
     const users = await listNotificationUsers();
     for (const user of users) {
-      await processUser(user, now);
+      await processUser(user, now, options.force);
     }
   } catch (err: any) {
     console.error('[notifications] tick failed:', err?.message ?? err);
