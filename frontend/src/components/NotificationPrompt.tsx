@@ -31,7 +31,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
 
   const shouldShow =
     !!user &&
-    savedCount >= 2 &&
+    savedCount >= 0 &&
     !isEnabled &&
     !isDismissedInMeta &&
     !dismissedLocally;
@@ -41,7 +41,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
   const handleDismiss = async () => {
     localStorage.setItem(PROMPT_DISMISSED_STORAGE_KEY, '1');
     setDismissedLocally(true);
-    await updateUserMetadata({ notification_prompt_dismissed: true }).catch(() => {});
+    await updateUserMetadata({ notification_prompt_dismissed: true }).catch(() => { });
   };
 
   const handleEnable = async () => {
@@ -78,16 +78,16 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
   };
 
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-900/90 via-teal-900/90 to-emerald-950/90 dark:from-emerald-950/95 dark:via-teal-950/95 dark:to-slate-950/95 border border-emerald-500/30 dark:border-emerald-500/20 shadow-lg shadow-emerald-950/20 text-white animate-in fade-in slide-in-from-top-2 duration-300">
-      {/* Background glow */}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+    <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/50 dark:from-emerald-950/40 dark:via-slate-900/90 dark:to-teal-950/30 border border-emerald-500/20 dark:border-emerald-500/30 shadow-sm shadow-emerald-900/5 text-slate-900 dark:text-white animate-in fade-in slide-in-from-top-2 duration-300">
+      {/* Subtle glow effect */}
+      <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-2xl pointer-events-none" />
 
       <div className="relative p-4 flex flex-col gap-3">
         {/* Dismiss button */}
         <button
           type="button"
           onClick={handleDismiss}
-          className="absolute top-3 right-3 p-1 rounded-full text-emerald-200/60 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+          className="absolute top-3 right-3 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-black/5 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
           aria-label={t('notification.prompt.dismiss')}
         >
           <X className="w-4 h-4" />
@@ -95,23 +95,23 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
 
         {/* Content header */}
         <div className="flex items-start gap-3 pr-6">
-          <div className="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-xl shrink-0 border border-emerald-400/20 shadow-inner">
+          <div className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0 border border-emerald-500/20 dark:border-emerald-500/30">
             <Bell className="w-5 h-5" />
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/20 uppercase tracking-wider">
-                <Sparkles className="w-2.5 h-2.5" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 uppercase tracking-wider">
+                <Sparkles className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
                 {t('notification.prompt.badge')}
               </span>
             </div>
 
-            <h3 className="text-sm font-bold text-white tracking-tight">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
               {t('notification.prompt.title')}
             </h3>
 
-            <p className="text-xs text-emerald-100/80 mt-1 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
               {t('notification.prompt.description')}
             </p>
           </div>
@@ -123,7 +123,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
             type="button"
             onClick={handleEnable}
             disabled={busy}
-            className="flex-1 py-2 px-4 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-md shadow-emerald-950/40 transition-all cursor-pointer text-center"
+            className="flex-1 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-sm shadow-emerald-600/20 transition-all cursor-pointer text-center"
           >
             {busy ? '...' : t('notification.prompt.enable')}
           </button>
@@ -132,7 +132,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
             type="button"
             onClick={handleDismiss}
             disabled={busy}
-            className="py-2 px-3 bg-white/10 hover:bg-white/15 active:scale-[0.98] disabled:opacity-50 text-emerald-100 text-xs font-medium rounded-xl transition-all cursor-pointer"
+            className="py-2 px-3 bg-slate-100 hover:bg-slate-200/80 dark:bg-white/10 dark:hover:bg-white/15 active:scale-[0.98] disabled:opacity-50 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-xl transition-all cursor-pointer"
           >
             {t('notification.prompt.later')}
           </button>
