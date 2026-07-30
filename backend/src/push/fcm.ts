@@ -37,6 +37,7 @@ export interface FcmSendResult {
 export interface FcmMessage {
   title: string;
   body: string;
+  imageUrl?: string;
   /** String-only data payload (FCM v1 requires string values); used for tap routing. */
   data?: Record<string, string>;
 }
@@ -131,7 +132,11 @@ export async function sendToToken(token: string, message: FcmMessage): Promise<F
     const payload = {
       message: {
         token,
-        notification: { title: message.title, body: message.body },
+        notification: {
+          title: message.title,
+          body: message.body,
+          ...(message.imageUrl ? { image: message.imageUrl } : {}),
+        },
         data: message.data ?? {},
         android: {
           priority: 'HIGH' as const,
@@ -140,6 +145,7 @@ export async function sendToToken(token: string, message: FcmMessage): Promise<F
             body: message.body,
             sound: 'default',
             notification_priority: 'PRIORITY_HIGH' as const,
+            ...(message.imageUrl ? { image: message.imageUrl } : {}),
           },
         },
       },
