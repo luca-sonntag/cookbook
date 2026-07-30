@@ -193,27 +193,10 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
     const copy = await generateNotificationCopy(candidate, resolveLanguage(user));
     if (!copy) return `User ${user.id}: AI copy generation returned null.`;
 
-    let imageUrl: string | undefined = undefined;
-    let rawJobImageUrl: string | undefined = undefined;
-    if (candidate.jobId) {
-      const allUserJobs = await getAllJobs(user.id);
-      const targetJob = allUserJobs.find((j) => j.id === candidate.jobId);
-      rawJobImageUrl = targetJob?.recipe?.imageUrl ?? undefined;
-      if (rawJobImageUrl && (rawJobImageUrl.startsWith('http://') || rawJobImageUrl.startsWith('https://')) && !rawJobImageUrl.startsWith('photo://')) {
-        imageUrl = rawJobImageUrl;
-      }
-    }
-
-    const messageData = tapData(candidate);
-    if (rawJobImageUrl) {
-      messageData.imageUrl = rawJobImageUrl;
-    }
-
     const message: FcmMessage = {
       title: copy.title,
       body: copy.body,
-      imageUrl,
-      data: messageData,
+      data: tapData(candidate),
     };
     const delivered = await deliver(user.id, candidate, message);
     if (!delivered) return `User ${user.id}: Delivery failed or FCM not configured.`;
