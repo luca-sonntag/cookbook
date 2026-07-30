@@ -323,9 +323,9 @@ export const uiTranslations = {
       },
       prompt: {
         badge: 'Smarte Empfehlungen',
-        title: 'Willst du smarte Rezept-Tipps? 🍳',
-        description: 'Erhalte persönliche Ideen aus deinem Kochbuch – genau dann, wenn du Inspiration brauchst. Nie spammy, jederzeit abbestellbar.',
-        enable: 'Ja, gerne!',
+        title: 'Rezept-Tipps aktivieren? 🍳',
+        description: 'Erhalte passende Ideen zur Kochzeit. Jederzeit abbestellbar.',
+        enable: 'Aktivieren',
         later: 'Später',
         dismiss: 'Benachrichtigungshinweis schließen',
       },
