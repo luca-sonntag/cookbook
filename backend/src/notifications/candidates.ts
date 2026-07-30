@@ -361,13 +361,15 @@ function genRemixNudge(ctx: NotificationContext): Candidate[] {
 function genMilestone(ctx: NotificationContext): Candidate[] {
   const recipes = savedRecipes(ctx);
   const total = recipes.length;
+  const pickJobId = recipes[0]?.id ?? null;
   const milestones = [10, 25, 50, 100, 200];
   if (milestones.includes(total)) {
-    return [candidate('milestone', 60, null, { kind: 'total', total })];
+    return [candidate('milestone', 60, pickJobId, { kind: 'total', total })];
   }
-  const savedThisWeek = recipes.filter((j) => ageDays(j, ctx.now) <= 7).length;
-  if (savedThisWeek >= 3) {
-    return [candidate('milestone', 56, null, { kind: 'weekly', weeklyCount: savedThisWeek })];
+  const savedThisWeek = recipes.filter((j) => ageDays(j, ctx.now) <= 7);
+  if (savedThisWeek.length >= 3) {
+    const pickWeeklyId = savedThisWeek[0]?.id ?? pickJobId;
+    return [candidate('milestone', 56, pickWeeklyId, { kind: 'weekly', weeklyCount: savedThisWeek.length })];
   }
   return [];
 }
