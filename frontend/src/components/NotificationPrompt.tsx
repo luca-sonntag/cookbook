@@ -31,7 +31,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
     !isDismissedInMeta &&
     !dismissedLocally;
 
-  if (false && !shouldShow) return null;
+  if (!shouldShow) return null;
 
   const handleDismiss = async () => {
     localStorage.setItem(PROMPT_DISMISSED_STORAGE_KEY, '1');

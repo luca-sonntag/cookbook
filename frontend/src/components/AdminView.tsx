@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Tabs, Card, TextField, Label, Input, Button, Spinner } from '@heroui/react';
-import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal, BarChart3, Users, BookOpen, TrendingUp, Coins, HardDriveDownload, ExternalLink, ChevronDown } from 'lucide-react';
+import { Shield, ArrowLeft, Save, MessageSquare, Settings, AlertCircle, Bug, Lightbulb, X, Terminal, BarChart3, Users, BookOpen, TrendingUp, Coins, HardDriveDownload, ExternalLink, ChevronDown, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
 import { isPhotoImportUrl } from '../utils/photoImport';
@@ -53,6 +53,32 @@ export default function AdminView({ onBack }: AdminViewProps) {
   const [expandedFeedbackId, setExpandedFeedbackId] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [showFailedJobs, setShowFailedJobs] = useState(false);
+  const [triggeringPush, setTriggeringPush] = useState(false);
+
+  const handleTriggerPush = async () => {
+    setTriggeringPush(true);
+    setError(null);
+    setSuccessMessage(null);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(apiUrl('/api/admin/notifications/trigger'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSuccessMessage(isDe ? 'Push-Notification Worker getriggert!' : 'Push notification worker tick triggered!');
+      } else {
+        setError(data.message || (isDe ? 'Fehler beim Triggern.' : 'Failed to trigger notifications.'));
+      }
+    } catch (err: any) {
+      setError(err?.message || (isDe ? 'Netzwerkfehler.' : 'Network error.'));
+    } finally {
+      setTriggeringPush(false);
+    }
+  };
 
   const isDe = language === 'de';
 
@@ -452,6 +478,39 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   </span>
                 </Button>
               )}
+
+              {/* Push Notification Trigger Card */}
+              <Card className="glass-panel p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm bg-white dark:bg-gray-900 flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                      <Bell className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                        {isDe ? 'Push-Notifications Testen' : 'Test Push Notifications'}
+                      </h3>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
+                        {isDe
+                          ? 'Führt sofort einen KI-Push-Notification Worker-Durchlauf im Hintergrund aus.'
+                          : 'Triggers a push notification worker tick in the background.'}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    isDisabled={triggeringPush}
+                    onPress={handleTriggerPush}
+                    className="py-2 px-3.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition-all cursor-pointer shrink-0"
+                  >
+                    {triggeringPush ? (
+                      <Spinner color="current" size="sm" />
+                    ) : (
+                      isDe ? 'Jetzt triggern' : 'Trigger now'
+                    )}
+                  </Button>
+                </div>
+              </Card>
             </div>
           </Tabs.Panel>
 

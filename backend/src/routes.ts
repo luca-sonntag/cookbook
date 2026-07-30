@@ -8,6 +8,8 @@ import { AppError, sendAppError } from './errors.js';
 import { randomUUID } from 'node:crypto';
 import { MAX_IMPORT_PHOTOS, deleteImportPhotos, photoJobUrl, uploadImportPhoto } from './photoImport.js';
 
+import { notificationTick } from './notifications/worker.js';
+
 export const apiRouter = Router();
 
 apiRouter.use(requireAuth);
@@ -1224,6 +1226,21 @@ apiRouter.get('/admin/check', (req: Request, res: Response): void => {
     .filter(Boolean);
   const isAdmin = adminEmails.includes(email.toLowerCase());
   res.json({ success: true, isAdmin });
+});
+
+/**
+ * Manually trigger the push notification worker tick for testing.
+ * POST /api/admin/notifications/trigger
+ * Requires admin privileges.
+ */
+apiRouter.post('/admin/notifications/trigger', requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    void notificationTick();
+    res.json({ success: true, message: 'Push notification worker tick triggered.' });
+  } catch (error) {
+    if (!(error instanceof AppError)) console.error('Error triggering push notifications:', error);
+    sendAppError(res, error);
+  }
 });
 
 /**
