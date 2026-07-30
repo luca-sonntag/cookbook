@@ -66,13 +66,6 @@ export default function RecipePosterCard({
             {isSelected && <Check className="w-4 h-4 text-white stroke-[3px]" />}
           </div>
         )}
-
-        {/* Source platform */}
-        {!isSelectMode && (
-          <div className="absolute bottom-1.5 left-1.5 z-[5] bg-gradient-to-br from-emerald-100/85 to-indigo-100/85 dark:from-emerald-950/85 dark:to-indigo-950/85 border border-black/10 dark:border-white/15 rounded-lg w-7 h-7 flex items-center justify-center pointer-events-none select-none">
-            <PlatformIcon platform={platform} className={`w-3.5 h-3.5 ${iconColor}`} />
-          </div>
-        )}
       </div>
 
       {/* Meta */}
@@ -80,12 +73,18 @@ export default function RecipePosterCard({
         <h4 className="text-sm font-bold text-gray-900 dark:text-white leading-snug line-clamp-2">
           {r.title}
         </h4>
-        {totalTime && (
-          <span className="mt-auto flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-            <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-            {totalTime}
-          </span>
-        )}
+        {/* Bottom row: total time (left) and source platform icon (right, no background) */}
+        <div className="mt-auto flex items-center justify-between gap-2">
+          {totalTime ? (
+            <span className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+              <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              {totalTime}
+            </span>
+          ) : (
+            <span />
+          )}
+          <PlatformIcon platform={platform} className={`w-4 h-4 shrink-0 ${iconColor}`} />
+        </div>
       </div>
     </div>
   );
