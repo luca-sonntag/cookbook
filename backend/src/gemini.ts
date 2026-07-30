@@ -1300,11 +1300,11 @@ export async function generateNotificationCopy(
           properties: {
             title: {
               type: FunctionDeclarationSchemaType.STRING,
-              description: 'Short push title, max ~40 chars, may include one fitting emoji.',
+              description: 'Short push title, max ~35 chars, may include one fitting emoji.',
             },
             body: {
               type: FunctionDeclarationSchemaType.STRING,
-              description: 'One-sentence push body, max ~120 chars, warm and inviting.',
+              description: 'Ultra-concise push body, MAX ~80 CHARS (must fit completely on 2 lines on mobile without truncation). Warm and inviting.',
             },
           },
           required: ['title', 'body'],
@@ -1316,6 +1316,7 @@ export async function generateNotificationCopy(
     const prompt = `You write a single mobile push notification for "Snagbite", a personal recipe cookbook app.
 
 Goal: a short, warm, non-spammy nudge that makes the user want to cook a recipe they already saved. Never sound like an ad or use ALL CAPS. At most one emoji, only if it fits.
+CRITICAL CONSTRAINT: Keep "body" under 80 characters so it fits completely on mobile screens without being cut off with "..." ellipses.
 
 Notification type: "${candidate.type}"
 Facts to use (do NOT invent anything beyond these):
