@@ -98,12 +98,12 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
             {t('notification.prompt.description')}
           </p>
 
-          <div className="flex items-center gap-3.5 mt-3">
+          <div className="flex items-center gap-3.5 mt-3.5">
             <button
               type="button"
               onClick={handleEnable}
               disabled={busy}
-              className="py-1.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
+              className="flex-1 py-2.5 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer text-center"
             >
               {busy ? '...' : t('notification.prompt.enable')}
             </button>
@@ -112,7 +112,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
               type="button"
               onClick={handleDismiss}
               disabled={busy}
-              className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-medium transition-colors cursor-pointer"
+              className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-medium transition-colors cursor-pointer px-1"
             >
               {t('notification.prompt.later')}
             </button>
