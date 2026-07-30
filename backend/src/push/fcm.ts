@@ -133,7 +133,15 @@ export async function sendToToken(token: string, message: FcmMessage): Promise<F
         token,
         notification: { title: message.title, body: message.body },
         data: message.data ?? {},
-        android: { priority: 'HIGH' as const },
+        android: {
+          priority: 'HIGH' as const,
+          notification: {
+            title: message.title,
+            body: message.body,
+            sound: 'default',
+            notification_priority: 'PRIORITY_HIGH' as const,
+          },
+        },
       },
     };
 
