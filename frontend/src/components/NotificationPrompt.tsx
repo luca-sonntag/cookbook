@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Sparkles, X } from 'lucide-react';
+import { Bell, Sparkles, X, Check } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { enablePushNotifications } from '../push';
@@ -78,61 +78,68 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
   };
 
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-emerald-500/20 dark:border-emerald-500/30 shadow-sm text-slate-900 dark:text-slate-100 animate-in fade-in slide-in-from-top-2 duration-300">
-      {/* Ambient background glow */}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+    <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-emerald-500/10 dark:from-emerald-500/20 dark:via-teal-500/10 dark:to-emerald-500/15 border border-emerald-500/20 dark:border-emerald-500/30 shadow-md shadow-emerald-950/5 dark:shadow-black/20 animate-in fade-in slide-in-from-top-2 duration-300 backdrop-blur-sm">
+      {/* Glow background accent */}
+      <div className="absolute -top-10 -right-10 w-36 h-36 bg-gradient-to-br from-emerald-400/20 to-teal-400/10 rounded-full blur-2xl pointer-events-none" />
 
-      <div className="relative p-4 flex flex-col gap-3">
+      <div className="relative p-4 flex flex-col gap-3.5">
         {/* Dismiss button */}
         <button
           type="button"
           onClick={handleDismiss}
-          className="absolute top-3 right-3 p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+          className="absolute top-3 right-3 p-1.5 rounded-full text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
           aria-label={t('notification.prompt.dismiss')}
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Content header */}
-        <div className="flex items-start gap-3 pr-6">
-          <div className="p-2.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0 border border-emerald-100 dark:border-emerald-500/30">
-            <Bell className="w-5 h-5" />
+        <div className="flex items-start gap-3.5 pr-6">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-600/25 flex items-center justify-center shrink-0">
+            <Bell className="w-5 h-5 text-white" />
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-500/30 uppercase tracking-wider">
-                <Sparkles className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 uppercase tracking-wider">
+                <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                 {t('notification.prompt.badge')}
               </span>
             </div>
 
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight" style={{ color: 'inherit' }}>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">
               {t('notification.prompt.title')}
             </h3>
 
-            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed">
               {t('notification.prompt.description')}
             </p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2 pt-1 pl-11">
+        <div className="flex items-center gap-2 pt-0.5 pl-13">
           <button
             type="button"
             onClick={handleEnable}
             disabled={busy}
-            className="flex-1 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-sm shadow-emerald-600/20 transition-all cursor-pointer text-center"
+            className="flex-1 py-2.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.98] disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
           >
-            {busy ? '...' : t('notification.prompt.enable')}
+            {busy ? (
+              '...'
+            ) : (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                {t('notification.prompt.enable')}
+              </>
+            )}
           </button>
 
           <button
             type="button"
             onClick={handleDismiss}
             disabled={busy}
-            className="py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 active:scale-[0.98] disabled:opacity-50 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-xl transition-all cursor-pointer"
+            className="py-2.5 px-4 bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/15 active:scale-[0.98] disabled:opacity-50 text-gray-700 dark:text-gray-200 text-xs font-semibold rounded-xl transition-all cursor-pointer"
           >
             {t('notification.prompt.later')}
           </button>
