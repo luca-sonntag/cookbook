@@ -419,26 +419,33 @@ export default function App() {
   useEffect(() => {
     return registerNotificationTap((recipeId, stepNum) => {
       if (recipeId) {
-        window.dispatchEvent(
-          new CustomEvent('app:navigate-to-timer-step', {
-            detail: { recipeId, stepNum },
-          })
-        );
+        if (stepNum !== undefined) {
+          window.dispatchEvent(
+            new CustomEvent('app:navigate-to-timer-step', {
+              detail: { recipeId, stepNum },
+            })
+          );
+        } else {
+          navigate('history', recipeId);
+        }
       }
       // Tapping the notification ends the finished timer(s) and stops the alarm.
       dismissAllFinished();
     });
-  }, [dismissAllFinished]);
+  }, [dismissAllFinished, navigate]);
 
   // Smart AI push notifications: route taps into the app. A push carries a
   // `jobId` (open that recipe), a `route` (e.g. the extract tab for reactivation
   // nudges), or neither (just open the app).
   useEffect(() => {
     return registerPushTapHandler((payload) => {
-      if (payload.jobId) {
-        navigate('history', payload.jobId);
+      const targetJobId = payload.jobId || (payload as any).recipeId;
+      if (targetJobId) {
+        navigate('history', targetJobId);
       } else if (payload.route === 'extract') {
         navigate('extract');
+      } else {
+        navigate('history');
       }
     });
   }, [navigate]);
