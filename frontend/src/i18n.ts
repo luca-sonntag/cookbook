@@ -322,9 +322,9 @@ export const uiTranslations = {
         body: 'Dein Rezept „{title}“ ist bereit zum Kochen!',
       },
       prompt: {
-        badge: 'Smarte Empfehlungen',
-        title: 'Rezept-Tipps aktivieren? 🍳',
-        description: 'Erhalte Rezept-Ideen aus deinem Kochbuch. Jederzeit abbestellbar.',
+        badge: 'Empfehlungen',
+        title: 'Rezept-Empfehlungen aktivieren',
+        description: 'Erhalte passende Ideen aus deinem Kochbuch. Jederzeit abbestellbar.',
         enable: 'Aktivieren',
         later: 'Später',
         dismiss: 'Benachrichtigungshinweis schließen',
