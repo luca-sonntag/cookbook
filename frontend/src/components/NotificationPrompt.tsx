@@ -78,16 +78,16 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
   };
 
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden bg-emerald-50/80 dark:bg-emerald-950/80 border border-emerald-500/20 dark:border-emerald-500/30 shadow-sm shadow-emerald-900/5 text-emerald-950 dark:text-emerald-50 animate-in fade-in slide-in-from-top-2 duration-300">
-      {/* Subtle glow effect */}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-2xl pointer-events-none" />
+    <div className="relative w-full rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-emerald-500/20 dark:border-emerald-500/30 shadow-sm text-gray-900 dark:text-white animate-in fade-in slide-in-from-top-2 duration-300">
+      {/* Ambient background glow */}
+      <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
       <div className="relative p-4 flex flex-col gap-3">
         {/* Dismiss button */}
         <button
           type="button"
           onClick={handleDismiss}
-          className="absolute top-3 right-3 p-1.5 rounded-full text-emerald-700/60 dark:text-emerald-300/60 hover:text-emerald-950 dark:hover:text-white hover:bg-emerald-500/10 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+          className="absolute top-3 right-3 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
           aria-label={t('notification.prompt.dismiss')}
         >
           <X className="w-4 h-4" />
@@ -95,23 +95,23 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
 
         {/* Content header */}
         <div className="flex items-start gap-3 pr-6">
-          <div className="p-2.5 bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 rounded-xl shrink-0 border border-emerald-500/20 dark:border-emerald-500/30">
+          <div className="p-2.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl shrink-0 border border-emerald-100 dark:border-emerald-500/30">
             <Bell className="w-5 h-5" />
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-500/30 uppercase tracking-wider">
                 <Sparkles className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
                 {t('notification.prompt.badge')}
               </span>
             </div>
 
-            <h3 className="text-sm font-bold text-emerald-950 dark:text-emerald-50 tracking-tight">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">
               {t('notification.prompt.title')}
             </h3>
 
-            <p className="text-xs text-emerald-900/80 dark:text-emerald-200/80 mt-1 leading-relaxed">
+            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed">
               {t('notification.prompt.description')}
             </p>
           </div>
@@ -132,7 +132,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
             type="button"
             onClick={handleDismiss}
             disabled={busy}
-            className="py-2 px-3 bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-white/10 dark:hover:bg-white/15 active:scale-[0.98] disabled:opacity-50 text-emerald-900 dark:text-emerald-100 text-xs font-medium rounded-xl transition-all cursor-pointer"
+            className="py-2 px-3 bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/15 active:scale-[0.98] disabled:opacity-50 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-xl transition-all cursor-pointer"
           >
             {t('notification.prompt.later')}
           </button>
