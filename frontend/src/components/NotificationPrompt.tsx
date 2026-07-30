@@ -107,7 +107,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
               </span>
             </div>
 
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight" style={{ color: 'inherit' }}>
               {t('notification.prompt.title')}
             </h3>
 
