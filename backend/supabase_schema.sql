@@ -24,6 +24,7 @@ INSERT INTO public.global_settings (key, value, description) VALUES
   ('alpha_max_extractions_per_window', '10', 'Number of extractions alpha users can perform in the rolling window'),
   ('alpha_max_saved_recipes', '20', 'Max number of saved recipes alpha users can keep in their cookbook'),
   ('free_max_extractions_per_window', '3', 'Number of extractions free users can perform in the rolling window'),
+  ('free_welcome_bonus_extractions', '5', 'One-time bonus extractions a new free user may perform beyond the daily limit so they can try the product (0 disables)'),
   ('free_max_saved_recipes', '5', 'Max number of saved recipes free users can keep in their cookbook'),
   ('premium_max_extractions_per_window', '50', 'Number of extractions premium users can perform in the rolling window'),
   ('premium_max_saved_recipes', '-1', 'Max number of saved recipes premium users can keep in their cookbook (-1 for unlimited)'),

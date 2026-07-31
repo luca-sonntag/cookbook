@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countLifetimeExtractionsForUser, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getFreeWelcomeBonusExtractions, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -161,17 +161,32 @@ async function enforceExtractionQuota(req: Request): Promise<void> {
     const windowDays = config.EXTRACTION_LIMIT_WINDOW_DAYS;
     const extractions = await getExtractionsForUserInTimeframe(userId, windowDays);
     if (extractions.length >= limit) {
-      const oldestJob = extractions[0];
-      let minutesRemaining = 0;
-      if (oldestJob) {
-        const resetTime = new Date(new Date(oldestJob.createdAt).getTime() + windowDays * 24 * 60 * 60 * 1000);
-        const msRemaining = resetTime.getTime() - Date.now();
-        minutesRemaining = Math.max(1, Math.ceil(msRemaining / (60 * 1000)));
+      // One-time welcome bonus: new non-premium users may exceed the daily
+      // window limit until they've used up their bonus. Consumption is counted
+      // over the user's lifetime (incl. soft-deleted jobs), so the bonus can't
+      // be reset by deleting recipes and is granted exactly once per account.
+      let withinWelcomeBonus = false;
+      if (!premium) {
+        const welcomeBonus = await getFreeWelcomeBonusExtractions();
+        if (welcomeBonus > 0) {
+          const lifetime = await countLifetimeExtractionsForUser(userId);
+          withinWelcomeBonus = lifetime < welcomeBonus;
+        }
       }
 
-      throw new AppError('RATE_LIMIT_EXCEEDED', {
-        params: { limit, days: windowDays, minutes: minutesRemaining },
-      });
+      if (!withinWelcomeBonus) {
+        const oldestJob = extractions[0];
+        let minutesRemaining = 0;
+        if (oldestJob) {
+          const resetTime = new Date(new Date(oldestJob.createdAt).getTime() + windowDays * 24 * 60 * 60 * 1000);
+          const msRemaining = resetTime.getTime() - Date.now();
+          minutesRemaining = Math.max(1, Math.ceil(msRemaining / (60 * 1000)));
+        }
+
+        throw new AppError('RATE_LIMIT_EXCEEDED', {
+          params: { limit, days: windowDays, minutes: minutesRemaining },
+        });
+      }
     }
   }
 }
@@ -559,6 +574,7 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
         used: 0,
         remaining: -1,
         windowDays,
+        welcomeBonusRemaining: 0,
         savedRecipes,
         maxSavedRecipes,
         cookbookFull
@@ -568,15 +584,34 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
 
     const extractions = await getExtractionsForUserInTimeframe(req.userId!, windowDays);
     const used = extractions.length;
-    const remaining = Math.max(0, limit - used);
+    const dailyRemaining = Math.max(0, limit - used);
+
+    // One-time welcome bonus (mirrors enforceExtractionQuota). While the bonus
+    // is active we present it as the active budget so the extract screen shows
+    // the right count ("used of bonus") and keeps the button enabled; once used
+    // up, fall back to the normal daily window budget.
+    let welcomeBonus = 0;
+    let welcomeBonusRemaining = 0;
+    if (!premium) {
+      welcomeBonus = await getFreeWelcomeBonusExtractions();
+      if (welcomeBonus > 0) {
+        const lifetime = await countLifetimeExtractionsForUser(req.userId!);
+        welcomeBonusRemaining = Math.max(0, welcomeBonus - lifetime);
+      }
+    }
+
+    const budget = welcomeBonusRemaining > 0
+      ? { limit: welcomeBonus, used: welcomeBonus - welcomeBonusRemaining, remaining: welcomeBonusRemaining }
+      : { limit, used, remaining: dailyRemaining };
 
     res.status(200).json({
       success: true,
       tier,
-      limit,
-      used,
-      remaining,
+      limit: budget.limit,
+      used: budget.used,
+      remaining: budget.remaining,
       windowDays,
+      welcomeBonusRemaining,
       savedRecipes,
       maxSavedRecipes,
       cookbookFull

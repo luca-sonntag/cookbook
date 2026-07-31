@@ -560,6 +560,24 @@ export async function countCompletedRecipesForUser(userId: string): Promise<numb
 }
 
 /**
+ * Count a user's lifetime extractions (excluding remixes and failed jobs).
+ * Like getExtractionsForUserInTimeframe but across all time. Deliberately does
+ * NOT filter deleted_at — soft-deleted jobs still count, so the one-time
+ * welcome bonus cannot be reset by deleting recipes.
+ */
+export async function countLifetimeExtractionsForUser(userId: string): Promise<number> {
+  const { count, error } = await getClient()
+    .from('jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .is('parent_job_id', null)
+    .neq('status', 'failed');
+
+  if (error) throw wrapError('Failed to count lifetime extractions', error);
+  return count ?? 0;
+}
+
+/**
  * Get all extraction jobs created by a user in the last N days (excluding remixes).
  * Failed extractions are excluded so they don't consume the user's rate-limit
  * allowance — only in-flight (pending/scraping/processing) and completed jobs count.
@@ -635,6 +653,10 @@ export async function getFreeMaxExtractions(): Promise<number> {
 
 export async function getFreeMaxSavedRecipes(): Promise<number> {
   return getGlobalSetting('free_max_saved_recipes', config.FREE_MAX_SAVED_RECIPES);
+}
+
+export async function getFreeWelcomeBonusExtractions(): Promise<number> {
+  return getGlobalSetting('free_welcome_bonus_extractions', config.FREE_WELCOME_BONUS_EXTRACTIONS);
 }
 
 export async function getPremiumMaxExtractions(): Promise<number> {

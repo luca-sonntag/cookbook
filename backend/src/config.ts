@@ -31,6 +31,8 @@ export interface Config {
   MAX_JOBS_PER_USER: number;
   EXTRACTION_LIMIT_WINDOW_DAYS: number;
   FREE_MAX_EXTRACTIONS_PER_WINDOW: number;
+  /** One-time bonus extractions a new free user gets beyond the daily limit so they can try the product (0 disables). */
+  FREE_WELCOME_BONUS_EXTRACTIONS: number;
   PREMIUM_MAX_EXTRACTIONS_PER_WINDOW: number;
   /** Max number of saved recipes (cookbook entries) a free account may keep. Premium is unlimited. */
   FREE_MAX_SAVED_RECIPES: number;
@@ -79,6 +81,7 @@ export const config: Config = {
   MAX_JOBS_PER_USER: parseInt(getEnv('MAX_JOBS_PER_USER', '3'), 10),
   EXTRACTION_LIMIT_WINDOW_DAYS: parseInt(getEnv('EXTRACTION_LIMIT_WINDOW_DAYS', '1'), 10),
   FREE_MAX_EXTRACTIONS_PER_WINDOW: parseInt(getEnv('FREE_MAX_EXTRACTIONS_PER_WINDOW', '3'), 10),
+  FREE_WELCOME_BONUS_EXTRACTIONS: parseInt(getEnv('FREE_WELCOME_BONUS_EXTRACTIONS', '5'), 10),
   PREMIUM_MAX_EXTRACTIONS_PER_WINDOW: parseInt(getEnv('PREMIUM_MAX_EXTRACTIONS_PER_WINDOW', '50'), 10),
   FREE_MAX_SAVED_RECIPES: parseInt(getEnv('FREE_MAX_SAVED_RECIPES', '5'), 10),
   ALPHA_ACTIVE: getEnv('ALPHA_ACTIVE', 'false') === 'true',

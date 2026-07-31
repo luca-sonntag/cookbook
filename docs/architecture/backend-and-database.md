@@ -40,6 +40,7 @@ Erweiterter Endpunkt prüft Supabase-Datenbankverbindung via `checkDbHealth()` (
 * **Globale Limits:** Gesteuert über `.env`-Umgebungsvariablen / `global_settings`:
   * `EXTRACTION_LIMIT_WINDOW_DAYS` (Default: `1`): Größe des rollierenden Fensters in Tagen.
   * `FREE_MAX_EXTRACTIONS_PER_WINDOW` (Default: `3`): Maximale Anzahl an Extraktionen für Free-User.
+  * `FREE_WELCOME_BONUS_EXTRACTIONS` (Default: `5`): Einmaliges Kontingent an Extraktionen, das ein neuer Free-User zusätzlich zum Tageslimit erhält, um das Produkt auszuprobieren (`0` deaktiviert). Der Verbrauch wird über die Lebenszeit des Accounts gezählt (inkl. soft-deleted Jobs), damit der Bonus nicht durch Löschen zurücksetzbar ist und genau einmal gewährt wird.
   * `PREMIUM_MAX_EXTRACTIONS_PER_WINDOW` (Default: `50`): Maximale Anzahl an Extraktionen für Premium-User.
 * **Subscription Tiers:** Standardmäßig im `free` Tier. Sobald Premium gekauft wird, wird das Tier in `app_metadata.tier` auf `premium` gesetzt. Im Alpha-Modus werden Nutzer automatisch in `alpha` eingestuft.
 * **Benutzerbezogene Overrides:** In Supabase Auth `app_metadata` gesteuert (`custom_extraction_limit` bzw. `max_extractions_per_window`, z. B. `-1` für unbegrenzt).
