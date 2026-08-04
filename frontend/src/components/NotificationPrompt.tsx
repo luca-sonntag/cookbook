@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, X } from 'lucide-react';
+import { Bell, Check, X } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { enablePushNotifications } from '../push';
@@ -73,50 +73,69 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
   };
 
   return (
-    <div className="relative w-full rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 p-4 transition-all shadow-sm">
-      {/* Dismiss button */}
-      <button
-        type="button"
-        onClick={handleDismiss}
-        className="absolute top-3.5 right-3.5 p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer"
-        aria-label={t('notification.prompt.dismiss')}
-      >
-        <X className="w-4 h-4" />
-      </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl relative overflow-hidden flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+        {/* Dismiss X button */}
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer"
+          aria-label={t('notification.prompt.dismiss')}
+        >
+          <X className="w-4 h-4" />
+        </button>
 
-      <div className="flex items-start gap-3.5 pr-6">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-          <Bell className="w-4.5 h-4.5" />
+        {/* Header Icon */}
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 shadow-sm">
+          <Bell className="w-7 h-7" />
         </div>
 
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug">
-            {t('notification.prompt.title')}
-          </h3>
+        {/* Title */}
+        <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-snug">
+          {t('notification.prompt.title')}
+        </h3>
 
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-            {t('notification.prompt.description')}
-          </p>
+        {/* Description */}
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed px-1">
+          {t('notification.prompt.description')}
+        </p>
 
-          <div className="flex items-center gap-3.5 mt-3.5">
-            <button
-              type="button"
-              onClick={handleEnable}
-              disabled={busy}
-              className="flex-1 py-2.5 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer text-center"
-            >
-              {busy ? '...' : t('notification.prompt.enable')}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDismiss}
-              disabled={busy}
-              className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-medium transition-colors cursor-pointer px-1"
-            >
-              {t('notification.prompt.later')}
-            </button>
+        {/* Value Proposition Bullets */}
+        <div className="flex flex-col gap-2.5 text-left w-full my-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 p-3.5 rounded-2xl text-xs text-slate-700 dark:text-slate-300 font-medium">
+          <div className="flex items-center gap-2.5">
+            <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <Check className="w-3 h-3 stroke-[3]" />
+            </div>
+            <span>{t('notification.prompt.feature1')}</span>
           </div>
+
+          <div className="flex items-center gap-2.5">
+            <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <Check className="w-3 h-3 stroke-[3]" />
+            </div>
+            <span>{t('notification.prompt.feature2')}</span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-2 w-full mt-1">
+          <button
+            type="button"
+            onClick={handleEnable}
+            disabled={busy}
+            className="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50 text-white text-sm font-bold rounded-2xl shadow-lg shadow-emerald-600/25 transition-all cursor-pointer text-center"
+          >
+            {busy ? '...' : t('notification.prompt.enable')}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDismiss}
+            disabled={busy}
+            className="w-full py-2.5 px-4 text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-semibold transition-colors cursor-pointer text-center"
+          >
+            {t('notification.prompt.later')}
+          </button>
         </div>
       </div>
     </div>
