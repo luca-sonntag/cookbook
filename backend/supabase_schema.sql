@@ -219,3 +219,41 @@ CREATE INDEX IF NOT EXISTS jobs_user_not_deleted_idx
   ON public.jobs (user_id, created_at DESC)
   WHERE deleted_at IS NULL;
 
+-- --- smart AI push notifications ---
+
+-- FCM device tokens. One user can have multiple devices, so the token itself is
+-- the primary key (a token is globally unique in FCM). Written and read only by
+-- the backend (service role) via POST/DELETE /api/push/tokens and the
+-- notification worker; RLS enabled without policies -> service-role only, like
+-- gemini_logs / app_bundles. `disabled` is flipped by the sender when FCM
+-- reports the token as UNREGISTERED so dead devices are skipped without a delete.
+CREATE TABLE IF NOT EXISTS public.push_tokens (
+  token        text PRIMARY KEY,
+  user_id      uuid NOT NULL,
+  platform     text NOT NULL DEFAULT 'android',
+  disabled     boolean NOT NULL DEFAULT false,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  last_seen_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS push_tokens_user_id_idx ON public.push_tokens (user_id);
+
+ALTER TABLE public.push_tokens ENABLE ROW LEVEL SECURITY;
+
+-- One row per delivered notification. Drives frequency capping (max N/day/week)
+-- and anti-repeat dedupe (don't resend the same recipe / notification type back
+-- to back). Service-role only, no policies.
+CREATE TABLE IF NOT EXISTS public.notification_log (
+  id       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id  uuid NOT NULL,
+  sent_at  timestamptz NOT NULL DEFAULT now(),
+  category text NOT NULL,
+  type     text NOT NULL,
+  job_id   text,
+  title    text
+);
+
+CREATE INDEX IF NOT EXISTS notification_log_user_sent_idx
+  ON public.notification_log (user_id, sent_at DESC);
+
+ALTER TABLE public.notification_log ENABLE ROW LEVEL SECURITY;

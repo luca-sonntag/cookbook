@@ -183,11 +183,13 @@ export function registerNotificationTap(
   const handlePromise = LocalNotifications.addListener(
     'localNotificationActionPerformed',
     (action) => {
-      const extra = (action.notification.extra ?? {}) as {
+      console.log('[native] localNotificationActionPerformed event:', action);
+      const extra = (action.notification?.extra ?? (action.notification as any)?.data ?? {}) as {
         recipeId?: string;
+        jobId?: string;
         stepNum?: number;
       };
-      onTap(extra.recipeId, extra.stepNum);
+      onTap(extra.recipeId || extra.jobId, extra.stepNum);
     },
   );
 

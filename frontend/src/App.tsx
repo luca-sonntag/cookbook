@@ -4,6 +4,7 @@ import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
 import type { Job } from './types';
 import { apiUrl } from './api';
 import { registerShareIntent, registerNotificationTap, hideSplashScreen, registerBackButtonHandler } from './native';
+import { registerPushTapHandler, enablePushNotifications } from './push';
 import { parseSharedUrl } from './utils/shareUrl';
 import ExtractForm, { type ExtractMode } from './components/ExtractForm';
 import ErrorBanner from './components/ErrorBanner';
@@ -18,6 +19,7 @@ import WelcomeGuide from './components/WelcomeGuide';
 import AlphaWelcome from './components/AlphaWelcome';
 import AdminView from './components/AdminView';
 import TrialBanner from './components/TrialBanner';
+import NotificationPrompt from './components/NotificationPrompt';
 import PremiumModal from './components/PremiumModal';
 
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
@@ -417,16 +419,45 @@ export default function App() {
   useEffect(() => {
     return registerNotificationTap((recipeId, stepNum) => {
       if (recipeId) {
-        window.dispatchEvent(
-          new CustomEvent('app:navigate-to-timer-step', {
-            detail: { recipeId, stepNum },
-          })
-        );
+        if (stepNum !== undefined) {
+          window.dispatchEvent(
+            new CustomEvent('app:navigate-to-timer-step', {
+              detail: { recipeId, stepNum },
+            })
+          );
+        } else {
+          navigate('history', recipeId);
+        }
       }
       // Tapping the notification ends the finished timer(s) and stops the alarm.
       dismissAllFinished();
     });
-  }, [dismissAllFinished]);
+  }, [dismissAllFinished, navigate]);
+
+  // Smart AI push notifications: route taps into the app. A push carries a
+  // `jobId` (open that recipe), a `route` (e.g. the extract tab for reactivation
+  // nudges), or neither (just open the app).
+  useEffect(() => {
+    return registerPushTapHandler((payload) => {
+      const targetJobId = payload.jobId || (payload as any).recipeId;
+      if (targetJobId) {
+        navigate('history', targetJobId);
+      } else if (payload.route === 'extract') {
+        navigate('extract');
+      } else {
+        navigate('history');
+      }
+    });
+  }, [navigate]);
+
+  // Re-register this device for remote push whenever a signed-in user has
+  // notifications enabled (refreshes the FCM token server-side on each launch).
+  useEffect(() => {
+    if (!user) return;
+    if (user.user_metadata?.notifications_enabled === true) {
+      void enablePushNotifications(getAccessToken);
+    }
+  }, [user, getAccessToken]);
 
   // Allow Settings to re-open the onboarding guide via a decoupled event,
   // avoiding threading the hook's state through props into SettingsView.
@@ -585,6 +616,9 @@ export default function App() {
 
         {/* One-time trial banner for free users */}
         <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
+
+        {/* Soft opt-in notification prompt (triggered after N saved recipes) */}
+        <NotificationPrompt savedCount={history.length} />
 
         {/* ALWAYS-MOUNTED VIEWS — hidden via HTML `hidden` attribute (display:none)
             instead of conditional rendering. This preserves component state,

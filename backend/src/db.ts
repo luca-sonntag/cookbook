@@ -1102,6 +1102,140 @@ export async function getFailedJobs(
   }));
 }
 
+// ── Smart AI push notifications ──────────────────────────────────────────────
+
+export interface NotificationLogEntry {
+  userId: string;
+  category: string;
+  type: string;
+  jobId?: string | null;
+  title?: string | null;
+}
+
+export interface NotificationLogRow {
+  sentAt: string;
+  category: string;
+  type: string;
+  jobId: string | null;
+}
+
+export interface NotificationUser {
+  id: string;
+  metadata: Record<string, any>;
+}
+
+/**
+ * Register or refresh an FCM device token for a user. The token is the primary
+ * key (globally unique in FCM); if the same physical device re-registers under a
+ * new user we move the row to that user and clear any `disabled` flag.
+ */
+export async function upsertPushToken(userId: string, token: string, platform = 'android'): Promise<void> {
+  const now = new Date().toISOString();
+  const { error } = await getClient()
+    .from('push_tokens')
+    .upsert(
+      { token, user_id: userId, platform, disabled: false, last_seen_at: now },
+      { onConflict: 'token' },
+    );
+  if (error) throw wrapError('Failed to upsert push token', error);
+}
+
+/** Mark a token as disabled (called when FCM reports it UNREGISTERED). Never throws for a missing row. */
+export async function disablePushToken(token: string): Promise<void> {
+  const { error } = await getClient()
+    .from('push_tokens')
+    .update({ disabled: true })
+    .eq('token', token);
+  if (error) throw wrapError('Failed to disable push token', error);
+}
+
+/** Remove a single token for a user (opt-out / logout on that device). */
+export async function deletePushToken(userId: string, token: string): Promise<void> {
+  const { error } = await getClient()
+    .from('push_tokens')
+    .delete()
+    .eq('token', token)
+    .eq('user_id', userId);
+  if (error) throw wrapError('Failed to delete push token', error);
+}
+
+/** Remove every token for a user (full account opt-out). */
+export async function deletePushTokensForUser(userId: string): Promise<void> {
+  const { error } = await getClient()
+    .from('push_tokens')
+    .delete()
+    .eq('user_id', userId);
+  if (error) throw wrapError('Failed to delete push tokens for user', error);
+}
+
+/** All active (non-disabled) FCM tokens for a user. */
+export async function getActivePushTokens(userId: string): Promise<string[]> {
+  const { data, error } = await getClient()
+    .from('push_tokens')
+    .select('token')
+    .eq('user_id', userId)
+    .eq('disabled', false);
+  if (error) throw wrapError('Failed to load push tokens', error);
+  return (data || []).map((row: any) => row.token as string);
+}
+
+/** Record a delivered notification (drives frequency capping + anti-repeat dedupe). */
+export async function insertNotificationLog(entry: NotificationLogEntry): Promise<void> {
+  const { error } = await getClient()
+    .from('notification_log')
+    .insert({
+      user_id: entry.userId,
+      category: entry.category,
+      type: entry.type,
+      job_id: entry.jobId ?? null,
+      title: entry.title ?? null,
+    });
+  if (error) throw wrapError('Failed to insert notification log', error);
+}
+
+/** Recent notification-log rows for a user within the last `sinceDays` days (newest first). */
+export async function getRecentNotifications(userId: string, sinceDays: number): Promise<NotificationLogRow[]> {
+  const cutoff = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await getClient()
+    .from('notification_log')
+    .select('sent_at, category, type, job_id')
+    .eq('user_id', userId)
+    .gte('sent_at', cutoff)
+    .order('sent_at', { ascending: false });
+  if (error) throw wrapError('Failed to load recent notifications', error);
+  return (data || []).map((row: any) => ({
+    sentAt: row.sent_at,
+    category: row.category,
+    type: row.type,
+    jobId: row.job_id,
+  }));
+}
+
+/**
+ * List users who have push notifications enabled, resolved from Supabase Auth
+ * user_metadata. Pages through the Auth admin API (1000 users/page). We filter
+ * on `notifications_enabled === true` here so the caller only iterates opted-in
+ * users; a second pass still checks per-category opt-in.
+ */
+export async function listNotificationUsers(): Promise<NotificationUser[]> {
+  const client = getClient();
+  const result: NotificationUser[] = [];
+  const perPage = 1000;
+  for (let page = 1; ; page++) {
+    const { data, error } = await client.auth.admin.listUsers({ page, perPage });
+    if (error) throw new Error(`Failed to list users for notifications: ${error.message}`);
+    const users = data?.users ?? [];
+    for (const user of users) {
+      const meta = (user.user_metadata ?? {}) as Record<string, any>;
+      if (meta.notifications_enabled === true) {
+        result.push({ id: user.id, metadata: meta });
+      }
+    }
+    if (users.length < perPage) break;
+  }
+  return result;
+}
+
 
 
 

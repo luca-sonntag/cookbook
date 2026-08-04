@@ -320,7 +320,17 @@ export const uiTranslations = {
       recipeReady: {
         title: 'Rezept bereit',
         body: 'Dein Rezept „{title}“ ist bereit zum Kochen!',
-      }
+      },
+      prompt: {
+        badge: 'Empfehlungen',
+        title: 'Lust auf neue Koch-Inspiration?',
+        description: 'Nie wieder „Was koche ich heute?“ Erhalte mehrmals in der Woche abends passende Ideen aus deinen Rezepten.',
+        feature1: 'Passende Ideen aus deinen Rezepten',
+        feature2: 'Mehrmals in der Woche, kein Spam',
+        enable: 'Inspiration erhalten',
+        later: 'Später',
+        dismiss: 'Benachrichtigungshinweis schließen',
+      },
     },
     auth: {
       signInTitle: 'Melde dich an, um deine Rezepte zu verwalten',
@@ -1022,7 +1032,17 @@ export const uiTranslations = {
       recipeReady: {
         title: 'Recipe Ready',
         body: 'Your recipe "{title}" is ready to cook!',
-      }
+      },
+      prompt: {
+        badge: 'Smart recommendations',
+        title: 'Need fresh cooking inspiration?',
+        description: 'Never ask "What\'s for dinner?" again. Get personalized ideas from your saved recipes a few times a week in the evening.',
+        feature1: 'Tailored ideas from your saved recipes',
+        feature2: 'A few times a week, no spam',
+        enable: 'Get inspiration',
+        later: 'Later',
+        dismiss: 'Dismiss notification hint',
+      },
     },
     auth: {
       signInTitle: 'Sign in to manage your recipes',

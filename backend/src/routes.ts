@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs, upsertPushToken, deletePushToken, deletePushTokensForUser } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -7,6 +7,8 @@ import { getLlmMetrics } from './adminMetrics.js';
 import { AppError, sendAppError } from './errors.js';
 import { randomUUID } from 'node:crypto';
 import { MAX_IMPORT_PHOTOS, deleteImportPhotos, photoJobUrl, uploadImportPhoto } from './photoImport.js';
+
+import { notificationTick } from './notifications/worker.js';
 
 export const apiRouter = Router();
 
@@ -680,6 +682,11 @@ apiRouter.delete('/users/me', async (req: Request, res: Response): Promise<void>
       throw new AppError('UNAUTHORIZED', { message: 'Unauthorized. Missing user ID.' });
     }
 
+    // Drop any registered push tokens first (no FK cascade on that table).
+    await deletePushTokensForUser(userId).catch((err) =>
+      console.warn('Failed to delete push tokens on account deletion:', err?.message ?? err),
+    );
+
     // Call Supabase Admin API to delete the user
     const { error } = await getClient().auth.admin.deleteUser(userId);
     if (error) {
@@ -997,6 +1004,43 @@ apiRouter.patch('/jobs/:id/flags', async (req: Request, res: Response): Promise<
 });
 
 /**
+ * Register (or refresh) an FCM device token for smart push notifications.
+ * POST /api/push/tokens  Body: { token: string, platform?: 'android' }
+ */
+apiRouter.post('/push/tokens', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token, platform } = req.body;
+    if (typeof token !== 'string' || token.trim().length < 10) {
+      throw new AppError('INVALID_FIELD', { params: { field: 'token' } });
+    }
+    const plat = typeof platform === 'string' && platform ? platform : 'android';
+    await upsertPushToken(req.userId!, token.trim(), plat);
+    res.status(200).json({ success: true, message: 'Push token registered.' });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error registering push token:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
+ * Unregister an FCM device token (opt-out / logout on that device).
+ * DELETE /api/push/tokens  Body: { token: string }
+ */
+apiRouter.delete('/push/tokens', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token } = req.body;
+    if (typeof token !== 'string' || !token.trim()) {
+      throw new AppError('INVALID_FIELD', { params: { field: 'token' } });
+    }
+    await deletePushToken(req.userId!, token.trim());
+    res.status(200).json({ success: true, message: 'Push token removed.' });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error removing push token:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
  * Endpoint to retrieve all collections.
  * GET /api/collections
  */
@@ -1182,6 +1226,22 @@ apiRouter.get('/admin/check', (req: Request, res: Response): void => {
     .filter(Boolean);
   const isAdmin = adminEmails.includes(email.toLowerCase());
   res.json({ success: true, isAdmin });
+});
+
+/**
+ * Manually trigger the push notification worker tick for testing.
+ * POST /api/admin/notifications/trigger
+ * Requires admin privileges.
+ */
+apiRouter.post('/admin/notifications/trigger', requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const force = req.body?.force !== false;
+    const result = await notificationTick({ force });
+    res.json({ success: true, message: `Push notification worker tick executed.`, result });
+  } catch (error) {
+    if (!(error instanceof AppError)) console.error('Error triggering push notifications:', error);
+    sendAppError(res, error);
+  }
 });
 
 /**
