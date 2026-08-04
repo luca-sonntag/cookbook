@@ -1,4 +1,5 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
+import path from 'path';
 import { importPKCS8, SignJWT } from 'jose';
 import { config } from '../config.js';
 
@@ -44,24 +45,56 @@ export interface FcmMessage {
 
 /**
  * Load and cache the service-account credentials. `FCM_SERVICE_ACCOUNT_JSON` may
- * be the raw JSON (single-line env var) or an absolute path to the .json file.
+ * be the raw JSON (single-line env var) or an absolute/relative path to the .json file.
  * Returns null when notifications are not configured.
  */
 function getServiceAccount(): ServiceAccount | null {
   if (_serviceAccount !== undefined) return _serviceAccount;
 
-  const raw = config.FCM_SERVICE_ACCOUNT_JSON?.trim();
+  let raw = config.FCM_SERVICE_ACCOUNT_JSON?.trim();
   if (!raw) {
     _serviceAccount = null;
     return null;
   }
 
+  // Strip Byte Order Mark (BOM) if present
+  if (raw.charCodeAt(0) === 0xfeff) {
+    raw = raw.slice(1).trim();
+  }
+
   try {
-    const text = raw.startsWith('{') ? raw : readFileSync(raw, 'utf-8');
-    const parsed = JSON.parse(text) as ServiceAccount;
+    let text: string;
+    const resolvedPath = path.resolve(raw);
+
+    // Check if raw is a valid file path on disk
+    if (existsSync(raw) || existsSync(resolvedPath)) {
+      const targetFile = existsSync(raw) ? raw : resolvedPath;
+      text = readFileSync(targetFile, 'utf-8');
+      if (text.charCodeAt(0) === 0xfeff) {
+        text = text.slice(1).trim();
+      }
+    } else {
+      text = raw;
+    }
+
+    let parsed: ServiceAccount;
+    try {
+      parsed = JSON.parse(text) as ServiceAccount;
+    } catch {
+      // Fallback: try parsing with sanitized unescaped newlines in private key
+      const sanitizedText = text.replace(/\\n/g, '\n');
+      parsed = JSON.parse(sanitizedText) as ServiceAccount;
+    }
+
     if (!parsed.client_email || !parsed.private_key) {
       throw new Error('service account missing client_email or private_key');
     }
+
+    // Normalize escaped \\n in private_key string if present
+    if (parsed.private_key.includes('\\n')) {
+      parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+    }
+
     _serviceAccount = parsed;
   } catch (err: any) {
     console.error('[fcm] Failed to load FCM_SERVICE_ACCOUNT_JSON:', err.message);
