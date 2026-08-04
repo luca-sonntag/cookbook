@@ -85,13 +85,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setContentIntent(pendingIntent);
 
         String iconUrl = data != null ? data.get("iconUrl") : null;
+        Log.d(TAG, "iconUrl: " + iconUrl);
         if (iconUrl != null && !iconUrl.isEmpty()) {
             Bitmap iconBitmap = fetchBitmap(iconUrl);
+            Log.d(TAG, "iconBitmap downloaded: " + (iconBitmap != null));
             if (iconBitmap != null) {
                 builder.setLargeIcon(iconBitmap);
             }
         }
 
+        // Temporarily comment out BigPictureStyle to isolate setLargeIcon
+        /*
         if (imageUrl != null && !imageUrl.isEmpty()) {
             Bitmap bannerBitmap = fetchBitmap(imageUrl);
             if (bannerBitmap != null) {
@@ -101,6 +105,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 builder.setStyle(style);
             }
         }
+        */
 
         notificationManager.notify((int) System.currentTimeMillis(), builder.build());
     }
