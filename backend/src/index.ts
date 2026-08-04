@@ -144,6 +144,8 @@ async function bootstrap() {
 
         res.setHeader('Content-Type', 'image/png');
         res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
         res.send(pngBuffer);
       } catch (err: any) {
         console.error('Error generating push banner:', err?.message ?? err);

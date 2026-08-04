@@ -201,6 +201,8 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
       }
     }
 
+    const attachments = largeIcon ? [{ id: 'banner', url: largeIcon }] : undefined;
+
     LocalNotifications.schedule({
       notifications: [
         {
@@ -208,9 +210,11 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
           title,
           body,
           largeBody: body,
+          summaryText: 'Snagbite',
           channelId: PUSH_CHANNEL_ID,
           smallIcon: 'ic_stat_icon',
           largeIcon,
+          attachments,
           extra: data,
         },
       ],
