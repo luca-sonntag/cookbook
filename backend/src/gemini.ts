@@ -1374,7 +1374,12 @@ Respond in JSON only: {"title":"…","body":"…","theme":"…","emoji":"…"}`;
     });
 
     if (!parsed?.title || !parsed?.body) return null;
-    return { title: parsed.title.trim(), body: parsed.body.trim() };
+    return {
+      title: parsed.title.trim(),
+      body: parsed.body.trim(),
+      theme: parsed.theme?.trim(),
+      emoji: parsed.emoji?.trim(),
+    };
   } catch (err: any) {
     console.error('[generateNotificationCopy] Error:', err?.message ?? err);
     void writeGeminiLog({
