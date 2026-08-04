@@ -26,7 +26,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
 
   const shouldShow =
     !!user &&
-    savedCount >= 0 &&
+    savedCount >= 1 &&
     !isEnabled &&
     !isDismissedInMeta &&
     !dismissedLocally;
@@ -86,16 +86,8 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
   };
 
   return (
-    <div
-      onClick={(e) => {
-        if (e.target === e.currentTarget) handleDismiss();
-      }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200 touch-none cursor-pointer"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl relative overflow-hidden flex flex-col items-center text-center animate-in zoom-in-95 duration-200 cursor-default"
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200 touch-none">
+      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl relative overflow-hidden flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
         {/* Dismiss X button */}
         <button
           type="button"
