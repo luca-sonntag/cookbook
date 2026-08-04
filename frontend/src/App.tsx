@@ -618,7 +618,7 @@ export default function App() {
         <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
 
         {/* Soft opt-in notification prompt (triggered after N saved recipes) */}
-        {!isViewingRecipe && <NotificationPrompt savedCount={history.length} />}
+        <NotificationPrompt savedCount={history.length} />
 
         {/* ALWAYS-MOUNTED VIEWS — hidden via HTML `hidden` attribute (display:none)
             instead of conditional rendering. This preserves component state,

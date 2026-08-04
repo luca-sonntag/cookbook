@@ -73,7 +73,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
   };
 
   return (
-    <div className="relative w-full rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 p-4 transition-all">
+    <div className="relative w-full rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 p-4 transition-all shadow-sm">
       {/* Dismiss button */}
       <button
         type="button"
@@ -85,7 +85,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
       </button>
 
       <div className="flex items-start gap-3.5 pr-6">
-        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
           <Bell className="w-4.5 h-4.5" />
         </div>
 
