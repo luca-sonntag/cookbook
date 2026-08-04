@@ -195,19 +195,15 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
 
     const baseUrl = (config.PUBLIC_BACKEND_URL || config.HEALTHCHECK_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
     const themeParam = encodeURIComponent(copy.theme || 'emerald');
-    const titleParam = encodeURIComponent(copy.title || '');
     const emojiParam = encodeURIComponent(copy.emoji || '🍳');
-    const bannerUrl = `${baseUrl}/api/push-banner?theme=${themeParam}&title=${titleParam}&emoji=${emojiParam}`;
     const iconUrl = `${baseUrl}/api/push-icon?theme=${themeParam}&emoji=${emojiParam}`;
 
     const dataPayload = tapData(candidate);
-    dataPayload.imageUrl = bannerUrl;
     dataPayload.iconUrl = iconUrl;
 
     const message: FcmMessage = {
       title: copy.title,
       body: copy.body,
-      imageUrl: bannerUrl,
       data: dataPayload,
     };
     const delivered = await deliver(user.id, candidate, message);
