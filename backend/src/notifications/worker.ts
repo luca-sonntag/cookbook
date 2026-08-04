@@ -193,22 +193,17 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
     const copy = await generateNotificationCopy(candidate, resolveLanguage(user));
     if (!copy) return `User ${user.id}: AI copy generation returned null.`;
 
-    const defaultHost = `http://192.168.1.235:${config.PORT || 3000}`;
-    const rawBaseUrl = process.env.PUBLIC_BACKEND_URL || config.HEALTHCHECK_BACKEND_URL || defaultHost;
-    const baseUrl = rawBaseUrl.replace(/\/$/, '');
+    const baseUrl = (process.env.PUBLIC_BACKEND_URL || config.HEALTHCHECK_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
     const themeParam = encodeURIComponent(copy.theme || 'emerald');
     const titleParam = encodeURIComponent(copy.title || '');
     const emojiParam = encodeURIComponent(copy.emoji || '🍳');
     const bannerUrl = `${baseUrl}/api/push-banner?theme=${themeParam}&title=${titleParam}&emoji=${emojiParam}`;
 
-    const dataPayload = tapData(candidate);
-    dataPayload.imageUrl = bannerUrl;
-
     const message: FcmMessage = {
       title: copy.title,
       body: copy.body,
       imageUrl: bannerUrl,
-      data: dataPayload,
+      data: tapData(candidate),
     };
     const delivered = await deliver(user.id, candidate, message);
     if (!delivered) return `User ${user.id}: Delivery failed or FCM not configured.`;

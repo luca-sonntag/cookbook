@@ -122,24 +122,6 @@ export async function disablePushNotifications(
   }
 }
 
-/** Helper to fetch a remote image URL and convert it to a Base64 data URL for local notifications. */
-async function fetchImageAsBase64(url: string): Promise<string | undefined> {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return undefined;
-    const blob = await res.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(undefined);
-      reader.readAsDataURL(blob);
-    });
-  } catch (err) {
-    console.warn('[push] Failed to fetch notification image as Base64:', err);
-    return undefined;
-  }
-}
-
 /**
  * Register a handler for taps on a delivered push. Also shows a foreground push
  * as a local notification so it isn't silently swallowed while the app is open.
@@ -179,29 +161,10 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
     .catch((err) => console.warn('[push] Error checking delivered notifications:', err));
 
   // Foreground receipt: surface it as a local notification so the user still sees it.
-  const receivedHandle = PushNotifications.addListener('pushNotificationReceived', async (notification) => {
-    console.log('[push] pushNotificationReceived event:', notification);
+  const receivedHandle = PushNotifications.addListener('pushNotificationReceived', (notification) => {
     const title = notification.title || (notification.data as any)?.title || '';
     const body = notification.body || (notification.data as any)?.body || '';
     if (!title && !body) return;
-
-    const data = (notification.data ?? {}) as any;
-    const rawImageUrl = notification.image || (notification as any).imageUrl || data.imageUrl || data.image;
-    console.log('[push] rawImageUrl resolved:', rawImageUrl);
-
-    let largeIcon: string | undefined = undefined;
-
-    if (rawImageUrl) {
-      if (rawImageUrl.startsWith('data:image')) {
-        largeIcon = rawImageUrl;
-      } else if (rawImageUrl.startsWith('http://') || rawImageUrl.startsWith('https://')) {
-        console.log('[push] Fetching notification banner image as Base64 from:', rawImageUrl);
-        largeIcon = await fetchImageAsBase64(rawImageUrl);
-        console.log('[push] Base64 fetch result success:', !!largeIcon);
-      }
-    }
-
-    const attachments = largeIcon ? [{ id: 'banner', url: largeIcon }] : undefined;
 
     LocalNotifications.schedule({
       notifications: [
@@ -209,13 +172,10 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
           id: Math.floor(Math.random() * 1_000_000) + 1000,
           title,
           body,
-          largeBody: attachments ? undefined : body,
-          summaryText: 'Snagbite',
+          largeBody: body,
           channelId: PUSH_CHANNEL_ID,
           smallIcon: 'ic_stat_icon',
-          largeIcon,
-          attachments,
-          extra: data,
+          extra: notification.data ?? {},
         },
       ],
     }).catch((err) => console.warn('Foreground push local-notification failed:', err));
