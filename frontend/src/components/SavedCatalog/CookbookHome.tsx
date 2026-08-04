@@ -119,58 +119,66 @@ export default function CookbookHome({
         )}
       </section>
 
-      {/* Shelves */}
-      <RecipeShelf
-        title={t('catalog.shelfRecent')}
-        icon={<History className="w-4 h-4 text-emerald-500" />}
-        jobs={shelves.recent.items}
-        totalCount={shelves.recent.total}
-        formatTotalTime={formatTotalTime}
-        onOpenAll={() => onOpenList({ kind: 'recent' })}
-        onOpenRecipe={onOpenRecipe}
-        isSelectMode={isSelectMode}
-        selectedIds={selectedIds}
-        bindLongPress={bindLongPress}
-      />
+      {/* Shelves — only shown when the shelf has more than 5 recipes */}
+      {shelves.recent.total > 5 && (
+        <RecipeShelf
+          title={t('catalog.shelfRecent')}
+          icon={<History className="w-4 h-4 text-emerald-500" />}
+          jobs={shelves.recent.items}
+          totalCount={shelves.recent.total}
+          formatTotalTime={formatTotalTime}
+          onOpenAll={() => onOpenList({ kind: 'recent' })}
+          onOpenRecipe={onOpenRecipe}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          bindLongPress={bindLongPress}
+        />
+      )}
 
-      <RecipeShelf
-        title={t('catalog.favoritesFilter')}
-        icon={<Star className="w-4 h-4 text-amber-500 fill-amber-500" />}
-        jobs={shelves.favorites.items}
-        totalCount={shelves.favorites.total}
-        formatTotalTime={formatTotalTime}
-        onOpenAll={() => onOpenList({ kind: 'favorites' })}
-        onOpenRecipe={onOpenRecipe}
-        isSelectMode={isSelectMode}
-        selectedIds={selectedIds}
-        bindLongPress={bindLongPress}
-      />
+      {shelves.favorites.total > 5 && (
+        <RecipeShelf
+          title={t('catalog.favoritesFilter')}
+          icon={<Star className="w-4 h-4 text-amber-500 fill-amber-500" />}
+          jobs={shelves.favorites.items}
+          totalCount={shelves.favorites.total}
+          formatTotalTime={formatTotalTime}
+          onOpenAll={() => onOpenList({ kind: 'favorites' })}
+          onOpenRecipe={onOpenRecipe}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          bindLongPress={bindLongPress}
+        />
+      )}
 
-      <RecipeShelf
-        title={t('catalog.shelfQuick')}
-        icon={<Zap className="w-4 h-4 text-emerald-500" />}
-        jobs={shelves.quick.items}
-        totalCount={shelves.quick.total}
-        formatTotalTime={formatTotalTime}
-        onOpenAll={() => onOpenList({ kind: 'quick' })}
-        onOpenRecipe={onOpenRecipe}
-        isSelectMode={isSelectMode}
-        selectedIds={selectedIds}
-        bindLongPress={bindLongPress}
-      />
+      {shelves.quick.total > 5 && (
+        <RecipeShelf
+          title={t('catalog.shelfQuick')}
+          icon={<Zap className="w-4 h-4 text-emerald-500" />}
+          jobs={shelves.quick.items}
+          totalCount={shelves.quick.total}
+          formatTotalTime={formatTotalTime}
+          onOpenAll={() => onOpenList({ kind: 'quick' })}
+          onOpenRecipe={onOpenRecipe}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          bindLongPress={bindLongPress}
+        />
+      )}
 
-      <RecipeShelf
-        title={t('catalog.shelfNewest')}
-        icon={<Sparkles className="w-4 h-4 text-emerald-500" />}
-        jobs={shelves.newest.items}
-        totalCount={shelves.newest.total}
-        formatTotalTime={formatTotalTime}
-        onOpenAll={() => onOpenList({ kind: 'all' })}
-        onOpenRecipe={onOpenRecipe}
-        isSelectMode={isSelectMode}
-        selectedIds={selectedIds}
-        bindLongPress={bindLongPress}
-      />
+      {shelves.newest.total > 5 && (
+        <RecipeShelf
+          title={t('catalog.shelfNewest')}
+          icon={<Sparkles className="w-4 h-4 text-emerald-500" />}
+          jobs={shelves.newest.items}
+          totalCount={shelves.newest.total}
+          formatTotalTime={formatTotalTime}
+          onOpenAll={() => onOpenList({ kind: 'all' })}
+          onOpenRecipe={onOpenRecipe}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          bindLongPress={bindLongPress}
+        />
+      )}
 
       {/* Labels */}
       {allFlags.length > 0 && (
