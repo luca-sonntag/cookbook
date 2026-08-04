@@ -1271,6 +1271,8 @@ Respond in JSON only: {"chips":[{"category":"remix","label":"…","prompt":"…"
 export interface NotificationCopy {
   title: string;
   body: string;
+  theme?: string;
+  emoji?: string;
 }
 
 /**
@@ -1306,8 +1308,16 @@ export async function generateNotificationCopy(
               type: FunctionDeclarationSchemaType.STRING,
               description: 'Ultra-concise push body, MAX ~80 CHARS (must fit completely on 2 lines on mobile without truncation). Warm and inviting.',
             },
+            theme: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'Food category theme for card gradient: "italian" (pizza/pasta/pinsa), "fresh" (salads/veggie/bowls), "asian" (curry/ramen/wok/sushi), "hearty" (burger/steak/bbq), "sweet" (desserts/cakes), "breakfast" (pancakes/eggs/toast), "seafood" (fish/shrimp), or "emerald" (default).',
+            },
+            emoji: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'One single fitting food emoji matching the recipe (e.g. 🍕, 🍝, 🥗, 🍔, 🍰, 🥞, 🍣, 🥩, 🥣, 🍳).',
+            },
           },
-          required: ['title', 'body'],
+          required: ['title', 'body', 'theme', 'emoji'],
         },
         temperature: 0.8,
       } as any,
@@ -1335,7 +1345,7 @@ Guidance by type:
 
 Both "title" and "body" MUST be in ${langName}.
 
-Respond in JSON only: {"title":"…","body":"…"}`;
+Respond in JSON only: {"title":"…","body":"…","theme":"…","emoji":"…"}`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();

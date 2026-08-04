@@ -193,9 +193,16 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
     const copy = await generateNotificationCopy(candidate, resolveLanguage(user));
     if (!copy) return `User ${user.id}: AI copy generation returned null.`;
 
+    const baseUrl = (config.HEALTHCHECK_BACKEND_URL || process.env.PUBLIC_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+    const themeParam = encodeURIComponent(copy.theme || 'emerald');
+    const titleParam = encodeURIComponent(copy.title || '');
+    const emojiParam = encodeURIComponent(copy.emoji || '🍳');
+    const bannerUrl = `${baseUrl}/api/push-banner?theme=${themeParam}&title=${titleParam}&emoji=${emojiParam}`;
+
     const message: FcmMessage = {
       title: copy.title,
       body: copy.body,
+      imageUrl: bannerUrl,
       data: tapData(candidate),
     };
     const delivered = await deliver(user.id, candidate, message);
