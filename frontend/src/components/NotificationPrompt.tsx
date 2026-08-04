@@ -5,7 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { enablePushNotifications } from '../push';
 import { isNative } from '../native';
 
-const PROMPT_DISMISSED_STORAGE_KEY = 'snagbite_notification_prompt_dismissed';
+const PROMPT_DISMISSED_AT_KEY = 'snagbite_notification_prompt_dismissed_at';
+const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
 const ALL_CATEGORY_IDS = ['seasonal', 'reminders', 'timing', 'taste', 'motivation'];
 
 interface NotificationPromptProps {
@@ -18,7 +19,11 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
   const [busy, setBusy] = useState(false);
   const [dismissedLocally, setDismissedLocally] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return localStorage.getItem(PROMPT_DISMISSED_STORAGE_KEY) === '1';
+    const dismissedAtStr = localStorage.getItem(PROMPT_DISMISSED_AT_KEY);
+    if (!dismissedAtStr) return false;
+    const dismissedAt = parseInt(dismissedAtStr, 10);
+    if (isNaN(dismissedAt)) return false;
+    return Date.now() - dismissedAt < FOURTEEN_DAYS_MS;
   });
 
   const isEnabled = user?.user_metadata?.notifications_enabled === true;
@@ -46,10 +51,9 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
 
   if (!shouldShow) return null;
 
-  const handleDismiss = async () => {
-    localStorage.setItem(PROMPT_DISMISSED_STORAGE_KEY, '1');
+  const handleDismiss = () => {
+    localStorage.setItem(PROMPT_DISMISSED_AT_KEY, Date.now().toString());
     setDismissedLocally(true);
-    await updateUserMetadata({ notification_prompt_dismissed: true }).catch(() => { });
   };
 
   const handleEnable = async () => {
@@ -76,7 +80,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
         ...(timezone ? { notification_timezone: timezone } : {}),
         notification_prompt_dismissed: true,
       });
-      localStorage.setItem(PROMPT_DISMISSED_STORAGE_KEY, '1');
+      localStorage.removeItem(PROMPT_DISMISSED_AT_KEY);
       setDismissedLocally(true);
     } catch (err) {
       console.warn('Failed to enable notifications from prompt:', err);
