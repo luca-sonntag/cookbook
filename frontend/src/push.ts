@@ -209,7 +209,7 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
           id: Math.floor(Math.random() * 1_000_000) + 1000,
           title,
           body,
-          largeBody: body,
+          largeBody: attachments ? undefined : body,
           summaryText: 'Snagbite',
           channelId: PUSH_CHANNEL_ID,
           smallIcon: 'ic_stat_icon',
