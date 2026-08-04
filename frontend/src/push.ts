@@ -132,8 +132,9 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
     'pushNotificationActionPerformed',
     (action) => {
       console.log('[push] pushNotificationActionPerformed event:', action);
-      const data = (action.notification?.data ?? {}) as any;
-      const jobId = data.jobId || data.recipeId || (action.notification as any)?.extra?.jobId;
+      const notificationObj = (action.notification ?? {}) as any;
+      const data = (notificationObj.data ?? notificationObj.extra ?? action ?? {}) as any;
+      const jobId = data.jobId || data.recipeId || (action as any)?.jobId || notificationObj?.jobId;
       onTap({
         ...data,
         jobId: jobId || data.jobId,

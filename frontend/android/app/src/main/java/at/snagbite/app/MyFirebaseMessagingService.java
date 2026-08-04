@@ -75,9 +75,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         if (data != null) {
+            android.os.Bundle dataBundle = new android.os.Bundle();
             for (Map.Entry<String, String> entry : data.entrySet()) {
                 intent.putExtra(entry.getKey(), entry.getValue());
+                dataBundle.putString(entry.getKey(), entry.getValue());
             }
+            intent.putExtra("data", dataBundle);
+            intent.putExtra("pushNotificationData", dataBundle);
         }
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
