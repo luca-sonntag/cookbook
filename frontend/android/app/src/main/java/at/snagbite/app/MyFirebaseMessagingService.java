@@ -84,6 +84,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent);
 
+        String iconUrl = data != null ? data.get("iconUrl") : null;
+        if (iconUrl != null && !iconUrl.isEmpty()) {
+            Bitmap iconBitmap = fetchBitmap(iconUrl);
+            if (iconBitmap != null) {
+                builder.setLargeIcon(iconBitmap);
+            }
+        }
+
         if (imageUrl != null && !imageUrl.isEmpty()) {
             Bitmap bitmap = fetchBitmap(imageUrl);
             if (bitmap != null) {

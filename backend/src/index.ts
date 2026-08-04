@@ -7,7 +7,7 @@ import { startQueue, stopQueue } from './queue.js';
 import { apiRouter } from './routes.js';
 import { appUpdatesRouter } from './appUpdates.js';
 import { checkDbHealth } from './db.js';
-import { generateBannerPNG } from './bannerGenerator.js';
+import { generateBannerPNG, generateIconPNG } from './bannerGenerator.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isWorker = config.ROLE === 'worker' || config.ROLE === 'both';
@@ -130,6 +130,25 @@ async function bootstrap() {
         res.send(Buffer.from(buffer));
       } catch {
         res.status(500).send('Error proxying image');
+      }
+    });
+
+    // Dynamic PNG icon generator for FCM push notifications (square gradient + emoji)
+    app.get('/api/push-icon', async (req, res) => {
+      try {
+        const theme = (req.query.theme as string) || 'emerald';
+        const emoji = (req.query.emoji as string) || '🍳';
+
+        const pngBuffer = await generateIconPNG({ theme, emoji });
+
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        res.send(pngBuffer);
+      } catch (err: any) {
+        console.error('Error generating push icon:', err?.message ?? err);
+        res.status(500).send('Error generating icon image');
       }
     });
 

@@ -63,12 +63,12 @@ const THEME_PALETTES: Record<BannerTheme, ThemePalette> = {
   emerald: {
     startColor: '#059669',
     endColor: '#064E3B',
-    glowColor: '#10B981',
+    glowColor: '#6EE7B7',
     categoryLabel: 'REZEPT-EMPFEHLUNG',
   },
 };
 
-/** Escapes XML special characters in string values for safe SVG injection. */
+/** Escape XML special characters for SVG text. */
 function escapeXml(unsafe: string): string {
   return unsafe
     .replace(/&/g, '&amp;')
@@ -78,64 +78,59 @@ function escapeXml(unsafe: string): string {
     .replace(/'/g, '&apos;');
 }
 
-/** Wraps title string into line array if it exceeds max line width. */
-function wrapText(text: string, maxCharsPerLine = 22): string[] {
-  const words = text.trim().split(/\s+/);
+/** Wrap title into lines of at most maxChars length. */
+function wrapText(text: string, maxChars: number = 22): string[] {
+  const words = text.split(/\s+/);
   const lines: string[] = [];
   let currentLine = '';
 
   for (const word of words) {
-    if ((currentLine + (currentLine ? ' ' : '') + word).length > maxCharsPerLine) {
+    if ((currentLine + ' ' + word).trim().length <= maxChars) {
+      currentLine = (currentLine + ' ' + word).trim();
+    } else {
       if (currentLine) lines.push(currentLine);
       currentLine = word;
-    } else {
-      currentLine += (currentLine ? ' ' : '') + word;
     }
   }
   if (currentLine) lines.push(currentLine);
-
-  return lines.slice(0, 2); // Max 2 lines for high visual impact
+  return lines.slice(0, 3); // Max 3 lines
 }
 
-function emojiToNotoHex(emoji: string): string {
-  const comp = Array.from(emoji).map((char) => char.codePointAt(0)!.toString(16));
-  return comp.filter((hex) => hex !== 'fe0f').join('_');
-}
-
-function emojiToUnicodeHex(emoji: string): string {
-  const comp = Array.from(emoji).map((char) => char.codePointAt(0)!.toString(16));
-  return comp.filter((hex) => hex !== 'fe0f').join('-');
-}
-
+/** In-memory cache for fetched Google Noto Color Emoji PNG buffers */
 const emojiPngCache = new Map<string, Buffer | null>();
 
-/**
- * Fetches Google Noto Color Emoji PNG (Browser / Android style) with fallback to Twemoji.
- */
+/** Convert a unicode emoji character (e.g. 🍕 or 🍳) to Noto Emoji hex string format */
+function emojiToNotoHex(emoji: string): string {
+  return Array.from(emoji)
+    .map((char) => char.codePointAt(0)!.toString(16).toLowerCase())
+    .filter((hex) => hex !== 'fe0f') // strip variation selector-16
+    .join('_'); // googlefonts/noto-emoji uses underscores
+}
+
+/** Fetch official Google Noto Color Emoji PNG (128x128) with fallback to Twemoji */
 async function fetchEmojiPng(emoji: string): Promise<Buffer | null> {
   const notoHex = emojiToNotoHex(emoji);
-  if (!notoHex) return null;
-  if (emojiPngCache.has(notoHex)) return emojiPngCache.get(notoHex)!;
+  if (emojiPngCache.has(notoHex)) {
+    return emojiPngCache.get(notoHex)!;
+  }
+
+  // Official Google Noto Color Emoji PNG (Android style)
+  const primaryUrl = `https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/128/emoji_u${notoHex}.png`;
+  // Fallback to Twemoji PNG
+  const fallbackUrl = `https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/${notoHex}.png`;
 
   try {
-    // 1. Primary: Google Noto Color Emoji (Browser style)
-    const googleUrl = `https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/128/emoji_u${notoHex}.png`;
-    let res = await fetch(googleUrl);
-
-    // 2. Fallback: Twemoji CDN
+    let res = await fetch(primaryUrl);
     if (!res.ok) {
-      const twemojiHex = emojiToUnicodeHex(emoji);
-      const twemojiUrl = `https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/${twemojiHex}.png`;
-      res = await fetch(twemojiUrl);
+      res = await fetch(fallbackUrl);
     }
-
     if (!res.ok) {
+      console.warn(`[bannerGenerator] Failed to fetch emoji for ${emoji} (${notoHex})`);
       emojiPngCache.set(notoHex, null);
       return null;
     }
-
-    const arrayBuf = await res.arrayBuffer();
-    const buf = Buffer.from(arrayBuf);
+    const arrayBuffer = await res.arrayBuffer();
+    const buf = Buffer.from(arrayBuffer);
     emojiPngCache.set(notoHex, buf);
     return buf;
   } catch (err) {
@@ -151,6 +146,11 @@ export interface BannerOptions {
   emoji?: string;
 }
 
+export interface IconOptions {
+  theme?: string;
+  emoji?: string;
+}
+
 /**
  * Generates an 800x400 SVG string for a rich recipe notification card.
  */
@@ -159,7 +159,13 @@ export function generateBannerSVG(options: BannerOptions): string {
   const palette = THEME_PALETTES[normalizedTheme] || THEME_PALETTES.emerald;
 
   const rawTitle = options.title || 'Neues Rezept entdeckt';
-  const titleLines = wrapText(rawTitle, 22);
+
+  // Strip emojis from SVG title text so librsvg doesn't render missing glyph boxes
+  const textOnlyTitle = rawTitle
+    .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]/gu, '')
+    .trim();
+
+  const titleLines = wrapText(textOnlyTitle || rawTitle, 22);
 
   const safeTitleLines = titleLines.map(escapeXml);
   const safeCategory = escapeXml(palette.categoryLabel);
@@ -232,6 +238,47 @@ export async function generateBannerPNG(options: BannerOptions): Promise<Buffer>
     if (emojiPng) {
       const resizedEmoji = await sharp(emojiPng).resize(160, 160).toBuffer();
       instance = instance.composite([{ input: resizedEmoji, top: 120, left: 540 }]);
+    }
+  }
+
+  return instance.png({ quality: 90 }).toBuffer();
+}
+
+/**
+ * Generates a 256x256 square PNG image buffer with the theme gradient and centered emoji for collapsed notifications.
+ */
+export async function generateIconPNG(options: IconOptions): Promise<Buffer> {
+  const themeKey = (options.theme?.toLowerCase() as BannerTheme) in THEME_PALETTES
+    ? (options.theme?.toLowerCase() as BannerTheme)
+    : 'emerald';
+
+  const palette = THEME_PALETTES[themeKey];
+
+  const svgString = `
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${palette.startColor}" />
+      <stop offset="100%" stop-color="${palette.endColor}" />
+    </linearGradient>
+    <radialGradient id="ambientGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${palette.glowColor}" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="${palette.glowColor}" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="48" fill="url(#bgGrad)" />
+  <circle cx="128" cy="128" r="100" fill="url(#ambientGlow)" />
+</svg>
+`.trim();
+
+  let instance = sharp(Buffer.from(svgString));
+
+  if (options.emoji) {
+    const emojiPng = await fetchEmojiPng(options.emoji);
+    if (emojiPng) {
+      const resizedEmoji = await sharp(emojiPng).resize(160, 160).toBuffer();
+      instance = instance.composite([{ input: resizedEmoji, top: 48, left: 48 }]);
     }
   }
 

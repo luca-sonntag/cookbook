@@ -198,9 +198,11 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
     const titleParam = encodeURIComponent(copy.title || '');
     const emojiParam = encodeURIComponent(copy.emoji || '🍳');
     const bannerUrl = `${baseUrl}/api/push-banner?theme=${themeParam}&title=${titleParam}&emoji=${emojiParam}`;
+    const iconUrl = `${baseUrl}/api/push-icon?theme=${themeParam}&emoji=${emojiParam}`;
 
     const dataPayload = tapData(candidate);
     dataPayload.imageUrl = bannerUrl;
+    dataPayload.iconUrl = iconUrl;
 
     const message: FcmMessage = {
       title: copy.title,
