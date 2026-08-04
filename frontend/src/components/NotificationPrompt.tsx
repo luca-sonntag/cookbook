@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, Check, X } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
@@ -31,6 +31,14 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
     !isEnabled &&
     !isDismissedInMeta &&
     !dismissedLocally;
+
+  useEffect(() => {
+    if (!shouldShow) return;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [shouldShow]);
 
   if (!shouldShow) return null;
 
