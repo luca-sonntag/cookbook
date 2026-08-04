@@ -37,13 +37,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // Forward to Capacitor plugin so in-app listeners fire if app is open
         PushNotificationsPlugin.sendRemoteMessage(remoteMessage);
 
-        // Don't post a system notification while the app is in the foreground —
-        // the UI already reacts to the in-app event (job polling / banner).
-        if (isAppInForeground()) {
-            Log.d(TAG, "App is in foreground — skipping system notification");
-            return;
-        }
-
         Map<String, String> data = remoteMessage.getData();
         String title = data.get("title");
         String body = data.get("body");
@@ -58,25 +51,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (title == null && body == null) return;
 
         showNotification(title, body, data, remoteMessage);
-    }
-
-    /** Returns true when this process is currently visible to the user. */
-    private boolean isAppInForeground() {
-        android.app.ActivityManager activityManager =
-                (android.app.ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        if (activityManager == null) return false;
-        java.util.List<android.app.ActivityManager.RunningAppProcessInfo> processes =
-                activityManager.getRunningAppProcesses();
-        if (processes == null) return false;
-        String packageName = getPackageName();
-        for (android.app.ActivityManager.RunningAppProcessInfo process : processes) {
-            if (process.importance ==
-                    android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-                && java.util.Arrays.asList(process.pkgList).contains(packageName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void showNotification(String title, String body, Map<String, String> data, RemoteMessage remoteMessage) {
