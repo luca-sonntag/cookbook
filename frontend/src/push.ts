@@ -41,6 +41,24 @@ async function ensureSuggestionsChannel(): Promise<void> {
   }
 }
 
+/** Helper to fetch a remote HTTP/HTTPS image URL and convert it to a Base64 data URL for local notifications. */
+async function fetchImageAsBase64(url: string): Promise<string | undefined> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return undefined;
+    const blob = await res.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(undefined);
+      reader.readAsDataURL(blob);
+    });
+  } catch (err) {
+    console.warn('[push] Failed to fetch notification image as Base64:', err);
+    return undefined;
+  }
+}
+
 /**
  * POST the FCM token to the backend so this device can receive pushes. Requires
  * an access token from the auth context. Best-effort — network failures are
@@ -123,8 +141,8 @@ export async function disablePushNotifications(
 }
 
 /**
- * Register a handler for taps on a delivered push. Also shows a foreground push
- * as a local notification so it isn't silently swallowed while the app is open.
+ * Register a handler for taps on a delivered push. Also shows a push
+ * as a local notification so the user sees the rich BigPictureStyle image banner.
  * Returns a cleanup function. No-op on web.
  */
 export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void): () => void {
@@ -161,13 +179,23 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
     .catch((err) => console.warn('[push] Error checking delivered notifications:', err));
 
   // Push receipt: surface it as a local notification so the user sees the rich BigPictureStyle banner.
-  const receivedHandle = PushNotifications.addListener('pushNotificationReceived', (notification) => {
+  const receivedHandle = PushNotifications.addListener('pushNotificationReceived', async (notification) => {
     const data = (notification.data ?? {}) as any;
     const title = notification.title || (notification as any).title || data.title || '';
     const body = notification.body || (notification as any).body || data.body || '';
     if (!title && !body) return;
 
-    const imageUrl = notification.image || (notification as any).image || data.imageUrl || data.image;
+    const rawImageUrl = notification.image || (notification as any).image || data.imageUrl || data.image;
+    let imageUrl: string | undefined = undefined;
+
+    if (rawImageUrl) {
+      if (rawImageUrl.startsWith('data:image')) {
+        imageUrl = rawImageUrl;
+      } else if (rawImageUrl.startsWith('http://') || rawImageUrl.startsWith('https://')) {
+        imageUrl = await fetchImageAsBase64(rawImageUrl);
+      }
+    }
+
     const attachments = imageUrl ? [{ id: 'banner', url: imageUrl }] : undefined;
 
     LocalNotifications.schedule({
