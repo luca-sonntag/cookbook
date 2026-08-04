@@ -197,15 +197,15 @@ export function generateBannerSVG(options: BannerOptions): string {
   <circle cx="100" cy="340" r="180" fill="url(#ambientGlow)" />
 
   <!-- Category / Theme Pill (Left) -->
-  <rect x="48" y="54" width="auto" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.2" />
-  <text x="58" y="71" font-size="11" font-weight="800" fill="#FFFFFF" letter-spacing="1.2" font-family="system-ui, -apple-system, sans-serif">
+  <rect x="48" y="48" width="auto" height="34" rx="8" fill="#FFFFFF" fill-opacity="0.2" />
+  <text x="62" y="71" font-size="15" font-weight="900" fill="#FFFFFF" letter-spacing="1.5" font-family="system-ui, -apple-system, sans-serif">
     ${safeCategory}
   </text>
 
   <!-- Main Recipe Title Text (Left) -->
   <g filter="url(#shadow)">
     ${safeTitleLines.map((line, idx) => `
-      <text x="48" y="${145 + idx * 46}" font-size="38" font-weight="900" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" letter-spacing="-0.5">
+      <text x="48" y="${152 + idx * 46}" font-size="38" font-weight="900" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" letter-spacing="-0.5">
         ${line}
       </text>
     `).join('')}
