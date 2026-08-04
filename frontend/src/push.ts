@@ -9,7 +9,7 @@ import { isNative } from './native';
 // path in native.ts (which handles cooking timers). Registration captures the
 // FCM device token and hands it to the backend, which stores it and sends the
 // AI-generated pushes. Native Android Service (MyFirebaseMessagingService.java)
-// handles fetching the remote PNG banner and rendering the BigPictureStyle push.
+// handles fetching the remote PNG icon and rendering the square gradient emoji icon.
 
 const PUSH_CHANNEL_ID = 'ai-suggestions';
 

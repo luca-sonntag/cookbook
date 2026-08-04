@@ -40,25 +40,20 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Map<String, String> data = remoteMessage.getData();
         String title = data.get("title");
         String body = data.get("body");
-        String imageUrl = data.get("imageUrl");
-        if (imageUrl == null) imageUrl = data.get("image");
 
         if (title == null && body == null) {
             if (remoteMessage.getNotification() != null) {
                 title = remoteMessage.getNotification().getTitle();
                 body = remoteMessage.getNotification().getBody();
-                if (remoteMessage.getNotification().getImageUrl() != null) {
-                    imageUrl = remoteMessage.getNotification().getImageUrl().toString();
-                }
             }
         }
 
         if (title == null && body == null) return;
 
-        showNotification(title, body, imageUrl, data, remoteMessage);
+        showNotification(title, body, data, remoteMessage);
     }
 
-    private void showNotification(String title, String body, String imageUrl, Map<String, String> data, RemoteMessage remoteMessage) {
+    private void showNotification(String title, String body, Map<String, String> data, RemoteMessage remoteMessage) {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 

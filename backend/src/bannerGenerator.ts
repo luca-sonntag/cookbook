@@ -14,7 +14,6 @@ interface ThemePalette {
   startColor: string;
   endColor: string;
   glowColor: string;
-  categoryLabel: string;
 }
 
 const THEME_PALETTES: Record<BannerTheme, ThemePalette> = {
@@ -22,49 +21,41 @@ const THEME_PALETTES: Record<BannerTheme, ThemePalette> = {
     startColor: '#D9381E',
     endColor: '#F39C12',
     glowColor: '#FF7E67',
-    categoryLabel: 'ITALIENISCH & COMFORT',
   },
   fresh: {
     startColor: '#10B981',
     endColor: '#046A38',
     glowColor: '#34D399',
-    categoryLabel: 'FRISCH & GESUND',
   },
   asian: {
     startColor: '#E11D48',
     endColor: '#D97706',
     glowColor: '#FB7185',
-    categoryLabel: 'ASIATISCH & WÜRZIG',
   },
   hearty: {
     startColor: '#B45309',
     endColor: '#581C87',
     glowColor: '#F59E0B',
-    categoryLabel: 'HERZHAFT & DEFTIG',
   },
   sweet: {
     startColor: '#DB2777',
     endColor: '#7C3AED',
     glowColor: '#F472B6',
-    categoryLabel: 'SÜSSES & DESSERTS',
   },
   breakfast: {
     startColor: '#D97706',
     endColor: '#CA8A04',
     glowColor: '#FBBF24',
-    categoryLabel: 'FRÜHSTÜCK & BRUNCH',
   },
   seafood: {
     startColor: '#0284C7',
     endColor: '#0F766E',
     glowColor: '#38BDF8',
-    categoryLabel: 'FISCH & MEERESFRÜCHTE',
   },
   emerald: {
     startColor: '#059669',
     endColor: '#064E3B',
     glowColor: '#6EE7B7',
-    categoryLabel: 'REZEPT-EMPFEHLUNG',
   },
 };
 
