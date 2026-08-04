@@ -55,10 +55,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         if (title == null && body == null) return;
 
-        showNotification(title, body, imageUrl, data);
+        showNotification(title, body, imageUrl, data, remoteMessage);
     }
 
-    private void showNotification(String title, String body, String imageUrl, Map<String, String> data) {
+    private void showNotification(String title, String body, String imageUrl, Map<String, String> data, RemoteMessage remoteMessage) {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -83,6 +83,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             intent.putExtra("data", dataBundle);
             intent.putExtra("pushNotificationData", dataBundle);
         }
+
+        // Essential FCM identification extras required by Capacitor's PushNotificationsPlugin
+        // to recognize the intent as a notification tap event and trigger pushNotificationActionPerformed
+        String msgId = remoteMessage != null && remoteMessage.getMessageId() != null
+                ? remoteMessage.getMessageId()
+                : "msg_" + System.currentTimeMillis();
+        intent.putExtra("google.message_id", msgId);
+        intent.putExtra("message_id", msgId);
+        intent.putExtra("google.sent_time", System.currentTimeMillis());
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this,
