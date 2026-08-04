@@ -186,11 +186,9 @@ export default function SavedCatalog({
     }
   }, [preset, collections, t]);
 
-  useEffect(() => {
-    if (historyLoaded) {
-      refreshCollections();
-    }
-  }, [historyLoaded, refreshCollections]);
+  // Collections are now auto-fetched by useCollections() in parallel with
+  // fetchHistory (triggered as soon as auth settles). refreshCollections() is
+  // still available for explicit refreshes (e.g. after create/delete).
 
   // Record recency centrally so deep links and notification taps count too.
   useEffect(() => {
