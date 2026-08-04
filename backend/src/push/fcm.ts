@@ -129,24 +129,22 @@ export async function sendToToken(token: string, message: FcmMessage): Promise<F
     const accessToken = await getAccessToken();
     const projectId = config.FCM_PROJECT_ID;
 
+    // Data-only FCM payload so Android OS does not auto-render text-only notifications.
+    // Instead, Capacitor receives the data payload and LocalNotifications renders the
+    // rich BigPictureStyle image banner with high priority.
+    const dataPayload: Record<string, string> = {
+      title: message.title,
+      body: message.body,
+      ...(message.imageUrl ? { imageUrl: message.imageUrl } : {}),
+      ...(message.data ?? {}),
+    };
+
     const payload = {
       message: {
         token,
-        notification: {
-          title: message.title,
-          body: message.body,
-          ...(message.imageUrl ? { image: message.imageUrl } : {}),
-        },
-        data: message.data ?? {},
+        data: dataPayload,
         android: {
           priority: 'HIGH' as const,
-          notification: {
-            title: message.title,
-            body: message.body,
-            sound: 'default',
-            notification_priority: 'PRIORITY_HIGH' as const,
-            ...(message.imageUrl ? { image: message.imageUrl } : {}),
-          },
         },
       },
     };

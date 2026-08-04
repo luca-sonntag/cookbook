@@ -160,13 +160,14 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
     })
     .catch((err) => console.warn('[push] Error checking delivered notifications:', err));
 
-  // Foreground receipt: surface it as a local notification so the user still sees it.
+  // Push receipt: surface it as a local notification so the user sees the rich BigPictureStyle banner.
   const receivedHandle = PushNotifications.addListener('pushNotificationReceived', (notification) => {
-    const title = notification.title || (notification.data as any)?.title || '';
-    const body = notification.body || (notification.data as any)?.body || '';
+    const data = (notification.data ?? {}) as any;
+    const title = notification.title || (notification as any).title || data.title || '';
+    const body = notification.body || (notification as any).body || data.body || '';
     if (!title && !body) return;
 
-    const imageUrl = notification.image || (notification as any).image || (notification.data as any)?.imageUrl;
+    const imageUrl = notification.image || (notification as any).image || data.imageUrl || data.image;
     const attachments = imageUrl ? [{ id: 'banner', url: imageUrl }] : undefined;
 
     LocalNotifications.schedule({
@@ -179,10 +180,10 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
           smallIcon: 'ic_stat_icon',
           largeIcon: imageUrl,
           attachments,
-          extra: notification.data ?? {},
+          extra: data,
         },
       ],
-    }).catch((err) => console.warn('Foreground push local-notification failed:', err));
+    }).catch((err) => console.warn('Push local-notification failed:', err));
   });
 
   return () => {
