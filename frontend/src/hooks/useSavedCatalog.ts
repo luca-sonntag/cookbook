@@ -443,8 +443,19 @@ export function useSavedCatalog({
   };
 
   // Bulk add to shopping list in Multi-Select mode
-  const handleBulkAddToShoppingList = () => {
+  const handleBulkAddToShoppingList = async () => {
     if (!onAddIngredients) return;
+
+    const count = selectedIds.size;
+    const confirmed = await dialog.confirm({
+      title: t('catalog.confirmBulkAddTitle'),
+      message: t('catalog.confirmBulkAddMessage', { count }),
+      confirmLabel: t('recipe.addedToShopping'),
+      cancelLabel: t('app.dialog.deleteRecipe.cancel'),
+      status: 'info'
+    });
+
+    if (!confirmed) return;
 
     let totalAdded = 0;
     const selectedJobs = completedJobs.filter(j => selectedIds.has(j.id));
