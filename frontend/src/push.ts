@@ -166,6 +166,8 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
     const body = notification.body || (notification.data as any)?.body || '';
     if (!title && !body) return;
 
+    const imageUrl = notification.image || (notification as any).imageUrl || (notification.data as any)?.imageUrl;
+
     LocalNotifications.schedule({
       notifications: [
         {
@@ -175,6 +177,7 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
           largeBody: body,
           channelId: PUSH_CHANNEL_ID,
           smallIcon: 'ic_stat_icon',
+          largeIcon: imageUrl,
           extra: notification.data ?? {},
         },
       ],

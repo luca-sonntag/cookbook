@@ -193,7 +193,9 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
     const copy = await generateNotificationCopy(candidate, resolveLanguage(user));
     if (!copy) return `User ${user.id}: AI copy generation returned null.`;
 
-    const baseUrl = (process.env.PUBLIC_BACKEND_URL || config.HEALTHCHECK_BACKEND_URL || 'http://192.168.1.235').replace(/\/$/, '');
+    const defaultHost = `http://192.168.1.235:${config.PORT || 3000}`;
+    const rawBaseUrl = process.env.PUBLIC_BACKEND_URL || config.HEALTHCHECK_BACKEND_URL || defaultHost;
+    const baseUrl = rawBaseUrl.replace(/\/$/, '');
     const themeParam = encodeURIComponent(copy.theme || 'emerald');
     const titleParam = encodeURIComponent(copy.title || '');
     const emojiParam = encodeURIComponent(copy.emoji || '🍳');
