@@ -119,6 +119,10 @@ async function sendNotification(
   recipeId?: string,
   stepNum?: number,
 ): Promise<void> {
+  // Don't post a system notification while the app is in the foreground — the
+  // in-app alarm (sound + vibration + TimerBanner) already gives clear feedback.
+  if (document.visibilityState === 'visible') return;
+
   // On native (Capacitor) the Web Notification API / service worker don't post
   // real system notifications — use the native local-notifications plugin.
   if (isNative()) {
