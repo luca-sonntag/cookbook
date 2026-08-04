@@ -87,7 +87,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200 touch-none">
-      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl relative overflow-hidden flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-7 pt-8 shadow-2xl relative overflow-hidden flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
         {/* Dismiss X button */}
         <button
           type="button"
@@ -99,7 +99,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
         </button>
 
         {/* Header Icon */}
-        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 flex items-center justify-center mb-4">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 flex items-center justify-center mb-5">
           <Bell className="w-7 h-7" />
         </div>
 
@@ -109,21 +109,21 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
         </h3>
 
         {/* Description */}
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed px-1">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 leading-relaxed px-1">
           {t('notification.prompt.description')}
         </p>
 
         {/* Value Proposition Bullets */}
-        <div className="flex flex-col gap-2.5 text-left w-full my-4 text-xs text-slate-700 dark:text-slate-300 font-medium">
-          <div className="flex items-center gap-2.5">
-            <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+        <div className="flex flex-col gap-3.5 text-left w-full my-6 text-xs text-slate-700 dark:text-slate-300 font-medium px-1">
+          <div className="flex items-center gap-3">
+            <div className="w-4.5 h-4.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <Check className="w-3 h-3 stroke-[3]" />
             </div>
             <span>{t('notification.prompt.feature1')}</span>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-4.5 h-4.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <Check className="w-3 h-3 stroke-[3]" />
             </div>
             <span>{t('notification.prompt.feature2')}</span>
@@ -131,7 +131,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col gap-2 w-full mt-1">
+        <div className="flex flex-col gap-3 w-full mt-2">
           <button
             type="button"
             onClick={handleEnable}
