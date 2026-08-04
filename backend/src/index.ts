@@ -11,7 +11,7 @@ import { generateIconPNG } from './bannerGenerator.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isWorker = config.ROLE === 'worker' || config.ROLE === 'both';
-const isWeb    = config.ROLE === 'web'    || config.ROLE === 'both';
+const isWeb = config.ROLE === 'web' || config.ROLE === 'both';
 
 async function bootstrap() {
   try {
@@ -137,7 +137,7 @@ async function bootstrap() {
     app.get('/api/push-icon', async (req, res) => {
       try {
         const theme = (req.query.theme as string) || 'emerald';
-        const emoji = (req.query.emoji as string) || '🍳';
+        const emoji = (req.query.emoji as string) || '🥪';
 
         const pngBuffer = await generateIconPNG({ theme, emoji });
 

@@ -195,7 +195,7 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
 
     const baseUrl = (config.PUBLIC_BACKEND_URL || config.HEALTHCHECK_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
     const themeParam = encodeURIComponent(copy.theme || 'emerald');
-    const emojiParam = encodeURIComponent(copy.emoji || '🍳');
+    const emojiParam = encodeURIComponent(copy.emoji || '🥪');
     const iconUrl = `${baseUrl}/api/push-icon?theme=${themeParam}&emoji=${emojiParam}`;
 
     const dataPayload = tapData(candidate);
