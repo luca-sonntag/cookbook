@@ -1,6 +1,5 @@
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { apiUrl } from './api';
 import { isNative } from './native';
 
@@ -9,8 +8,8 @@ import { isNative } from './native';
 // Remote push is Android-only (Capacitor) and complements the local-notification
 // path in native.ts (which handles cooking timers). Registration captures the
 // FCM device token and hands it to the backend, which stores it and sends the
-// AI-generated pushes. Tapping a push routes into the app via `onTap`, mirroring
-// registerNotificationTap() for local notifications.
+// AI-generated pushes. Native Android Service (MyFirebaseMessagingService.java)
+// handles fetching the remote PNG banner and rendering the BigPictureStyle push.
 
 const PUSH_CHANNEL_ID = 'ai-suggestions';
 
@@ -38,24 +37,6 @@ async function ensureSuggestionsChannel(): Promise<void> {
     });
   } catch (err) {
     console.warn('Failed to create push channel:', err);
-  }
-}
-
-/** Helper to fetch a remote HTTP/HTTPS image URL and convert it to a Base64 data URL for local notifications. */
-async function fetchImageAsBase64(url: string): Promise<string | undefined> {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return undefined;
-    const blob = await res.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(undefined);
-      reader.readAsDataURL(blob);
-    });
-  } catch (err) {
-    console.warn('[push] Failed to fetch notification image as Base64:', err);
-    return undefined;
   }
 }
 
@@ -141,8 +122,7 @@ export async function disablePushNotifications(
 }
 
 /**
- * Register a handler for taps on a delivered push. Also shows a push
- * as a local notification so the user sees the rich BigPictureStyle image banner.
+ * Register a handler for taps on a delivered push.
  * Returns a cleanup function. No-op on web.
  */
 export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void): () => void {
@@ -178,40 +158,8 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
     })
     .catch((err) => console.warn('[push] Error checking delivered notifications:', err));
 
-  // Push receipt: surface it as a local notification so the user sees the rich BigPictureStyle banner.
-  const receivedHandle = PushNotifications.addListener('pushNotificationReceived', async (notification) => {
-    const data = (notification.data ?? {}) as any;
-    const title = notification.title || (notification as any).title || data.title || '';
-    const body = notification.body || (notification as any).body || data.body || '';
-    if (!title && !body) return;
-
-    const rawImageUrl = notification.image || (notification as any).image || data.imageUrl || data.image;
-    let imageUrl: string | undefined = undefined;
-
-    if (rawImageUrl) {
-      if (rawImageUrl.startsWith('data:image')) {
-        imageUrl = rawImageUrl;
-      } else if (rawImageUrl.startsWith('http://') || rawImageUrl.startsWith('https://')) {
-        imageUrl = await fetchImageAsBase64(rawImageUrl);
-      }
-    }
-
-    const attachments = imageUrl ? [{ id: 'banner', url: imageUrl }] : undefined;
-
-    LocalNotifications.schedule({
-      notifications: [
-        {
-          id: Math.floor(Math.random() * 1_000_000) + 1000,
-          title,
-          body,
-          channelId: PUSH_CHANNEL_ID,
-          smallIcon: 'ic_stat_icon',
-          largeIcon: imageUrl,
-          attachments,
-          extra: data,
-        },
-      ],
-    }).catch((err) => console.warn('Push local-notification failed:', err));
+  const receivedHandle = PushNotifications.addListener('pushNotificationReceived', (notification) => {
+    console.log('[push] Received foreground push notification:', notification);
   });
 
   return () => {
