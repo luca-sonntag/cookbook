@@ -196,30 +196,16 @@ export function generateBannerSVG(options: BannerOptions): string {
   <circle cx="620" cy="180" r="220" fill="url(#ambientGlow)" />
   <circle cx="100" cy="340" r="180" fill="url(#ambientGlow)" />
 
-  <!-- Glassmorphism Large Emoji Circle Container (Right) -->
-  <g filter="url(#shadow)">
-    <circle cx="620" cy="200" r="115" fill="#FFFFFF" fill-opacity="0.15" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2.5" />
-  </g>
-
-  <!-- App Branding Header Pill (Top Left) -->
-  <g filter="url(#glowShadow)">
-    <rect x="48" y="44" width="180" height="34" rx="17" fill="#000000" fill-opacity="0.25" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1" />
-    <!-- App Fork/Spoon Icon Symbol -->
-    <circle cx="68" cy="61" r="9" fill="#10B981" />
-    <text x="68" y="65" font-size="11" font-weight="900" fill="#FFFFFF" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">S</text>
-    <text x="86" y="66" font-size="12" font-weight="800" fill="#FFFFFF" letter-spacing="1.5" font-family="system-ui, -apple-system, sans-serif">SNAGBITE</text>
-  </g>
-
   <!-- Category / Theme Pill (Left) -->
-  <rect x="48" y="106" width="auto" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.2" />
-  <text x="58" y="123" font-size="11" font-weight="800" fill="#FFFFFF" letter-spacing="1.2" font-family="system-ui, -apple-system, sans-serif">
+  <rect x="48" y="54" width="auto" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.2" />
+  <text x="58" y="71" font-size="11" font-weight="800" fill="#FFFFFF" letter-spacing="1.2" font-family="system-ui, -apple-system, sans-serif">
     ${safeCategory}
   </text>
 
   <!-- Main Recipe Title Text (Left) -->
   <g filter="url(#shadow)">
     ${safeTitleLines.map((line, idx) => `
-      <text x="48" y="${185 + idx * 46}" font-size="38" font-weight="900" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" letter-spacing="-0.5">
+      <text x="48" y="${145 + idx * 46}" font-size="38" font-weight="900" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" letter-spacing="-0.5">
         ${line}
       </text>
     `).join('')}
@@ -244,8 +230,8 @@ export async function generateBannerPNG(options: BannerOptions): Promise<Buffer>
   if (options.emoji) {
     const emojiPng = await fetchEmojiPng(options.emoji);
     if (emojiPng) {
-      const resizedEmoji = await sharp(emojiPng).resize(150, 150).toBuffer();
-      instance = instance.composite([{ input: resizedEmoji, top: 125, left: 545 }]);
+      const resizedEmoji = await sharp(emojiPng).resize(160, 160).toBuffer();
+      instance = instance.composite([{ input: resizedEmoji, top: 120, left: 540 }]);
     }
   }
 
