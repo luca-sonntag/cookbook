@@ -97,6 +97,11 @@ function wrapText(text: string, maxCharsPerLine = 22): string[] {
   return lines.slice(0, 2); // Max 2 lines for high visual impact
 }
 
+function emojiToNotoHex(emoji: string): string {
+  const comp = Array.from(emoji).map((char) => char.codePointAt(0)!.toString(16));
+  return comp.filter((hex) => hex !== 'fe0f').join('_');
+}
+
 function emojiToUnicodeHex(emoji: string): string {
   const comp = Array.from(emoji).map((char) => char.codePointAt(0)!.toString(16));
   return comp.filter((hex) => hex !== 'fe0f').join('-');
@@ -104,25 +109,38 @@ function emojiToUnicodeHex(emoji: string): string {
 
 const emojiPngCache = new Map<string, Buffer | null>();
 
+/**
+ * Fetches Google Noto Color Emoji PNG (Browser / Android style) with fallback to Twemoji.
+ */
 async function fetchEmojiPng(emoji: string): Promise<Buffer | null> {
-  const hex = emojiToUnicodeHex(emoji);
-  if (!hex) return null;
-  if (emojiPngCache.has(hex)) return emojiPngCache.get(hex)!;
+  const notoHex = emojiToNotoHex(emoji);
+  if (!notoHex) return null;
+  if (emojiPngCache.has(notoHex)) return emojiPngCache.get(notoHex)!;
 
   try {
-    const url = `https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/${hex}.png`;
-    const res = await fetch(url);
+    // 1. Primary: Google Noto Color Emoji (Browser style)
+    const googleUrl = `https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/128/emoji_u${notoHex}.png`;
+    let res = await fetch(googleUrl);
+
+    // 2. Fallback: Twemoji CDN
     if (!res.ok) {
-      emojiPngCache.set(hex, null);
+      const twemojiHex = emojiToUnicodeHex(emoji);
+      const twemojiUrl = `https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/${twemojiHex}.png`;
+      res = await fetch(twemojiUrl);
+    }
+
+    if (!res.ok) {
+      emojiPngCache.set(notoHex, null);
       return null;
     }
+
     const arrayBuf = await res.arrayBuffer();
     const buf = Buffer.from(arrayBuf);
-    emojiPngCache.set(hex, buf);
+    emojiPngCache.set(notoHex, buf);
     return buf;
   } catch (err) {
     console.warn('[bannerGenerator] Failed to fetch emoji PNG:', err);
-    emojiPngCache.set(hex, null);
+    emojiPngCache.set(notoHex, null);
     return null;
   }
 }
