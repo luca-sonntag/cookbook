@@ -25,6 +25,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
   const isDismissedInMeta = user?.user_metadata?.notification_prompt_dismissed === true;
 
   const shouldShow =
+    true ||
     !!user &&
     savedCount >= 0 &&
     !isEnabled &&
@@ -86,7 +87,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
         </button>
 
         {/* Header Icon */}
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 shadow-sm">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 flex items-center justify-center mb-4">
           <Bell className="w-7 h-7" />
         </div>
 
@@ -101,7 +102,7 @@ export default function NotificationPrompt({ savedCount }: NotificationPromptPro
         </p>
 
         {/* Value Proposition Bullets */}
-        <div className="flex flex-col gap-2.5 text-left w-full my-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 p-3.5 rounded-2xl text-xs text-slate-700 dark:text-slate-300 font-medium">
+        <div className="flex flex-col gap-2.5 text-left w-full my-4 bg-slate-50 dark:bg-slate-800/40 p-3.5 rounded-2xl text-xs text-slate-700 dark:text-slate-300 font-medium">
           <div className="flex items-center gap-2.5">
             <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <Check className="w-3 h-3 stroke-[3]" />
