@@ -346,12 +346,15 @@ export default function App() {
     }
   }, [activeView, user, fetchLimitStatus, initialSyncDone]);
 
-  // Hide native splash screen when app is fully ready
+  // Hide native splash screen as soon as auth has settled.
+  // We don't wait for initialSyncDone (fetchLimitStatus) because that API call
+  // would add unnecessary delay — the limit status can be loaded silently in
+  // the background while the app is already visible to the user.
   useEffect(() => {
-    if (!authLoading && initialSyncDone) {
+    if (!authLoading) {
       hideSplashScreen();
     }
-  }, [authLoading, initialSyncDone]);
+  }, [authLoading]);
 
   // After history loads, check if current URL references a valid jobId and keep it,
   // or clear the subPath if the jobId no longer exists.
