@@ -165,8 +165,7 @@ export default function CookbookHome({
         />
       )}
 
-      {shelves.newest.total > 5 && (
-        <RecipeShelf
+      <RecipeShelf
           title={t('catalog.shelfNewest')}
           icon={<Sparkles className="w-4 h-4 text-emerald-500" />}
           jobs={shelves.newest.items}
@@ -178,7 +177,6 @@ export default function CookbookHome({
           selectedIds={selectedIds}
           bindLongPress={bindLongPress}
         />
-      )}
 
       {/* Labels */}
       {allFlags.length > 0 && (
