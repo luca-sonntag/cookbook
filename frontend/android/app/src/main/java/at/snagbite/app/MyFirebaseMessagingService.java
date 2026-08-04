@@ -93,9 +93,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
 
         if (imageUrl != null && !imageUrl.isEmpty()) {
-            Bitmap bitmap = fetchBitmap(imageUrl);
-            if (bitmap != null) {
-                builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bitmap));
+            Bitmap bannerBitmap = fetchBitmap(imageUrl);
+            if (bannerBitmap != null) {
+                NotificationCompat.BigPictureStyle style = new NotificationCompat.BigPictureStyle()
+                        .bigPicture(bannerBitmap)
+                        .bigLargeIcon((Bitmap) null);
+                builder.setStyle(style);
             }
         }
 
