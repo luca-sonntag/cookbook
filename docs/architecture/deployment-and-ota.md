@@ -7,7 +7,7 @@
 
 ### Splash-Screen-Hang Diagnosen & Schutz
 * **Fehlender Vite-Dev-Server (`cap:live`-Builds):** Live-Reload-APKs rendern Inhalte zur Laufzeit vom Vite-Dev-Server (`SplashScreen.launchAutoHide: false`). Läuft der Vite-Dev-Server nicht (`localhost:5173`), bleibt die App unendlich auf dem Splash-Screen hängen. **Fix:** `cd frontend && npm run dev`. Statische Release-APKs (`frontend/dist/`) sind davon unbetroffen.
-* **JS-Runtime-Fehler im React-Mount:** React-Hydrationsfehler (z.B. `<p>` mit verschachteltem `<div>` aus Popover) können das Render unterbrechen. **Schutz:** `MainActivity.java` setzt einen 6-Sekunden-Safety-Timeout, der den Splash via `Capacitor.Plugins.SplashScreen.hide()` zwangsweise ausblendet.
+* **JS-Runtime-Fehler im React-Mount:** React-Hydrationsfehler (z.B. `<p>` mit verschachteltem `<div>` aus Popover) können das Render unterbrechen. **Schutz:** `MainActivity.java` setzt einen 3-Sekunden-Safety-Timeout, der den Splash via `Capacitor.Plugins.SplashScreen.hide()` zwangsweise ausblendet.
 
 ### Auto-Versioning & Fastlane in Docker
 * **Signing:** Keystore-Credentials liegen in der gitignorten `keystore.properties`-Datei.
