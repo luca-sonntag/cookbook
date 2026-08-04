@@ -79,7 +79,7 @@ function escapeXml(unsafe: string): string {
 }
 
 /** Wraps title string into line array if it exceeds max line width. */
-function wrapText(text: string, maxCharsPerLine = 24): string[] {
+function wrapText(text: string, maxCharsPerLine = 22): string[] {
   const words = text.trim().split(/\s+/);
   const lines: string[] = [];
   let currentLine = '';
@@ -97,6 +97,36 @@ function wrapText(text: string, maxCharsPerLine = 24): string[] {
   return lines.slice(0, 2); // Max 2 lines for high visual impact
 }
 
+function emojiToUnicodeHex(emoji: string): string {
+  const comp = Array.from(emoji).map((char) => char.codePointAt(0)!.toString(16));
+  return comp.filter((hex) => hex !== 'fe0f').join('-');
+}
+
+const emojiPngCache = new Map<string, Buffer | null>();
+
+async function fetchEmojiPng(emoji: string): Promise<Buffer | null> {
+  const hex = emojiToUnicodeHex(emoji);
+  if (!hex) return null;
+  if (emojiPngCache.has(hex)) return emojiPngCache.get(hex)!;
+
+  try {
+    const url = `https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/${hex}.png`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      emojiPngCache.set(hex, null);
+      return null;
+    }
+    const arrayBuf = await res.arrayBuffer();
+    const buf = Buffer.from(arrayBuf);
+    emojiPngCache.set(hex, buf);
+    return buf;
+  } catch (err) {
+    console.warn('[bannerGenerator] Failed to fetch emoji PNG:', err);
+    emojiPngCache.set(hex, null);
+    return null;
+  }
+}
+
 export interface BannerOptions {
   theme?: string;
   title?: string;
@@ -112,11 +142,9 @@ export function generateBannerSVG(options: BannerOptions): string {
 
   const rawTitle = options.title || 'Neues Rezept entdeckt';
   const titleLines = wrapText(rawTitle, 22);
-  const emoji = options.emoji || '🍳';
 
   const safeTitleLines = titleLines.map(escapeXml);
   const safeCategory = escapeXml(palette.categoryLabel);
-  const safeEmoji = escapeXml(emoji);
 
   return `
 <svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
@@ -153,9 +181,6 @@ export function generateBannerSVG(options: BannerOptions): string {
   <!-- Glassmorphism Large Emoji Circle Container (Right) -->
   <g filter="url(#shadow)">
     <circle cx="620" cy="200" r="115" fill="#FFFFFF" fill-opacity="0.15" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2.5" />
-    <text x="620" y="238" font-size="110" text-anchor="middle" font-family="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji, sans-serif">
-      ${safeEmoji}
-    </text>
   </g>
 
   <!-- App Branding Header Pill (Top Left) -->
@@ -196,7 +221,15 @@ export function generateBannerSVG(options: BannerOptions): string {
  */
 export async function generateBannerPNG(options: BannerOptions): Promise<Buffer> {
   const svgString = generateBannerSVG(options);
-  return sharp(Buffer.from(svgString))
-    .png({ quality: 90 })
-    .toBuffer();
+  let instance = sharp(Buffer.from(svgString));
+
+  if (options.emoji) {
+    const emojiPng = await fetchEmojiPng(options.emoji);
+    if (emojiPng) {
+      const resizedEmoji = await sharp(emojiPng).resize(150, 150).toBuffer();
+      instance = instance.composite([{ input: resizedEmoji, top: 125, left: 545 }]);
+    }
+  }
+
+  return instance.png({ quality: 90 }).toBuffer();
 }
