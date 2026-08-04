@@ -180,18 +180,24 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
 
   // Foreground receipt: surface it as a local notification so the user still sees it.
   const receivedHandle = PushNotifications.addListener('pushNotificationReceived', async (notification) => {
+    console.log('[push] pushNotificationReceived event:', notification);
     const title = notification.title || (notification.data as any)?.title || '';
     const body = notification.body || (notification.data as any)?.body || '';
     if (!title && !body) return;
 
-    const rawImageUrl = notification.image || (notification as any).imageUrl || (notification.data as any)?.imageUrl;
+    const data = (notification.data ?? {}) as any;
+    const rawImageUrl = notification.image || (notification as any).imageUrl || data.imageUrl || data.image;
+    console.log('[push] rawImageUrl resolved:', rawImageUrl);
+
     let largeIcon: string | undefined = undefined;
 
     if (rawImageUrl) {
       if (rawImageUrl.startsWith('data:image')) {
         largeIcon = rawImageUrl;
       } else if (rawImageUrl.startsWith('http://') || rawImageUrl.startsWith('https://')) {
+        console.log('[push] Fetching notification banner image as Base64 from:', rawImageUrl);
         largeIcon = await fetchImageAsBase64(rawImageUrl);
+        console.log('[push] Base64 fetch result success:', !!largeIcon);
       }
     }
 
@@ -205,7 +211,7 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
           channelId: PUSH_CHANNEL_ID,
           smallIcon: 'ic_stat_icon',
           largeIcon,
-          extra: notification.data ?? {},
+          extra: data,
         },
       ],
     }).catch((err) => console.warn('Foreground push local-notification failed:', err));
