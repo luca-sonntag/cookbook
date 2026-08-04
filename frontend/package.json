@@ -18,6 +18,7 @@
     "cap:run": "npm run build && cap sync android && cap run android",
     "cap:run:dev": "npm run build:dev && cap sync android && cap run android",
     "cap:live": "cap run android --live-reload --host localhost --port 5173 --forwardPorts 5173:5173",
+    "cap:live:dev": "cap run android --live-reload --host localhost --port 5173 --forwardPorts 5173:5173 -- --mode development",
     "release": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1",
     "release:patch": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1 -Bump patch",
     "release:minor": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1 -Bump minor",
