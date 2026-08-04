@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
+import com.capacitorjs.plugins.pushnotifications.PushNotificationsPlugin;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import java.io.InputStream;
@@ -22,9 +23,19 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private static final String CHANNEL_ID = "ai-suggestions";
 
     @Override
+    public void onNewToken(String token) {
+        super.onNewToken(token);
+        Log.d(TAG, "onNewToken triggered: " + token);
+        PushNotificationsPlugin.onNewToken(token);
+    }
+
+    @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
         Log.d(TAG, "onMessageReceived triggered: " + remoteMessage.getData());
+
+        // Forward to Capacitor plugin so in-app listeners fire if app is open
+        PushNotificationsPlugin.sendRemoteMessage(remoteMessage);
 
         Map<String, String> data = remoteMessage.getData();
         String title = data.get("title");
