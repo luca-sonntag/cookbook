@@ -199,11 +199,14 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
     const emojiParam = encodeURIComponent(copy.emoji || '🍳');
     const bannerUrl = `${baseUrl}/api/push-banner?theme=${themeParam}&title=${titleParam}&emoji=${emojiParam}`;
 
+    const dataPayload = tapData(candidate);
+    dataPayload.imageUrl = bannerUrl;
+
     const message: FcmMessage = {
       title: copy.title,
       body: copy.body,
       imageUrl: bannerUrl,
-      data: tapData(candidate),
+      data: dataPayload,
     };
     const delivered = await deliver(user.id, candidate, message);
     if (!delivered) return `User ${user.id}: Delivery failed or FCM not configured.`;

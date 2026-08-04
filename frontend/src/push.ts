@@ -166,15 +166,19 @@ export function registerPushTapHandler(onTap: (payload: PushTapPayload) => void)
     const body = notification.body || (notification.data as any)?.body || '';
     if (!title && !body) return;
 
+    const imageUrl = notification.image || (notification as any).image || (notification.data as any)?.imageUrl;
+    const attachments = imageUrl ? [{ id: 'banner', url: imageUrl }] : undefined;
+
     LocalNotifications.schedule({
       notifications: [
         {
           id: Math.floor(Math.random() * 1_000_000) + 1000,
           title,
           body,
-          largeBody: body,
           channelId: PUSH_CHANNEL_ID,
           smallIcon: 'ic_stat_icon',
+          largeIcon: imageUrl,
+          attachments,
           extra: notification.data ?? {},
         },
       ],
