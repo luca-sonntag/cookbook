@@ -188,11 +188,14 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setPhotos([]);
           localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
           
-          // Send notification when recipe is ready
-          const recipeTitle = job.recipe?.title || t('recipe.recipe') || 'Recipe';
-          const notifTitle = t('notification.recipeReady.title');
-          const notifBody = t('notification.recipeReady.body', { title: recipeTitle });
-          sendNativeNotification(notifTitle, notifBody, job.id, undefined, Math.floor(Date.now() / 1000));
+          // Send notification when recipe is ready — only if the user is not
+          // actively looking at the app (they already see the result in-UI).
+          if (document.visibilityState !== 'visible') {
+            const recipeTitle = job.recipe?.title || t('recipe.recipe') || 'Recipe';
+            const notifTitle = t('notification.recipeReady.title');
+            const notifBody = t('notification.recipeReady.body', { title: recipeTitle });
+            sendNativeNotification(notifTitle, notifBody, job.id, undefined, Math.floor(Date.now() / 1000));
+          }
 
           onExtractionSuccess(job.id);
         } else if (job.status === 'failed') {
