@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs, getUserStats, getUserBadgesDetailed, getGamificationConfig, uploadCookPhoto, upsertPushToken, deletePushToken, deletePushTokensForUser } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs, getUserStats, getUserBadgesDetailed, getGamificationConfig, uploadCookPhoto, upsertPushToken, deletePushToken, deletePushTokensForUser, getRecentCookPhotos } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe, verifyCookedDishPhoto } from './gemini.js';
@@ -1036,16 +1036,18 @@ apiRouter.post('/jobs/:id/cooked', async (req: Request, res: Response): Promise<
  */
 apiRouter.get('/me/gamification', async (req: Request, res: Response): Promise<void> => {
   try {
-    const [stats, badges, gamConfig] = await Promise.all([
+    const [stats, badges, gamConfig, recentPhotos] = await Promise.all([
       getUserStats(req.userId!),
       getUserBadgesDetailed(req.userId!),
       getGamificationConfig(),
+      getRecentCookPhotos(req.userId!),
     ]);
     res.status(200).json({
       success: true,
       stats,
       badges,
       levelThresholds: gamConfig.levelThresholds,
+      recentPhotos,
     });
   } catch (error: any) {
     if (!(error instanceof AppError)) console.error('Error fetching gamification state:', error);

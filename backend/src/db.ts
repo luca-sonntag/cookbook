@@ -1390,6 +1390,45 @@ export async function insertCookEvent(args: InsertCookEventArgs): Promise<string
   return id;
 }
 
+export interface CookPhotoItem {
+  id: string;
+  jobId: string;
+  photoUrl: string;
+  cookedAt: string;
+  recipeTitle?: string;
+}
+
+/** Get recent verified cook photos for a user. */
+export async function getRecentCookPhotos(userId: string, limit: number = 10): Promise<CookPhotoItem[]> {
+  const { data, error } = await getClient()
+    .from('cook_events')
+    .select('id, job_id, photo_path, created_at, jobs(recipe)')
+    .eq('user_id', userId)
+    .eq('has_photo', true)
+    .not('photo_path', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error || !data) return [];
+
+  return data.map((row: any) => {
+    const photoPath = row.photo_path;
+    let photoUrl = photoPath;
+    if (photoPath && !photoPath.startsWith('http') && !photoPath.startsWith('data:')) {
+      const publicUrl = getClient().storage.from('cook-photos').getPublicUrl(photoPath).data.publicUrl;
+      photoUrl = publicUrl;
+    }
+    const recipeTitle = row.jobs?.recipe?.title || 'Gekochtes Gericht';
+    return {
+      id: row.id,
+      jobId: row.job_id,
+      photoUrl,
+      cookedAt: row.created_at,
+      recipeTitle,
+    };
+  });
+}
+
 export interface LedgerRow {
   deltaXp: number;
   deltaCoins: number;
