@@ -20,13 +20,21 @@ function getBadgeXpReward(key: string): number {
   switch (key) {
     case 'first_cook': return 50;
     case 'cook_10': return 150;
+    case 'cook_25': return 300;
     case 'cook_50': return 500;
+    case 'cook_100': return 1000;
     case 'streak_3': return 100;
     case 'streak_7': return 250;
     case 'streak_30': return 1000;
     case 'first_photo': return 75;
     case 'distinct_5': return 100;
     case 'distinct_10': return 250;
+    case 'distinct_25': return 500;
+    case 'night_owl': return 75;
+    case 'weekend_chef': return 150;
+    case 'timer_first': return 50;
+    case 'timer_10': return 200;
+    case 'same_recipe_3': return 100;
     default: return 50;
   }
 }
@@ -38,24 +46,18 @@ function getBadgeProgressInfo(key: string, stats?: any): { current: number; tota
   const distinctRecipes = stats.distinctRecipes ?? Math.min(totalCooks, 1);
 
   switch (key) {
-    case 'first_cook':
-      return { current: Math.min(totalCooks, 1), total: 1 };
-    case 'cook_10':
-      return { current: Math.min(totalCooks, 10), total: 10 };
-    case 'cook_50':
-      return { current: Math.min(totalCooks, 50), total: 50 };
-    case 'streak_3':
-      return { current: Math.min(streak, 3), total: 3 };
-    case 'streak_7':
-      return { current: Math.min(streak, 7), total: 7 };
-    case 'streak_30':
-      return { current: Math.min(streak, 30), total: 30 };
-    case 'distinct_5':
-      return { current: Math.min(distinctRecipes, 5), total: 5 };
-    case 'distinct_10':
-      return { current: Math.min(distinctRecipes, 10), total: 10 };
-    default:
-      return null;
+    case 'first_cook': return { current: Math.min(totalCooks, 1), total: 1 };
+    case 'cook_10': return { current: Math.min(totalCooks, 10), total: 10 };
+    case 'cook_25': return { current: Math.min(totalCooks, 25), total: 25 };
+    case 'cook_50': return { current: Math.min(totalCooks, 50), total: 50 };
+    case 'cook_100': return { current: Math.min(totalCooks, 100), total: 100 };
+    case 'streak_3': return { current: Math.min(streak, 3), total: 3 };
+    case 'streak_7': return { current: Math.min(streak, 7), total: 7 };
+    case 'streak_30': return { current: Math.min(streak, 30), total: 30 };
+    case 'distinct_5': return { current: Math.min(distinctRecipes, 5), total: 5 };
+    case 'distinct_10': return { current: Math.min(distinctRecipes, 10), total: 10 };
+    case 'distinct_25': return { current: Math.min(distinctRecipes, 25), total: 25 };
+    default: return null;
   }
 }
 
