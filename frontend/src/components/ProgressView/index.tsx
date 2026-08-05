@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Flame, Coins, Utensils, Trophy, Lock, Sparkles, X, Camera, Check } from 'lucide-react';
+import { Flame, Coins, Utensils, Trophy, Lock, Sparkles, X, Camera, Check, Soup } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useGamification } from '../../context/GamificationContext';
 import { progressPct, xpToNextLevel } from '../../utils/levels';
@@ -91,7 +91,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-              <Trophy className="h-6 w-6" />
+              <Soup className="h-6 w-6" />
             </div>
             <div>
               <div className="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
