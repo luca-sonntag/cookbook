@@ -59,6 +59,9 @@ export default function CookedButton({
           aria-label={t('app.gamification.cookedCardBtn')}
         >
           <Camera className="w-5.5 h-5.5 group-hover:scale-110 transition-transform text-emerald-500 dark:text-emerald-400" />
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[9px] font-black text-gray-950 shadow-sm border border-white/20 dark:border-gray-900/20">
+            +XP
+          </span>
         </button>
       ) : (
         <button

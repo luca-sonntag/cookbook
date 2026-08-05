@@ -44,32 +44,13 @@ export default function CookedModal({
 
   if (!isOpen) return null;
 
-  const handlePhotoSelect = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-
-    setIsCompressing(true);
-    setRejectionReason(null);
-    try {
-      const dataUrl = await compressImage(file, PREVIEW_PROFILE);
-      setPhoto(dataUrl);
-    } catch (err) {
-      console.warn('[CookedModal] Image compression failed:', err);
-    } finally {
-      setIsCompressing(false);
-    }
-  };
-
-  const handleVerifyAndSubmit = async () => {
-    if (!photo || isVerifying) return;
-
+  const submitPhoto = async (photoBase64: string) => {
     setIsVerifying(true);
     setRejectionReason(null);
 
     try {
       await markCooked(jobId, {
-        photoBase64: photo,
+        photoBase64,
         viaCookingMode,
       });
       // GamificationContext automatically opens the RewardOverlay on success
@@ -82,6 +63,30 @@ export default function CookedModal({
     } finally {
       setIsVerifying(false);
     }
+  };
+
+  const handlePhotoSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setIsCompressing(true);
+    setRejectionReason(null);
+    try {
+      const dataUrl = await compressImage(file, PREVIEW_PROFILE);
+      setPhoto(dataUrl);
+      setIsCompressing(false);
+      // Immediately start photo verification on selection
+      await submitPhoto(dataUrl);
+    } catch (err: any) {
+      console.warn('[CookedModal] Image compression/verification failed:', err);
+      setIsCompressing(false);
+    }
+  };
+
+  const handleVerifyAndSubmit = async () => {
+    if (!photo || isVerifying) return;
+    await submitPhoto(photo);
   };
 
   const handleResetAndClose = () => {

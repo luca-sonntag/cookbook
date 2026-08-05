@@ -15,12 +15,12 @@ import { useCookingMode } from '../hooks/useCookingMode';
 import { extractInlineIngredientTags, textMentionsTerm } from '../utils/ingredientMatch';
 import RecipeInstructionText from './RecipeInstructionText';
 import { useI18n } from '../context/I18nContext';
-import { useDialog } from '../context/DialogContext';
 import { useTimerManager } from '../hooks/useTimerManager';
 import { useAuth } from '../context/AuthContext';
 import TimerConfirmSheet from './TimerConfirmSheet';
 import RecipeCopilot from './RecipeDetails/RecipeCopilot';
 import PremiumModal from './PremiumModal';
+import CookedModal from './CookedModal';
 
 // ─── Time parsing helper ──────────────────────────────────────────────────────
 function parseTimeToSeconds(timeStr: string): number {
@@ -70,13 +70,13 @@ export default function CookingMode({
   onRemixSuccess,
   onReplaceCurrent,
 }: CookingModeProps) {
-  const dialog = useDialog();
   const { t } = useI18n();
   const { timers, removeTimer, dismissFinished, setPendingNavigation } = useTimerManager();
   const { isPremium } = useAuth();
 
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [isCookedModalOpen, setIsCookedModalOpen] = useState(false);
   const [timerSheet, setTimerSheet] = useState<{ isOpen: boolean; seconds: number; label: string }>({
     isOpen: false,
     seconds: 0,
@@ -367,12 +367,11 @@ export default function CookingMode({
                 if (!checkedSteps[currentStepNum]) {
                   toggleStep(currentStepNum);
                 }
-                onClose();
-                dialog.alert({
-                  title: t('recipe.finishedAlertTitle'),
-                  message: t('recipe.finishedAlertMessage'),
-                  status: 'success'
-                });
+                if (recipe.id) {
+                  setIsCookedModalOpen(true);
+                } else {
+                  onClose();
+                }
               }}
             >
               {t('recipe.finish')}
@@ -466,6 +465,19 @@ export default function CookingMode({
         isOpen={isPremiumModalOpen}
         onOpenChange={setIsPremiumModalOpen}
       />
+
+      {recipe.id && isCookedModalOpen && (
+        <CookedModal
+          isOpen={isCookedModalOpen}
+          onClose={() => {
+            setIsCookedModalOpen(false);
+            onClose();
+          }}
+          jobId={recipe.id}
+          recipeTitle={recipe.title}
+          viaCookingMode={true}
+        />
+      )}
     </div>
   );
 }
