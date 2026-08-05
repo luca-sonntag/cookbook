@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { Camera, Image as ImageIcon, Sparkles, AlertTriangle, RotateCcw, X, Loader2 } from 'lucide-react';
+import { Camera, Image as ImageIcon, ShieldCheck, Check, AlertTriangle, RotateCcw, X, Loader2 } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useGamification } from '../context/GamificationContext';
 import { compressImage, PREVIEW_PROFILE } from '../utils/imageCompression';
@@ -124,7 +124,7 @@ export default function CookedModal({
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-            <Sparkles className="w-5 h-5" />
+            <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
             <h3 className="text-lg font-bold tracking-tight text-white">
@@ -235,7 +235,7 @@ export default function CookedModal({
                   onClick={handleVerifyAndSubmit}
                   className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 px-4 py-3 text-xs font-bold text-white shadow-lg active:scale-[0.98] transition-all"
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Check className="w-4 h-4" />
                   <span>{t('app.gamification.verifyBtn')}</span>
                 </button>
               </div>

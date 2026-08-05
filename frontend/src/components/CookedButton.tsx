@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Sparkles } from 'lucide-react';
+import { Camera, Utensils } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import CookedModal from './CookedModal';
 
@@ -12,7 +12,7 @@ interface CookedButtonProps {
 }
 
 /**
- * "I cooked this" call-to-action with mandatory AI photo verification.
+ * "I cooked this" call-to-action with mandatory photo verification.
  * Renders in different variants:
  * - 'card': A prominent end-of-recipe card.
  * - 'dock': An icon button inside the floating action dock.
@@ -33,7 +33,7 @@ export default function CookedButton({
       {variant === 'card' ? (
         <div className={`rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/40 via-gray-900 to-teal-950/40 p-5 text-center shadow-lg ${className}`}>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 mb-3">
-            <Sparkles className="h-6 w-6 animate-pulse" />
+            <Utensils className="h-6 w-6" />
           </div>
           <h4 className="text-base font-extrabold text-white">
             {t('app.gamification.cookedCardTitle')}
