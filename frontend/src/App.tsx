@@ -716,9 +716,11 @@ export default function App() {
           ) : (
             /* Extraction Form & Error Banner (finished/failed boxes above it) */
             <>
-            <div className="mb-6">
-              <ActiveExtractions />
-            </div>
+            {extractionJobs.length > 0 && (
+              <div className="mb-6">
+                <ActiveExtractions />
+              </div>
+            )}
             <ExtractForm
               url={url}
               setUrl={setUrl}
