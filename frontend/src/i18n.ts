@@ -273,9 +273,9 @@ export const uiTranslations = {
         coinsComingSoon: 'Demnächst',
         coinsNotice: 'Der Coin-Shop kommt in Kürze!',
         leaderboardTitle: 'Rangliste',
-        leaderboardSubtitle: 'Deine {xp} XP sammeln sich schon — miss dich u. a. mit Freunden!',
+        leaderboardSubtitle: 'Deine {xp} XP sammeln sich schon — miss dich unter anderem mit Freunden!',
         leaderboardComingSoon: 'Demnächst',
-        leaderboardNotice: 'Die Rangliste kommt bald — miss dich u. a. mit Freunden, deine XP zählen schon mit!',
+        leaderboardNotice: 'Die Rangliste kommt bald — miss dich unter anderem mit Freunden, deine XP zählen schon mit!',
         streakWeekly: '{days} W-Serie',
         ranks: {
           level_1: 'Küchenneuling',
