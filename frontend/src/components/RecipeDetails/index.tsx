@@ -647,7 +647,7 @@ export default function RecipeDetails({
 
         {/* Cook history timeline (count + past cooks) */}
         {recipe.id && (
-          <div className="mt-2 mb-2">
+          <div id="cook-history" className="mt-2 mb-2 scroll-mt-24">
             <CookHistoryTimeline history={cookHistory} />
           </div>
         )}
