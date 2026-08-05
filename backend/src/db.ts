@@ -1402,14 +1402,37 @@ export interface CookPhotoItem {
 export async function getRecentCookPhotos(userId: string, limit: number = 10): Promise<CookPhotoItem[]> {
   const { data, error } = await getClient()
     .from('cook_events')
-    .select('id, job_id, photo_path, created_at, jobs(recipe)')
+    .select('id, job_id, photo_path, cooked_at')
     .eq('user_id', userId)
     .eq('has_photo', true)
     .not('photo_path', 'is', null)
-    .order('created_at', { ascending: false })
+    .order('cooked_at', { ascending: false })
     .limit(limit);
 
-  if (error || !data) return [];
+  if (error) {
+    console.error('[getRecentCookPhotos] Query error:', error);
+    return [];
+  }
+  if (!data || data.length === 0) return [];
+
+  // Fetch job titles for these job_ids
+  const jobIds = Array.from(new Set(data.map((r: any) => r.job_id).filter(Boolean)));
+  let jobTitleMap: Record<string, string> = {};
+
+  if (jobIds.length > 0) {
+    const { data: jobsData } = await getClient()
+      .from('jobs')
+      .select('id, recipe')
+      .in('id', jobIds);
+
+    if (jobsData) {
+      for (const j of jobsData as any[]) {
+        if (j.id && j.recipe?.title) {
+          jobTitleMap[j.id] = j.recipe.title;
+        }
+      }
+    }
+  }
 
   return data.map((row: any) => {
     const photoPath = row.photo_path;
@@ -1418,12 +1441,12 @@ export async function getRecentCookPhotos(userId: string, limit: number = 10): P
       const publicUrl = getClient().storage.from('cook-photos').getPublicUrl(photoPath).data.publicUrl;
       photoUrl = publicUrl;
     }
-    const recipeTitle = row.jobs?.recipe?.title || 'Gekochtes Gericht';
+    const recipeTitle = jobTitleMap[row.job_id] || 'Gekochtes Gericht';
     return {
       id: row.id,
       jobId: row.job_id,
       photoUrl,
-      cookedAt: row.created_at,
+      cookedAt: row.cooked_at,
       recipeTitle,
     };
   });
