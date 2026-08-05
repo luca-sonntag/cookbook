@@ -103,7 +103,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
       </h1>
 
       {/* 1. Hero Level & Culinary Rank Card */}
-      <div className="rounded-3xl bg-emerald-500/10 dark:bg-emerald-500/15 p-5">
+      <div className="rounded-3xl bg-white dark:bg-gray-900 p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
