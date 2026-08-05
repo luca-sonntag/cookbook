@@ -41,9 +41,9 @@ export default function FloatingActionBar({ children, className = '', isHidden =
 
   return (
     <div
-      className={`fixed ${defaultBottom} left-1/2 -translate-x-1/2 z-40 animate-fade-in-up transition-transform duration-300 ease-in-out ${hiddenClasses} ${className}`}
+      className={`fixed ${defaultBottom} left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-2rem)] animate-fade-in-up transition-transform duration-300 ease-in-out ${hiddenClasses} ${className}`}
     >
-      <div className="flex items-center gap-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-2.5 rounded-full border border-black/10 dark:border-white/10 shadow-2xl">
+      <div className="flex items-center gap-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-2.5 py-2 rounded-full border border-black/10 dark:border-white/10 shadow-2xl">
         {children}
       </div>
     </div>
@@ -57,5 +57,5 @@ export default function FloatingActionBar({ children, className = '', isHidden =
  */
 export function FloatingDivider({ show = true }: { show?: boolean }) {
   if (!show) return null;
-  return <div className="w-[1px] h-5 bg-black/10 dark:bg-white/10 mx-2" />;
+  return <div className="w-[1px] h-5 bg-black/10 dark:bg-white/10 mx-1" />;
 }

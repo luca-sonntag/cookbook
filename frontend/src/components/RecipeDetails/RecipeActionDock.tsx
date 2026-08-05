@@ -1,4 +1,3 @@
-import { Button } from '@heroui/react';
 import { ShoppingCart, ShoppingBag, Play, MessageCircle } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
@@ -44,14 +43,15 @@ export default function RecipeActionDock({
     <FloatingActionBar className="bottom-28" isHidden={isHidden}>
       {/* Start Cooking Button */}
       {showStart && (
-        <Button
-          className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold pl-4.5 pr-5 h-11 rounded-full flex items-center gap-2 active:scale-95 transition-all text-sm border border-emerald-500/10 shadow-sm"
-          onPress={onStartCooking}
+        <button
+          onClick={onStartCooking}
+          className="relative p-3 text-white bg-emerald-600 hover:bg-emerald-500 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full shadow-md outline-none border-none group"
+          title={t('recipe.startCooking')}
+          aria-label={t('recipe.startCooking')}
         >
-          <Play className="w-4 h-4 fill-white" />
-          <span>{t('recipe.startCooking')}</span>
+          <Play className="w-5.5 h-5.5 fill-white translate-x-0.5" />
           {!isPremium && <PremiumCrownBadge />}
-        </Button>
+        </button>
       )}
 
       {/* Remix Button */}
