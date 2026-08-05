@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Star } from 'lucide-react';
+import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Star, UtensilsCrossed } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeImageGallery from '../RecipeImageGallery';
 import { useI18n } from '../../context/I18nContext';
 import { isPhotoImportUrl } from '../../utils/photoImport';
+import { useCookHistory } from '../../hooks/useCookHistory';
+import { formatRelative } from '../../utils/formatRelative';
 
 interface RecipeHeaderProps {
   recipe: Recipe;
@@ -23,6 +25,7 @@ interface RecipeHeaderProps {
   flags?: string[];
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  cookRefreshKey?: number;
 }
 
 export default function RecipeHeader({
@@ -42,9 +45,11 @@ export default function RecipeHeader({
   flags,
   isFavorite = false,
   onToggleFavorite,
+  cookRefreshKey = 0,
 }: RecipeHeaderProps) {
   const { t, language } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { history } = useCookHistory(recipe.id, cookRefreshKey);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   // The description is clamped to two lines so the ingredient list starts
@@ -245,6 +250,17 @@ export default function RecipeHeader({
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-medium">
             {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
           </p>
+        )}
+        {history && history.count > 0 && (
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+            <UtensilsCrossed className="w-3.5 h-3.5" />
+            <span>{t('app.gamification.cookedChip', { count: history.count })}</span>
+            {history.lastCookedAt && (
+              <span className="font-medium text-emerald-600/80 dark:text-emerald-400/80">
+                · {t('app.gamification.cookedChipLast', { when: formatRelative(history.lastCookedAt, language) })}
+              </span>
+            )}
+          </div>
         )}
       </div>
     </>

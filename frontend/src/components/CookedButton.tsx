@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { CheckCheck, Utensils } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
+import { useGamification } from '../context/GamificationContext';
+import { useCookHistory } from '../hooks/useCookHistory';
 import CookedModal from './CookedModal';
 
 interface CookedButtonProps {
@@ -26,7 +28,11 @@ export default function CookedButton({
   variant = 'compact',
 }: CookedButtonProps) {
   const { t } = useI18n();
+  const { snapshot } = useGamification();
+  const { history } = useCookHistory(jobId, snapshot?.stats?.totalCooks ?? 0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const cookedCount = history?.count ?? 0;
 
   return (
     <>
@@ -36,7 +42,9 @@ export default function CookedButton({
             <Utensils className="h-6 w-6" />
           </div>
           <h4 className="text-base font-extrabold text-gray-900 dark:text-white">
-            {t('app.gamification.cookedCardTitle')}
+            {cookedCount > 0
+              ? t('app.gamification.cookedChip', { count: cookedCount })
+              : t('app.gamification.cookedCardTitle')}
           </h4>
           <p className="mt-1 text-xs text-gray-600 dark:text-gray-300 max-w-sm mx-auto leading-relaxed">
             {t('app.gamification.cookedCardSubtitle')}
@@ -67,7 +75,7 @@ export default function CookedButton({
           className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 px-4 font-semibold text-white shadow-lg active:scale-[0.98] transition-all ${className}`}
         >
           <CheckCheck className="h-5 w-5" />
-          <span>{t('app.gamification.cookedCardBtn')}</span>
+          <span>{cookedCount > 0 ? t('app.gamification.cookedCardBtnAgain', { count: cookedCount }) : t('app.gamification.cookedCardBtn')}</span>
         </button>
       )}
 

@@ -6,6 +6,7 @@ import { useRecipeNutrition } from '../../hooks/useRecipeNutrition';
 import { categoryOrder, legacyCategoryMap } from '../../i18n';
 import { useI18n } from '../../context/I18nContext';
 import { useTimerManager } from '../../hooks/useTimerManager';
+import { useGamification } from '../../context/GamificationContext';
 
 // Import subcomponents
 import RecipeHeader from './RecipeHeader';
@@ -16,6 +17,7 @@ import RecipeInstructions from './RecipeInstructions';
 import RecipeActionDock from './RecipeActionDock';
 import CookingMode from '../CookingMode';
 import CookedButton from '../CookedButton';
+import CookHistoryTimeline from '../CookHistoryTimeline';
 import RecipeCopilot from './RecipeCopilot';
 import { useAuth } from '../../context/AuthContext';
 import PremiumModal from '../PremiumModal';
@@ -86,6 +88,10 @@ export default function RecipeDetails({
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
   const { pendingNavigation, setPendingNavigation } = useTimerManager();
+  const { snapshot } = useGamification();
+  // Bump the cook-history refresh whenever a cook is recorded (totalCooks grows).
+  const cookRefreshKey = snapshot?.stats?.totalCooks ?? 0;
+  const { history: cookHistory } = useCookHistory(recipe.id, cookRefreshKey);
   const [isShoppingConfirmOpen, setIsShoppingConfirmOpen] = useState(false);
   const [shouldNavigateAfterAdd, setShouldNavigateAfterAdd] = useState(false);
 
@@ -549,6 +555,7 @@ export default function RecipeDetails({
         flags={flags}
         isFavorite={isFavorite}
         onToggleFavorite={onToggleFavorite}
+        cookRefreshKey={cookRefreshKey}
       />
 
       {/* Sentinel for the sticky bar's collapsed title row (see effect above). */}
@@ -634,6 +641,13 @@ export default function RecipeDetails({
         {recipe.id && (
           <div className="mt-4 mb-2">
             <CookedButton jobId={recipe.id} recipeTitle={recipe.title} variant="card" />
+          </div>
+        )}
+
+        {/* Cook history timeline (count + past cooks) */}
+        {recipe.id && (
+          <div className="mt-2 mb-2">
+            <CookHistoryTimeline history={cookHistory} />
           </div>
         )}
 
