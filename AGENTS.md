@@ -44,6 +44,11 @@ Die detaillierte technische Dokumentation wurde modular in den Ordner [`docs/arc
    * Self-Hosted Capgo OTA Live Updates (`@capgo/capacitor-updater`, Supabase `app_bundles`, Rollback-Strategien)
    * Gradle `reversePorts` Task & Splash Screen Hang Diagnosen
 
+6. 🎮 [**Gamification (Koch-Belohnungen, XP, Streaks)**](file:///c:/Users/lucas/source/repos/cookbook/docs/architecture/gamification.md)
+   * `cook_events` / `point_ledger` / `user_stats` / `user_badges` & `cook-photos` Bucket
+   * Server-autoritative Punkte-Engine (`gamification.ts`), tunebare JSON-Formel in `global_settings`
+   * `POST /api/jobs/:id/cooked` & `GET /api/me/gamification`, RewardOverlay & Fortschritt-Tab
+
 ---
 
 ## 🏗️ System- & Workflow-Kurzübersicht
