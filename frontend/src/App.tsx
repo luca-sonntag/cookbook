@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
+import { Sparkles, BookOpen, ShoppingCart, User, Trophy } from 'lucide-react';
 
 import type { Job } from './types';
 import { apiUrl } from './api';
@@ -14,6 +14,7 @@ import { isCatalogListRoute } from './components/SavedCatalog/catalogRoutes';
 import ShoppingList from './components/ShoppingList';
 import AuthForm from './components/AuthForm';
 import SettingsView from './components/SettingsView';
+import ProgressView from './components/ProgressView';
 import TimerBanner from './components/TimerBanner';
 import WelcomeGuide from './components/WelcomeGuide';
 import AlphaWelcome from './components/AlphaWelcome';
@@ -738,6 +739,11 @@ export default function App() {
           />
         </div>
 
+        {/* PROGRESS TAB */}
+        <div hidden={activeView !== 'progress'} aria-hidden={activeView !== 'progress' || undefined}>
+          <ProgressView />
+        </div>
+
         {/* SETTINGS TAB */}
         <div hidden={activeView !== 'settings'} aria-hidden={activeView !== 'settings' || undefined}>
           <SettingsView />
@@ -818,6 +824,23 @@ export default function App() {
                 </div>
                 <span className="text-[11px] tracking-wide font-medium">{t('app.nav.shoppingList')}</span>
                 {activeView === 'shopping-list' && (
+                  <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                )}
+              </button>
+
+              {/* Progress Tab */}
+              <button
+                onClick={() => navigate('progress')}
+                className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'progress'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+              >
+                <div className="relative">
+                  <Trophy className="w-5.5 h-5.5 mb-1" />
+                </div>
+                <span className="text-[11px] tracking-wide font-medium">{t('app.nav.progress')}</span>
+                {activeView === 'progress' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
               </button>
