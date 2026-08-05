@@ -120,7 +120,7 @@ export default function CookedModal({
         onChange={handlePhotoSelect}
       />
 
-      <div className="relative w-full max-w-md rounded-3xl bg-gray-900 border border-white/10 p-6 text-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md rounded-3xl bg-gray-900 p-6 text-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Close Button */}
         <button
           onClick={handleResetAndClose}
@@ -132,7 +132,7 @@ export default function CookedModal({
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
@@ -156,7 +156,7 @@ export default function CookedModal({
               <button
                 type="button"
                 onClick={() => cameraInputRef.current?.click()}
-                className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold transition-all active:scale-[0.97]"
+                className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-bold transition-all active:scale-[0.97]"
               >
                 <Camera className="w-7 h-7" />
                 <span className="text-xs">{t('app.gamification.takePhoto')}</span>
@@ -165,7 +165,7 @@ export default function CookedModal({
               <button
                 type="button"
                 onClick={() => galleryInputRef.current?.click()}
-                className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-gray-200 font-bold transition-all active:scale-[0.97]"
+                className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl bg-white/5 hover:bg-white/10 text-gray-200 font-bold transition-all active:scale-[0.97]"
               >
                 <ImageIcon className="w-7 h-7" />
                 <span className="text-xs">{t('app.gamification.chooseGallery')}</span>
@@ -184,7 +184,7 @@ export default function CookedModal({
         {photo && !isCompressing && (
           <div className="space-y-4 py-1">
             {/* Image Preview Container */}
-            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black/40">
               <img
                 src={photo}
                 alt="Uploaded dish preview"
@@ -203,7 +203,7 @@ export default function CookedModal({
 
             {/* Rejection Message if AI rejected previous attempt */}
             {rejectionReason && (
-              <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3.5 flex items-start gap-3 text-rose-300">
+              <div className="rounded-2xl bg-rose-500/15 p-3.5 flex items-start gap-3 text-rose-300">
                 <AlertTriangle className="w-5 h-5 shrink-0 text-rose-400 mt-0.5" />
                 <div className="space-y-1 text-xs">
                   <p className="font-semibold text-rose-200">Verifizierung fehlgeschlagen</p>
@@ -214,7 +214,7 @@ export default function CookedModal({
 
             {/* Verifying Status, Retry Button, or Submit Button */}
             {isVerifying ? (
-              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center space-y-2">
+              <div className="rounded-2xl bg-emerald-500/15 p-4 text-center space-y-2">
                 <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>{t('app.gamification.verifyingTitle')}</span>

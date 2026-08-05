@@ -31,8 +31,8 @@ export default function CookedButton({
   return (
     <>
       {variant === 'card' ? (
-        <div className={`rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/40 via-gray-900 to-teal-950/40 p-5 text-center shadow-lg ${className}`}>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 mb-3">
+        <div className={`rounded-3xl bg-gradient-to-br from-emerald-950/40 via-gray-900 to-teal-950/40 p-5 text-center shadow-lg ${className}`}>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 mb-3">
             <Utensils className="h-6 w-6" />
           </div>
           <h4 className="text-base font-extrabold text-white">
@@ -59,7 +59,7 @@ export default function CookedButton({
           aria-label={t('app.gamification.cookedCardBtn')}
         >
           <Camera className="w-5.5 h-5.5 group-hover:scale-110 transition-transform text-emerald-500 dark:text-emerald-400" />
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[9px] font-black text-gray-950 shadow-sm border border-white/20 dark:border-gray-900/20">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[9px] font-black text-gray-950 shadow-sm">
             +XP
           </span>
         </button>
