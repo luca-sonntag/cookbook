@@ -104,6 +104,7 @@ export async function sendNativeNotification(
   recipeId?: string,
   stepNum?: number,
   notificationId: number = TIMER_NOTIFICATION_ID,
+  extraData?: Record<string, any>,
 ): Promise<boolean> {
   if (!isNative()) return false;
   try {
@@ -125,7 +126,7 @@ export async function sendNativeNotification(
           // don't want a big icon on the right of the notification.
           smallIcon: 'ic_stat_icon',
           ongoing: false,
-          extra: { recipeId, stepNum },
+          extra: { recipeId, stepNum, ...extraData },
         },
       ],
     });
@@ -176,7 +177,7 @@ export async function clearTimerNotification(): Promise<void> {
  * function. No-op on web.
  */
 export function registerNotificationTap(
-  onTap: (recipeId?: string, stepNum?: number) => void,
+  onTap: (recipeId?: string, stepNum?: number, extra?: Record<string, any>) => void,
 ): () => void {
   if (!isNative()) return () => { };
 
@@ -188,8 +189,10 @@ export function registerNotificationTap(
         recipeId?: string;
         jobId?: string;
         stepNum?: number;
+        route?: string;
+        action?: string;
       };
-      onTap(extra.recipeId || extra.jobId, extra.stepNum);
+      onTap(extra.recipeId || extra.jobId, extra.stepNum, extra);
     },
   );
 

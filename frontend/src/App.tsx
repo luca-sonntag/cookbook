@@ -434,8 +434,10 @@ export default function App() {
 
   // Listen for taps on native local notifications (Capacitor Android/iOS)
   useEffect(() => {
-    return registerNotificationTap((recipeId, stepNum) => {
-      if (recipeId) {
+    return registerNotificationTap((recipeId, stepNum, extra) => {
+      if (extra?.route === 'extract' || extra?.action === 'interrupted') {
+        navigate('extract');
+      } else if (recipeId) {
         if (stepNum !== undefined) {
           window.dispatchEvent(
             new CustomEvent('app:navigate-to-timer-step', {

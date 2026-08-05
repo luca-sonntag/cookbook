@@ -142,7 +142,14 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     if (document.visibilityState !== 'visible') {
       const notifTitle = t('notification.extractionInterrupted.title');
       const notifBody = t('notification.extractionInterrupted.body');
-      sendNativeNotification(notifTitle, notifBody, jobId, undefined, Math.floor(Date.now() / 1000));
+      sendNativeNotification(
+        notifTitle,
+        notifBody,
+        undefined,
+        undefined,
+        Math.floor(Date.now() / 1000),
+        { route: 'extract', action: 'interrupted' }
+      );
     }
 
     try {
