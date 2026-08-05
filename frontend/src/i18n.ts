@@ -272,6 +272,10 @@ export const uiTranslations = {
         galleryEmpty: 'Noch keine Fotos. Verifiziere dein nächstes Gericht mit einem Foto!',
         coinsComingSoon: 'Demnächst',
         coinsNotice: 'Der Coin-Shop kommt in Kürze!',
+        leaderboardTitle: 'Leaderboard',
+        leaderboardSubtitle: 'Deine {xp} XP sammeln sich schon für die Rangliste',
+        leaderboardComingSoon: 'Demnächst',
+        leaderboardNotice: 'Das Leaderboard kommt bald — deine XP zählen schon mit!',
         streakWeekly: '{days} W-Serie',
         ranks: {
           level_1: 'Küchenneuling',
@@ -1092,6 +1096,10 @@ export const uiTranslations = {
         galleryEmpty: 'No photos yet. Verify your next cooked dish with a photo!',
         coinsComingSoon: 'Soon',
         coinsNotice: 'The Coin Shop is coming soon!',
+        leaderboardTitle: 'Leaderboard',
+        leaderboardSubtitle: 'Your {xp} XP is already stacking up for the rankings',
+        leaderboardComingSoon: 'Soon',
+        leaderboardNotice: 'The leaderboard is coming soon — your XP already counts!',
         streakWeekly: '{days} W-Streak',
         ranks: {
           level_1: 'Kitchen Novice',

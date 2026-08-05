@@ -59,6 +59,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
 
   const [selectedBadgeKey, setSelectedBadgeKey] = useState<string | null>(null);
   const [showCoinsNotice, setShowCoinsNotice] = useState(false);
+  const [showLeaderboardNotice, setShowLeaderboardNotice] = useState(false);
 
   useEffect(() => {
     refresh();
@@ -171,6 +172,42 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
           label={t('app.gamification.totalCooks')}
           accent="text-emerald-500 bg-emerald-500/10 dark:emerald-500/20"
         />
+      </div>
+
+      {/* Leaderboard teaser — XP already counts toward the upcoming board */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => {
+            setShowLeaderboardNotice(true);
+            setTimeout(() => setShowLeaderboardNotice(false), 3000);
+          }}
+          className="w-full flex items-center gap-3.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-left transition-all active:scale-[0.98] cursor-pointer outline-none border-none"
+        >
+          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-violet-500 bg-violet-500/10 dark:bg-violet-500/20">
+            <Trophy className="h-5 w-5" />
+            <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-violet-500 text-white">
+              <Lock className="h-2.5 w-2.5" />
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-bold text-gray-900 dark:text-white">
+              {t('app.gamification.leaderboardTitle')}
+            </div>
+            <div className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 leading-tight">
+              {t('app.gamification.leaderboardSubtitle', { xp })}
+            </div>
+          </div>
+          <div className="shrink-0 text-[10px] font-extrabold text-violet-600 dark:text-violet-400 bg-violet-500/10 dark:bg-violet-500/20 px-2 py-0.5 rounded-full leading-tight">
+            {t('app.gamification.leaderboardComingSoon')}
+          </div>
+        </button>
+
+        {showLeaderboardNotice && (
+          <div className="absolute left-1/2 -bottom-10 -translate-x-1/2 z-20 whitespace-nowrap rounded-xl bg-gray-900 dark:bg-gray-100 px-3 py-1.5 text-xs font-bold text-white dark:text-gray-900 shadow-lg animate-in fade-in zoom-in-95 duration-150">
+            {t('app.gamification.leaderboardNotice')}
+          </div>
+        )}
       </div>
 
       {/* 2. "Deine Koch-Galerie" (Food Photo Feed) */}
