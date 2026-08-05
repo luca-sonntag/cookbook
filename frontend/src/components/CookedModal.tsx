@@ -4,6 +4,7 @@ import { Camera, Image as ImageIcon, ShieldCheck, Check, AlertTriangle, RotateCc
 import { useI18n } from '../context/I18nContext';
 import { resolveErrorCode } from '../i18n';
 import { useGamification } from '../context/GamificationContext';
+import { useTimerManager } from '../hooks/useTimerManager';
 import { compressImage, PREVIEW_PROFILE } from '../utils/imageCompression';
 
 interface CookedModalProps {
@@ -23,6 +24,13 @@ export default function CookedModal({
 }: CookedModalProps) {
   const { t, language } = useI18n();
   const { markCooked } = useGamification();
+  const { timers } = useTimerManager();
+
+  // A finished in-app timer for this recipe means the user actually cooked with
+  // the timer running — surface that signal to the backend (timerElapsed).
+  const timerElapsed = timers.some(
+    (tm) => tm.isFinished && tm.recipeId === jobId,
+  );
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -53,6 +61,7 @@ export default function CookedModal({
       await markCooked(jobId, {
         photoBase64,
         viaCookingMode,
+        timerElapsed,
       });
       // GamificationContext automatically opens the RewardOverlay on success
       handleResetAndClose();
