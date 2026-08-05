@@ -47,8 +47,8 @@ test('repetition is only gently diminished (floor, not punishment)', () => {
   // Note: novelty (+20) only applies on the very first cook (priorCookCount 0).
   assert.equal(computeAward(C, ctx({ priorCookCount: 1 })).xp, 90); // 100 * 0.9
   assert.equal(computeAward(C, ctx({ priorCookCount: 2 })).xp, 80); // 100 * 0.8
-  assert.equal(computeAward(C, ctx({ priorCookCount: 3 })).xp, 75); // 100 * 0.75
-  assert.equal(computeAward(C, ctx({ priorCookCount: 9 })).xp, 75); // clamped to floor 0.75
+  assert.equal(computeAward(C, ctx({ priorCookCount: 3 })).xp, 50); // 100 * 0.5
+  assert.equal(computeAward(C, ctx({ priorCookCount: 9 })).xp, 50); // clamped to floor 0.5
 });
 
 test('repetitionWindowDays resets repeats older than the window', () => {
