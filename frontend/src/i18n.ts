@@ -260,6 +260,7 @@ export const uiTranslations = {
         verifyingTitle: 'Dein Foto wird geprüft...',
         verifyingDesc: 'Analysiere Zutaten und Aussehen gegen das Rezept...',
         retryPhoto: 'Neues Foto versuchen',
+        rejectionReason: 'Das Foto passt leider nicht zu diesem Rezept.',
         cookedCardTitle: 'Du hast dieses Gericht gekocht?',
         cookedCardSubtitle: 'Mache ein Foto deines Rezepts, um es verifizieren zu lassen und XP zu kassieren.',
         cookedCardBtn: 'Gericht verifizieren 📸',
@@ -1032,6 +1033,7 @@ export const uiTranslations = {
         verifyingTitle: 'Checking your photo...',
         verifyingDesc: 'Analyzing ingredients and appearance against the recipe...',
         retryPhoto: 'Try another photo',
+        rejectionReason: 'This photo does not match this recipe.',
         cookedCardTitle: 'Did you cook this dish?',
         cookedCardSubtitle: 'Take a photo of your dish to verify it and earn XP.',
         cookedCardBtn: 'Verify Dish 📸',
@@ -2105,7 +2107,7 @@ export function messageForCode(
     case 'ACTIVE_JOB_EXISTS':
       return getTranslation('error.codes.ACTIVE_JOB_EXISTS', lang, { count: p.count ?? 1 });
     case 'PHOTO_NOT_MATCHING':
-      return p.reason ? String(p.reason) : getTranslation('error.codes.PHOTO_NOT_MATCHING', lang, { reason: '' });
+      return getTranslation('app.gamification.rejectionReason', lang);
     default:
       return getTranslation(`error.codes.${c}`, lang);
   }

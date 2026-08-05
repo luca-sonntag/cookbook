@@ -212,7 +212,7 @@ export default function CookedModal({
               </div>
             )}
 
-            {/* Verifying Status or Submit Button */}
+            {/* Verifying Status, Retry Button, or Submit Button */}
             {isVerifying ? (
               <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center space-y-2">
                 <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm">
@@ -223,31 +223,27 @@ export default function CookedModal({
                   {t('app.gamification.verifyingDesc')}
                 </p>
               </div>
+            ) : rejectionReason ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setPhoto(null);
+                  setRejectionReason(null);
+                }}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 px-4 py-3.5 text-xs font-bold text-white shadow-lg active:scale-[0.98] transition-all"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>{t('app.gamification.retryPhoto')}</span>
+              </button>
             ) : (
-              <div className="flex gap-2">
-                {rejectionReason ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPhoto(null);
-                      setRejectionReason(null);
-                    }}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 hover:bg-white/20 px-4 py-3 text-xs font-semibold text-white transition-all"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    <span>{t('app.gamification.retryPhoto')}</span>
-                  </button>
-                ) : null}
-
-                <button
-                  type="button"
-                  onClick={handleVerifyAndSubmit}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 px-4 py-3 text-xs font-bold text-white shadow-lg active:scale-[0.98] transition-all"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>{t('app.gamification.verifyBtn')}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleVerifyAndSubmit}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 px-4 py-3.5 text-xs font-bold text-white shadow-lg active:scale-[0.98] transition-all"
+              >
+                <Check className="w-4 h-4" />
+                <span>{t('app.gamification.verifyBtn')}</span>
+              </button>
             )}
           </div>
         )}
