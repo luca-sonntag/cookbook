@@ -478,6 +478,31 @@ export default function App() {
     }
   }, [user, getAccessToken]);
 
+  // Lock navigation to 'extract' tab while a Free user extraction is in-flight
+  useEffect(() => {
+    if (isPending && !isPremium && activeView !== 'extract') {
+      replace('extract');
+    }
+  }, [isPending, isPremium, activeView, replace]);
+
+  // Register Android hardware back-button handler (swallow back presses during Free extraction)
+  useEffect(() => {
+    return registerBackButtonHandler(() => {
+      if (isPending && !isPremium) {
+        return true;
+      }
+      if (selectedJob) {
+        setSelectedJob(null);
+        return true;
+      }
+      if (activeView !== 'history') {
+        navigate('history');
+        return true;
+      }
+      return false;
+    });
+  }, [isPending, isPremium, selectedJob, activeView, navigate, setSelectedJob]);
+
   // Allow Settings to re-open the onboarding guide via a decoupled event,
   // avoiding threading the hook's state through props into SettingsView.
   useEffect(() => {
@@ -651,10 +676,10 @@ export default function App() {
       } ${(activeView === 'extract' && !recipe) ? 'pt-6' : (!isViewingRecipe ? 'pt-4' : '')}`}>
 
         {/* One-time trial banner for free users */}
-        <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
+        {!(isPending && !isPremium) && <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />}
 
         {/* Soft opt-in notification prompt (triggered after N saved recipes) */}
-        <NotificationPrompt savedCount={history.length} />
+        {!(isPending && !isPremium) && <NotificationPrompt savedCount={history.length} />}
 
         {/* ALWAYS-MOUNTED VIEWS — hidden via HTML `hidden` attribute (display:none)
             instead of conditional rendering. This preserves component state,
@@ -825,7 +850,7 @@ export default function App() {
 
       {/* Mobile Bottom Navigation Bar */}
       {(() => {
-        const isBottomBarHidden = (activeView === 'history' && isCatalogSelectMode) || activeView === 'admin';
+        const isBottomBarHidden = (activeView === 'history' && isCatalogSelectMode) || activeView === 'admin' || (isPending && !isPremium);
         const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out pb-safe ${isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
           }`;
 
