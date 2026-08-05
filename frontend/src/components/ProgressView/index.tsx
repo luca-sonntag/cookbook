@@ -184,9 +184,9 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
           }}
           className="w-full flex items-center gap-3.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-left transition-all active:scale-[0.98] cursor-pointer outline-none border-none"
         >
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-sky-500 bg-sky-500/10 dark:bg-sky-500/20">
+          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-amber-500 bg-amber-500/10 dark:bg-amber-500/20">
             <Trophy className="h-5 w-5" />
-            <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-white">
+            <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-white">
               <Lock className="h-2.5 w-2.5" />
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
               {t('app.gamification.leaderboardSubtitle', { xp })}
             </div>
           </div>
-          <div className="shrink-0 text-[10px] font-extrabold text-sky-600 dark:text-sky-400 bg-sky-500/10 dark:bg-sky-500/20 px-2 py-0.5 rounded-full leading-tight">
+          <div className="shrink-0 text-[10px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 px-2 py-0.5 rounded-full leading-tight">
             {t('app.gamification.leaderboardComingSoon')}
           </div>
         </button>
