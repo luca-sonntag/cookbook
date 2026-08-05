@@ -167,7 +167,7 @@ export interface GamificationConfig {
 export const DEFAULT_GAMIFICATION_CONFIG: GamificationConfig = {
   baseXp: 100,
   difficultyMultipliers: { '1': 1, '2': 1.5, '3': 2 },
-  repetitionFactors: [1, 0.9, 0.8, 0.5],
+  repetitionFactors: [1, 0.833, 0.667, 0.5],
   repetitionWindowDays: 7,
   noveltyRecipeBonus: 20,
   noveltyCuisineBonus: 50,

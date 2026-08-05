@@ -45,8 +45,8 @@ test('photo is now mandatory (no bonus) but still marks verified + leaderboard-e
 test('repetition is only gently diminished (floor, not punishment)', () => {
   // New curve [1, 0.9, 0.8, 0.75] — a weekly favorite stays near full value.
   // Note: novelty (+20) only applies on the very first cook (priorCookCount 0).
-  assert.equal(computeAward(C, ctx({ priorCookCount: 1 })).xp, 90); // 100 * 0.9
-  assert.equal(computeAward(C, ctx({ priorCookCount: 2 })).xp, 80); // 100 * 0.8
+  assert.equal(computeAward(C, ctx({ priorCookCount: 1 })).xp, 83); // 100 * 0.833
+  assert.equal(computeAward(C, ctx({ priorCookCount: 2 })).xp, 67); // 100 * 0.667
   assert.equal(computeAward(C, ctx({ priorCookCount: 3 })).xp, 50); // 100 * 0.5
   assert.equal(computeAward(C, ctx({ priorCookCount: 9 })).xp, 50); // clamped to floor 0.5
 });
@@ -67,7 +67,7 @@ test('repetitionWindowDays resets repeats older than the window', () => {
   // Last cook was 3 days ago -> inside window -> counts as a repeat.
   const recent = 3 <= windowDays ? 1 : 0;
   assert.equal(recent, 1);
-  assert.equal(computeAward(C, ctx({ priorCookCount: recent })).xp, 90); // gentle 0.9
+  assert.equal(computeAward(C, ctx({ priorCookCount: recent })).xp, 83); // gentle 0.833
 });
 
 test('daily soft-cap reduces the Nth cook of the day', () => {
