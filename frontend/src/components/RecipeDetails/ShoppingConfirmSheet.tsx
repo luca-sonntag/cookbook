@@ -12,6 +12,8 @@ interface ShoppingConfirmSheetProps {
   scaleFactor: number;
   formatAmount: (amount: number | undefined, unit: string | undefined) => string;
   onConfirm: (selectedIngredients: Ingredient[]) => void;
+  /** Optional label shown in the header when the sheet is used in bulk mode */
+  recipeLabel?: string;
 }
 
 export default function ShoppingConfirmSheet({
@@ -22,6 +24,7 @@ export default function ShoppingConfirmSheet({
   scaleFactor,
   formatAmount,
   onConfirm,
+  recipeLabel,
 }: ShoppingConfirmSheetProps) {
   const { t, translateCategory } = useI18n();
   const [selectedIds, setSelectedIds] = useState<Record<string, boolean>>({});
@@ -92,9 +95,15 @@ export default function ShoppingConfirmSheet({
                     <Drawer.Heading className="text-base font-bold">
                       {t('recipe.shoppingConfirmTitle')}
                     </Drawer.Heading>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5">
-                      {t('recipe.shoppingConfirmSubtitle')}
-                    </p>
+                    {recipeLabel ? (
+                      <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5 truncate max-w-[220px]">
+                        {recipeLabel}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5">
+                        {t('recipe.shoppingConfirmSubtitle')}
+                      </p>
+                    )}
                   </div>
                 </div>
               </Drawer.Header>
