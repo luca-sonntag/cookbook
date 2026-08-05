@@ -780,7 +780,14 @@ export default function App() {
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
-                <Sparkles className="w-5.5 h-5.5 mb-1" />
+                <div className="relative">
+                  <Sparkles className="w-5.5 h-5.5 mb-1" />
+                  {isPending && (
+                    <span className="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/10 dark:bg-white/15">
+                      <span className="h-2.5 w-2.5 rounded-full border-[1.5px] border-emerald-600 dark:border-emerald-400 border-t-transparent animate-spin" />
+                    </span>
+                  )}
+                </div>
                 <span className="text-[11px] tracking-wide font-medium">{t('app.nav.newRecipe')}</span>
                 {activeView === 'extract' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
