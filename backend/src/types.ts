@@ -161,7 +161,33 @@ export interface GamificationConfig {
   velocityMinSeconds: number;
   /** Cumulative XP required to reach level index+1 (levelThresholds[0] = L1). */
   levelThresholds: number[];
+  /** One-off XP awarded the first time a badge is earned (server-authoritative;
+   *  the frontend only mirrors this for display). Keyed by badge key; missing
+   *  keys fall back to {@link DEFAULT_BADGE_XP}. */
+  badgeXp: Record<string, number>;
 }
+
+/** One-off XP awarded the first time each badge is earned. Mirrors the
+ *  frontend's `BADGE_XP` so the overlay and progress tab stay in sync. */
+export const DEFAULT_BADGE_XP: Record<string, number> = {
+  first_cook: 50,
+  cook_10: 150,
+  cook_25: 300,
+  cook_50: 500,
+  cook_100: 1000,
+  streak_3: 100,
+  streak_7: 250,
+  streak_30: 1000,
+  first_photo: 75,
+  distinct_5: 100,
+  distinct_10: 250,
+  distinct_25: 500,
+  night_owl: 75,
+  weekend_chef: 150,
+  timer_first: 50,
+  timer_10: 200,
+  same_recipe_3: 100,
+};
 
 /** Code-side defaults; mirror of the seeded `gamification_config` row. */
 export const DEFAULT_GAMIFICATION_CONFIG: GamificationConfig = {
@@ -180,6 +206,7 @@ export const DEFAULT_GAMIFICATION_CONFIG: GamificationConfig = {
   coinsPerXp: 0.1,
   velocityMinSeconds: 120,
   levelThresholds: [0, 500, 1200, 2200, 3500, 5100, 7000, 9300, 12000, 15100],
+  badgeXp: DEFAULT_BADGE_XP,
 };
 
 export interface UserStats {

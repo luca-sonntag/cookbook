@@ -4,7 +4,7 @@ import { Flame, Coins, Utensils, Trophy, Lock, Sparkles, X, Camera, Check } from
 import { useI18n } from '../../context/I18nContext';
 import { useGamification } from '../../context/GamificationContext';
 import { progressPct, xpToNextLevel } from '../../utils/levels';
-import { ALL_BADGE_KEYS, badgeEmoji } from '../../utils/badges';
+import { ALL_BADGE_KEYS, badgeEmoji, BADGE_XP } from '../../utils/badges';
 import type { CookPhotoItem } from '../../types';
 
 function getCulinaryRankKey(level: number): string {
@@ -17,26 +17,7 @@ function getCulinaryRankKey(level: number): string {
 }
 
 function getBadgeXpReward(key: string): number {
-  switch (key) {
-    case 'first_cook': return 50;
-    case 'cook_10': return 150;
-    case 'cook_25': return 300;
-    case 'cook_50': return 500;
-    case 'cook_100': return 1000;
-    case 'streak_3': return 100;
-    case 'streak_7': return 250;
-    case 'streak_30': return 1000;
-    case 'first_photo': return 75;
-    case 'distinct_5': return 100;
-    case 'distinct_10': return 250;
-    case 'distinct_25': return 500;
-    case 'night_owl': return 75;
-    case 'weekend_chef': return 150;
-    case 'timer_first': return 50;
-    case 'timer_10': return 200;
-    case 'same_recipe_3': return 100;
-    default: return 50;
-  }
+  return BADGE_XP[key] ?? 50;
 }
 
 function getBadgeProgressInfo(key: string, stats?: any): { current: number; total: number } | null {

@@ -357,7 +357,7 @@ ON CONFLICT (id) DO NOTHING;
 -- code (getGamificationConfig) as a fallback when the row is missing.
 INSERT INTO public.global_settings (key, value, description) VALUES
   ('gamification_config',
-   '{"baseXp":100,"difficultyMultipliers":{"1":1,"2":1.5,"3":2},"repetitionFactors":[1,0.833,0.667,0.5],"repetitionWindowDays":7,"noveltyRecipeBonus":20,"noveltyCuisineBonus":50,"streakTiers":[{"minDays":3,"mult":1.1},{"minDays":7,"mult":1.25},{"minDays":30,"mult":1.5}],"dailySoftcap":{"fullCount":3,"reducedFactor":0.5,"reducedUntilCount":5,"tailFactor":0.25},"coinsPerXp":0.1,"velocityMinSeconds":120,"levelThresholds":[0,500,1200,2200,3500,5100,7000,9300,12000,15100]}',
+   '{"baseXp":100,"difficultyMultipliers":{"1":1,"2":1.5,"3":2},"repetitionFactors":[1,0.833,0.667,0.5],"repetitionWindowDays":7,"noveltyRecipeBonus":20,"noveltyCuisineBonus":50,"streakTiers":[{"minDays":3,"mult":1.1},{"minDays":7,"mult":1.25},{"minDays":30,"mult":1.5}],"dailySoftcap":{"fullCount":3,"reducedFactor":0.5,"reducedUntilCount":5,"tailFactor":0.25},"coinsPerXp":0.1,"velocityMinSeconds":120,"levelThresholds":[0,500,1200,2200,3500,5100,7000,9300,12000,15100],"badgeXp":{"first_cook":50,"cook_10":150,"cook_25":300,"cook_50":500,"cook_100":1000,"streak_3":100,"streak_7":250,"streak_30":1000,"first_photo":75,"distinct_5":100,"distinct_10":250,"distinct_25":500,"night_owl":75,"weekend_chef":150,"timer_first":50,"timer_10":200,"same_recipe_3":100}}',
    'Gamification point/XP formula (JSON). Tunable at runtime; backend falls back to code defaults if absent.')
 ON CONFLICT (key) DO NOTHING;
 

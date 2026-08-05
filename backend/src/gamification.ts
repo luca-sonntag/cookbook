@@ -12,6 +12,7 @@
  */
 import type { CookSignals, CookedResult, UserStats } from './types.js';
 import { computeAward, levelForXp } from './gamificationFormula.js';
+import { DEFAULT_BADGE_XP } from './types.js';
 import {
   getGamificationConfig,
   getUserStats,
@@ -224,12 +225,39 @@ export async function recordCook(
   });
   await awardBadges(userId, newBadges);
 
+  // One-off badge XP/coins — server-authoritative (mirrors DEFAULT_BADGE_XP).
+  // Badges are awarded at most once, so this never double-counts.
+  let badgeXp = 0;
+  let badgeCoins = 0;
+  const badgeLedgerRows: { deltaXp: number; deltaCoins: number; reason: string }[] = [];
+  for (const key of newBadges) {
+    const xp = config.badgeXp?.[key] ?? DEFAULT_BADGE_XP[key] ?? 0;
+    if (xp > 0) {
+      badgeXp += xp;
+      badgeCoins += Math.floor(xp * config.coinsPerXp);
+      badgeLedgerRows.push({ deltaXp: xp, deltaCoins: Math.floor(xp * config.coinsPerXp), reason: `badge:${key}` });
+    }
+  }
+  if (badgeLedgerRows.length > 0) {
+    await insertLedgerRows(userId, cookEventId, badgeLedgerRows);
+    newStats.xp += badgeXp;
+    newStats.coins += badgeCoins;
+    newStats.level = levelForXp(newStats.xp, config.levelThresholds);
+    await upsertUserStats(newStats);
+  }
+
+  const totalXp = award.xp + badgeXp;
+  const totalCoins = award.coins + badgeCoins;
+  const reasons = badgeXp > 0
+    ? [...award.reasons, ...newBadges.map((k) => `badge_${k}_+${config.badgeXp?.[k] ?? DEFAULT_BADGE_XP[k] ?? 0}`)] as string[]
+    : award.reasons;
+
   return {
     stats: newStats,
-    earned: { xp: award.xp, coins: award.coins, reasons: award.reasons },
+    earned: { xp: totalXp, coins: totalCoins, reasons },
     newBadges,
     previousXp,
     previousLevel,
-    leveledUp: newLevel > previousLevel,
+    leveledUp: newStats.level > previousLevel,
   };
 }
