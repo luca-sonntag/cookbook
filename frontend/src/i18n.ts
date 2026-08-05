@@ -263,7 +263,7 @@ export const uiTranslations = {
         rejectionReason: 'Das Foto passt leider nicht zu diesem Rezept.',
         cookedCardTitle: 'Du hast dieses Gericht gekocht?',
         cookedCardSubtitle: 'Mache ein Foto deines Rezepts, um es verifizieren zu lassen und XP zu kassieren.',
-        cookedCardBtn: 'Gericht verifizieren 📸',
+        cookedCardBtn: 'Gericht verifizieren',
         streakReminder: {
           title: '🔥 Serie nicht verlieren',
           body: 'Du bist bei {days} Tagen in Folge — koch heute, um die Serie zu halten!',
@@ -1036,7 +1036,7 @@ export const uiTranslations = {
         rejectionReason: 'This photo does not match this recipe.',
         cookedCardTitle: 'Did you cook this dish?',
         cookedCardSubtitle: 'Take a photo of your dish to verify it and earn XP.',
-        cookedCardBtn: 'Verify Dish 📸',
+        cookedCardBtn: 'Verify Dish',
         streakReminder: {
           title: '🔥 Keep your streak',
           body: "You're on a {days}-day streak — cook today to keep it going!",
