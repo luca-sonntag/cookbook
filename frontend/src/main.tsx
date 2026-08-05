@@ -7,6 +7,7 @@ import { I18nProvider } from './context/I18nContext.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { TimerProvider } from './context/TimerContext.tsx'
 import { GamificationProvider } from './context/GamificationContext.tsx'
+import ErrorBoundary from './components/ErrorBoundary.tsx'
 import { initNativeUi } from './native'
 import { installConsoleBuffer } from './utils/consoleBuffer'
 import { initOtaUpdates } from './utils/otaUpdater'
@@ -27,7 +28,9 @@ createRoot(document.getElementById('root')!).render(
         <DialogProvider>
           <TimerProvider>
             <GamificationProvider>
-              <App />
+              <ErrorBoundary>
+                <App />
+              </ErrorBoundary>
             </GamificationProvider>
           </TimerProvider>
         </DialogProvider>
