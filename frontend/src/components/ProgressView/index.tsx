@@ -254,7 +254,7 @@ export default function ProgressView() {
                 key={key}
                 type="button"
                 onClick={() => setSelectedBadgeKey(key)}
-                className={`flex flex-col items-center justify-between rounded-2xl p-3.5 text-center transition-all cursor-pointer outline-none active:scale-95 ${
+                className={`flex flex-col items-center justify-center min-h-[110px] gap-1.5 rounded-2xl p-3 text-center transition-all cursor-pointer outline-none active:scale-95 ${
                   isEarned
                     ? 'bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-200'
                     : 'bg-gray-100 dark:bg-white/5 opacity-65 hover:opacity-85 text-gray-400'
