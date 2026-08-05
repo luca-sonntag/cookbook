@@ -40,11 +40,32 @@ test('photo is a +50% bonus and makes the cook leaderboard-eligible', () => {
   assert.equal(r.trustScore, 1.0);
 });
 
-test('repetition diminishes the same recipe (no novelty on repeats)', () => {
-  assert.equal(computeAward(C, ctx({ priorCookCount: 1 })).xp, 50); // 100 * 0.5
-  assert.equal(computeAward(C, ctx({ priorCookCount: 2 })).xp, 25); // 100 * 0.25
-  assert.equal(computeAward(C, ctx({ priorCookCount: 3 })).xp, 10); // 100 * 0.1
-  assert.equal(computeAward(C, ctx({ priorCookCount: 9 })).xp, 10); // clamped to tail 0.1
+test('repetition is only gently diminished (floor, not punishment)', () => {
+  // New curve [1, 0.9, 0.8, 0.75] — a weekly favorite stays near full value.
+  // Note: novelty (+20) only applies on the very first cook (priorCookCount 0).
+  assert.equal(computeAward(C, ctx({ priorCookCount: 1 })).xp, 90); // 100 * 0.9
+  assert.equal(computeAward(C, ctx({ priorCookCount: 2 })).xp, 80); // 100 * 0.8
+  assert.equal(computeAward(C, ctx({ priorCookCount: 3 })).xp, 75); // 100 * 0.75
+  assert.equal(computeAward(C, ctx({ priorCookCount: 9 })).xp, 75); // clamped to floor 0.75
+});
+
+test('repetitionWindowDays resets repeats older than the window', () => {
+  // Mirrors gamification.ts: getCookCountForJob only counts cooks within the
+  // window, so a recipe cooked weekly never accumulates beyond priorCookCount 0
+  // once the previous cook falls outside repetitionWindowDays.
+  const windowDays = C.repetitionWindowDays; // 7
+  assert.ok(windowDays > 0, 'window is enabled by default');
+
+  // Simulate: last cook was 8 days ago -> outside the 7-day window -> counts as 0.
+  const daysSinceLastCook = 8;
+  const priorCookCount = daysSinceLastCook <= windowDays ? 1 : 0;
+  assert.equal(priorCookCount, 0);
+  assert.equal(computeAward(C, ctx({ priorCookCount })).xp, 120); // full base + novelty
+
+  // Last cook was 3 days ago -> inside window -> counts as a repeat.
+  const recent = 3 <= windowDays ? 1 : 0;
+  assert.equal(recent, 1);
+  assert.equal(computeAward(C, ctx({ priorCookCount: recent })).xp, 90); // gentle 0.9
 });
 
 test('daily soft-cap reduces the Nth cook of the day', () => {

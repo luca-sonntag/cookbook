@@ -8,8 +8,9 @@
  *   a finished-dish photo adds a percentage on top and makes the cook
  *   leaderboard-eligible. We never punish people who cook without the app's
  *   cooking mode / timers.
- * - Anti-grind is handled by repetition diminishing + a daily soft-cap, not by
- *   distrusting no-photo cooks.
+ * - Repetition is only gently diminished (a floor, not a punishment) and only
+ *   within `repetitionWindowDays`. Cooking the same favorite every week is
+ *   encouraged, not penalized — the daily soft-cap handles anti-grind instead.
  */
 import type { GamificationConfig, DailySoftcap, StreakTier } from './types.js';
 

@@ -1318,12 +1318,27 @@ export async function getUserStats(userId: string): Promise<UserStats> {
 }
 
 /** How many times this user has already cooked a given job (repetition factor). */
-export async function getCookCountForJob(userId: string, jobId: string): Promise<number> {
-  const { count, error } = await getClient()
+/**
+ * How many times this user has already cooked a given job (repetition factor).
+ * When `windowDays` is provided (>0), only cooks within that many days of *now*
+ * count — so a weekly favorite resets to full value instead of being punished
+ * forever. A value of 0/undefined counts all-time cooks (legacy behavior).
+ */
+export async function getCookCountForJob(
+  userId: string,
+  jobId: string,
+  windowDays?: number,
+): Promise<number> {
+  let query = getClient()
     .from('cook_events')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('job_id', jobId);
+  if (windowDays && windowDays > 0) {
+    const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000).toISOString();
+    query = query.gte('cooked_at', since);
+  }
+  const { count, error } = await query;
   if (error) throw wrapError('Failed to count cook events for job', error);
   return count ?? 0;
 }

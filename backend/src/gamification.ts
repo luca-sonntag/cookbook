@@ -135,7 +135,11 @@ export async function recordCook(
     }
   }
 
-  const priorCookCount = await getCookCountForJob(userId, jobId);
+  const priorCookCount = await getCookCountForJob(
+    userId,
+    jobId,
+    config.repetitionWindowDays,
+  );
   const cooksToday = await getCookCountSince(userId, startOfUtcDayIso(now));
   const cookIndexToday = cooksToday + 1;
 

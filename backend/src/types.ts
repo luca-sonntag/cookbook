@@ -141,8 +141,13 @@ export interface GamificationConfig {
   baseXp: number;
   /** Multiplier per difficulty tier keyed "1"|"2"|"3". Flat (all 1) at launch. */
   difficultyMultipliers: Record<string, number>;
-  /** Diminishing factors indexed by how often this recipe was cooked before. */
+  /** Diminishing factors indexed by how often this recipe was cooked before
+   *  (within `repetitionWindowDays`). The last entry is a floor, not a penalty. */
   repetitionFactors: number[];
+  /** Days within which a prior cook of the same recipe counts as a repeat.
+   *  Cooks older than this window reset to full value — so a weekly favorite
+   *  is rewarded, not punished. 0/negative disables the window (count all). */
+  repetitionWindowDays: number;
   noveltyRecipeBonus: number;
   /** Reserved: applied once a cuisine signal exists on recipes. */
   noveltyCuisineBonus: number;
@@ -161,7 +166,8 @@ export interface GamificationConfig {
 export const DEFAULT_GAMIFICATION_CONFIG: GamificationConfig = {
   baseXp: 100,
   difficultyMultipliers: { '1': 1, '2': 1.5, '3': 2 },
-  repetitionFactors: [1, 0.5, 0.25, 0.1],
+  repetitionFactors: [1, 0.9, 0.8, 0.75],
+  repetitionWindowDays: 7,
   noveltyRecipeBonus: 20,
   noveltyCuisineBonus: 50,
   photoBonusPct: 50,
