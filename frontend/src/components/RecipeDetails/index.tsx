@@ -7,6 +7,7 @@ import { categoryOrder, legacyCategoryMap } from '../../i18n';
 import { useI18n } from '../../context/I18nContext';
 import { useTimerManager } from '../../hooks/useTimerManager';
 import { useGamification } from '../../context/GamificationContext';
+import { useCookHistory } from '../../hooks/useCookHistory';
 
 // Import subcomponents
 import RecipeHeader from './RecipeHeader';
