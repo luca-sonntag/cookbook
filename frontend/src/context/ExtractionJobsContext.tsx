@@ -47,6 +47,12 @@ export const OPEN_RECIPE_EVENT = 'app:open-recipe';
 
 const STORAGE_KEY = 'kb_extraction_jobs';
 const POLL_INTERVAL_MS = 2000;
+/**
+ * A finished (completed) card auto-dismisses this long after it completes, so the
+ * Extract tab doesn't fill up with old cards — the recipe is already in the
+ * cookbook and a notification fired. Failed cards stay until dismissed manually.
+ */
+const COMPLETED_AUTO_DISMISS_MS = 25000;
 
 type PersistedJob = Pick<ExtractionJobEntry, 'id' | 'sourceLabel' | 'mode' | 'status' | 'title' | 'error' | 'errorCode'>;
 
@@ -60,7 +66,8 @@ function loadPersisted(): ExtractionJobEntry[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as PersistedJob[];
     if (!Array.isArray(parsed)) return [];
-    return parsed.map(p => ({
+    // Never restore finished cards — they'd just clutter the tab on next launch.
+    return parsed.filter(p => !isTerminal(p.status ?? 'pending')).map(p => ({
       id: p.id,
       sourceLabel: p.sourceLabel,
       mode: p.mode,
@@ -78,7 +85,8 @@ function loadPersisted(): ExtractionJobEntry[] {
 
 function persist(jobs: ExtractionJobEntry[]): void {
   try {
-    const slim: PersistedJob[] = jobs.map(j => ({
+    // Only running jobs survive a reload; finished/failed cards are session-scoped.
+    const slim: PersistedJob[] = jobs.filter(j => !isTerminal(j.status)).map(j => ({
       id: j.id,
       sourceLabel: j.sourceLabel,
       mode: j.mode,
@@ -109,6 +117,8 @@ export function ExtractionJobsProvider({ children }: { children: React.ReactNode
   const finalizedRef = useRef<Set<string>>(new Set(jobs.filter(j => isTerminal(j.status)).map(j => j.id)));
   // Prevents overlapping polls of the same job within a slow tick.
   const inFlightRef = useRef<Set<string>>(new Set());
+  // Pending auto-dismiss timers for completed cards, keyed by job id.
+  const dismissTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const setJobsPersist = useCallback((updater: (prev: ExtractionJobEntry[]) => ExtractionJobEntry[]) => {
     setJobs(prev => {
@@ -137,6 +147,8 @@ export function ExtractionJobsProvider({ children }: { children: React.ReactNode
   }, [setJobsPersist]);
 
   const dismissJob = useCallback((id: string) => {
+    const timer = dismissTimersRef.current.get(id);
+    if (timer) { clearTimeout(timer); dismissTimersRef.current.delete(id); }
     finalizedRef.current.delete(id);
     inFlightRef.current.delete(id);
     setJobsPersist(prev => prev.filter(j => j.id !== id));
@@ -159,6 +171,16 @@ export function ExtractionJobsProvider({ children }: { children: React.ReactNode
         ? { ...j, status: 'completed', progress: null, title: job.recipe?.title ?? j.title }
         : j
     ));
+
+    // Auto-dismiss the finished card after a short grace period so the tab stays
+    // clean. Tapping it (or a manual dismiss) cancels this via dismissJob.
+    const existing = dismissTimersRef.current.get(job.id);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      dismissTimersRef.current.delete(job.id);
+      setJobsPersist(prev => prev.filter(j => j.id !== job.id));
+    }, COMPLETED_AUTO_DISMISS_MS);
+    dismissTimersRef.current.set(job.id, timer);
 
     window.dispatchEvent(new CustomEvent(EXTRACTION_COMPLETE_EVENT, { detail: { jobId: job.id } }));
   }, [setJobsPersist, t]);
@@ -223,6 +245,15 @@ export function ExtractionJobsProvider({ children }: { children: React.ReactNode
     }, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [pollJob]);
+
+  // Clear any pending auto-dismiss timers on unmount.
+  useEffect(() => {
+    const timers = dismissTimersRef.current;
+    return () => {
+      timers.forEach(clearTimeout);
+      timers.clear();
+    };
+  }, []);
 
   const activeCount = jobs.filter(j => !isTerminal(j.status)).length;
 
