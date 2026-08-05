@@ -26,10 +26,12 @@ export default function ActiveExtractions() {
 
   if (jobs.length === 0) return null;
 
+  const anyRunning = jobs.some(j => j.status !== 'completed' && j.status !== 'failed');
+
   return (
     <div className="flex flex-col gap-2">
       <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-1">
-        {t('activeExtractions.title')}
+        {anyRunning ? t('activeExtractions.title') : t('activeExtractions.titleDone')}
       </span>
 
       {jobs.map(job => {

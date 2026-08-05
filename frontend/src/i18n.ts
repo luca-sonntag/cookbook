@@ -546,6 +546,7 @@ export const uiTranslations = {
     },
     activeExtractions: {
       title: 'Laufende Extraktionen',
+      titleDone: 'Fertige Extraktionen',
       statusRunning: 'Wird extrahiert…',
       ready: 'Rezept fertig',
       tapToOpen: 'Tippen, um das Rezept zu öffnen',
@@ -1400,6 +1401,7 @@ export const uiTranslations = {
     },
     activeExtractions: {
       title: 'Active extractions',
+      titleDone: 'Finished extractions',
       statusRunning: 'Extracting…',
       ready: 'Recipe ready',
       tapToOpen: 'Tap to open the recipe',
