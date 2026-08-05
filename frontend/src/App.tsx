@@ -46,7 +46,7 @@ let isWebShareProcessed = false;
 export default function App() {
   const dialog = useDialog();
   const { t } = useI18n();
-  const { user, loading: authLoading, getAccessToken } = useAuth();
+  const { user, isPremium, loading: authLoading, getAccessToken } = useAuth();
   const { snapshot: gamificationSnapshot } = useGamification();
   const userLevel = gamificationSnapshot?.stats?.level ?? null;
 

@@ -115,7 +115,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   }, [t]);
 
   const activePollingJobIdRef = useRef<string | null>(null);
-  const activePollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const activePollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopActivePolling = useCallback(() => {
     if (activePollingIntervalRef.current) {
