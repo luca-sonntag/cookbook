@@ -347,6 +347,15 @@ export async function deleteJob(id: string, userId: string): Promise<boolean> {
 }
 
 /**
+ * Checks if a job has been soft-deleted (cancelled).
+ */
+export async function isJobDeleted(id: string): Promise<boolean> {
+  const job = await getJob(id);
+  return job ? job.deletedAt !== null : true;
+}
+
+
+/**
  * Uploads a recipe frame to private Supabase Storage as a *transient* hand-off.
  * The bytes are pulled once by the extracting device (see getRecipeFrames) and
  * then deleted; they are never persisted long-term nor exposed via a durable URL,
