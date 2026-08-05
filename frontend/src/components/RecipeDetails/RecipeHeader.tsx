@@ -73,9 +73,8 @@ export default function RecipeHeader({
               isIconOnly
               variant="outline"
               onClick={onToggleFavorite}
-              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center transition-all ${
-                isFavorite ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center transition-all ${isFavorite ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
               aria-label="Toggle Favorite"
             >
               <Star className={`w-5 h-5 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
@@ -271,7 +270,6 @@ export default function RecipeHeader({
                 }}
                 className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer outline-none bg-transparent p-0 border-none transition-colors"
               >
-                <UtensilsCrossed className="w-3.5 h-3.5" />
                 <span>{t('app.gamification.cookedChip', { count: history.count })}</span>
                 {history.lastCookedAt && (
                   <span className="text-gray-400 dark:text-gray-500 font-normal">

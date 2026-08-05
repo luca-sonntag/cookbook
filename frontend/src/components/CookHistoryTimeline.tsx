@@ -9,8 +9,8 @@ interface CookHistoryTimelineProps {
 }
 
 /**
- * Timeline of past cooks for a recipe, newest first. Shows clean event cards
- * with dish photos, XP rewards, and exact timestamps.
+ * Clean, flat list of past cooks for a recipe, newest first.
+ * Shows dish photos, attempt number, exact timestamp, XP earned, and cooking mode info.
  */
 export default function CookHistoryTimeline({ history }: CookHistoryTimelineProps) {
   const { t, language } = useI18n();
@@ -32,9 +32,6 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
     );
   }
 
-  // Calculate total XP accumulated for this recipe
-  const totalXp = history.items.reduce((sum, item) => sum + (item.xpAwarded ?? 0), 0);
-
   const formatExactDate = (isoString: string) => {
     try {
       return new Date(isoString).toLocaleString(language, {
@@ -51,25 +48,13 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
 
   return (
     <div className="rounded-3xl bg-white dark:bg-gray-900 p-5 border border-black/5 dark:border-white/5 shadow-2xs">
-      {/* Header section with title and total stats */}
-      <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-black/5 dark:border-white/5">
-        <div>
-          <h4 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-            <span>{t('app.gamification.cookedTimelineTitle')}</span>
-            <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-black rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              {history.count}×
-            </span>
-          </h4>
-        </div>
-        {totalXp > 0 && (
-          <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-extrabold border border-amber-500/25 whitespace-nowrap flex-shrink-0">
-            <span>{t('app.gamification.cookedTotalXp', { xp: totalXp })}</span>
-          </div>
-        )}
-      </div>
+      {/* Clean section header without extra badges */}
+      <h4 className="text-base font-extrabold text-gray-900 dark:text-white mb-3">
+        {t('app.gamification.cookedTimelineTitle')}
+      </h4>
 
       {/* History cards timeline */}
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         {history.items.map((item, index) => {
           const attemptNum = history.count - index;
           const exactTime = formatExactDate(item.cookedAt);
@@ -77,70 +62,65 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
           return (
             <div
               key={item.id}
-              className="relative rounded-2xl bg-gray-50/80 dark:bg-gray-800/40 border border-black/5 dark:border-white/10 p-3.5 transition-all hover:border-emerald-500/30"
+              className="rounded-2xl bg-gray-50/80 dark:bg-gray-800/40 border border-black/5 dark:border-white/10 p-3.5 flex items-start gap-3.5 transition-colors hover:bg-gray-100/70 dark:hover:bg-gray-800/60"
             >
-              {/* Card top bar */}
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-extrabold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-                  {t('app.gamification.cookedAttempt', { count: attemptNum })}
-                </span>
-                {item.xpAwarded && item.xpAwarded > 0 ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25 whitespace-nowrap">
-                    +{item.xpAwarded} XP
+              {/* Photo thumbnail */}
+              {item.photoUrl ? (
+                <button
+                  type="button"
+                  onClick={() => setPreviewPhotoUrl(item.photoUrl)}
+                  className="block flex-shrink-0 overflow-hidden rounded-xl border border-black/10 dark:border-white/10 shadow-2xs focus:outline-none group"
+                >
+                  <img
+                    src={item.photoUrl}
+                    alt=""
+                    className="h-14 w-14 object-cover group-hover:scale-105 transition-transform duration-200"
+                    loading="lazy"
+                  />
+                </button>
+              ) : (
+                <div className="h-14 w-14 flex-shrink-0 rounded-xl bg-gray-200/60 dark:bg-gray-700/50 flex flex-col items-center justify-center text-gray-400 border border-black/5 dark:border-white/5">
+                  <Camera className="h-5 w-5" />
+                  <span className="text-[9px] font-medium mt-0.5 text-gray-400">
+                    {t('app.gamification.cookedNoPhoto')}
                   </span>
-                ) : null}
-              </div>
+                </div>
+              )}
 
-              {/* Card body: photo + details */}
-              <div className="flex items-start gap-3">
-                {/* Photo thumbnail */}
-                {item.photoUrl ? (
-                  <div className="relative group flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setPreviewPhotoUrl(item.photoUrl)}
-                      className="block overflow-hidden rounded-xl border border-black/10 dark:border-white/10 shadow-xs focus:outline-none"
-                    >
-                      <img
-                        src={item.photoUrl}
-                        alt=""
-                        className="h-14 w-14 object-cover group-hover:scale-105 transition-transform duration-200"
-                        loading="lazy"
-                      />
-                    </button>
+              {/* Info block */}
+              <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                {/* Attempt title */}
+                <div className="text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+                  {t('app.gamification.cookedAttempt', { count: attemptNum })}
+                </div>
+
+                {/* Timestamp row */}
+                <div className="flex flex-wrap items-center gap-x-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                  <Clock className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                  <span>{formatRelative(item.cookedAt, language)}</span>
+                  {exactTime && (
+                    <span className="text-[11px] font-normal text-gray-400 dark:text-gray-500">
+                      ({exactTime})
+                    </span>
+                  )}
+                </div>
+
+                {/* XP earned line directly under timestamp */}
+                {item.xpAwarded && item.xpAwarded > 0 ? (
+                  <div className="text-xs font-bold text-amber-600 dark:text-amber-400 mt-0.5">
+                    +{item.xpAwarded} XP
                   </div>
-                ) : (
-                  <div className="h-14 w-14 flex-shrink-0 rounded-xl bg-gray-200/60 dark:bg-gray-700/50 flex flex-col items-center justify-center text-gray-400 border border-black/5 dark:border-white/5">
-                    <Camera className="h-5 w-5" />
-                    <span className="text-[9px] font-medium mt-0.5 text-gray-400">
-                      {t('app.gamification.cookedNoPhoto')}
+                ) : null}
+
+                {/* Cooking mode tag if applicable */}
+                {item.viaCookingMode && (
+                  <div className="mt-1">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-teal-500/10 text-teal-700 dark:text-teal-300 text-[10px] font-bold px-2 py-0.5 border border-teal-500/20">
+                      <UtensilsCrossed className="h-3 w-3 text-teal-500" />
+                      {t('app.gamification.cookedViaMode')}
                     </span>
                   </div>
                 )}
-
-                {/* Info block */}
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-baseline gap-x-2 text-xs font-bold text-gray-900 dark:text-gray-100">
-                    <span className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
-                      <Clock className="h-3.5 w-3.5 text-emerald-500" />
-                      {formatRelative(item.cookedAt, language)}
-                    </span>
-                    {exactTime && (
-                      <span className="text-[11px] font-normal text-gray-400 dark:text-gray-500">
-                        ({exactTime})
-                      </span>
-                    )}
-                  </div>
-
-                  {item.viaCookingMode && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-teal-500/10 text-teal-700 dark:text-teal-300 text-[10px] font-bold px-2 py-0.5 border border-teal-500/20">
-                        <UtensilsCrossed className="h-3 w-3 text-teal-500" />
-                        {t('app.gamification.cookedViaMode')}
-                      </span>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           );
