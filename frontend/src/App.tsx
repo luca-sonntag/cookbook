@@ -784,6 +784,7 @@ export default function App() {
             onSelectModeChange={setIsCatalogSelectMode}
             catalogSubPath={subPath}
             onNavigateCatalog={navigateCatalog}
+            limitStatus={limitStatus}
           />
         </div>
 

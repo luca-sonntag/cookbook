@@ -42,9 +42,19 @@ interface SavedCatalogProps {
   catalogSubPath?: string | null;
   /** Navigates within the catalog tab (`null` returns to the cookbook home). */
   onNavigateCatalog?: (subPath?: string | null) => void;
+  limitStatus?: {
+    limit: number;
+    used: number;
+    remaining: number;
+    windowDays: number;
+    tier: 'free' | 'alpha' | 'premium';
+    savedRecipes: number;
+    maxSavedRecipes: number;
+    cookbookFull: boolean;
+    maxConcurrent?: number;
+    activeCount?: number;
+  } | null;
 }
-
-const FREE_RECIPE_LIMIT = 5;
 
 export default function SavedCatalog({
   history,
@@ -60,7 +70,8 @@ export default function SavedCatalog({
   onRemixSuccess,
   onSelectModeChange,
   catalogSubPath = null,
-  onNavigateCatalog
+  onNavigateCatalog,
+  limitStatus
 }: SavedCatalogProps) {
   const { t } = useI18n();
   const { isPremium } = useAuth();
@@ -325,14 +336,18 @@ export default function SavedCatalog({
     setIsFlagSheetOpen(true);
   };
 
-  const premiumBanner = !isPremium && completedJobs.length >= FREE_RECIPE_LIMIT - 1 && (
+  const maxSavedRecipes = limitStatus?.maxSavedRecipes ?? 5;
+  const isCookbookFull = maxSavedRecipes >= 0 && completedJobs.length >= maxSavedRecipes;
+  const isCookbookAlmostFull = maxSavedRecipes >= 0 && completedJobs.length >= maxSavedRecipes - 1;
+
+  const premiumBanner = !isPremium && isCookbookAlmostFull && (
     <PremiumHint
       variant="banner"
       onClick={() => setIsPremiumModalOpen(true)}
       label={
-        completedJobs.length >= FREE_RECIPE_LIMIT
-          ? t('premium.hint.catalogFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
-          : t('premium.hint.catalogAlmostFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
+        isCookbookFull
+          ? t('premium.hint.catalogFull', { count: completedJobs.length, limit: maxSavedRecipes })
+          : t('premium.hint.catalogAlmostFull', { count: completedJobs.length, limit: maxSavedRecipes })
       }
       cta={t('premium.hint.upgrade')}
     />
