@@ -144,7 +144,22 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       const notifBody = t('notification.extractionInterrupted.body');
       sendNativeNotification(notifTitle, notifBody, jobId, undefined, Math.floor(Date.now() / 1000));
     }
-  }, [stopActivePolling, t]);
+
+    try {
+      const token = await getAccessToken();
+      if (token) {
+        fetch(apiUrl(`/api/jobs/${jobId}`), {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          keepalive: true
+        }).catch(err => console.warn('Failed to send DELETE for backgrounded job:', err));
+      }
+    } catch (err) {
+      console.warn('Error executing cancelActiveFreeJob:', err);
+    }
+  }, [getAccessToken, stopActivePolling, t]);
 
   const runSimulatedProgress = useCallback(async (jobId: string, token: string, targetDurationMs: number = 10000) => {
     setIsPending(true);
