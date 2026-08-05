@@ -265,15 +265,20 @@ export async function claimNextJob(workerId: string): Promise<Job | null> {
   return rowToJob(rows[0]);
 }
 
-/** Find a completed job by URL (normalized), scoped to userId. Excludes soft-deleted jobs. */
-export async function findCompletedJobByUrl(url: string, userId: string): Promise<Job | null> {
-  const { data, error } = await getClient()
+/** Find a completed job by URL (normalized), scoped to userId. Optionally includes soft-deleted jobs. */
+export async function findCompletedJobByUrl(url: string, userId: string, includeDeleted = false): Promise<Job | null> {
+  let query = getClient()
     .from('jobs')
     .select()
     .eq('status', 'completed')
     .eq('user_id', userId)
-    .eq('url_normalized', normalizeUrl(url))
-    .is('deleted_at', null)
+    .eq('url_normalized', normalizeUrl(url));
+
+  if (!includeDeleted) {
+    query = query.is('deleted_at', null);
+  }
+
+  const { data, error } = await query
     .returns<JobRow[]>()
     .limit(1);
 
@@ -281,20 +286,38 @@ export async function findCompletedJobByUrl(url: string, userId: string): Promis
   return data.length > 0 ? rowToJob(data[0]) : null;
 }
 
-/** Find a still-running (not yet completed/failed) job by URL (normalized), scoped to userId. Excludes soft-deleted jobs. */
-export async function findActiveJobByUrl(url: string, userId: string): Promise<Job | null> {
-  const { data, error } = await getClient()
+/** Find a still-running (not yet completed/failed) job by URL (normalized), scoped to userId. Optionally includes soft-deleted jobs. */
+export async function findActiveJobByUrl(url: string, userId: string, includeDeleted = false): Promise<Job | null> {
+  let query = getClient()
     .from('jobs')
     .select()
     .in('status', ['pending', 'scraping', 'processing'])
     .eq('user_id', userId)
-    .eq('url_normalized', normalizeUrl(url))
-    .is('deleted_at', null)
+    .eq('url_normalized', normalizeUrl(url));
+
+  if (!includeDeleted) {
+    query = query.is('deleted_at', null);
+  }
+
+  const { data, error } = await query
     .returns<JobRow[]>()
     .limit(1);
 
   if (error) throw wrapError('Failed to search active jobs by URL', error);
   return data.length > 0 ? rowToJob(data[0]) : null;
+}
+
+/** Restores a soft-deleted job by clearing deleted_at, scoped to userId. */
+export async function restoreJob(id: string, userId: string): Promise<boolean> {
+  const { data, error } = await getClient()
+    .from('jobs')
+    .update({ deleted_at: null })
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select('id');
+
+  if (error) throw wrapError(`Failed to restore job ${id}`, error);
+  return (data?.length ?? 0) > 0;
 }
 
 /** Retrieve all non-deleted jobs for a user, newest first. */

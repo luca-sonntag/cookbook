@@ -41,7 +41,8 @@ import {
   deletePushToken,
   deletePushTokensForUser,
   getPremiumMaxConcurrentExtractions,
-  getFreeMaxConcurrentExtractions, 
+  getFreeMaxConcurrentExtractions,
+  restoreJob, 
   getRecentCookPhotos, 
   getDistinctCookedRecipeCount, 
   getCookHistoryForJob
@@ -282,9 +283,12 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       throw new AppError('INVALID_URL', { message: 'URL failed to parse.' });
     }
 
-    // Check if job for this URL has already successfully completed (scoped to user)
-    const existingJob = await findCompletedJobByUrl(cleanUrl, req.userId!);
+    // Check if job for this URL has already successfully completed (scoped to user, including soft-deleted ones)
+    const existingJob = await findCompletedJobByUrl(cleanUrl, req.userId!, true);
     if (existingJob) {
+      if (existingJob.deletedAt !== null) {
+        await restoreJob(existingJob.id, req.userId!);
+      }
       res.status(200).json({
         success: true,
         jobId: existingJob.id,
@@ -295,12 +299,12 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // Check if a job for this URL is already running (scoped to user). Without this,
-    // re-submitting the same URL while the first extraction is still in flight -
-    // e.g. after the app was closed/reopened mid-extraction - creates a second job
-    // that also completes, resulting in a duplicate saved recipe.
-    const activeJob = await findActiveJobByUrl(cleanUrl, req.userId!);
+    // Check if a job for this URL is already running (scoped to user, including soft-deleted ones).
+    const activeJob = await findActiveJobByUrl(cleanUrl, req.userId!, true);
     if (activeJob) {
+      if (activeJob.deletedAt !== null) {
+        await restoreJob(activeJob.id, req.userId!);
+      }
       res.status(202).json({
         success: true,
         jobId: activeJob.id,
