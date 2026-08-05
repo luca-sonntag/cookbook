@@ -1553,6 +1553,50 @@ export async function getDistinctCookedRecipeCount(userId: string): Promise<numb
   return set.size;
 }
 
+/** Count of cooks where the in-app timer was used (timer_elapsed = true). */
+export async function getTimerCookCount(userId: string): Promise<number> {
+  const { data, error } = await getClient()
+    .from('cook_events')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('timer_elapsed', true);
+  if (error) throw wrapError('Failed to count timer cooks', error);
+  return (data || []).length;
+}
+
+/**
+ * Count of cooks that happened on a weekend (Saturday = 6, Sunday = 0 in UTC).
+ * We dedupe in memory since per-user cook volume is small.
+ */
+export async function getWeekendCookCount(userId: string): Promise<number> {
+  const { data, error } = await getClient()
+    .from('cook_events')
+    .select('cooked_at')
+    .eq('user_id', userId);
+  if (error) throw wrapError('Failed to count weekend cooks', error);
+  return (data || []).filter((r: any) => {
+    const day = new Date(r.cooked_at).getUTCDay();
+    return day === 0 || day === 6;
+  }).length;
+}
+
+/**
+ * Maximum cook count for a single recipe (job_id) by this user.
+ * Returns 0 if no cooks found.
+ */
+export async function getMaxCooksForSameRecipe(userId: string): Promise<number> {
+  const { data, error } = await getClient()
+    .from('cook_events')
+    .select('job_id')
+    .eq('user_id', userId);
+  if (error) throw wrapError('Failed to count same-recipe cooks', error);
+  const counts = new Map<string, number>();
+  for (const r of (data || []) as any[]) {
+    if (r.job_id) counts.set(r.job_id, (counts.get(r.job_id) ?? 0) + 1);
+  }
+  return counts.size === 0 ? 0 : Math.max(...counts.values());
+}
+
 /** Upload a finished-dish photo (base64) to the private cook-photos bucket. */
 export async function uploadCookPhoto(
   userId: string,

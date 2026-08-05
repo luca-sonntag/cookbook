@@ -24,13 +24,19 @@ import {
   getUserBadges,
   awardBadges,
   getDistinctCookedRecipeCount,
+  getTimerCookCount,
+  getWeekendCookCount,
+  getMaxCooksForSameRecipe,
 } from './db.js';
 
 /** All badge keys the launch set can award (labels live in the frontend i18n). */
 export const BADGE_KEYS = [
-  'first_cook', 'cook_10', 'cook_50',
+  'first_cook', 'cook_10', 'cook_25', 'cook_50', 'cook_100',
   'streak_3', 'streak_7', 'streak_30',
-  'first_photo', 'distinct_5', 'distinct_10',
+  'first_photo', 'distinct_5', 'distinct_10', 'distinct_25',
+  'night_owl', 'weekend_chef',
+  'timer_first', 'timer_10',
+  'same_recipe_3',
 ] as const;
 
 // ── Date helpers (UTC day boundaries) ────────────────────────────────────────
@@ -57,6 +63,11 @@ interface BadgeEvalParams {
   currentStreak: number;
   hasPhoto: boolean;
   distinctRecipes: number;
+  isNightCook: boolean;
+  isWeekendCook: boolean;
+  timerCooks: number;
+  weekendCooks: number;
+  maxSameRecipeCooks: number;
   existing: Set<string>;
 }
 
@@ -64,15 +75,30 @@ interface BadgeEvalParams {
 function evaluateBadges(p: BadgeEvalParams): string[] {
   const earned: string[] = [];
   const add = (k: string) => { if (!p.existing.has(k)) earned.push(k); };
+  // Total cooks milestones
   if (p.totalCooks >= 1) add('first_cook');
   if (p.totalCooks >= 10) add('cook_10');
+  if (p.totalCooks >= 25) add('cook_25');
   if (p.totalCooks >= 50) add('cook_50');
+  if (p.totalCooks >= 100) add('cook_100');
+  // Streaks
   if (p.currentStreak >= 3) add('streak_3');
   if (p.currentStreak >= 7) add('streak_7');
   if (p.currentStreak >= 30) add('streak_30');
+  // Photo verification
   if (p.hasPhoto) add('first_photo');
+  // Variety
   if (p.distinctRecipes >= 5) add('distinct_5');
   if (p.distinctRecipes >= 10) add('distinct_10');
+  if (p.distinctRecipes >= 25) add('distinct_25');
+  // Time-based
+  if (p.isNightCook) add('night_owl');
+  if (p.weekendCooks >= 5) add('weekend_chef');
+  // Timer
+  if (p.timerCooks >= 1) add('timer_first');
+  if (p.timerCooks >= 10) add('timer_10');
+  // Loyalty
+  if (p.maxSameRecipeCooks >= 3) add('same_recipe_3');
   return earned;
 }
 
@@ -166,14 +192,30 @@ export async function recordCook(
   };
   await upsertUserStats(newStats);
 
-  // Badges — distinct-recipe count is read after the insert so it includes this cook.
-  const existing = new Set(await getUserBadges(userId));
-  const distinctRecipes = await getDistinctCookedRecipeCount(userId);
+  // Badges — counts read after insert so they include this cook.
+  const cookHour = now.getUTCHours();
+  const cookDay = now.getUTCDay();
+  const isNightCook = cookHour >= 22 || cookHour < 5;
+  const isWeekendCook = cookDay === 0 || cookDay === 6;
+
+  const [existing, distinctRecipes, timerCooks, weekendCooks, maxSameRecipeCooks] = await Promise.all([
+    getUserBadges(userId).then((keys) => new Set(keys)),
+    getDistinctCookedRecipeCount(userId),
+    getTimerCookCount(userId),
+    getWeekendCookCount(userId),
+    getMaxCooksForSameRecipe(userId),
+  ]);
+
   const newBadges = evaluateBadges({
     totalCooks: newStats.totalCooks,
     currentStreak,
     hasPhoto,
     distinctRecipes,
+    isNightCook,
+    isWeekendCook,
+    timerCooks,
+    weekendCooks,
+    maxSameRecipeCooks,
     existing,
   });
   await awardBadges(userId, newBadges);
