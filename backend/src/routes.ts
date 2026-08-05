@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs, getUserStats, getUserBadgesDetailed, getGamificationConfig, uploadCookPhoto, upsertPushToken, deletePushToken, deletePushTokensForUser, getRecentCookPhotos, getDistinctCookedRecipeCount } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs, getUserStats, getUserBadgesDetailed, getGamificationConfig, uploadCookPhoto, upsertPushToken, deletePushToken, deletePushTokensForUser, getRecentCookPhotos, getDistinctCookedRecipeCount, getCookHistoryForJob } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe, verifyCookedDishPhoto } from './gemini.js';
@@ -432,6 +432,30 @@ apiRouter.get('/jobs/:id', async (req: Request, res: Response): Promise<void> =>
     });
   } catch (error: any) {
     if (!(error instanceof AppError)) console.error('Error fetching job details:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
+ * Per-job cook history for the recipe detail view (chip + timeline).
+ * GET /api/jobs/:id/cook-history
+ */
+apiRouter.get('/jobs/:id/cook-history', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      throw new AppError('MISSING_FIELD', { params: { field: 'id' } });
+    }
+
+    const job = await getJob(id, req.userId!);
+    if (!job) {
+      throw new AppError('JOB_NOT_FOUND');
+    }
+
+    const history = await getCookHistoryForJob(req.userId!, id);
+    res.status(200).json({ success: true, ...history });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error fetching cook history:', error);
     sendAppError(res, error);
   }
 });

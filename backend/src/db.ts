@@ -1413,6 +1413,81 @@ export interface CookPhotoItem {
   recipeTitle?: string;
 }
 
+/** Per-job cook history for the recipe detail view. */
+export interface CookHistoryItem {
+  id: string;
+  cookedAt: string;
+  hasPhoto: boolean;
+  photoUrl: string | null;
+  viaCookingMode: boolean;
+  timerElapsed: boolean;
+}
+
+export interface CookHistory {
+  count: number;
+  firstCookedAt: string | null;
+  lastCookedAt: string | null;
+  items: CookHistoryItem[];
+}
+
+/**
+ * All cook events for a single job, newest first, with signed photo URLs.
+ * Drives the recipe-detail "already cooked" chip + timeline.
+ */
+export async function getCookHistoryForJob(
+  userId: string,
+  jobId: string,
+  limit: number = 20,
+): Promise<CookHistory> {
+  const { data, error, count } = await getClient()
+    .from('cook_events')
+    .select('id, cooked_at, has_photo, photo_path, via_cooking_mode, timer_elapsed', { count: 'exact' })
+    .eq('user_id', userId)
+    .eq('job_id', jobId)
+    .order('cooked_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw wrapError('Failed to fetch cook history for job', error);
+  if (!data || data.length === 0) {
+    return { count: 0, firstCookedAt: null, lastCookedAt: null, items: [] };
+  }
+
+  const items = await Promise.all(
+    data.map(async (row: any): Promise<CookHistoryItem> => {
+      let photoUrl: string | null = null;
+      const photoPath = row.photo_path;
+      if (photoPath && !photoPath.startsWith('http') && !photoPath.startsWith('data:')) {
+        try {
+          const { data: signedData } = await getClient()
+            .storage
+            .from('cook-photos')
+            .createSignedUrl(photoPath, 60 * 60 * 24 * 7);
+          photoUrl = signedData?.signedUrl ?? getClient().storage.from('cook-photos').getPublicUrl(photoPath).data.publicUrl;
+        } catch {
+          photoUrl = getClient().storage.from('cook-photos').getPublicUrl(photoPath).data.publicUrl;
+        }
+      } else if (photoPath) {
+        photoUrl = photoPath;
+      }
+      return {
+        id: row.id,
+        cookedAt: row.cooked_at,
+        hasPhoto: row.has_photo,
+        photoUrl,
+        viaCookingMode: row.via_cooking_mode,
+        timerElapsed: row.timer_elapsed,
+      };
+    }),
+  );
+
+  return {
+    count: count ?? data.length,
+    firstCookedAt: items[items.length - 1]?.cookedAt ?? null,
+    lastCookedAt: items[0]?.cookedAt ?? null,
+    items,
+  };
+}
+
 /** Get recent verified cook photos for a user. */
 export async function getRecentCookPhotos(userId: string, limit: number = 10): Promise<CookPhotoItem[]> {
   const { data, error } = await getClient()
