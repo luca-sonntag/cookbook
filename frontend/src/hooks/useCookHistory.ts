@@ -5,8 +5,11 @@ import { useAuth } from '../context/AuthContext';
 export interface CookHistoryItem {
   id: string;
   cookedAt: string;
+  xpAwarded?: number;
+  coinsAwarded?: number;
   hasPhoto: boolean;
   photoUrl: string | null;
+  verified?: boolean;
   viaCookingMode: boolean;
   timerElapsed: boolean;
 }
