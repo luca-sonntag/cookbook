@@ -125,6 +125,8 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     activePollingJobIdRef.current = null;
   }, []);
 
+  const pollingStartTimeRef = useRef<number>(0);
+
   const cancelActiveFreeJob = useCallback(async () => {
     const jobId = activePollingJobIdRef.current || localStorage.getItem(PENDING_JOB_STORAGE_KEY);
     if (!jobId) return;
@@ -142,26 +144,41 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       const notifBody = t('notification.extractionInterrupted.body');
       sendNativeNotification(notifTitle, notifBody, jobId, undefined, Math.floor(Date.now() / 1000));
     }
+  }, [stopActivePolling, t]);
 
-    try {
-      const token = await getAccessToken();
-      if (token) {
-        fetch(apiUrl(`/api/jobs/${jobId}`), {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          keepalive: true
-        }).catch(err => console.warn('Failed to send DELETE for backgrounded job:', err));
-      }
-    } catch (err) {
-      console.warn('Error executing cancelActiveFreeJob:', err);
+  const runSimulatedProgress = useCallback(async (jobId: string, token: string, targetDurationMs: number = 10000) => {
+    setIsPending(true);
+    setJobStatus('processing');
+
+    const steps: Array<{ stage: ProgressData['stage']; percent: number; delayMs: number }> = [
+      { stage: 'scraping', percent: 20, delayMs: Math.round(targetDurationMs * 0.25) },
+      { stage: 'downloading_media', percent: 45, delayMs: Math.round(targetDurationMs * 0.25) },
+      { stage: 'extracting_recipe', percent: 75, delayMs: Math.round(targetDurationMs * 0.25) },
+      { stage: 'finalizing', percent: 95, delayMs: Math.round(targetDurationMs * 0.25) },
+    ];
+
+    for (const step of steps) {
+      if (activePollingJobIdRef.current !== jobId) return;
+      setProgress({ isProgress: true, percent: step.percent, stage: step.stage });
+      await new Promise(res => setTimeout(res, step.delayMs));
     }
-  }, [getAccessToken, stopActivePolling, t]);
+
+    if (activePollingJobIdRef.current !== jobId) return;
+
+    await pullAndCacheFrames(jobId, token);
+    setProgress(null);
+    setIsPending(false);
+    setUrl('');
+    setPhotos([]);
+    localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
+    activePollingJobIdRef.current = null;
+    onExtractionSuccess(jobId);
+  }, [onExtractionSuccess]);
 
   const startPolling = useCallback((id: string) => {
     stopActivePolling();
     activePollingJobIdRef.current = id;
+    pollingStartTimeRef.current = Date.now();
 
     const interval = setInterval(async () => {
       try {
@@ -204,9 +221,17 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         setJobStatus(job.status);
 
         if (job.status === 'completed') {
+          const elapsed = Date.now() - pollingStartTimeRef.current;
+          const remainingMs = 10000 - elapsed;
+
+          if (!isPremium && remainingMs > 2000) {
+            stopActivePolling();
+            activePollingJobIdRef.current = job.id;
+            await runSimulatedProgress(job.id, token, remainingMs);
+            return;
+          }
+
           stopActivePolling();
-          // Pull the transient frames into the local cache before showing the
-          // recipe — they are deleted server-side once fetched.
           await pullAndCacheFrames(job.id, token);
           setProgress(null);
           setIsPending(false);
@@ -214,8 +239,6 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setPhotos([]);
           localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
           
-          // Send notification when recipe is ready — only if the user is not
-          // actively looking at the app (they already see the result in-UI).
           if (document.visibilityState !== 'visible') {
             const recipeTitle = job.recipe?.title || t('recipe.recipe') || 'Recipe';
             const notifTitle = t('notification.recipeReady.title');
@@ -226,8 +249,6 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           onExtractionSuccess(job.id);
         } else if (job.status === 'failed') {
           stopActivePolling();
-          // The worker persists failures as a {code, params} envelope; surface the
-          // code/params so the banner can localize and branch (e.g. premium hints).
           const envelope = job.error ? parseSerializedError(job.error) : null;
           setJobError(job.error || 'form.validation.failedExtraction');
           setJobErrorCode(envelope?.code ?? null);
@@ -249,7 +270,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     }, 2000);
 
     activePollingIntervalRef.current = interval;
-  }, [getAccessToken, onExtractionSuccess, stopActivePolling, t]);
+  }, [getAccessToken, isPremium, onExtractionSuccess, runSimulatedProgress, stopActivePolling, t]);
 
   /**
    * Shared submit path for both input channels: posts a job-creating request and
@@ -331,10 +352,16 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         setJobStatus(null);
         fetchLimitStatus();
       } else {
-        setJobStatus(data.status);
         fetchLimitStatus();
-        localStorage.setItem(PENDING_JOB_STORAGE_KEY, data.jobId);
-        startPolling(data.jobId);
+        if (data.status === 'completed') {
+          stopActivePolling();
+          activePollingJobIdRef.current = data.jobId;
+          runSimulatedProgress(data.jobId, token, 10000);
+        } else {
+          setJobStatus(data.status);
+          localStorage.setItem(PENDING_JOB_STORAGE_KEY, data.jobId);
+          startPolling(data.jobId);
+        }
       }
     } catch (err: unknown) {
       const typed = err as (Error & { code?: string; params?: ErrorParams }) | undefined;
@@ -344,7 +371,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       setJobErrorParams(typed?.params ?? null);
       setIsPending(false);
     }
-  }, [getAccessToken, startPolling, fetchLimitStatus, isPremium, addJob]);
+  }, [getAccessToken, startPolling, fetchLimitStatus, isPremium, addJob, runSimulatedProgress, stopActivePolling]);
 
   const triggerExtraction = useCallback(async (targetUrl: string) => {
     const cleanUrl = targetUrl.trim();
