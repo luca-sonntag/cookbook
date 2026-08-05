@@ -79,7 +79,21 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error('Failed to record cook');
+      if (!res.ok) {
+        let errJson: any;
+        try {
+          errJson = await res.json();
+        } catch {
+          /* non-JSON response */
+        }
+        const errObj = new Error(errJson?.error || 'Failed to record cook') as Error & {
+          code?: string;
+          params?: Record<string, any>;
+        };
+        if (errJson?.code) errObj.code = errJson.code;
+        if (errJson?.params) errObj.params = errJson.params;
+        throw errObj;
+      }
       const result = (await res.json()) as CookedResult & { success: boolean };
 
       // Update the cached snapshot (stats + newly earned badges).

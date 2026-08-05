@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Camera, Image as ImageIcon, ShieldCheck, Check, AlertTriangle, RotateCcw, X, Loader2 } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
+import { resolveErrorCode } from '../i18n';
 import { useGamification } from '../context/GamificationContext';
 import { compressImage, PREVIEW_PROFILE } from '../utils/imageCompression';
 
@@ -20,7 +21,7 @@ export default function CookedModal({
   recipeTitle,
   viaCookingMode,
 }: CookedModalProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { markCooked } = useGamification();
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -57,9 +58,12 @@ export default function CookedModal({
       handleResetAndClose();
     } catch (err: any) {
       console.error('[CookedModal] Verification failed:', err);
-      // Surface rejection reason if provided by backend AppError params
-      const reason = err?.params?.reason || err?.message || t('error.codes.PHOTO_NOT_MATCHING');
-      setRejectionReason(reason);
+      const code = err?.code;
+      const params = err?.params;
+      const localizedReason = code
+        ? resolveErrorCode(code, params, err?.message, language)
+        : (params?.reason || (err?.message && !err.message.includes('Failed to record cook') ? err.message : t('error.codes.PHOTO_NOT_MATCHING')));
+      setRejectionReason(localizedReason);
     } finally {
       setIsVerifying(false);
     }

@@ -2104,6 +2104,8 @@ export function messageForCode(
       return getTranslation('error.codes.TOO_MANY_SCREENSHOTS', lang, { max: p.max ?? 6 });
     case 'ACTIVE_JOB_EXISTS':
       return getTranslation('error.codes.ACTIVE_JOB_EXISTS', lang, { count: p.count ?? 1 });
+    case 'PHOTO_NOT_MATCHING':
+      return p.reason ? String(p.reason) : getTranslation('error.codes.PHOTO_NOT_MATCHING', lang, { reason: '' });
     default:
       return getTranslation(`error.codes.${c}`, lang);
   }
