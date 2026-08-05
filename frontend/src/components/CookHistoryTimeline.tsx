@@ -1,4 +1,4 @@
-import { UtensilsCrossed, Camera, Clock, Flame } from 'lucide-react';
+import { UtensilsCrossed, Camera, Clock } from 'lucide-react';
 import type { CookHistory } from '../hooks/useCookHistory';
 import { useI18n } from '../context/I18nContext';
 import { formatRelative } from '../utils/formatRelative';
@@ -65,12 +65,6 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5">
                       <UtensilsCrossed className="h-3 w-3" />
                       {t('app.gamification.cookedViaMode')}
-                    </span>
-                  )}
-                  {item.timerElapsed && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5">
-                      <Flame className="h-3 w-3" />
-                      {t('app.gamification.cookedWithTimer')}
                     </span>
                   )}
                 </div>
