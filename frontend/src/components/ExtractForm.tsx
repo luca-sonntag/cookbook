@@ -219,6 +219,7 @@ export default function ExtractForm({
 
   return (
     <div className="flex flex-col gap-6 w-full">
+      {errorBanner}
       {/* Input Card or Extraction Animation Card */}
       {isPending ? (
         <ExtractionAnimation
