@@ -1,7 +1,8 @@
 import { createClient, SupabaseClient, PostgrestError } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
 import { config } from './config.js';
-import type { Job, JobStatus, Recipe, ProgressData, Collection } from './types.js';
+import type { Job, JobStatus, Recipe, ProgressData, Collection, GamificationConfig, UserStats } from './types.js';
+import { DEFAULT_GAMIFICATION_CONFIG } from './types.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -1241,3 +1242,254 @@ export async function listNotificationUsers(): Promise<NotificationUser[]> {
 
 
 
+
+// ── Gamification ─────────────────────────────────────────────────────────────
+
+/**
+ * Reads the tunable point formula from `global_settings` (60s cache, shared with
+ * getGlobalSetting) merged over the code defaults. Falls back to
+ * DEFAULT_GAMIFICATION_CONFIG when the row is missing or unparseable.
+ */
+export async function getGamificationConfig(): Promise<GamificationConfig> {
+  const key = 'gamification_config';
+  const now = Date.now();
+  const cached = settingsCache[key];
+  if (cached && now - cached.timestamp < 60000) {
+    return cached.value as GamificationConfig;
+  }
+  try {
+    const { data, error } = await getClient()
+      .from('global_settings')
+      .select('value')
+      .eq('key', key)
+      .maybeSingle();
+    if (!error && data?.value) {
+      const parsed = { ...DEFAULT_GAMIFICATION_CONFIG, ...JSON.parse(data.value as string) } as GamificationConfig;
+      settingsCache[key] = { value: parsed, timestamp: now };
+      return parsed;
+    }
+  } catch (err) {
+    console.warn('Error reading gamification_config, using defaults:', err);
+  }
+  return DEFAULT_GAMIFICATION_CONFIG;
+}
+
+interface UserStatsRow {
+  user_id: string;
+  xp: number | string;
+  level: number;
+  coins: number | string;
+  current_streak: number;
+  longest_streak: number;
+  last_cook_date: string | null;
+  total_cooks: number;
+}
+
+function rowToUserStats(row: UserStatsRow): UserStats {
+  return {
+    userId: row.user_id,
+    xp: Number(row.xp),
+    level: row.level,
+    coins: Number(row.coins),
+    currentStreak: row.current_streak,
+    longestStreak: row.longest_streak,
+    lastCookDate: row.last_cook_date,
+    totalCooks: row.total_cooks,
+  };
+}
+
+/** Zero-value stats for a user who has never cooked. */
+export function emptyUserStats(userId: string): UserStats {
+  return {
+    userId, xp: 0, level: 1, coins: 0,
+    currentStreak: 0, longestStreak: 0, lastCookDate: null, totalCooks: 0,
+  };
+}
+
+/** Fetch a user's aggregate stats, or zero-values if none exist yet. */
+export async function getUserStats(userId: string): Promise<UserStats> {
+  const { data, error } = await getClient()
+    .from('user_stats')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw wrapError(`Failed to get user_stats for ${userId}`, error);
+  return data ? rowToUserStats(data as UserStatsRow) : emptyUserStats(userId);
+}
+
+/** How many times this user has already cooked a given job (repetition factor). */
+export async function getCookCountForJob(userId: string, jobId: string): Promise<number> {
+  const { count, error } = await getClient()
+    .from('cook_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('job_id', jobId);
+  if (error) throw wrapError('Failed to count cook events for job', error);
+  return count ?? 0;
+}
+
+/** How many cooks this user logged since `sinceIso` (start of day), for the soft-cap. */
+export async function getCookCountSince(userId: string, sinceIso: string): Promise<number> {
+  const { count, error } = await getClient()
+    .from('cook_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('cooked_at', sinceIso);
+  if (error) throw wrapError('Failed to count recent cook events', error);
+  return count ?? 0;
+}
+
+/** The most recent cook_event for a user (velocity / duplicate guards). */
+export async function getLastCookEvent(
+  userId: string,
+): Promise<{ jobId: string | null; cookedAt: string } | null> {
+  const { data, error } = await getClient()
+    .from('cook_events')
+    .select('job_id, cooked_at')
+    .eq('user_id', userId)
+    .order('cooked_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw wrapError('Failed to fetch last cook event', error);
+  if (!data) return null;
+  return { jobId: (data as any).job_id, cookedAt: (data as any).cooked_at };
+}
+
+export interface InsertCookEventArgs {
+  userId: string;
+  jobId: string;
+  xp: number;
+  coins: number;
+  hasPhoto: boolean;
+  photoPath: string | null;
+  verified: boolean;
+  leaderboardEligible: boolean;
+  trustScore: number;
+  viaCookingMode: boolean;
+  timerElapsed: boolean;
+}
+
+/** Insert an append-only cook_event row and return its id. */
+export async function insertCookEvent(args: InsertCookEventArgs): Promise<string> {
+  const id = randomUUID();
+  const { error } = await getClient().from('cook_events').insert({
+    id,
+    user_id: args.userId,
+    job_id: args.jobId,
+    xp_awarded: args.xp,
+    coins_awarded: args.coins,
+    has_photo: args.hasPhoto,
+    photo_path: args.photoPath,
+    verified: args.verified,
+    leaderboard_eligible: args.leaderboardEligible,
+    trust_score: args.trustScore,
+    via_cooking_mode: args.viaCookingMode,
+    timer_elapsed: args.timerElapsed,
+  });
+  if (error) throw wrapError('Failed to insert cook event', error);
+  return id;
+}
+
+export interface LedgerRow {
+  deltaXp: number;
+  deltaCoins: number;
+  reason: string;
+}
+
+/** Append one row per grant to the point ledger. */
+export async function insertLedgerRows(
+  userId: string,
+  cookEventId: string,
+  rows: LedgerRow[],
+): Promise<void> {
+  if (rows.length === 0) return;
+  const payload = rows.map((r) => ({
+    id: randomUUID(),
+    user_id: userId,
+    cook_event_id: cookEventId,
+    delta_xp: r.deltaXp,
+    delta_coins: r.deltaCoins,
+    reason: r.reason,
+  }));
+  const { error } = await getClient().from('point_ledger').insert(payload);
+  if (error) throw wrapError('Failed to insert ledger rows', error);
+}
+
+/** Upsert the user's aggregate stats after a cook. */
+export async function upsertUserStats(stats: UserStats): Promise<void> {
+  const { error } = await getClient().from('user_stats').upsert({
+    user_id: stats.userId,
+    xp: stats.xp,
+    level: stats.level,
+    coins: stats.coins,
+    current_streak: stats.currentStreak,
+    longest_streak: stats.longestStreak,
+    last_cook_date: stats.lastCookDate,
+    total_cooks: stats.totalCooks,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw wrapError('Failed to upsert user_stats', error);
+}
+
+/** The set of badge keys a user already holds. */
+export async function getUserBadges(userId: string): Promise<string[]> {
+  const { data, error } = await getClient()
+    .from('user_badges')
+    .select('badge_key')
+    .eq('user_id', userId);
+  if (error) throw wrapError('Failed to fetch user badges', error);
+  return (data || []).map((r: any) => r.badge_key);
+}
+
+/** Detailed badge list (key + earned timestamp) for the progress tab. */
+export async function getUserBadgesDetailed(
+  userId: string,
+): Promise<{ key: string; earnedAt: string }[]> {
+  const { data, error } = await getClient()
+    .from('user_badges')
+    .select('badge_key, earned_at')
+    .eq('user_id', userId)
+    .order('earned_at', { ascending: true });
+  if (error) throw wrapError('Failed to fetch detailed user badges', error);
+  return (data || []).map((r: any) => ({ key: r.badge_key, earnedAt: r.earned_at }));
+}
+
+/** Insert newly earned badges; idempotent via the (user_id, badge_key) PK. */
+export async function awardBadges(userId: string, badgeKeys: string[]): Promise<void> {
+  if (badgeKeys.length === 0) return;
+  const rows = badgeKeys.map((k) => ({ user_id: userId, badge_key: k }));
+  const { error } = await getClient()
+    .from('user_badges')
+    .upsert(rows, { onConflict: 'user_id,badge_key', ignoreDuplicates: true });
+  if (error) throw wrapError('Failed to award badges', error);
+}
+
+/**
+ * Count of distinct recipes a user has ever cooked (variety badges). PostgREST
+ * has no COUNT(DISTINCT); per-user cook volume is small, so we dedupe in memory.
+ */
+export async function getDistinctCookedRecipeCount(userId: string): Promise<number> {
+  const { data, error } = await getClient()
+    .from('cook_events')
+    .select('job_id')
+    .eq('user_id', userId);
+  if (error) throw wrapError('Failed to count distinct cooked recipes', error);
+  const set = new Set((data || []).map((r: any) => r.job_id).filter(Boolean));
+  return set.size;
+}
+
+/** Upload a finished-dish photo (base64) to the private cook-photos bucket. */
+export async function uploadCookPhoto(
+  userId: string,
+  cookId: string,
+  base64: string,
+): Promise<string> {
+  const clean = base64.replace(/^data:image\/\w+;base64,/, '');
+  const buffer = Buffer.from(clean, 'base64');
+  const storagePath = `${userId}/${cookId}.jpg`;
+  const { error } = await getClient().storage
+    .from('cook-photos')
+    .upload(storagePath, buffer, { contentType: 'image/jpeg', upsert: true });
+  if (error) throw wrapError('Failed to upload cook photo', error as any);
+  return storagePath;
+}
