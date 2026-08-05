@@ -97,9 +97,6 @@ function RewardContent({
       }
     }
 
-    const closeDelay = reward.leveledUp ? 4800 : 3400;
-    timers.push(window.setTimeout(onClose, closeDelay));
-
     return () => {
       cancelAnimationFrame(raf);
       timers.forEach((id) => clearTimeout(id));
