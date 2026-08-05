@@ -1,4 +1,5 @@
-import { useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { Camera, Image as ImageIcon, Sparkles, AlertTriangle, RotateCcw, X, Loader2 } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useGamification } from '../context/GamificationContext';
@@ -29,6 +30,17 @@ export default function CookedModal({
   const [isCompressing, setIsCompressing] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -80,8 +92,8 @@ export default function CookedModal({
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 transition-opacity animate-in fade-in duration-200">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 pb-[calc(1.5rem_+_var(--safe-area-inset-bottom))] transition-opacity animate-in fade-in duration-200">
       {/* Hidden file inputs for Camera and Gallery */}
       <input
         ref={cameraInputRef}
@@ -231,6 +243,7 @@ export default function CookedModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
