@@ -204,7 +204,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
         </button>
 
         {showLeaderboardNotice && (
-          <div className="absolute left-1/2 -bottom-10 -translate-x-1/2 z-20 whitespace-nowrap rounded-xl bg-gray-900 dark:bg-gray-100 px-3 py-1.5 text-xs font-bold text-white dark:text-gray-900 shadow-lg animate-in fade-in zoom-in-95 duration-150">
+          <div className="absolute left-1/2 -bottom-10 -translate-x-1/2 z-20 max-w-[90%] w-max text-center rounded-xl bg-gray-900 dark:bg-gray-100 px-3 py-1.5 text-xs font-bold text-white dark:text-gray-900 shadow-lg animate-in fade-in zoom-in-95 duration-150">
             {t('app.gamification.leaderboardNotice')}
           </div>
         )}
