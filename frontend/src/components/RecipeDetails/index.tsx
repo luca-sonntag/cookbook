@@ -15,6 +15,7 @@ import RecipeIngredients from './RecipeIngredients';
 import RecipeInstructions from './RecipeInstructions';
 import RecipeActionDock from './RecipeActionDock';
 import CookingMode from '../CookingMode';
+import CookedButton from '../CookedButton';
 import RecipeCopilot from './RecipeCopilot';
 import { useAuth } from '../../context/AuthContext';
 import PremiumModal from '../PremiumModal';
@@ -628,6 +629,14 @@ export default function RecipeDetails({
             formatAmount={formatAmount}
           />
         </section>
+
+        {/* "I cooked this" — gamification CTA, available to ALL users (not
+            premium-gated like the cooking mode above). */}
+        {recipe.id && (
+          <div className="mt-1">
+            <CookedButton jobId={recipe.id} />
+          </div>
+        )}
 
         <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center leading-normal select-none mt-2">
           {t('recipe.aiGeneratedDisclaimer')}
