@@ -35,6 +35,7 @@ function getBadgeProgressInfo(key: string, stats?: any): { current: number; tota
   if (!stats) return null;
   const totalCooks = stats.totalCooks ?? 0;
   const streak = stats.currentStreak ?? 0;
+  const distinctRecipes = stats.distinctRecipes ?? Math.min(totalCooks, 1);
 
   switch (key) {
     case 'first_cook':
@@ -50,9 +51,9 @@ function getBadgeProgressInfo(key: string, stats?: any): { current: number; tota
     case 'streak_30':
       return { current: Math.min(streak, 30), total: 30 };
     case 'distinct_5':
-      return { current: Math.min(totalCooks, 5), total: 5 };
+      return { current: Math.min(distinctRecipes, 5), total: 5 };
     case 'distinct_10':
-      return { current: Math.min(totalCooks, 10), total: 10 };
+      return { current: Math.min(distinctRecipes, 10), total: 10 };
     default:
       return null;
   }

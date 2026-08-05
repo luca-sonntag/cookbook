@@ -145,6 +145,7 @@ export interface UserStats {
   longestStreak: number;
   lastCookDate: string | null;
   totalCooks: number;
+  distinctRecipes?: number;
 }
 
 export interface BadgeInfo {
