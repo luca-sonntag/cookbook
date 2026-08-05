@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { compressRecipePhotos } from '../utils/imageCompression';
 import { pullAndCacheFrames } from '../utils/recipeFrames';
 import { useExtractionJobs, type ExtractionMode } from '../context/ExtractionJobsContext';
-import { sendNativeNotification, requestNativeNotificationPermission, isNative } from '../native';
+import { sendNativeNotification, requestNativeNotificationPermission, isNative, registerAppStateListener } from '../native';
 
 // Tracks the currently in-flight extraction job across reloads/restarts, so a
 // still-running job can be resumed instead of the user re-submitting the same
@@ -464,24 +464,15 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    let appStateHandle: { remove: () => void } | null = null;
-    if (isNative()) {
-      import('@capacitor/app').then(({ App }) => {
-        App.addListener('appStateChange', (state) => {
-          if (!state.isActive) {
-            handleBackground();
-          }
-        }).then(handle => {
-          appStateHandle = handle;
-        }).catch(err => console.warn('Failed to attach Capacitor appStateChange listener:', err));
-      }).catch(err => console.warn('Failed to import @capacitor/app:', err));
-    }
+    const cleanupAppState = registerAppStateListener((isActive) => {
+      if (!isActive) {
+        handleBackground();
+      }
+    });
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (appStateHandle) {
-        appStateHandle.remove();
-      }
+      cleanupAppState();
     };
   }, [isPremium, cancelActiveFreeJob]);
 

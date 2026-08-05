@@ -181,24 +181,53 @@ export function registerNotificationTap(
 ): () => void {
   if (!isNative()) return () => { };
 
-  const handlePromise = LocalNotifications.addListener(
-    'localNotificationActionPerformed',
-    (action) => {
-      console.log('[native] localNotificationActionPerformed event:', action);
-      const extra = (action.notification?.extra ?? (action.notification as any)?.data ?? {}) as {
-        recipeId?: string;
-        jobId?: string;
-        stepNum?: number;
-        route?: string;
-        action?: string;
-      };
-      onTap(extra.recipeId || extra.jobId, extra.stepNum, extra);
-    },
-  );
+  try {
+    const handlePromise = LocalNotifications.addListener(
+      'localNotificationActionPerformed',
+      (action) => {
+        console.log('[native] localNotificationActionPerformed event:', action);
+        const extra = (action.notification?.extra ?? (action.notification as any)?.data ?? {}) as {
+          recipeId?: string;
+          jobId?: string;
+          stepNum?: number;
+          route?: string;
+          action?: string;
+        };
+        onTap(extra.recipeId || extra.jobId, extra.stepNum, extra);
+      },
+    );
 
-  return () => {
-    handlePromise.then((handle) => handle.remove()).catch(() => { });
-  };
+    return () => {
+      handlePromise.then((handle) => handle.remove()).catch(() => { });
+    };
+  } catch (err) {
+    console.warn('Failed to register notification tap listener:', err);
+    return () => { };
+  }
+}
+
+/**
+ * Register a listener for Capacitor App state changes (app backgrounded / foregrounded).
+ * Invokes `onChange(isActive)` whenever the app state changes. Returns a cleanup function.
+ * No-op on web.
+ */
+export function registerAppStateListener(
+  onChange: (isActive: boolean) => void,
+): () => void {
+  if (!isNative()) return () => { };
+
+  try {
+    const handlePromise = App.addListener('appStateChange', (state) => {
+      onChange(state.isActive);
+    });
+
+    return () => {
+      handlePromise.then((handle) => handle.remove()).catch(() => { });
+    };
+  } catch (err) {
+    console.warn('Failed to register appStateChange listener:', err);
+    return () => { };
+  }
 }
 
 // ─── Hardware / Swipe Back Button ────────────────────────────────────────────
@@ -220,17 +249,22 @@ export function registerBackButtonHandler(
 ): () => void {
   if (!isNative()) return () => { };
 
-  const handlePromise = App.addListener('backButton', (_ev) => {
-    const handled = onBack();
-    if (!handled) {
-      // Nothing left to navigate back to — exit gracefully.
-      App.exitApp();
-    }
-  });
+  try {
+    const handlePromise = App.addListener('backButton', (_ev) => {
+      const handled = onBack();
+      if (!handled) {
+        // Nothing left to navigate back to — exit gracefully.
+        App.exitApp();
+      }
+    });
 
-  return () => {
-    handlePromise.then((handle) => handle.remove()).catch(() => { });
-  };
+    return () => {
+      handlePromise.then((handle) => handle.remove()).catch(() => { });
+    };
+  } catch (err) {
+    console.warn('Failed to register backButton handler:', err);
+    return () => { };
+  }
 }
 
 let lastProcessedPayload: string | null = null;
