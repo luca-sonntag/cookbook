@@ -1408,7 +1408,7 @@ const cookPhotoVerificationSchema = {
     },
     reasoning: {
       type: FunctionDeclarationSchemaType.STRING,
-      description: 'Short 1-2 sentence explanation in German of why the photo matches or does not match the recipe.',
+      description: 'Short 1-2 sentence explanation in German of why the photo matches or does not match the recipe. NEVER mention AI, KI, artificial intelligence, or algorithms (e.g. use "Das Foto zeigt..." instead of "Die KI meint...").',
     },
   },
   required: ['isMatchingDish', 'confidence', 'reasoning'],
@@ -1448,7 +1448,7 @@ export async function verifyCookedDishPhoto(
       ? recipe.ingredients.flatMap((g) => g.items.map((i) => i.name)).slice(0, 15).join(', ')
       : '';
 
-    const prompt = `You are a culinary vision AI. The user claims they cooked the following recipe and uploaded a photo of their finished dish.
+    const prompt = `You are a culinary vision evaluator. The user claims they cooked the following recipe and uploaded a photo of their finished dish.
 
 Target Recipe Details:
 - Title: "${recipe.title}"
@@ -1459,7 +1459,9 @@ Carefully evaluate the attached photo. Does this photo depict a cooked dish or f
 - Be tolerant of home-cooking presentation variations, different plating, side dishes, or minor color differences.
 - Reject photos if they show non-food items, empty surfaces, raw uncooked single ingredients (like a single unpeeled onion), or a completely different food category (e.g. coffee/cake when recipe is soup/steak).
 
-Provide your answer in the structured JSON schema format with reasoning in German.`;
+IMPORTANT:
+- Provide your answer in the structured JSON schema format with reasoning in German.
+- Do NOT mention AI, KI, artificial intelligence, algorithms, or automated systems in your reasoning. Phrase your reasoning naturally (e.g. "Das Foto zeigt eine Suppe, das Rezept ist aber für eine Pizza.").`;
 
     const result = await model.generateContent([
       prompt,
@@ -1513,7 +1515,7 @@ Provide your answer in the structured JSON schema format with reasoning in Germa
       input: { recipeTitle: recipe.title },
     });
     throw new AppError('PHOTO_NOT_MATCHING', {
-      params: { reason: 'Die KI-Verifizierung ist fehlgeschlagen. Bitte versuche es erneut.' },
+      params: { reason: 'Die Foto-Verifizierung ist fehlgeschlagen. Bitte versuche es erneut.' },
     });
   }
 }
