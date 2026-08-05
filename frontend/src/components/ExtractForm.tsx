@@ -498,9 +498,6 @@ export default function ExtractForm({
       {/* Other cards & accordions — hidden during active extraction */}
       {!isPending && (
         <>
-          {/* Error Banner — Rendered directly below the input card */}
-          {errorBanner}
-
           {/* Premium Upgrade Promotion — hidden when TrialBanner already covers it */}
           {!hideUpgradeCard && (
             <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
