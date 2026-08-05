@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Flame, Coins, Utensils, Trophy, Lock, ChefHat, Sparkles, X, Camera, Check } from 'lucide-react';
+import { Flame, Coins, Utensils, Trophy, Lock, Sparkles, X, Camera, Check } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useGamification } from '../../context/GamificationContext';
 import { progressPct, xpToNextLevel } from '../../utils/levels';
@@ -98,34 +98,32 @@ export default function ProgressView() {
       </h1>
 
       {/* 1. Hero Level & Culinary Rank Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-6 text-white shadow-xl">
-        <div className="absolute top-0 right-0 -mt-6 -mr-6 h-32 w-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-        <div className="relative z-10 flex items-center justify-between gap-4">
+      <div className="rounded-3xl bg-emerald-500/10 dark:bg-emerald-500/15 p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-md text-white shadow-inner">
-              <ChefHat className="h-7 w-7" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+              <Trophy className="h-6 w-6" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-0.5 text-xs font-extrabold uppercase tracking-wider text-emerald-100 backdrop-blur-sm">
-                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                <span>{rankTitle}</span>
+              <div className="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                {rankTitle}
               </div>
-              <h2 className="mt-1 text-xl font-black text-white">
+              <h2 className="text-lg font-extrabold text-gray-900 dark:text-white">
                 {t('app.gamification.level', { level })}
               </h2>
             </div>
           </div>
 
           <div className="text-right">
-            <div className="text-2xl font-black tracking-tight text-white">{xp}</div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-200">
+            <div className="text-2xl font-black tracking-tight text-emerald-600 dark:text-emerald-400">{xp}</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
               {t('app.gamification.xp')}
             </div>
           </div>
         </div>
 
-        <div className="relative z-10 mt-5 space-y-2">
-          <div className="flex justify-between text-xs font-semibold text-emerald-100">
+        <div className="mt-4 space-y-1.5">
+          <div className="flex justify-between text-xs font-semibold text-gray-500 dark:text-gray-400">
             <span>Progress</span>
             <span>
               {toNext == null
@@ -133,9 +131,9 @@ export default function ProgressView() {
                 : t('app.gamification.xpToNext', { xp: toNext, level: level + 1 })}
             </span>
           </div>
-          <div className="h-3.5 w-full overflow-hidden rounded-full bg-black/20 p-0.5 backdrop-blur-sm">
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-emerald-500/20">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-amber-300 via-emerald-300 to-teal-200 shadow-sm transition-[width] duration-700 ease-out"
+              className="h-full rounded-full bg-emerald-600 dark:bg-emerald-400 transition-[width] duration-700 ease-out"
               style={{ width: `${fill}%` }}
             />
           </div>
