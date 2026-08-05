@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Utensils } from 'lucide-react';
+import { CheckCheck, Utensils } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import CookedModal from './CookedModal';
 
@@ -46,7 +46,7 @@ export default function CookedButton({
             onClick={() => setIsModalOpen(true)}
             className="mt-4 inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 px-5 py-3 font-bold text-sm text-white shadow-md active:scale-95 transition-all"
           >
-            <Camera className="w-4 h-4 text-white" />
+            <CheckCheck className="w-4 h-4 text-white" />
             <span>{t('app.gamification.cookedCardBtn')}</span>
           </button>
         </div>
@@ -58,7 +58,7 @@ export default function CookedButton({
           title={t('app.gamification.cookedCardBtn')}
           aria-label={t('app.gamification.cookedCardBtn')}
         >
-          <Camera className="w-5.5 h-5.5 group-hover:scale-110 transition-transform text-emerald-500 dark:text-emerald-400" />
+          <CheckCheck className="w-5.5 h-5.5 group-hover:scale-110 transition-transform text-emerald-500 dark:text-emerald-400" />
         </button>
       ) : (
         <button
@@ -66,7 +66,7 @@ export default function CookedButton({
           onClick={() => setIsModalOpen(true)}
           className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 px-4 font-semibold text-white shadow-lg active:scale-[0.98] transition-all ${className}`}
         >
-          <Camera className="h-5 w-5" />
+          <CheckCheck className="h-5 w-5" />
           <span>{t('app.gamification.cookedCardBtn')}</span>
         </button>
       )}
