@@ -783,7 +783,7 @@ export default function App() {
                 <div className="relative">
                   <Sparkles className="w-5.5 h-5.5 mb-1" />
                   {isPending && (
-                    <span className="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/10 dark:bg-white/15">
+                    <span className="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-gray-900 shadow-sm">
                       <span className="h-2.5 w-2.5 rounded-full border-[1.5px] border-emerald-600 dark:border-emerald-400 border-t-transparent animate-spin" />
                     </span>
                   )}
