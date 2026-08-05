@@ -46,6 +46,7 @@ inaktiv (kein Cuisine-Signal).
 ## 4. Endpoints (`backend/src/routes.ts`)
 
 * `POST /api/jobs/:id/cooked` — verbucht einen Cook (erfordert `photoBase64`; verifiziert per Gemini Vision, lädt Foto in Supabase `cook-photos` hoch). Antwort enthält `stats`, `earned`, `newBadges`, `previousXp/previousLevel/leveledUp` für die Overlay-Animation.
+* `GET /api/jobs/:id/cook-history` — liefert `count`, `firstCookedAt`, `lastCookedAt` sowie `items` (`xpAwarded`, `coinsAwarded`, `hasPhoto`, `photoUrl`, `verified`, `viaCookingMode`, `timerElapsed`) für das Rezept-Detail-Badge & die Koch-Historie.
 * `GET /api/me/gamification` — `stats` + `badges` + `levelThresholds` für den Tab.
 
 ## 5. Frontend
@@ -55,6 +56,7 @@ inaktiv (kein Cuisine-Signal).
   füllender XP-Balken, Level-Up-Sequenz + CSS-Konfetti, `prefers-reduced-motion`).
 * **`components/CookedModal.tsx`** — Modal für Kamera-/Galerie-Fotoaufnahme, KI-Prüfzustand („KI prüft dein Gericht...“) und Fehler-Feedback bei Nicht-Übereinstimmung.
 * **`components/CookedButton.tsx`** — Trigger-Button in `RecipeActionDock` (Floating Bar) und als Abschluss-Karte (`variant="card"`) unter den Schritten in `RecipeDetails`.
+* **`components/CookHistoryTimeline.tsx` & Recipe Header Badge** — Interaktiver Header-Pill-Badge („x-mal gekocht · zuletzt vor...“) mit Smooth-Scroll zur Historie. Das Timeline-Modul zeigt Ereigniskarten inklusive XP-Gutschriften (`+50 XP`), KI-Verifizierungsbadge, Foto-Lightbox (Großansicht), Koch-Modus / Timer-Nutzung und exaktem Zeitstempel.
 * **`components/ProgressView/`** — der Tab **„Fortschritt"** (`progress`-Route in
   `useHashRouter`, Nav-Button in `App.tsx`): Level/XP-Balken, Streak/Coins/Cooks,
   Badge-Gitter. Coins werden angezeigt, **kein Shop** (erster Wurf).
