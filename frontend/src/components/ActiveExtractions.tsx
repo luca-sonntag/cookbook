@@ -88,8 +88,8 @@ export default function ActiveExtractions() {
                   ? (job.title || t('activeExtractions.ready'))
                   : job.sourceLabel}
               </p>
-              <p className={`text-[11px] leading-snug truncate ${
-                isFailed ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'
+              <p className={`text-[11px] leading-snug ${
+                isFailed ? 'text-red-600 dark:text-red-400 whitespace-normal break-words' : 'text-gray-500 dark:text-gray-400 truncate'
               }`}>
                 {isDone
                   ? t('activeExtractions.tapToOpen')
