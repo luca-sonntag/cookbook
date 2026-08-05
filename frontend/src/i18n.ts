@@ -619,6 +619,7 @@ export const uiTranslations = {
         submitFailed: 'Auftrag konnte nicht übermittelt werden.',
         submissionError: 'Bei der Übermittlung ist ein Fehler aufgetreten.',
         serverError: 'Der Server hat keine gültige Antwort zurückgegeben. Bitte versuche es erneut.',
+        backgroundCancelled: 'Die Extraktion wurde abgebrochen, da die App in den Hintergrund gewechselt ist (Hintergrund-Extraktion ist nur in Premium enthalten).',
       }
     },
     recipe: {
@@ -1472,6 +1473,7 @@ export const uiTranslations = {
         submitFailed: 'Failed to submit extraction job.',
         submissionError: 'An error occurred during submission.',
         serverError: 'The server returned an unexpected response. Please try again.',
+        backgroundCancelled: 'Extraction cancelled because the app entered the background (background extraction is Premium only).',
       }
     },
     recipe: {

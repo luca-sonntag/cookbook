@@ -114,12 +114,53 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     return true;
   }, [t]);
 
+  const activePollingJobIdRef = useRef<string | null>(null);
+  const activePollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const stopActivePolling = useCallback(() => {
+    if (activePollingIntervalRef.current) {
+      clearInterval(activePollingIntervalRef.current);
+      activePollingIntervalRef.current = null;
+    }
+    activePollingJobIdRef.current = null;
+  }, []);
+
+  const cancelActiveFreeJob = useCallback(async () => {
+    const jobId = activePollingJobIdRef.current || localStorage.getItem(PENDING_JOB_STORAGE_KEY);
+    if (!jobId) return;
+
+    stopActivePolling();
+    localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
+    setIsPending(false);
+    setJobStatus('failed');
+    setJobError('form.validation.backgroundCancelled');
+    setProgress(null);
+
+    try {
+      const token = await getAccessToken();
+      if (token) {
+        fetch(apiUrl(`/api/jobs/${jobId}`), {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          keepalive: true
+        }).catch(err => console.warn('Failed to send DELETE for backgrounded job:', err));
+      }
+    } catch (err) {
+      console.warn('Error executing cancelActiveFreeJob:', err);
+    }
+  }, [getAccessToken, stopActivePolling]);
+
   const startPolling = useCallback((id: string) => {
+    stopActivePolling();
+    activePollingJobIdRef.current = id;
+
     const interval = setInterval(async () => {
       try {
         const token = await getAccessToken();
         if (!token) {
-          clearInterval(interval);
+          stopActivePolling();
           setJobStatus('failed');
           setJobError('form.validation.unauthorized');
           setIsPending(false);
@@ -135,7 +176,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         try {
           data = await response.json();
         } catch {
-          clearInterval(interval);
+          stopActivePolling();
           setJobStatus('failed');
           setJobError(response.status === 429 ? 'too many requests' : 'form.validation.serverError');
           setIsPending(false);
@@ -144,7 +185,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         }
 
         if (!response.ok || !data.success) {
-          clearInterval(interval);
+          stopActivePolling();
           setJobStatus('failed');
           setJobError(data.error || 'form.validation.failedCheck');
           setIsPending(false);
@@ -156,7 +197,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         setJobStatus(job.status);
 
         if (job.status === 'completed') {
-          clearInterval(interval);
+          stopActivePolling();
           // Pull the transient frames into the local cache before showing the
           // recipe — they are deleted server-side once fetched.
           await pullAndCacheFrames(job.id, token);
@@ -177,7 +218,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
 
           onExtractionSuccess(job.id);
         } else if (job.status === 'failed') {
-          clearInterval(interval);
+          stopActivePolling();
           // The worker persists failures as a {code, params} envelope; surface the
           // code/params so the banner can localize and branch (e.g. premium hints).
           const envelope = job.error ? parseSerializedError(job.error) : null;
@@ -191,7 +232,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setProgress(job.progress || null);
         }
       } catch (err: unknown) {
-        clearInterval(interval);
+        stopActivePolling();
         setJobStatus('failed');
         setJobError(err instanceof Error ? err.message : 'form.validation.lostConnection');
         setProgress(null);
@@ -199,7 +240,9 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
       }
     }, 2000);
-  }, [getAccessToken, onExtractionSuccess, t]);
+
+    activePollingIntervalRef.current = interval;
+  }, [getAccessToken, onExtractionSuccess, stopActivePolling, t]);
 
   /**
    * Shared submit path for both input channels: posts a job-creating request and
@@ -329,10 +372,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   }, [photos, submitExtraction, t]);
 
   // Resume a still-running extraction after a reload/restart wiped in-memory
-  // state (e.g. the app was backgrounded and killed by the OS, or the PWA was
-  // relaunched). Without this, the Extract tab looked blank even though a job
-  // was still running, which led users to re-submit the same URL and end up
-  // with two saved recipes for one source.
+  // state. Restricted to free users since premium extractions run in ExtractionJobsContext.
   const hasResumedPendingJobRef = useRef(false);
   useEffect(() => {
     if (hasResumedPendingJobRef.current) return;
@@ -341,10 +381,53 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     const pendingJobId = localStorage.getItem(PENDING_JOB_STORAGE_KEY);
     if (!pendingJobId) return;
 
-    setIsPending(true);
-    setJobStatus('pending');
-    startPolling(pendingJobId);
-  }, [startPolling]);
+    if (!isPremium) {
+      setIsPending(true);
+      setJobStatus('pending');
+      startPolling(pendingJobId);
+    }
+  }, [startPolling, isPremium]);
+
+  // Cancel in-flight extraction for Free users whenever the app enters background / tab is hidden
+  useEffect(() => {
+    if (isPremium) return;
+
+    const handleBackground = () => {
+      const pendingId = activePollingJobIdRef.current || localStorage.getItem(PENDING_JOB_STORAGE_KEY);
+      if (pendingId) {
+        console.log('[useRecipeExtraction] Free user backgrounded during extraction — cancelling job:', pendingId);
+        cancelActiveFreeJob();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleBackground();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    let appStateHandle: { remove: () => void } | null = null;
+    if (isNative()) {
+      import('@capacitor/app').then(({ App }) => {
+        App.addListener('appStateChange', (state) => {
+          if (!state.isActive) {
+            handleBackground();
+          }
+        }).then(handle => {
+          appStateHandle = handle;
+        }).catch(err => console.warn('Failed to attach Capacitor appStateChange listener:', err));
+      }).catch(err => console.warn('Failed to import @capacitor/app:', err));
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (appStateHandle) {
+        appStateHandle.remove();
+      }
+    };
+  }, [isPremium, cancelActiveFreeJob]);
 
 
   return {
