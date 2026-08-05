@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs, upsertPushToken, deletePushToken, deletePushTokensForUser } from './db.js';
+import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs, getUserStats, getUserBadgesDetailed, getGamificationConfig, uploadCookPhoto, upsertPushToken, deletePushToken, deletePushTokensForUser } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
@@ -9,6 +9,7 @@ import { randomUUID } from 'node:crypto';
 import { MAX_IMPORT_PHOTOS, deleteImportPhotos, photoJobUrl, uploadImportPhoto } from './photoImport.js';
 
 import { notificationTick } from './notifications/worker.js';
+import { recordCook } from './gamification.js';
 
 export const apiRouter = Router();
 
@@ -968,6 +969,80 @@ apiRouter.patch('/jobs/:id/favorite', async (req: Request, res: Response): Promi
     res.status(200).json({ success: true, message: 'Favorite status updated.' });
   } catch (error: any) {
     if (!(error instanceof AppError)) console.error('Error updating favorite status:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
+ * Records that the user cooked a recipe (gamification). Available to ALL users —
+ * the "I cooked this" action is deliberately NOT premium-gated (unlike the
+ * cooking mode). A finished-dish photo is optional; when present it awards a
+ * bonus and makes the cook leaderboard-eligible.
+ * POST /api/jobs/:id/cooked
+ */
+apiRouter.post('/jobs/:id/cooked', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { photoBase64, viaCookingMode, timerElapsed } = req.body ?? {};
+
+    if (photoBase64 !== undefined && typeof photoBase64 !== 'string') {
+      throw new AppError('INVALID_FIELD', { params: { field: 'photoBase64' } });
+    }
+    if (typeof photoBase64 === 'string' && photoBase64.length > MAX_PHOTOS_TOTAL_CHARS) {
+      throw new AppError('PHOTOS_TOO_LARGE');
+    }
+
+    // Ownership + existence check, scoped to the user.
+    const job = await getJob(id, req.userId!);
+    if (!job) {
+      throw new AppError('JOB_NOT_FOUND');
+    }
+
+    // Upload the optional finished-dish photo first so its path can be stored on
+    // the cook event. A failed upload must never lose the cook itself.
+    let photoPath: string | null = null;
+    if (typeof photoBase64 === 'string' && photoBase64.length > 0) {
+      try {
+        photoPath = await uploadCookPhoto(req.userId!, randomUUID(), photoBase64);
+      } catch (err: any) {
+        console.error('Cook photo upload failed, recording without photo:', err?.message || err);
+      }
+    }
+
+    const result = await recordCook(req.userId!, id, {
+      hasPhoto: !!photoPath,
+      photoPath,
+      viaCookingMode: !!viaCookingMode,
+      timerElapsed: !!timerElapsed,
+    });
+
+    res.status(200).json({ success: true, ...result });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error recording cook:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
+ * Returns the authenticated user's gamification state for the progress tab:
+ * aggregate stats, earned badges, and the level thresholds the XP bar needs.
+ * GET /api/me/gamification
+ */
+apiRouter.get('/me/gamification', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const [stats, badges, gamConfig] = await Promise.all([
+      getUserStats(req.userId!),
+      getUserBadgesDetailed(req.userId!),
+      getGamificationConfig(),
+    ]);
+    res.status(200).json({
+      success: true,
+      stats,
+      badges,
+      levelThresholds: gamConfig.levelThresholds,
+    });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error fetching gamification state:', error);
     sendAppError(res, error);
   }
 });
