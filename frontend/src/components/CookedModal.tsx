@@ -24,13 +24,13 @@ export default function CookedModal({
 }: CookedModalProps) {
   const { t, language } = useI18n();
   const { markCooked } = useGamification();
-  const { timers } = useTimerManager();
+  const { finishedRecipeIds } = useTimerManager();
 
   // A finished in-app timer for this recipe means the user actually cooked with
-  // the timer running — surface that signal to the backend (timerElapsed).
-  const timerElapsed = timers.some(
-    (tm) => tm.isFinished && tm.recipeId === jobId,
-  );
+  // the timer running. We read from finishedRecipeIds (not `timers`) because the
+  // timer is removed from `timers` once dismissed — but the cook is recorded
+  // afterwards, so the signal must survive the dismiss.
+  const timerElapsed = finishedRecipeIds.includes(jobId);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
