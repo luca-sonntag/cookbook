@@ -1,0 +1,234 @@
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import type { Job, ProgressData } from '../types';
+import { type ErrorParams, parseSerializedError } from '../errorCodes';
+import { apiUrl } from '../api';
+import { useAuth } from './AuthContext';
+import { useI18n } from '../context/I18nContext';
+import { pullAndCacheFrames } from '../utils/recipeFrames';
+import { sendNativeNotification } from '../native';
+
+export type ExtractionMode = 'link' | 'photo';
+
+/** One tracked background extraction (premium multi-job flow). */
+export interface ExtractionJobEntry {
+  id: string;
+  /** Human-readable source shown on the card (the URL, or a "Photos" label). */
+  sourceLabel: string;
+  mode: ExtractionMode;
+  status: Job['status'];
+  progress: ProgressData | null;
+  /** Recipe title, filled once the job completes. */
+  title?: string | null;
+  error?: string | null;
+  errorCode?: string | null;
+  errorParams?: ErrorParams | null;
+}
+
+interface ExtractionJobsContextValue {
+  jobs: ExtractionJobEntry[];
+  /** Number of jobs still in flight (not completed/failed). */
+  activeCount: number;
+  addJob: (jobId: string, meta: { sourceLabel: string; mode: ExtractionMode }) => void;
+  dismissJob: (id: string) => void;
+}
+
+const ExtractionJobsContext = createContext<ExtractionJobsContextValue | undefined>(undefined);
+
+export function useExtractionJobs(): ExtractionJobsContextValue {
+  const ctx = useContext(ExtractionJobsContext);
+  if (!ctx) throw new Error('useExtractionJobs must be used within ExtractionJobsProvider');
+  return ctx;
+}
+
+/** Fired on window when a background extraction completes, so App can refresh history. */
+export const EXTRACTION_COMPLETE_EVENT = 'app:extraction-complete';
+/** Fired on window when the user taps a completed card, so App can open the recipe. */
+export const OPEN_RECIPE_EVENT = 'app:open-recipe';
+
+const STORAGE_KEY = 'kb_extraction_jobs';
+const POLL_INTERVAL_MS = 2000;
+
+type PersistedJob = Pick<ExtractionJobEntry, 'id' | 'sourceLabel' | 'mode' | 'status' | 'title' | 'error' | 'errorCode'>;
+
+function isTerminal(status: Job['status']): boolean {
+  return status === 'completed' || status === 'failed';
+}
+
+function loadPersisted(): ExtractionJobEntry[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as PersistedJob[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(p => ({
+      id: p.id,
+      sourceLabel: p.sourceLabel,
+      mode: p.mode,
+      status: p.status ?? 'pending',
+      progress: null,
+      title: p.title ?? null,
+      error: p.error ?? null,
+      errorCode: p.errorCode ?? null,
+      errorParams: null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function persist(jobs: ExtractionJobEntry[]): void {
+  try {
+    const slim: PersistedJob[] = jobs.map(j => ({
+      id: j.id,
+      sourceLabel: j.sourceLabel,
+      mode: j.mode,
+      status: j.status,
+      title: j.title ?? null,
+      error: j.error ?? null,
+      errorCode: j.errorCode ?? null,
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+  } catch {
+    /* ignore quota/serialization errors */
+  }
+}
+
+export function ExtractionJobsProvider({ children }: { children: React.ReactNode }) {
+  const { getAccessToken } = useAuth();
+  const { t } = useI18n();
+
+  const [jobs, setJobs] = useState<ExtractionJobEntry[]>(() => loadPersisted());
+
+  // Ref mirror so the polling interval always reads the latest jobs without a
+  // stale closure (mirrors the pattern in TimerContext).
+  const jobsRef = useRef<ExtractionJobEntry[]>(jobs);
+  jobsRef.current = jobs;
+
+  // Guards so a job is only finalized (frames pulled, notification fired,
+  // completion event dispatched) exactly once — even across re-render/StrictMode.
+  const finalizedRef = useRef<Set<string>>(new Set(jobs.filter(j => isTerminal(j.status)).map(j => j.id)));
+  // Prevents overlapping polls of the same job within a slow tick.
+  const inFlightRef = useRef<Set<string>>(new Set());
+
+  const setJobsPersist = useCallback((updater: (prev: ExtractionJobEntry[]) => ExtractionJobEntry[]) => {
+    setJobs(prev => {
+      const next = updater(prev);
+      persist(next);
+      return next;
+    });
+  }, []);
+
+  const addJob = useCallback((jobId: string, meta: { sourceLabel: string; mode: ExtractionMode }) => {
+    setJobsPersist(prev => {
+      if (prev.some(j => j.id === jobId)) return prev;
+      const entry: ExtractionJobEntry = {
+        id: jobId,
+        sourceLabel: meta.sourceLabel,
+        mode: meta.mode,
+        status: 'pending',
+        progress: null,
+        title: null,
+        error: null,
+        errorCode: null,
+        errorParams: null,
+      };
+      return [...prev, entry];
+    });
+  }, [setJobsPersist]);
+
+  const dismissJob = useCallback((id: string) => {
+    finalizedRef.current.delete(id);
+    inFlightRef.current.delete(id);
+    setJobsPersist(prev => prev.filter(j => j.id !== id));
+  }, [setJobsPersist]);
+
+  const finalizeCompletion = useCallback(async (job: Job, token: string) => {
+    // Pull the transient frames into the local cache before the recipe is shown —
+    // they are deleted server-side once fetched.
+    await pullAndCacheFrames(job.id, token);
+
+    const recipeTitle = job.recipe?.title || t('recipe.recipe') || 'Recipe';
+    const notifTitle = t('notification.recipeReady.title');
+    const notifBody = t('notification.recipeReady.body', { title: recipeTitle });
+    // recipeId = job.id so a notification tap routes to the recipe (App's
+    // registerNotificationTap → app:navigate-to-timer-step handler).
+    sendNativeNotification(notifTitle, notifBody, job.id, undefined, Math.floor(Date.now() / 1000));
+
+    setJobsPersist(prev => prev.map(j =>
+      j.id === job.id
+        ? { ...j, status: 'completed', progress: null, title: job.recipe?.title ?? j.title }
+        : j
+    ));
+
+    window.dispatchEvent(new CustomEvent(EXTRACTION_COMPLETE_EVENT, { detail: { jobId: job.id } }));
+  }, [setJobsPersist, t]);
+
+  const pollJob = useCallback(async (id: string) => {
+    if (inFlightRef.current.has(id)) return;
+    inFlightRef.current.add(id);
+    try {
+      const token = await getAccessToken();
+      if (!token) return;
+
+      const response = await fetch(apiUrl(`/api/jobs/${id}`), {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      let data: any;
+      try {
+        data = await response.json();
+      } catch {
+        return;
+      }
+      if (!response.ok || !data.success || !data.job) return;
+
+      const job: Job = data.job;
+
+      if (job.status === 'completed') {
+        if (finalizedRef.current.has(id)) return;
+        finalizedRef.current.add(id);
+        await finalizeCompletion(job, token);
+      } else if (job.status === 'failed') {
+        if (finalizedRef.current.has(id)) return;
+        finalizedRef.current.add(id);
+        const envelope = job.error ? parseSerializedError(job.error) : null;
+        setJobsPersist(prev => prev.map(j =>
+          j.id === id
+            ? {
+                ...j,
+                status: 'failed',
+                progress: null,
+                error: job.error ?? 'form.validation.failedExtraction',
+                errorCode: envelope?.code ?? null,
+                errorParams: envelope?.params ?? null,
+              }
+            : j
+        ));
+      } else {
+        setJobsPersist(prev => prev.map(j =>
+          j.id === id ? { ...j, status: job.status, progress: job.progress ?? null } : j
+        ));
+      }
+    } catch (err) {
+      console.warn(`Failed to poll extraction job ${id}:`, err);
+    } finally {
+      inFlightRef.current.delete(id);
+    }
+  }, [getAccessToken, finalizeCompletion, setJobsPersist]);
+
+  // Single shared ticker polling every non-terminal tracked job.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const active = jobsRef.current.filter(j => !isTerminal(j.status));
+      active.forEach(j => { void pollJob(j.id); });
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [pollJob]);
+
+  const activeCount = jobs.filter(j => !isTerminal(j.status)).length;
+
+  return (
+    <ExtractionJobsContext.Provider value={{ jobs, activeCount, addJob, dismissJob }}>
+      {children}
+    </ExtractionJobsContext.Provider>
+  );
+}

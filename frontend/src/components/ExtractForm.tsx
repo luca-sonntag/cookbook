@@ -6,6 +6,7 @@ import { Clipboard as CapClipboard } from '@capacitor/clipboard';
 import { Capacitor } from '@capacitor/core';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
+import { useExtractionJobs } from '../context/ExtractionJobsContext';
 import { isTrialBannerDismissed, TRIAL_BANNER_DISMISS_EVENT } from './TrialBanner';
 import PremiumModal from './PremiumModal';
 import PremiumHint from './PremiumHint';
@@ -58,7 +59,7 @@ interface ExtractFormProps {
   validateUrl: (url: string) => boolean;
   isPending: boolean;
   handleFormSubmit: (e: React.FormEvent) => void;
-  limitStatus?: { limit: number; used: number; remaining: number; windowDays: number; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null;
+  limitStatus?: { limit: number; used: number; remaining: number; windowDays: number; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean; maxConcurrent?: number; activeCount?: number } | null;
   jobStatus: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed' | null;
   progress: ProgressData | null;
   errorBanner?: React.ReactNode;
@@ -89,6 +90,7 @@ export default function ExtractForm({
 }: ExtractFormProps) {
   const { t } = useI18n();
   const { user, isPremium, hasTrialAvailable, trialDays, trialLoading } = useAuth();
+  const { activeCount: liveActiveCount } = useExtractionJobs();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
   // React to TrialBanner dismissal so the upgrade card re-appears as soon
@@ -107,6 +109,14 @@ export default function ExtractForm({
   const cookbookFull = !isRealPremium && !!limitStatus?.cookbookFull;
   const extractionLimitReached = !isRealPremium && !cookbookFull && !!limitStatus && limitStatus.limit >= 0 && limitStatus.remaining <= 0;
   const blockedByLimit = cookbookFull || extractionLimitReached;
+
+  // Concurrency (premium/alpha background flow): how many extractions may run in
+  // parallel, and whether that ceiling is currently reached. Free users have a
+  // limit of 1 and run in the foreground, so no counter is shown for them.
+  const maxConcurrent = limitStatus?.maxConcurrent ?? 1;
+  const showConcurrency = isPremium && maxConcurrent > 1;
+  const atConcurrencyLimit = showConcurrency && liveActiveCount >= maxConcurrent;
+  const submitDisabled = blockedByLimit || atConcurrencyLimit || (mode === 'photo' && photos.length === 0);
 
   // Mirror TrialBanner's own visibility logic so the redundant UpgradeCard
   // disappears in exactly the same situations: premium users, while the
@@ -148,6 +158,7 @@ export default function ExtractForm({
 
   const handleDemoClick = (demoUrl: string) => {
     if (isPending) return;
+    if (atConcurrencyLimit) return;
     if (blockedByLimit) { setIsPremiumModalOpen(true); return; }
     setUrl(demoUrl);
     validateUrl(demoUrl);
@@ -221,6 +232,7 @@ export default function ExtractForm({
         <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
           <form
             onSubmit={(e) => {
+              if (atConcurrencyLimit) { e.preventDefault(); return; }
               if (blockedByLimit) { e.preventDefault(); setIsPremiumModalOpen(true); return; }
               handleFormSubmit(e);
             }}
@@ -375,8 +387,8 @@ export default function ExtractForm({
               type="submit"
               fullWidth
               isPending={isPending || isUploadingPhotos}
-              isDisabled={blockedByLimit || (mode === 'photo' && photos.length === 0)}
-              className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${blockedByLimit || (mode === 'photo' && photos.length === 0)
+              isDisabled={submitDisabled}
+              className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${submitDisabled
                 ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-70 shadow-none'
                 : isPending
                   ? 'bg-emerald-800 shadow-none'
@@ -399,6 +411,17 @@ export default function ExtractForm({
                 </span>
               )}
             </Button>
+
+            {/* Premium parallel-extraction counter — how many run at once. */}
+            {showConcurrency && (liveActiveCount > 0 || atConcurrencyLimit) && (
+              <p className={`text-center text-xs font-medium -mt-1 ${
+                atConcurrencyLimit ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'
+              }`}>
+                {atConcurrencyLimit
+                  ? t('form.concurrentLimitReached', { max: maxConcurrent })
+                  : t('form.concurrentCounter', { active: liveActiveCount, max: maxConcurrent })}
+              </p>
+            )}
 
             {cookbookFull ? (
               <div className="flex flex-col gap-1.5 -mt-1">

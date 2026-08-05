@@ -646,6 +646,14 @@ export async function getPremiumMaxSavedRecipes(): Promise<number> {
   return getGlobalSetting('premium_max_saved_recipes', -1);
 }
 
+export async function getFreeMaxConcurrentExtractions(): Promise<number> {
+  return getGlobalSetting('free_max_concurrent_extractions', config.FREE_MAX_CONCURRENT_EXTRACTIONS);
+}
+
+export async function getPremiumMaxConcurrentExtractions(): Promise<number> {
+  return getGlobalSetting('premium_max_concurrent_extractions', config.PREMIUM_MAX_CONCURRENT_EXTRACTIONS);
+}
+
 export async function getMaxVideoDurationSeconds(): Promise<number> {
   return getGlobalSetting('max_video_duration_seconds', config.MAX_VIDEO_DURATION_SECONDS);
 }

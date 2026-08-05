@@ -7,6 +7,7 @@ import { registerShareIntent, registerNotificationTap, hideSplashScreen, registe
 import { registerPushTapHandler, enablePushNotifications } from './push';
 import { parseSharedUrl } from './utils/shareUrl';
 import ExtractForm, { type ExtractMode } from './components/ExtractForm';
+import ActiveExtractions from './components/ActiveExtractions';
 import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog/index';
@@ -30,6 +31,7 @@ import { useI18n } from './context/I18nContext';
 import { useAuth } from './context/AuthContext';
 import { useGamification } from './context/GamificationContext';
 import { useHashRouter } from './hooks/useHashRouter';
+import { EXTRACTION_COMPLETE_EVENT, OPEN_RECIPE_EVENT } from './context/ExtractionJobsContext';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
 import { useTimerManager } from './hooks/useTimerManager';
@@ -474,6 +476,23 @@ export default function App() {
     return () => window.removeEventListener('app:replay-onboarding', handler);
   }, [replayOnboarding]);
 
+  // Background extractions (premium multi-job flow) live in ExtractionJobsContext.
+  // When one completes we refresh history so the recipe is present; when the user
+  // taps a finished card we open that recipe (nothing auto-navigates on its own).
+  useEffect(() => {
+    const onComplete = () => { fetchHistory(); };
+    const onOpen = (e: Event) => {
+      const detail = (e as CustomEvent<{ jobId: string }>).detail;
+      if (detail?.jobId) handleExtractionSuccess(detail.jobId);
+    };
+    window.addEventListener(EXTRACTION_COMPLETE_EVENT, onComplete);
+    window.addEventListener(OPEN_RECIPE_EVENT, onOpen);
+    return () => {
+      window.removeEventListener(EXTRACTION_COMPLETE_EVENT, onComplete);
+      window.removeEventListener(OPEN_RECIPE_EVENT, onOpen);
+    };
+  }, [fetchHistory, handleExtractionSuccess]);
+
   const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const confirmed = await dialog.confirm({
@@ -633,6 +652,12 @@ export default function App() {
 
         {/* EXTRACT TAB */}
         <div hidden={activeView !== 'extract'} aria-hidden={activeView !== 'extract' || undefined}>
+          {/* Background extractions (premium multi-job flow) — shown only here. */}
+          {!recipe && (
+            <div className="mb-6">
+              <ActiveExtractions />
+            </div>
+          )}
           {recipe ? (
             /* Recipe Detail View — hides extract inputs once extraction is done */
             <RecipeDetails

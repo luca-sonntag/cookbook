@@ -117,6 +117,24 @@ function isPremiumUser(user: any): boolean {
 }
 
 /**
+ * Resolves how many extractions a user may run *at the same time* (in-flight jobs).
+ * Premium/alpha (and unlimited overrides) get the premium concurrency setting so
+ * they can queue several background extractions; everyone else gets the free
+ * setting (1 by default — free users cannot extract in the background).
+ */
+async function resolveConcurrencyLimit(user: any): Promise<number> {
+  const meta = user?.app_metadata || {};
+  const premiumLike =
+    meta.tier === 'premium' ||
+    meta.tier === 'alpha' ||
+    meta.custom_extraction_limit === -1 ||
+    meta.max_extractions_per_window === -1;
+  return premiumLike
+    ? await getPremiumMaxConcurrentExtractions()
+    : await getFreeMaxConcurrentExtractions();
+}
+
+/**
  * Shared quota gate for everything that creates an extraction job: the active-job
  * quota, the cookbook cap and the rolling per-user extraction limit. Photo
  * imports go through exactly the same gate as link imports — they cost the same
@@ -128,13 +146,7 @@ function isPremiumUser(user: any): boolean {
 async function enforceExtractionQuota(req: Request): Promise<void> {
   const userId = req.userId!;
 
-  // Enforce per-user quota to protect Apify/Gemini budget
-  const activeCount = await countActiveJobsForUser(userId);
-  if (activeCount >= config.MAX_JOBS_PER_USER) {
-    throw new AppError('ACTIVE_JOB_EXISTS', { params: { count: activeCount } });
-  }
-
-  // Fetch the user once for tier-based gating (cookbook cap + rolling rate limit).
+  // Fetch the user once for tier-based gating (concurrency + cookbook cap + rolling rate limit).
   let user: any = null;
   try {
     user = await fetchAndSyncUser(userId);
@@ -143,6 +155,15 @@ async function enforceExtractionQuota(req: Request): Promise<void> {
   }
 
   const premium = isPremiumUser(user);
+
+  // Enforce per-user concurrency to protect Apify/Gemini budget. This is now
+  // tier-aware: free users may run only one extraction at a time (no background
+  // extraction), while premium/alpha users may run several in parallel.
+  const concurrencyLimit = await resolveConcurrencyLimit(user);
+  const activeCount = await countActiveJobsForUser(userId);
+  if (concurrencyLimit >= 0 && activeCount >= concurrencyLimit) {
+    throw new AppError('ACTIVE_JOB_EXISTS', { params: { count: activeCount } });
+  }
 
   // Enforce the cookbook cap: free accounts may only keep a limited number of
   // saved recipes. Existing recipes stay accessible — the user must delete one
@@ -573,10 +594,16 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
     // extract screen can proactively show a "cookbook full" state.
     const premium = isPremiumUser(user);
     const savedRecipes = await countCompletedRecipesForUser(req.userId!);
-    const maxSavedRecipes = premium 
-      ? -1 
+    const maxSavedRecipes = premium
+      ? -1
       : (user?.app_metadata?.tier === 'alpha' ? await getAlphaMaxSavedRecipes() : await getFreeMaxSavedRecipes());
     const cookbookFull = maxSavedRecipes >= 0 && savedRecipes >= maxSavedRecipes;
+
+    // Concurrency budget: how many extractions may run in parallel and how many
+    // are currently in flight. Powers the extract screen's "X/Y running" counter
+    // and the submit-disable when the parallel limit is reached.
+    const maxConcurrent = await resolveConcurrencyLimit(user);
+    const activeCount = await countActiveJobsForUser(req.userId!);
 
     if (limit < 0) {
       res.status(200).json({
@@ -588,7 +615,9 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
         windowDays,
         savedRecipes,
         maxSavedRecipes,
-        cookbookFull
+        cookbookFull,
+        maxConcurrent,
+        activeCount
       });
       return;
     }
@@ -606,7 +635,9 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
       windowDays,
       savedRecipes,
       maxSavedRecipes,
-      cookbookFull
+      cookbookFull,
+      maxConcurrent,
+      activeCount
     });
   } catch (error) {
     if (!(error instanceof AppError)) console.error('Error fetching rate limit status:', error);

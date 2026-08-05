@@ -4,35 +4,10 @@ import { type ErrorParams, parseSerializedError } from '../errorCodes';
 import { useI18n } from '../context/I18nContext';
 import { apiUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { setCachedImage } from '../utils/imageStore';
 import { compressRecipePhotos } from '../utils/imageCompression';
+import { pullAndCacheFrames } from '../utils/recipeFrames';
+import { useExtractionJobs, type ExtractionMode } from '../context/ExtractionJobsContext';
 import { sendNativeNotification, requestNativeNotificationPermission, isNative } from '../native';
-
-/**
- * Pulls a completed job's recipe frames (a one-time, transient hand-off) and
- * stores them in the device's local IndexedDB cache under their `local:` keys.
- * The frames are deleted server-side once delivered, so this must run before the
- * recipe is shown — otherwise the images are gone for good. Best-effort: any
- * failure just means the recipe renders without images.
- */
-async function pullAndCacheFrames(jobId: string, token: string): Promise<void> {
-  try {
-    const response = await fetch(apiUrl(`/api/jobs/${jobId}/frames`), {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!response.ok) return;
-    const data = await response.json();
-    if (!data.success || !Array.isArray(data.frames)) return;
-
-    await Promise.all(
-      data.frames.map((f: { index: number; dataUrl: string }) =>
-        setCachedImage(`local:${jobId}:${f.index}`, f.dataUrl)
-      )
-    );
-  } catch (err) {
-    console.warn('Failed to pull recipe frames for local caching:', err);
-  }
-}
 
 // Tracks the currently in-flight extraction job across reloads/restarts, so a
 // still-running job can be resumed instead of the user re-submitting the same
@@ -50,7 +25,8 @@ const MAX_PHOTOS_TOTAL_CHARS = 8_000_000;
 
 export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void) {
   const { t } = useI18n();
-  const { user, refreshSession } = useAuth();
+  const { user, refreshSession, isPremium } = useAuth();
+  const { addJob } = useExtractionJobs();
   const [isPending, setIsPending] = useState(false);
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
   const [jobError, setJobError] = useState<string | null>(null);
@@ -64,7 +40,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   // re-submit the same photos without the form having to hand them around.
   const [photos, setPhotos] = useState<File[]>([]);
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
-  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'alpha' | 'premium'; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null>(null);
+  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'alpha' | 'premium'; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean; maxConcurrent: number; activeCount: number } | null>(null);
 
   const fetchLimitStatus = useCallback(async () => {
     try {
@@ -88,7 +64,9 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           tier: data.tier,
           savedRecipes: data.savedRecipes ?? 0,
           maxSavedRecipes: data.maxSavedRecipes ?? -1,
-          cookbookFull: data.cookbookFull ?? false
+          cookbookFull: data.cookbookFull ?? false,
+          maxConcurrent: data.maxConcurrent ?? 1,
+          activeCount: data.activeCount ?? 0
         });
 
         // Auto-refresh auth session on tier mismatch (e.g. after alpha auto-assignment)
@@ -224,22 +202,34 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   }, [getAccessToken, onExtractionSuccess, t]);
 
   /**
-   * Shared submit path for both input channels: posts a job-creating request,
-   * unwraps the `{success, jobId}` envelope and starts polling. `buildBody` runs
-   * after the pending state is set, so slow client-side work (compressing
-   * photos) already shows a busy UI.
+   * Shared submit path for both input channels: posts a job-creating request and
+   * unwraps the `{success, jobId}` envelope. `buildBody` runs after the busy
+   * state is set, so slow client-side work (compressing photos) already shows a
+   * busy UI.
+   *
+   * Two flows depending on tier:
+   *  - **Free**: foreground/blocking — sets `isPending`, persists the single job
+   *    id and polls it here; the recipe auto-opens on completion. Free users may
+   *    only run one at a time (enforced server-side too).
+   *  - **Premium**: background — hands the job to `ExtractionJobsContext`, clears
+   *    the inputs and returns immediately so more can be queued. Progress is
+   *    shown by `ActiveExtractions`; nothing auto-opens.
    */
   const submitExtraction = useCallback(async (
     path: string,
     buildBody: () => Promise<unknown>,
+    meta: { mode: ExtractionMode; sourceLabel: string },
   ) => {
     // Proactively request local notification permissions on native startup of extraction
     if (isNative()) {
       requestNativeNotificationPermission().catch(err => console.warn('Failed to request notifications permission:', err));
     }
 
-    setIsPending(true);
-    setJobStatus('pending');
+    // Only the free/foreground flow blocks the form with the full-screen animation.
+    if (!isPremium) {
+      setIsPending(true);
+      setJobStatus('pending');
+    }
     setJobError(null);
     setJobErrorCode(null);
     setJobErrorParams(null);
@@ -283,10 +273,19 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         });
       }
 
-      setJobStatus(data.status);
-      fetchLimitStatus();
-      localStorage.setItem(PENDING_JOB_STORAGE_KEY, data.jobId);
-      startPolling(data.jobId);
+      if (isPremium) {
+        // Background flow: track the job in the shared store and free the form.
+        addJob(data.jobId, { sourceLabel: meta.sourceLabel, mode: meta.mode });
+        setUrl('');
+        setPhotos([]);
+        setJobStatus(null);
+        fetchLimitStatus();
+      } else {
+        setJobStatus(data.status);
+        fetchLimitStatus();
+        localStorage.setItem(PENDING_JOB_STORAGE_KEY, data.jobId);
+        startPolling(data.jobId);
+      }
     } catch (err: unknown) {
       const typed = err as (Error & { code?: string; params?: ErrorParams }) | undefined;
       setJobStatus('failed');
@@ -295,13 +294,16 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       setJobErrorParams(typed?.params ?? null);
       setIsPending(false);
     }
-  }, [getAccessToken, startPolling, fetchLimitStatus]);
+  }, [getAccessToken, startPolling, fetchLimitStatus, isPremium, addJob]);
 
   const triggerExtraction = useCallback(async (targetUrl: string) => {
     const cleanUrl = targetUrl.trim();
     if (!validateUrl(cleanUrl)) return;
 
-    await submitExtraction('/api/extract-recipe', async () => ({ url: cleanUrl }));
+    await submitExtraction('/api/extract-recipe', async () => ({ url: cleanUrl }), {
+      mode: 'link',
+      sourceLabel: cleanUrl,
+    });
   }, [submitExtraction, validateUrl]);
 
   /**
@@ -317,11 +319,14 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     try {
       await submitExtraction('/api/extract-recipe/photos', async () => ({
         photos: await compressRecipePhotos(selected, MAX_PHOTOS_TOTAL_CHARS),
-      }));
+      }), {
+        mode: 'photo',
+        sourceLabel: t('activeExtractions.photoSource'),
+      });
     } finally {
       setIsUploadingPhotos(false);
     }
-  }, [photos, submitExtraction]);
+  }, [photos, submitExtraction, t]);
 
   // Resume a still-running extraction after a reload/restart wiped in-memory
   // state (e.g. the app was backgrounded and killed by the OS, or the PWA was
