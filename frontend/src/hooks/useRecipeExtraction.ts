@@ -136,6 +136,13 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     setJobError('form.validation.backgroundCancelled');
     setProgress(null);
 
+    // Fire local notification to inform the user that extraction was interrupted due to backgrounding
+    if (document.visibilityState !== 'visible') {
+      const notifTitle = t('notification.extractionInterrupted.title');
+      const notifBody = t('notification.extractionInterrupted.body');
+      sendNativeNotification(notifTitle, notifBody, jobId, undefined, Math.floor(Date.now() / 1000));
+    }
+
     try {
       const token = await getAccessToken();
       if (token) {
@@ -150,7 +157,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     } catch (err) {
       console.warn('Error executing cancelActiveFreeJob:', err);
     }
-  }, [getAccessToken, stopActivePolling]);
+  }, [getAccessToken, stopActivePolling, t]);
 
   const startPolling = useCallback((id: string) => {
     stopActivePolling();

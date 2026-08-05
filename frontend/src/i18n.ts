@@ -440,6 +440,10 @@ export const uiTranslations = {
         title: 'Rezept bereit',
         body: 'Dein Rezept „{title}“ ist bereit zum Kochen!',
       },
+      extractionInterrupted: {
+        title: '⚠️ Extraktion unterbrochen',
+        body: 'Rezepte können in der Free-Version nur extrahiert werden, wenn die App geöffnet bleibt.',
+      },
       prompt: {
         badge: 'Empfehlungen',
         title: 'Lust auf neue Koch-Inspiration?',
@@ -1293,6 +1297,10 @@ export const uiTranslations = {
       recipeReady: {
         title: 'Recipe Ready',
         body: 'Your recipe "{title}" is ready to cook!',
+      },
+      extractionInterrupted: {
+        title: '⚠️ Extraction Interrupted',
+        body: 'In the Free version, recipes can only be extracted while the app remains open.',
       },
       prompt: {
         badge: 'Smart recommendations',
