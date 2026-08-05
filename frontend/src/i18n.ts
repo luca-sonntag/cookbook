@@ -286,6 +286,7 @@ export const uiTranslations = {
           statusUnlocked: 'Freigeschaltet',
           reward: 'Belohnung: +{xp} XP',
           progressLabel: '{current} von {total} erreicht',
+          unlockedOn: 'Freigeschaltet am {date}',
         },
         badgeDesc: {
           first_cook: 'Koche dein allererstes Rezept in der App.',
@@ -1089,6 +1090,7 @@ export const uiTranslations = {
           statusUnlocked: 'Unlocked',
           reward: 'Reward: +{xp} XP',
           progressLabel: '{current} of {total} completed',
+          unlockedOn: 'Unlocked on {date}',
         },
         badgeDesc: {
           first_cook: 'Cook your very first recipe in the app.',
