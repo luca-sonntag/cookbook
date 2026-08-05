@@ -28,6 +28,7 @@ import { useShoppingList } from './hooks/useShoppingList';
 import { useDialog } from './context/DialogContext';
 import { useI18n } from './context/I18nContext';
 import { useAuth } from './context/AuthContext';
+import { useGamification } from './context/GamificationContext';
 import { useHashRouter } from './hooks/useHashRouter';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
@@ -43,6 +44,8 @@ export default function App() {
   const dialog = useDialog();
   const { t } = useI18n();
   const { user, loading: authLoading, getAccessToken } = useAuth();
+  const { snapshot: gamificationSnapshot } = useGamification();
+  const userLevel = gamificationSnapshot?.stats?.level ?? null;
 
   // ── URL-based routing ────────────────────────────────────────────────────
   const { tab: activeView, subPath, navigate, replace } = useHashRouter();
@@ -842,6 +845,11 @@ export default function App() {
               >
                 <div className="relative">
                   <Trophy className="w-5.5 h-5.5 mb-1" />
+                  {userLevel !== null && (
+                    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[9px] font-black text-white leading-none">
+                      {userLevel}
+                    </span>
+                  )}
                 </div>
                 <span className="text-[11px] tracking-wide font-medium">{t('app.nav.progress')}</span>
                 {activeView === 'progress' && (
