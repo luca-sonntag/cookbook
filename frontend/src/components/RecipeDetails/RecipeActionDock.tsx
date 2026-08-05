@@ -4,6 +4,7 @@ import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import FloatingActionBar, { FloatingDivider } from '../FloatingActionBar';
 import PremiumCrownBadge from '../PremiumCrownBadge';
+import CookedButton from '../CookedButton';
 import { useHideOnScroll } from '../../hooks/useHideOnScroll';
 
 interface RecipeActionDockProps {
@@ -12,6 +13,7 @@ interface RecipeActionDockProps {
   isAdded?: boolean;
   onStartCooking: () => void;
   recipeId?: string;
+  recipeTitle?: string;
   onRemixClick?: () => void;
 }
 
@@ -21,23 +23,22 @@ export default function RecipeActionDock({
   isAdded,
   onStartCooking,
   recipeId,
+  recipeTitle,
   onRemixClick
 }: RecipeActionDockProps) {
   const { t } = useI18n();
   const { isPremium } = useAuth();
 
-  // Get out of the way while the user reads through the ingredient or step
-  // list; scrolling back up (or reaching the top) brings the dock back.
   const isHidden = useHideOnScroll();
 
   const showStart = totalStepsCount > 0;
   const showRemix = !!recipeId && !!onRemixClick;
   const showShopping = !!onAddToCart;
+  const showCooked = !!recipeId;
 
-  // Compute whether each optional divider should render based on what
-  // actions are present on either side.
   const showRemixDivider = showRemix && (showStart || showShopping);
   const showShoppingDivider = showShopping && (showStart || showRemix);
+  const showCookedDivider = showCooked && (showStart || showRemix || showShopping);
 
   return (
     <FloatingActionBar className="bottom-28" isHidden={isHidden}>
@@ -86,6 +87,18 @@ export default function RecipeActionDock({
               : <ShoppingCart className="w-5.5 h-5.5" />
             }
           </button>
+        </>
+      )}
+
+      {/* Cooked / Photo Verification Button */}
+      {showCooked && (
+        <>
+          <FloatingDivider show={showCookedDivider} />
+          <CookedButton
+            jobId={recipeId}
+            recipeTitle={recipeTitle}
+            variant="dock"
+          />
         </>
       )}
     </FloatingActionBar>

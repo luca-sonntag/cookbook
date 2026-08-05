@@ -630,11 +630,10 @@ export default function RecipeDetails({
           />
         </section>
 
-        {/* "I cooked this" — gamification CTA, available to ALL users (not
-            premium-gated like the cooking mode above). */}
+        {/* "I cooked this" — gamification CTA card with photo verification */}
         {recipe.id && (
-          <div className="mt-1">
-            <CookedButton jobId={recipe.id} />
+          <div className="mt-4 mb-2">
+            <CookedButton jobId={recipe.id} recipeTitle={recipe.title} variant="card" />
           </div>
         )}
 
@@ -651,6 +650,7 @@ export default function RecipeDetails({
           isAdded={isAdded}
           onStartCooking={handleStartCooking}
           recipeId={recipe.id}
+          recipeTitle={recipe.title}
           onRemixClick={() => {
             if (isPremium) {
               setIsCopilotOpen(true);

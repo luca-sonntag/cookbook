@@ -7,10 +7,7 @@ für Social/Shop/AI-Verifizierung.
 
 ## 1. Leitprinzipien
 
-* **Trust ist ein Bonus, keine Strafe.** Jeder ehrliche Cook bekommt die volle
-  Basis — auch wer nicht im (Premium-)Kochmodus kocht und keine App-Timer nutzt.
-  Ein **Ergebnis-Foto** (optional) gibt +50 % und macht den Cook
-  *leaderboard-fähig*. Die „Ich hab gekocht"-Aktion ist **nicht** premium-gated.
+* **Foto-Pflicht & KI-Verifizierung via Gemini Vision.** Jeder Cook erfordert ein **Foto des fertigen Gerichts** (`photoBase64`). Das Backend prüft das Foto via Gemini Vision (`verifyCookedDishPhoto`), ob es visuell zum Rezept passt. Nur bei positiver KI-Verifizierung wird der Cook gezählt und belohnt.
 * **Anti-Grind über Diminishing Returns**, nicht über Misstrauen: Wiederholungen
   desselben Rezepts fallen schnell ab, plus ein Tages-Softcap.
 * **Server-autoritativ.** Punkte werden ausschließlich im Backend (service-role)
@@ -23,8 +20,7 @@ Alles additiv, RLS aktiv (`SELECT`-own als Defense-in-Depth; Writes nur service-
 
 * **`cook_events`** — append-only Ereignis (User, Rezept, XP/Coins, `has_photo`,
   `verified`, `leaderboard_eligible`, `trust_score`, `via_cooking_mode`,
-  `timer_elapsed`). Die letzten Felder werden schon geschrieben, aber noch nicht
-  bepunktet — Andockpunkt für spätere Trust-Signale.
+  `timer_elapsed`).
 * **`point_ledger`** — append-only, eine Zeile pro Gutschrift (ermöglicht spätere
   zeitfenster-basierte Leaderboards, Undo, Audit).
 * **`user_stats`** — Aggregat pro User (xp, level, coins, current/longest streak,
@@ -49,9 +45,7 @@ inaktiv (kein Cuisine-Signal).
 
 ## 4. Endpoints (`backend/src/routes.ts`)
 
-* `POST /api/jobs/:id/cooked` — verbucht einen Cook (alle User; optionales
-  `photoBase64` → Bonus + leaderboard-fähig). Antwort enthält `stats`, `earned`,
-  `newBadges`, `previousXp/previousLevel/leveledUp` für die Overlay-Animation.
+* `POST /api/jobs/:id/cooked` — verbucht einen Cook (erfordert `photoBase64`; verifiziert per Gemini Vision, lädt Foto in Supabase `cook-photos` hoch). Antwort enthält `stats`, `earned`, `newBadges`, `previousXp/previousLevel/leveledUp` für die Overlay-Animation.
 * `GET /api/me/gamification` — `stats` + `badges` + `levelThresholds` für den Tab.
 
 ## 5. Frontend
@@ -59,8 +53,8 @@ inaktiv (kein Cuisine-Signal).
 * **`context/GamificationContext.tsx`** — `markCooked()` + gecachte Stats/Badges;
   rendert am App-Root das **`RewardOverlay`** (geblurrtes Vollbild, animiert
   füllender XP-Balken, Level-Up-Sequenz + CSS-Konfetti, `prefers-reduced-motion`).
-* **`components/CookedButton.tsx`** — die CTA in `RecipeDetails` (optionales Foto,
-  client-komprimiert via `utils/imageCompression`).
+* **`components/CookedModal.tsx`** — Modal für Kamera-/Galerie-Fotoaufnahme, KI-Prüfzustand („KI prüft dein Gericht...“) und Fehler-Feedback bei Nicht-Übereinstimmung.
+* **`components/CookedButton.tsx`** — Trigger-Button in `RecipeActionDock` (Floating Bar) und als Abschluss-Karte (`variant="card"`) unter den Schritten in `RecipeDetails`.
 * **`components/ProgressView/`** — der Tab **„Fortschritt"** (`progress`-Route in
   `useHashRouter`, Nav-Button in `App.tsx`): Level/XP-Balken, Streak/Coins/Cooks,
   Badge-Gitter. Coins werden angezeigt, **kein Shop** (erster Wurf).

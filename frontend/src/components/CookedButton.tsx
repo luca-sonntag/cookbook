@@ -1,110 +1,83 @@
-import { useRef, useState, type ChangeEvent } from 'react';
-import { Camera, Check, Utensils } from 'lucide-react';
+import { useState } from 'react';
+import { Camera, Sparkles } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
-import { useGamification } from '../context/GamificationContext';
-import { compressImage, PREVIEW_PROFILE } from '../utils/imageCompression';
-
-type Status = 'idle' | 'saving' | 'done' | 'duplicate' | 'error';
+import CookedModal from './CookedModal';
 
 interface CookedButtonProps {
   jobId: string;
-  /** Set when the user reached the end of the premium cooking mode. */
+  recipeTitle?: string;
   viaCookingMode?: boolean;
   className?: string;
+  variant?: 'card' | 'compact' | 'dock';
 }
 
 /**
- * "I cooked this" call-to-action. Available to ALL users (not premium-gated) —
- * it awards XP/coins via the gamification backend and triggers the reward
- * overlay. An optional finished-dish photo (compressed client-side) adds a bonus
- * and makes the cook leaderboard-eligible.
+ * "I cooked this" call-to-action with mandatory AI photo verification.
+ * Renders in different variants:
+ * - 'card': A prominent end-of-recipe card.
+ * - 'dock': An icon button inside the floating action dock.
+ * - 'compact': A full-width standalone button.
  */
-export default function CookedButton({ jobId, viaCookingMode, className = '' }: CookedButtonProps) {
+export default function CookedButton({
+  jobId,
+  recipeTitle,
+  viaCookingMode,
+  className = '',
+  variant = 'compact',
+}: CookedButtonProps) {
   const { t } = useI18n();
-  const { markCooked } = useGamification();
-  const [status, setStatus] = useState<Status>('idle');
-  const [photo, setPhoto] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const handlePhotoPick = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ''; // allow re-picking the same file
-    if (!file) return;
-    try {
-      const dataUrl = await compressImage(file, PREVIEW_PROFILE);
-      setPhoto(dataUrl);
-    } catch (err) {
-      console.warn('[Cook] Photo compression failed:', err);
-    }
-  };
-
-  const handleCooked = async () => {
-    if (status === 'saving') return;
-    setStatus('saving');
-    try {
-      const result = await markCooked(jobId, {
-        photoBase64: photo ?? undefined,
-        viaCookingMode,
-      });
-      setStatus(result?.duplicate ? 'duplicate' : 'done');
-      setPhoto(null);
-    } catch (err) {
-      console.error('[Cook] Failed to record cook:', err);
-      setStatus('error');
-    } finally {
-      // Return to idle so the recipe can be cooked again another day.
-      window.setTimeout(() => setStatus('idle'), 3200);
-    }
-  };
-
-  const mainLabel = (() => {
-    switch (status) {
-      case 'saving': return t('app.gamification.cooking');
-      case 'done': return t('app.gamification.cookedDone');
-      case 'duplicate': return t('app.gamification.duplicate');
-      case 'error': return t('app.gamification.cookError');
-      default: return t('app.gamification.cooked');
-    }
-  })();
-
-  const settled = status === 'done' || status === 'duplicate';
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        hidden
-        onChange={handlePhotoPick}
-      />
-      <button
-        type="button"
-        onClick={() => fileRef.current?.click()}
-        aria-label={t('app.gamification.addPhoto')}
-        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-colors ${
-          photo
-            ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-            : 'border-black/10 dark:border-white/15 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-        }`}
-      >
-        {photo ? <Check className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
-      </button>
+    <>
+      {variant === 'card' ? (
+        <div className={`rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/40 via-gray-900 to-teal-950/40 p-5 text-center shadow-lg ${className}`}>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 mb-3">
+            <Sparkles className="h-6 w-6 animate-pulse" />
+          </div>
+          <h4 className="text-base font-extrabold text-white">
+            {t('app.gamification.cookedCardTitle')}
+          </h4>
+          <p className="mt-1 text-xs text-gray-300 max-w-sm mx-auto leading-relaxed">
+            {t('app.gamification.cookedCardSubtitle')}
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 px-5 py-3 font-bold text-sm text-gray-950 shadow-md active:scale-95 transition-all"
+          >
+            <Camera className="w-4 h-4 text-gray-950" />
+            <span>{t('app.gamification.cookedCardBtn')}</span>
+          </button>
+        </div>
+      ) : variant === 'dock' ? (
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className={`relative p-3 text-gray-700 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-90 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 outline-none border-none group ${className}`}
+          title={t('app.gamification.cookedCardBtn')}
+          aria-label={t('app.gamification.cookedCardBtn')}
+        >
+          <Camera className="w-5.5 h-5.5 group-hover:scale-110 transition-transform text-emerald-500 dark:text-emerald-400" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 px-4 font-semibold text-white shadow-lg active:scale-[0.98] transition-all ${className}`}
+        >
+          <Camera className="h-5 w-5" />
+          <span>{t('app.gamification.cookedCardBtn')}</span>
+        </button>
+      )}
 
-      <button
-        type="button"
-        onClick={handleCooked}
-        disabled={status === 'saving'}
-        className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl px-4 font-semibold text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 ${
-          settled
-            ? 'bg-emerald-600'
-            : 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400'
-        }`}
-      >
-        {settled ? <Check className="h-5 w-5" /> : <Utensils className="h-5 w-5" />}
-        <span>{mainLabel}</span>
-      </button>
-    </div>
+      <CookedModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        jobId={jobId}
+        recipeTitle={recipeTitle}
+        viaCookingMode={viaCookingMode}
+      />
+    </>
   );
 }
