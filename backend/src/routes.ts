@@ -1,5 +1,51 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs, getUserStats, getUserBadgesDetailed, getGamificationConfig, uploadCookPhoto, upsertPushToken, deletePushToken, deletePushTokensForUser, getRecentCookPhotos, getDistinctCookedRecipeCount, getCookHistoryForJob } from './db.js';
+import {
+  createJob,
+  createRemixJob,
+  saveCompletedRemix,
+  getJob,
+  findCompletedJobByUrl,
+  findActiveJobByUrl,
+  getAllJobs,
+  deleteJob,
+  deleteRecipeFrames,
+  getRecipeFrames,
+  countActiveJobsForUser,
+  getClient,
+  getExtractionsForUserInTimeframe,
+  countCompletedRecipesForUser,
+  updateJob,
+  isAlphaActive,
+  getAlphaMaxExtractions,
+  getAlphaMaxSavedRecipes,
+  getFreeMaxExtractions,
+  getFreeMaxSavedRecipes,
+  getPremiumMaxExtractions,
+  setFavorite,
+  setFlags,
+  listCollections,
+  createCollection,
+  updateCollection,
+  deleteCollection,
+  setRecipeCollections,
+  createFeedback,
+  getAllGlobalSettings,
+  updateGlobalSettings,
+  getAllFeedback,
+  getJobMetrics,
+  listAppBundles,
+  setAppBundleActive,
+  getExtractionsPerUser,
+  getFailedJobs,
+  upsertPushToken,
+  deletePushToken,
+  deletePushTokensForUser,
+  getPremiumMaxConcurrentExtractions,
+  getFreeMaxConcurrentExtractions, 
+  getRecentCookPhotos, 
+  getDistinctCookedRecipeCount, 
+  getCookHistoryForJob
+} from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe, verifyCookedDishPhoto } from './gemini.js';
@@ -243,6 +289,7 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
         success: true,
         jobId: existingJob.id,
         status: existingJob.status,
+        isCached: true,
         message: 'Recipe already extracted successfully.',
       });
       return;
@@ -388,9 +435,9 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
       if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
-                    meta.tier === 'alpha' ||
-                    meta.custom_extraction_limit === -1 ||
-                    meta.max_extractions_per_window === -1;
+          meta.tier === 'alpha' ||
+          meta.custom_extraction_limit === -1 ||
+          meta.max_extractions_per_window === -1;
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for remix premium check:`, err);
@@ -583,8 +630,8 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
 
     if (user) {
       limit = await resolveUserRateLimit(user);
-      tier = user.app_metadata?.tier === 'premium' 
-        ? 'premium' 
+      tier = user.app_metadata?.tier === 'premium'
+        ? 'premium'
         : (user.app_metadata?.tier === 'alpha' ? 'alpha' : 'free');
     }
 
@@ -817,7 +864,7 @@ apiRouter.post('/jobs/:id/chat/confirm', async (req: Request, res: Response): Pr
           preferredUnitSystem: meta.preferred_unit_system,
         };
       }
-    } catch {}
+    } catch { }
 
     const remixedRecipe = await remixRecipe(job.recipe, modificationRequest, undefined, userPrefs);
 
@@ -897,9 +944,9 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
-                    meta.tier === 'alpha' ||
-                    meta.custom_extraction_limit === -1 ||
-                    meta.max_extractions_per_window === -1;
+          meta.tier === 'alpha' ||
+          meta.custom_extraction_limit === -1 ||
+          meta.max_extractions_per_window === -1;
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for chat premium check:`, err);
@@ -924,7 +971,7 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
         'german': 'German',
         'english': 'English'
       };
-      
+
       let recipeLanguage: string | undefined;
       if (meta.language) {
         recipeLanguage = languageMap[meta.language.toLowerCase()];
@@ -992,9 +1039,9 @@ async function checkPremium(req: Request): Promise<boolean> {
     if (user) {
       const meta = user.app_metadata || {};
       isPremium = meta.tier === 'premium' ||
-                  meta.tier === 'alpha' ||
-                  meta.custom_extraction_limit === -1 ||
-                  meta.max_extractions_per_window === -1;
+        meta.tier === 'alpha' ||
+        meta.custom_extraction_limit === -1 ||
+        meta.max_extractions_per_window === -1;
     }
   } catch (err) {
     console.warn(`Failed to fetch user metadata for premium check:`, err);
