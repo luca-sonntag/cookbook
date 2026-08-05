@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs, getUserStats, getUserBadgesDetailed, getGamificationConfig, uploadCookPhoto, upsertPushToken, deletePushToken, deletePushTokensForUser } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
-import { chatAboutRecipe, generateChatChips, remixRecipe } from './gemini.js';
+import { chatAboutRecipe, generateChatChips, remixRecipe, verifyCookedDishPhoto } from './gemini.js';
 import { getLlmMetrics } from './adminMetrics.js';
 import { AppError, sendAppError } from './errors.js';
 import { randomUUID } from 'node:crypto';
@@ -985,32 +985,38 @@ apiRouter.post('/jobs/:id/cooked', async (req: Request, res: Response): Promise<
     const { id } = req.params;
     const { photoBase64, viaCookingMode, timerElapsed } = req.body ?? {};
 
-    if (photoBase64 !== undefined && typeof photoBase64 !== 'string') {
-      throw new AppError('INVALID_FIELD', { params: { field: 'photoBase64' } });
+    if (!photoBase64 || typeof photoBase64 !== 'string' || photoBase64.trim().length === 0) {
+      throw new AppError('PHOTO_REQUIRED');
     }
-    if (typeof photoBase64 === 'string' && photoBase64.length > MAX_PHOTOS_TOTAL_CHARS) {
+    if (photoBase64.length > MAX_PHOTOS_TOTAL_CHARS) {
       throw new AppError('PHOTOS_TOO_LARGE');
     }
 
     // Ownership + existence check, scoped to the user.
     const job = await getJob(id, req.userId!);
-    if (!job) {
+    if (!job || !job.recipe) {
       throw new AppError('JOB_NOT_FOUND');
     }
 
-    // Upload the optional finished-dish photo first so its path can be stored on
-    // the cook event. A failed upload must never lose the cook itself.
+    // Verify photo with Gemini Vision before accepting the cook.
+    const verification = await verifyCookedDishPhoto(job.recipe, photoBase64);
+    if (!verification.isMatchingDish) {
+      throw new AppError('PHOTO_NOT_MATCHING', {
+        params: { reason: verification.reasoning },
+      });
+    }
+
+    // Upload verified finished-dish photo to storage.
     let photoPath: string | null = null;
-    if (typeof photoBase64 === 'string' && photoBase64.length > 0) {
-      try {
-        photoPath = await uploadCookPhoto(req.userId!, randomUUID(), photoBase64);
-      } catch (err: any) {
-        console.error('Cook photo upload failed, recording without photo:', err?.message || err);
-      }
+    try {
+      photoPath = await uploadCookPhoto(req.userId!, randomUUID(), photoBase64);
+    } catch (err: any) {
+      console.error('Cook photo upload failed:', err?.message || err);
+      throw new AppError('PHOTO_UPLOAD_FAILED');
     }
 
     const result = await recordCook(req.userId!, id, {
-      hasPhoto: !!photoPath,
+      hasPhoto: true,
       photoPath,
       viaCookingMode: !!viaCookingMode,
       timerElapsed: !!timerElapsed,
