@@ -170,11 +170,20 @@ export interface CookedResult {
   duplicate?: boolean;
 }
 
+export interface CookPhotoItem {
+  id: string;
+  jobId: string;
+  photoUrl: string;
+  cookedAt: string;
+  recipeTitle?: string;
+}
+
 /** Snapshot for the progress tab. */
 export interface GamificationSnapshot {
   stats: UserStats;
   badges: BadgeInfo[];
   levelThresholds: number[];
+  recentPhotos?: CookPhotoItem[];
 }
 
 
