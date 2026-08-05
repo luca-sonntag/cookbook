@@ -275,7 +275,9 @@ export default function SavedCatalog({
       onAddIngredients(items, job.id, job.recipe!.title);
       setBulkShoppingAdded(prev => prev + 1);
     }
-    setBulkShoppingQueue(prev => prev.slice(1));
+    // NOTE: onClose() is called by ShoppingConfirmSheet after onConfirm(),
+    // which triggers handleBulkShoppingClose → advances the queue.
+    // Do NOT call setBulkShoppingQueue here or every other recipe is skipped.
   };
 
   const handleBulkShoppingClose = () => {
@@ -598,6 +600,7 @@ export default function SavedCatalog({
           : recipe.title;
         return (
           <ShoppingConfirmSheet
+            key={currentBulkShoppingJob.id}
             isOpen={true}
             onClose={handleBulkShoppingClose}
             recipe={recipe}
