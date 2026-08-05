@@ -1404,8 +1404,8 @@ export async function getRecentCookPhotos(userId: string, limit: number = 10): P
     .from('cook_events')
     .select('id, job_id, photo_path, cooked_at')
     .eq('user_id', userId)
-    .eq('has_photo', true)
     .not('photo_path', 'is', null)
+    .neq('photo_path', '')
     .order('cooked_at', { ascending: false })
     .limit(limit);
 

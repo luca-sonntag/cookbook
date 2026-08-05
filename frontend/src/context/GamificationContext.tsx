@@ -49,6 +49,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
           stats: data.stats,
           badges: data.badges ?? [],
           levelThresholds: data.levelThresholds ?? [],
+          recentPhotos: data.recentPhotos ?? [],
         });
       }
     } catch (err) {
@@ -96,7 +97,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
       }
       const result = (await res.json()) as CookedResult & { success: boolean };
 
-      // Update the cached snapshot (stats + newly earned badges).
+      // Update the cached snapshot (stats + newly earned badges + photos).
       setSnapshot((prev) => {
         const nowIso = new Date().toISOString();
         const badges = prev?.badges ? [...prev.badges] : [];
@@ -107,8 +108,12 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
           stats: result.stats,
           badges,
           levelThresholds: prev?.levelThresholds ?? [],
+          recentPhotos: prev?.recentPhotos ?? [],
         };
       });
+
+      // Async refresh to fetch latest photos from backend
+      refresh();
 
       // Only celebrate a real reward (a duplicate re-tap awards nothing).
       if (!result.duplicate && (result.earned.xp > 0 || result.newBadges.length > 0)) {
