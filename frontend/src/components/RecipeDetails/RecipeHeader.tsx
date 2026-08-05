@@ -246,37 +246,40 @@ export default function RecipeHeader({
             )}
           </div>
         )}
-        {createdAt && (
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-medium">
-            {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
-          </p>
-        )}
-        {history && history.count > 0 && (
-          <div className="mt-1">
-            <button
-              type="button"
-              onClick={() => {
-                const el = document.getElementById('cook-history');
-                if (el) {
-                  const stickyTopHeight = parseInt(
-                    getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
-                    10
-                  );
-                  const offset = stickyTopHeight + 80;
-                  const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-                  window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
-                }
-              }}
-              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 dark:from-emerald-500/20 dark:via-teal-500/20 dark:to-emerald-500/20 px-3 py-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:border-emerald-500/50 hover:bg-emerald-500/15 transition-all shadow-2xs active:scale-98 cursor-pointer outline-none select-none group"
-            >
-              <UtensilsCrossed className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:rotate-12 transition-transform" />
-              <span>{t('app.gamification.cookedChip', { count: history.count })}</span>
-              {history.lastCookedAt && (
-                <span className="font-semibold text-emerald-600/80 dark:text-emerald-400/80">
-                  · {t('app.gamification.cookedChipLast', { when: formatRelative(history.lastCookedAt, language) })}
-                </span>
-              )}
-            </button>
+        {(createdAt || (history && history.count > 0)) && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400 dark:text-gray-500 font-medium mt-1 select-none">
+            {createdAt && (
+              <span>
+                {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
+              </span>
+            )}
+            {createdAt && history && history.count > 0 && <span>·</span>}
+            {history && history.count > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('cook-history');
+                  if (el) {
+                    const stickyTopHeight = parseInt(
+                      getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
+                      10
+                    );
+                    const offset = stickyTopHeight + 80;
+                    const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+                    window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
+                  }
+                }}
+                className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer outline-none bg-transparent p-0 border-none transition-colors"
+              >
+                <UtensilsCrossed className="w-3.5 h-3.5" />
+                <span>{t('app.gamification.cookedChip', { count: history.count })}</span>
+                {history.lastCookedAt && (
+                  <span className="text-gray-400 dark:text-gray-500 font-normal">
+                    · {t('app.gamification.cookedChipLast', { when: formatRelative(history.lastCookedAt, language) })}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         )}
       </div>
