@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { UtensilsCrossed, Camera, Clock, Sparkles, ShieldCheck, Timer, X } from 'lucide-react';
+import { UtensilsCrossed, Camera, Clock, X } from 'lucide-react';
 import type { CookHistory } from '../hooks/useCookHistory';
 import { useI18n } from '../context/I18nContext';
 import { formatRelative } from '../utils/formatRelative';
@@ -9,8 +9,8 @@ interface CookHistoryTimelineProps {
 }
 
 /**
- * Timeline of past cooks for a recipe, newest first. Shows rich event cards
- * with dish photos, XP rewards, feature usage badges, and exact timestamps.
+ * Timeline of past cooks for a recipe, newest first. Shows clean event cards
+ * with dish photos, XP rewards, and exact timestamps.
  */
 export default function CookHistoryTimeline({ history }: CookHistoryTimelineProps) {
   const { t, language } = useI18n();
@@ -62,8 +62,7 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
           </h4>
         </div>
         {totalXp > 0 && (
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-extrabold border border-amber-500/25">
-            <Sparkles className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+          <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-extrabold border border-amber-500/25 whitespace-nowrap flex-shrink-0">
             <span>{t('app.gamification.cookedTotalXp', { xp: totalXp })}</span>
           </div>
         )}
@@ -86,8 +85,7 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
                   {t('app.gamification.cookedAttempt', { count: attemptNum })}
                 </span>
                 {item.xpAwarded && item.xpAwarded > 0 ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25">
-                    <Sparkles className="w-3 h-3 fill-amber-400 text-amber-500" />
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25 whitespace-nowrap">
                     +{item.xpAwarded} XP
                   </span>
                 ) : null}
@@ -110,14 +108,6 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
                         loading="lazy"
                       />
                     </button>
-                    {item.verified && (
-                      <div
-                        className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 shadow-sm border border-white dark:border-gray-900"
-                        title={t('app.gamification.cookedVerified')}
-                      >
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <div className="h-14 w-14 flex-shrink-0 rounded-xl bg-gray-200/60 dark:bg-gray-700/50 flex flex-col items-center justify-center text-gray-400 border border-black/5 dark:border-white/5">
@@ -142,27 +132,14 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
                     )}
                   </div>
 
-                  {/* Feature Pills */}
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {item.verified && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold px-2 py-0.5 border border-emerald-500/20">
-                        <ShieldCheck className="h-3 w-3 text-emerald-500" />
-                        {t('app.gamification.cookedVerified')}
-                      </span>
-                    )}
-                    {item.viaCookingMode && (
+                  {item.viaCookingMode && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
                       <span className="inline-flex items-center gap-1 rounded-md bg-teal-500/10 text-teal-700 dark:text-teal-300 text-[10px] font-bold px-2 py-0.5 border border-teal-500/20">
                         <UtensilsCrossed className="h-3 w-3 text-teal-500" />
                         {t('app.gamification.cookedViaMode')}
                       </span>
-                    )}
-                    {item.timerElapsed && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[10px] font-bold px-2 py-0.5 border border-blue-500/20">
-                        <Timer className="h-3 w-3 text-blue-500" />
-                        {t('app.gamification.cookedWithTimer')}
-                      </span>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
