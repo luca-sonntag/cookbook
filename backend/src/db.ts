@@ -1417,8 +1417,11 @@ export interface CookPhotoItem {
 export interface CookHistoryItem {
   id: string;
   cookedAt: string;
+  xpAwarded: number;
+  coinsAwarded: number;
   hasPhoto: boolean;
   photoUrl: string | null;
+  verified: boolean;
   viaCookingMode: boolean;
   timerElapsed: boolean;
 }
@@ -1441,7 +1444,7 @@ export async function getCookHistoryForJob(
 ): Promise<CookHistory> {
   const { data, error, count } = await getClient()
     .from('cook_events')
-    .select('id, cooked_at, has_photo, photo_path, via_cooking_mode, timer_elapsed', { count: 'exact' })
+    .select('id, cooked_at, xp_awarded, coins_awarded, has_photo, photo_path, verified, via_cooking_mode, timer_elapsed', { count: 'exact' })
     .eq('user_id', userId)
     .eq('job_id', jobId)
     .order('cooked_at', { ascending: false })
@@ -1472,8 +1475,11 @@ export async function getCookHistoryForJob(
       return {
         id: row.id,
         cookedAt: row.cooked_at,
+        xpAwarded: row.xp_awarded ?? 0,
+        coinsAwarded: row.coins_awarded ?? 0,
         hasPhoto: row.has_photo,
         photoUrl,
+        verified: row.verified ?? false,
         viaCookingMode: row.via_cooking_mode,
         timerElapsed: row.timer_elapsed,
       };
