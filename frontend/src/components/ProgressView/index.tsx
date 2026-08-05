@@ -156,17 +156,17 @@ export default function ProgressView() {
               setShowCoinsNotice(true);
               setTimeout(() => setShowCoinsNotice(false), 3000);
             }}
-            className="w-full flex flex-col items-center gap-1.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-center dark:border-white/5 transition-all active:scale-95 cursor-pointer relative overflow-hidden"
+            className="w-full flex flex-col items-center gap-1.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-center transition-all active:scale-95 cursor-pointer"
           >
-            <span className="absolute top-2 right-2 rounded-full bg-amber-500/15 dark:bg-amber-500/25 px-1.5 py-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-400">
-              {t('app.gamification.coinsComingSoon')}
-            </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl text-amber-500 bg-amber-500/10 dark:bg-amber-500/20">
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-2xl text-amber-500 bg-amber-500/10 dark:bg-amber-500/20">
               <Coins className="h-5 w-5" />
+              <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-white">
+                <Lock className="h-2.5 w-2.5" />
+              </div>
             </div>
             <div className="text-lg font-black text-gray-900 dark:text-white">{stats?.coins ?? 0}</div>
-            <div className="text-[11px] font-semibold text-gray-500 dark:text-gray-400">
-              {t('app.gamification.coins')}
+            <div className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 px-2 py-0.5 rounded-full leading-tight">
+              {t('app.gamification.coinsComingSoon')}
             </div>
           </button>
 
