@@ -59,6 +59,10 @@ function getBadgeProgressInfo(key: string, stats?: any): { current: number; tota
   }
 }
 
+interface ProgressViewProps {
+  onSelectRecipe?: (jobId: string) => void;
+}
+
 /**
  * Enhanced "Fortschritt" (progress) tab:
  * 1. Culinary Rank & Hero Level Card.
@@ -66,7 +70,7 @@ function getBadgeProgressInfo(key: string, stats?: any): { current: number; tota
  * 3. Interactive & Flat Badges with Detail Sheet.
  * 4. Realistic Weekly Habit Streaks & Disabled Coins preview.
  */
-export default function ProgressView() {
+export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
   const { t } = useI18n();
   const { snapshot, refresh } = useGamification();
 
@@ -182,7 +186,7 @@ export default function ProgressView() {
           icon={<Utensils className="h-5 w-5" />}
           value={stats?.totalCooks ?? 0}
           label={t('app.gamification.totalCooks')}
-          accent="text-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/20"
+          accent="text-emerald-500 bg-emerald-500/10 dark:emerald-500/20"
         />
       </div>
 
@@ -203,9 +207,11 @@ export default function ProgressView() {
         {recentPhotos.length > 0 ? (
           <div className="flex gap-3 overflow-x-auto pb-1 pt-1 scrollbar-none">
             {recentPhotos.map((item) => (
-              <div
+              <button
                 key={item.id}
-                className="group relative h-40 w-32 shrink-0 overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 transition-transform active:scale-95"
+                type="button"
+                onClick={() => onSelectRecipe?.(item.jobId)}
+                className="group relative h-40 w-32 shrink-0 overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 transition-transform active:scale-95 text-left cursor-pointer outline-none border-none"
               >
                 <img
                   src={item.photoUrl}
@@ -220,7 +226,7 @@ export default function ProgressView() {
                     {new Date(item.cookedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                   </p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         ) : (

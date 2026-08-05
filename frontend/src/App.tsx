@@ -741,7 +741,11 @@ export default function App() {
 
         {/* PROGRESS TAB */}
         <div hidden={activeView !== 'progress'} aria-hidden={activeView !== 'progress' || undefined}>
-          <ProgressView />
+          <ProgressView
+            onSelectRecipe={(jobId) => {
+              navigate('history', jobId);
+            }}
+          />
         </div>
 
         {/* SETTINGS TAB */}
