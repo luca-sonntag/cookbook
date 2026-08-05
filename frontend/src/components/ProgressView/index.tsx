@@ -98,7 +98,7 @@ export default function ProgressView() {
       </h1>
 
       {/* 1. Hero Level & Culinary Rank Card */}
-      <div className="rounded-3xl bg-emerald-500/10 dark:bg-emerald-500/15 p-5 shadow-sm">
+      <div className="rounded-3xl bg-emerald-500/10 dark:bg-emerald-500/15 p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
@@ -156,7 +156,7 @@ export default function ProgressView() {
               setShowCoinsNotice(true);
               setTimeout(() => setShowCoinsNotice(false), 3000);
             }}
-            className="w-full flex flex-col items-center gap-1.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-center shadow-sm dark:border-white/5 transition-all active:scale-95 cursor-pointer relative overflow-hidden"
+            className="w-full flex flex-col items-center gap-1.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-center dark:border-white/5 transition-all active:scale-95 cursor-pointer relative overflow-hidden"
           >
             <span className="absolute top-2 right-2 rounded-full bg-amber-500/15 dark:bg-amber-500/25 px-1.5 py-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-400">
               {t('app.gamification.coinsComingSoon')}
@@ -171,7 +171,7 @@ export default function ProgressView() {
           </button>
 
           {showCoinsNotice && (
-            <div className="absolute left-1/2 -bottom-10 -translate-x-1/2 z-20 whitespace-nowrap rounded-xl bg-gray-900 dark:bg-gray-100 px-3 py-1.5 text-xs font-bold text-white dark:text-gray-900 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute left-1/2 -bottom-10 -translate-x-1/2 z-20 whitespace-nowrap rounded-xl bg-gray-900 dark:bg-gray-100 px-3 py-1.5 text-xs font-bold text-white dark:text-gray-900 shadow-lg animate-in fade-in zoom-in-95 duration-150">
               {t('app.gamification.coinsNotice')}
             </div>
           )}
@@ -186,7 +186,7 @@ export default function ProgressView() {
       </div>
 
       {/* 2. "Deine Koch-Galerie" (Food Photo Feed) */}
-      <div className="rounded-3xl bg-white p-5 shadow-sm dark:bg-gray-900 space-y-4">
+      <div className="rounded-3xl bg-white p-5 dark:bg-gray-900 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Camera className="h-4.5 w-4.5 text-emerald-500" />
@@ -204,7 +204,7 @@ export default function ProgressView() {
             {recentPhotos.map((item) => (
               <div
                 key={item.id}
-                className="group relative h-40 w-32 shrink-0 overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 shadow-sm transition-transform active:scale-95"
+                className="group relative h-40 w-32 shrink-0 overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 transition-transform active:scale-95"
               >
                 <img
                   src={item.photoUrl}
@@ -232,7 +232,7 @@ export default function ProgressView() {
       </div>
 
       {/* 3. Badges Grid (Flat & Clean) */}
-      <div className="rounded-3xl bg-white p-5 shadow-sm dark:bg-gray-900 space-y-4">
+      <div className="rounded-3xl bg-white p-5 dark:bg-gray-900 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Trophy className="h-4.5 w-4.5 text-amber-500" />
@@ -264,7 +264,7 @@ export default function ProgressView() {
                     {badgeEmoji(key)}
                   </div>
                   {!isEarned && (
-                    <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-gray-400 text-white shadow-xs">
+                    <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-gray-400 text-white">
                       <Lock className="h-2.5 w-2.5" />
                     </div>
                   )}
@@ -310,7 +310,7 @@ function StatTile({
   accent: string;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-center shadow-sm dark:border-white/5">
+    <div className="flex flex-col items-center gap-1.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-center dark:border-white/5">
       <div className={`flex h-9 w-9 items-center justify-center rounded-2xl ${accent}`}>
         {icon}
       </div>
