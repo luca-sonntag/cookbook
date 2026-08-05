@@ -131,12 +131,12 @@ export default function CookedModal({
         </button>
 
         {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-4 pr-10">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
             <ShieldCheck className="w-5 h-5" />
           </div>
-          <div>
-            <h3 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100 leading-snug">
               {t('app.gamification.modalTitle')}
             </h3>
             {recipeTitle && (
