@@ -6,6 +6,17 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ## 📜 Chronologische Übersicht
 
+### 2026-08-05: Photo-Bonus (`photoBonusPct`) aus der Gamification-Formel entfernt
+
+* **Ersetzter Code / Anti-Pattern:**
+  - `photoBonusPct` (50 %) in `GamificationConfig` + der entsprechende `+X%`-Block in `computeAward` (`gamificationFormula.ts`), der bei `hasPhoto` die XP um 50 % erhöhte.
+  - Der Key im `gamification_config`-Seed-Row (`supabase_schema.sql`) und in `DEFAULT_GAMIFICATION_CONFIG` (`types.ts`).
+* **Grund der Ausmusterung:**
+  - Ein Fertig­gericht-Foto ist jetzt **Pflicht** (Gemini-Verifizierung in `POST /api/jobs/:id/cooked` vor Akzeptanz). Ein Bonus auf etwas, das ohnehin 100 % der Cooks erfüllen, wäre nur ein versteckter, immer-aktiver Multiplikator — keine echte Belohnung.
+  - Die Trust/Verifikations-Flags (`verified`, `leaderboardEligible`, `trustScore`) bleiben an `hasPhoto` gekoppelt; nur der XP-Bonus entfällt.
+* **Betroffene Dateien:** `backend/src/types.ts`, `backend/src/gamificationFormula.ts`, `backend/src/gamificationFormula.test.ts`, `backend/supabase_schema.sql`.
+* **Achtung:** Nicht wieder einführen, solange das Foto Pflicht bleibt. Falls später ein *optionaler* No-Photo-Modus kommt, kann ein Bonus für freiwillige Fotos sinnvoll sein — dann aber als echter Anreiz, nicht als Default.
+
 ### 2026-08-04: FCM Push-Benachrichtigung BigPictureStyle-Banner durch quadratisches Emoji-Icon ersetzt
 
 * **Ersetzter Code / Anti-Pattern:**

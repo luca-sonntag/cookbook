@@ -90,11 +90,9 @@ export function computeAward(config: GamificationConfig, ctx: AwardContext): Awa
     reasons.push(`novelty_cuisine_+${config.noveltyCuisineBonus}`);
   }
 
-  // Photo bonus — a percentage on the running subtotal (bonus, not penalty).
-  if (ctx.hasPhoto) {
-    xp += xp * (config.photoBonusPct / 100);
-    reasons.push(`photo_bonus_+${config.photoBonusPct}%`);
-  }
+  // Note: a finished-dish photo is now mandatory (verified before a cook is
+  // accepted), so there is no photo *bonus* — every cook already has one.
+  // The photoBonusPct config key was removed; see docs/OBSOLETE.md.
 
   // Daily soft-cap.
   const sc = softcapFactor(ctx.cookIndexToday, config.dailySoftcap);

@@ -151,8 +151,9 @@ export interface GamificationConfig {
   noveltyRecipeBonus: number;
   /** Reserved: applied once a cuisine signal exists on recipes. */
   noveltyCuisineBonus: number;
-  /** Percentage bonus when a finished-dish photo is attached. */
-  photoBonusPct: number;
+  /** Reserved: a finished-dish photo is now mandatory (verified before a cook
+   *  is accepted), so there is no photo *bonus* — every cook already has one.
+   *  Kept out of the config on purpose; see docs/OBSOLETE.md. */
   streakTiers: StreakTier[];
   dailySoftcap: DailySoftcap;
   coinsPerXp: number;
@@ -170,7 +171,6 @@ export const DEFAULT_GAMIFICATION_CONFIG: GamificationConfig = {
   repetitionWindowDays: 7,
   noveltyRecipeBonus: 20,
   noveltyCuisineBonus: 50,
-  photoBonusPct: 50,
   streakTiers: [
     { minDays: 3, mult: 1.1 },
     { minDays: 7, mult: 1.25 },
