@@ -1434,22 +1434,35 @@ export async function getRecentCookPhotos(userId: string, limit: number = 10): P
     }
   }
 
-  return data.map((row: any) => {
-    const photoPath = row.photo_path;
-    let photoUrl = photoPath;
-    if (photoPath && !photoPath.startsWith('http') && !photoPath.startsWith('data:')) {
-      const publicUrl = getClient().storage.from('cook-photos').getPublicUrl(photoPath).data.publicUrl;
-      photoUrl = publicUrl;
-    }
-    const recipeTitle = jobTitleMap[row.job_id] || 'Gekochtes Gericht';
-    return {
-      id: row.id,
-      jobId: row.job_id,
-      photoUrl,
-      cookedAt: row.cooked_at,
-      recipeTitle,
-    };
-  });
+  return Promise.all(
+    data.map(async (row: any) => {
+      const photoPath = row.photo_path;
+      let photoUrl = photoPath;
+      if (photoPath && !photoPath.startsWith('http') && !photoPath.startsWith('data:')) {
+        try {
+          const { data: signedData } = await getClient()
+            .storage
+            .from('cook-photos')
+            .createSignedUrl(photoPath, 60 * 60 * 24 * 7);
+          if (signedData?.signedUrl) {
+            photoUrl = signedData.signedUrl;
+          } else {
+            photoUrl = getClient().storage.from('cook-photos').getPublicUrl(photoPath).data.publicUrl;
+          }
+        } catch {
+          photoUrl = getClient().storage.from('cook-photos').getPublicUrl(photoPath).data.publicUrl;
+        }
+      }
+      const recipeTitle = jobTitleMap[row.job_id] || 'Gekochtes Gericht';
+      return {
+        id: row.id,
+        jobId: row.job_id,
+        photoUrl,
+        cookedAt: row.cooked_at,
+        recipeTitle,
+      };
+    })
+  );
 }
 
 export interface LedgerRow {
