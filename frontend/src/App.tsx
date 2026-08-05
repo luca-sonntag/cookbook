@@ -8,6 +8,7 @@ import { registerPushTapHandler, enablePushNotifications } from './push';
 import { parseSharedUrl } from './utils/shareUrl';
 import ExtractForm, { type ExtractMode } from './components/ExtractForm';
 import ActiveExtractions from './components/ActiveExtractions';
+import ExtractionAnimation from './components/ExtractionAnimation';
 import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog/index';
@@ -31,7 +32,7 @@ import { useI18n } from './context/I18nContext';
 import { useAuth } from './context/AuthContext';
 import { useGamification } from './context/GamificationContext';
 import { useHashRouter } from './hooks/useHashRouter';
-import { EXTRACTION_COMPLETE_EVENT, OPEN_RECIPE_EVENT } from './context/ExtractionJobsContext';
+import { EXTRACTION_COMPLETE_EVENT, OPEN_RECIPE_EVENT, useExtractionJobs } from './context/ExtractionJobsContext';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
 import { useTimerManager } from './hooks/useTimerManager';
@@ -223,6 +224,13 @@ export default function App() {
 
   // Which input channel the Extract tab is showing (shared link vs. own photos).
   const [extractMode, setExtractMode] = useState<ExtractMode>('link');
+
+  // Background extractions (premium multi-job flow). While at least one is
+  // running the Extract tab hides the form and shows the big ExtractionAnimation
+  // for the most recently started job, with the per-job boxes below it.
+  const { jobs: extractionJobs } = useExtractionJobs();
+  const runningExtractions = extractionJobs.filter(j => j.status !== 'completed' && j.status !== 'failed');
+  const latestRunning = runningExtractions.length ? runningExtractions[runningExtractions.length - 1] : null;
 
   const isViewingRecipe = !!selectedJob || (activeView === 'extract' && !!recipe);
 
@@ -652,12 +660,6 @@ export default function App() {
 
         {/* EXTRACT TAB */}
         <div hidden={activeView !== 'extract'} aria-hidden={activeView !== 'extract' || undefined}>
-          {/* Background extractions (premium multi-job flow) — shown only here. */}
-          {!recipe && (
-            <div className="mb-6">
-              <ActiveExtractions />
-            </div>
-          )}
           {recipe ? (
             /* Recipe Detail View — hides extract inputs once extraction is done */
             <RecipeDetails
@@ -688,8 +690,35 @@ export default function App() {
                 }
               }}
             />
+          ) : latestRunning ? (
+            /* Premium background extraction running: keep the animation (newest
+               job) on top, the per-job boxes below, and hide the form. Further
+               extractions are started via the native share intent. */
+            <div className="flex flex-col gap-6">
+              <ExtractionAnimation
+                key={latestRunning.id}
+                url={latestRunning.sourceLabel}
+                isPending
+                jobStatus={latestRunning.status}
+                progress={latestRunning.progress}
+                variant={latestRunning.mode === 'photo' ? 'photo' : 'link'}
+              />
+              <ActiveExtractions />
+              <ErrorBanner
+                isPending={false}
+                jobStatus={jobStatus}
+                jobError={jobError}
+                jobErrorCode={jobErrorCode}
+                jobErrorParams={jobErrorParams}
+                onRetry={() => extractMode === 'photo' ? triggerPhotoExtraction() : triggerExtraction(url)}
+              />
+            </div>
           ) : (
-            /* Extraction Form & Error Banner */
+            /* Extraction Form & Error Banner (finished/failed boxes above it) */
+            <>
+            <div className="mb-6">
+              <ActiveExtractions />
+            </div>
             <ExtractForm
               url={url}
               setUrl={setUrl}
@@ -717,6 +746,7 @@ export default function App() {
                 />
               }
             />
+            </>
           )}
         </div>
 
