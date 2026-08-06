@@ -28,7 +28,7 @@ export default function ShoppingCheckedDrawer({
   if (items.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] overflow-hidden">
+    <div className="rounded-2xl border border-black/5 dark:border-white/5 bg-white dark:bg-gray-900 overflow-hidden">
       <div className="flex items-center gap-2.5 w-full px-2.5 py-2 text-left select-none">
         <span className="w-5.5 h-5.5 rounded-md bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
           <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 stroke-[3px]" />

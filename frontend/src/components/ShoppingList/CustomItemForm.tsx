@@ -35,7 +35,7 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
 
   return (
     <div ref={addFormRef}>
-      <Card className="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/5">
+      <Card className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-none">
         <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider flex items-center gap-2">
           <Plus className="w-4 h-4 text-emerald-500" />
           <span>{t('shopping.addTitle')}</span>

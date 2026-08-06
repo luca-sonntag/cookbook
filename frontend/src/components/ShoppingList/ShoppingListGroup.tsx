@@ -41,7 +41,7 @@ export default function ShoppingListGroup({
         return (
           <div
             key={group.category}
-            className={`flex flex-col p-2 rounded-2xl border border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] transition-all hover:border-emerald-500/20 ${
+            className={`flex flex-col p-2.5 rounded-2xl border border-black/5 dark:border-white/5 bg-white dark:bg-gray-900 transition-all hover:border-emerald-500/20 ${
               isGroupCollapsing ? 'animate-group-collapse' : 'animate-group-expand'
             }`}
           >
