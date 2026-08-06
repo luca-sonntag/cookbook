@@ -163,7 +163,7 @@ export default function CatalogFilters({
           onPress={() => setIsSelectMode(!isSelectMode)}
           aria-label={t('catalog.selectModeToggle')}
         >
-          {isSelectMode ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+          <CheckSquare className="w-5 h-5" />
         </Button>
       </div>
 
