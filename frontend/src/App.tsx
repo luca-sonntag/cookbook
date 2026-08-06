@@ -741,13 +741,7 @@ export default function App() {
               />
             </div>
           ) : (
-            /* Extraction Form & Error Banner (finished/failed boxes above it) */
-            <>
-            {extractionJobs.length > 0 && (
-              <div className="mb-6">
-                <ActiveExtractions />
-              </div>
-            )}
+            /* Extraction Form & Error Banner */
             <ExtractForm
               url={url}
               setUrl={setUrl}
@@ -765,17 +759,19 @@ export default function App() {
               setPhotos={setPhotos}
               isUploadingPhotos={isUploadingPhotos}
               errorBanner={
-                <ErrorBanner
-                  isPending={isPending}
-                  jobStatus={jobStatus}
-                  jobError={jobError}
-                  jobErrorCode={jobErrorCode}
-                  jobErrorParams={jobErrorParams}
-                  onRetry={() => extractMode === 'photo' ? triggerPhotoExtraction() : triggerExtraction(url)}
-                />
+                <div className="flex flex-col gap-4">
+                  {extractionJobs.length > 0 && <ActiveExtractions />}
+                  <ErrorBanner
+                    isPending={isPending}
+                    jobStatus={jobStatus}
+                    jobError={jobError}
+                    jobErrorCode={jobErrorCode}
+                    jobErrorParams={jobErrorParams}
+                    onRetry={() => extractMode === 'photo' ? triggerPhotoExtraction() : triggerExtraction(url)}
+                  />
+                </div>
               }
             />
-            </>
           )}
         </div>
 
