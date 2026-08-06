@@ -215,7 +215,7 @@ export default function CookedModal({
               <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/15 p-3.5 flex items-start gap-3 text-rose-700 dark:text-rose-300">
                 <AlertTriangle className="w-5 h-5 shrink-0 text-rose-500 dark:text-rose-400 mt-0.5" />
                 <div className="space-y-1 text-xs">
-                  <p className="font-semibold text-rose-900 dark:text-rose-200">Verifizierung fehlgeschlagen</p>
+                  <p className="font-semibold text-rose-900 dark:text-rose-200">{t('app.gamification.rejectionTitle')}</p>
                   <p className="leading-normal text-rose-700 dark:text-rose-300/90">{rejectionReason}</p>
                 </div>
               </div>
@@ -239,7 +239,7 @@ export default function CookedModal({
                   setPhoto(null);
                   setRejectionReason(null);
                 }}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 px-4 py-3.5 text-xs font-bold text-white shadow-lg active:scale-[0.98] transition-all"
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/15 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 px-4 py-3.5 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer outline-none border-none"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>{t('app.gamification.retryPhoto')}</span>
