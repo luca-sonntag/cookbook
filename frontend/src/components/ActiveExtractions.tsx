@@ -52,12 +52,12 @@ export default function ActiveExtractions() {
           <div
             key={job.id}
             onClick={isDone ? open : undefined}
-            className={`relative flex items-center gap-3 px-4 py-3 rounded-2xl border overflow-hidden transition-all ${
+            className={`relative flex items-center gap-3 px-4 py-3.5 rounded-2xl overflow-hidden transition-all ${
               isDone
-                ? 'cursor-pointer active:scale-[0.99] border-emerald-500/20 bg-emerald-50/70 dark:bg-emerald-950/20'
+                ? 'cursor-pointer active:scale-[0.99] bg-emerald-500/10 dark:bg-emerald-500/15'
                 : isFailed
-                  ? 'border-red-500/20 bg-red-50/70 dark:bg-red-950/20'
-                  : 'border-black/5 dark:border-white/5 bg-white/60 dark:bg-gray-900/50'
+                  ? 'bg-rose-500/10 dark:bg-rose-500/15'
+                  : 'bg-black/5 dark:bg-white/5'
             }`}
           >
             {/* Progress track (running only) */}
@@ -72,7 +72,7 @@ export default function ActiveExtractions() {
               isDone
                 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                 : isFailed
-                  ? 'bg-red-500/10 text-red-500 dark:text-red-400'
+                  ? 'bg-rose-500/15 text-rose-500 dark:text-rose-400'
                   : 'bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-300'
             }`}>
               {isDone ? (
@@ -91,7 +91,7 @@ export default function ActiveExtractions() {
                   : job.sourceLabel}
               </p>
               <p className={`text-[11px] leading-snug ${
-                isFailed ? 'text-red-600 dark:text-red-400 whitespace-normal break-words' : 'text-gray-500 dark:text-gray-400 truncate'
+                isFailed ? 'text-rose-600 dark:text-rose-400 whitespace-normal break-words font-medium' : 'text-gray-500 dark:text-gray-400 truncate'
               }`}>
                 {isDone
                   ? t('activeExtractions.tapToOpen')
@@ -107,7 +107,7 @@ export default function ActiveExtractions() {
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); dismissJob(job.id); }}
-                className="relative shrink-0 w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-300 flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/20 transition-colors"
+                className="relative shrink-0 w-8 h-8 rounded-full bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-300 flex items-center justify-center transition-colors cursor-pointer outline-none border-none"
                 aria-label={t('activeExtractions.dismiss')}
               >
                 <X className="w-4 h-4" />
