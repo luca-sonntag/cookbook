@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Star, UtensilsCrossed } from 'lucide-react';
+import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Star } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeImageGallery from '../RecipeImageGallery';
 import { useI18n } from '../../context/I18nContext';
