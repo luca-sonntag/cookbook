@@ -132,4 +132,59 @@ export interface AggregatedShoppingItem {
   subItems?: { name: string; amount: number; unit: string; recipeTitle?: string }[];
 }
 
+// ── Gamification ─────────────────────────────────────────────────────────────
+// Mirror of the backend shapes returned by the gamification endpoints
+// (POST /api/jobs/:id/cooked, GET /api/me/gamification).
+
+export interface UserStats {
+  userId: string;
+  xp: number;
+  level: number;
+  coins: number;
+  currentStreak: number;
+  longestStreak: number;
+  lastCookDate: string | null;
+  totalCooks: number;
+  distinctRecipes?: number;
+}
+
+export interface BadgeInfo {
+  key: string;
+  earnedAt: string;
+}
+
+export interface EarnedReward {
+  xp: number;
+  coins: number;
+  reasons: string[];
+}
+
+/** Result of recording a cook — everything the reward overlay needs to animate. */
+export interface CookedResult {
+  stats: UserStats;
+  earned: EarnedReward;
+  newBadges: string[];
+  previousXp: number;
+  previousLevel: number;
+  leveledUp: boolean;
+  /** True when the tap was ignored as a rapid duplicate (no reward). */
+  duplicate?: boolean;
+}
+
+export interface CookPhotoItem {
+  id: string;
+  jobId: string;
+  photoUrl: string;
+  cookedAt: string;
+  recipeTitle?: string;
+}
+
+/** Snapshot for the progress tab. */
+export interface GamificationSnapshot {
+  stats: UserStats;
+  badges: BadgeInfo[];
+  levelThresholds: number[];
+  recentPhotos?: CookPhotoItem[];
+}
+
 

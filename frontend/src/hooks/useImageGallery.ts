@@ -1,14 +1,23 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSwipeBack } from './useSwipeBack';
 
-export function useImageGallery(images: string[]) {
+export function useImageGallery(
+  images: string[],
+  initialIndex: number | null = null,
+  onClose?: () => void
+) {
   // Fullscreen image state
-  const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(null);
+  const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(initialIndex);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [swipeTranslation, setSwipeTranslation] = useState(0);
+
+  // Sync initialIndex when it changes externally
+  useEffect(() => {
+    setFullscreenIndex(initialIndex);
+  }, [initialIndex]);
 
   // Pinch-to-zoom state
   const pinchStartDistanceRef = useRef<number | null>(null);
@@ -26,10 +35,17 @@ export function useImageGallery(images: string[]) {
 
   const closeFullscreen = useCallback(() => {
     setFullscreenIndex(null);
-  }, []);
+    onClose?.();
+  }, [onClose]);
+
+  const prevFullscreenIndexRef = useRef<number | null>(fullscreenIndex);
 
   useEffect(() => {
-    if (fullscreenIndex !== null) {
+    const wasOpen = prevFullscreenIndexRef.current !== null;
+    const isOpen = fullscreenIndex !== null;
+    prevFullscreenIndexRef.current = fullscreenIndex;
+
+    if (isOpen) {
       document.body.style.overflow = 'hidden';
       // Push a history state so browser back / Android back button can close the gallery
       window.history.pushState({ galleryOpen: true }, '');
@@ -37,7 +53,7 @@ export function useImageGallery(images: string[]) {
       setTimeout(() => {
         fullscreenContainerRef.current?.focus();
       }, 50);
-    } else {
+    } else if (wasOpen) {
       document.body.style.overflow = 'unset';
       setScale(1);
       setOffset({ x: 0, y: 0 });

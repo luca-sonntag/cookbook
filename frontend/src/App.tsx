@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
+import { Sparkles, BookOpen, ShoppingCart, User, Trophy } from 'lucide-react';
 
 import type { Job } from './types';
 import { apiUrl } from './api';
@@ -14,6 +14,7 @@ import { isCatalogListRoute } from './components/SavedCatalog/catalogRoutes';
 import ShoppingList from './components/ShoppingList';
 import AuthForm from './components/AuthForm';
 import SettingsView from './components/SettingsView';
+import ProgressView from './components/ProgressView';
 import TimerBanner from './components/TimerBanner';
 import WelcomeGuide from './components/WelcomeGuide';
 import AlphaWelcome from './components/AlphaWelcome';
@@ -27,6 +28,7 @@ import { useShoppingList } from './hooks/useShoppingList';
 import { useDialog } from './context/DialogContext';
 import { useI18n } from './context/I18nContext';
 import { useAuth } from './context/AuthContext';
+import { useGamification } from './context/GamificationContext';
 import { useHashRouter } from './hooks/useHashRouter';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
@@ -42,6 +44,8 @@ export default function App() {
   const dialog = useDialog();
   const { t } = useI18n();
   const { user, loading: authLoading, getAccessToken } = useAuth();
+  const { snapshot: gamificationSnapshot } = useGamification();
+  const userLevel = gamificationSnapshot?.stats?.level ?? null;
 
   // ── URL-based routing ────────────────────────────────────────────────────
   const { tab: activeView, subPath, navigate, replace } = useHashRouter();
@@ -738,6 +742,15 @@ export default function App() {
           />
         </div>
 
+        {/* PROGRESS TAB */}
+        <div hidden={activeView !== 'progress'} aria-hidden={activeView !== 'progress' || undefined}>
+          <ProgressView
+            onSelectRecipe={(jobId) => {
+              navigate('history', jobId);
+            }}
+          />
+        </div>
+
         {/* SETTINGS TAB */}
         <div hidden={activeView !== 'settings'} aria-hidden={activeView !== 'settings' || undefined}>
           <SettingsView />
@@ -767,7 +780,14 @@ export default function App() {
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
-                <Sparkles className="w-5.5 h-5.5 mb-1" />
+                <div className="relative">
+                  <Sparkles className="w-5.5 h-5.5 mb-1" />
+                  {isPending && (
+                    <span className="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-gray-900 shadow-sm">
+                      <span className="h-2.5 w-2.5 rounded-full border-[1.5px] border-emerald-600 dark:border-emerald-400 border-t-transparent animate-spin" />
+                    </span>
+                  )}
+                </div>
                 <span className="text-[11px] tracking-wide font-medium">{t('app.nav.newRecipe')}</span>
                 {activeView === 'extract' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
@@ -818,6 +838,28 @@ export default function App() {
                 </div>
                 <span className="text-[11px] tracking-wide font-medium">{t('app.nav.shoppingList')}</span>
                 {activeView === 'shopping-list' && (
+                  <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                )}
+              </button>
+
+              {/* Progress Tab */}
+              <button
+                onClick={() => navigate('progress')}
+                className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'progress'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+              >
+                <div className="relative">
+                  <Trophy className="w-5.5 h-5.5 mb-1" />
+                  {userLevel !== null && (
+                    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[9px] font-black text-white leading-none">
+                      {userLevel}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[11px] tracking-wide font-medium">{t('app.nav.progress')}</span>
+                {activeView === 'progress' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
               </button>

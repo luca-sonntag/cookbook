@@ -1394,3 +1394,129 @@ Respond in JSON only: {"title":"…","body":"…","theme":"…","emoji":"…"}`;
     return null;
   }
 }
+
+const cookPhotoVerificationSchema = {
+  type: FunctionDeclarationSchemaType.OBJECT,
+  properties: {
+    isMatchingDish: {
+      type: FunctionDeclarationSchemaType.BOOLEAN,
+      description: 'True if the photo shows a prepared dish or food item that plausibly matches or belongs to the target recipe. Set false if it shows something completely unrelated (e.g. shoes, animals, raw ingredients without preparation, empty plates, non-food items, or a completely different dish like a cup of coffee when the recipe is a pizza).',
+    },
+    confidence: {
+      type: FunctionDeclarationSchemaType.NUMBER,
+      description: 'Confidence level between 0.0 and 1.0 that the image depicts the recipe.',
+    },
+    reasoning: {
+      type: FunctionDeclarationSchemaType.STRING,
+      description: 'Short 1-2 sentence explanation in German of why the photo matches or does not match the recipe. NEVER mention AI, KI, artificial intelligence, or algorithms (e.g. use "Das Foto zeigt..." instead of "Die KI meint...").',
+    },
+  },
+  required: ['isMatchingDish', 'confidence', 'reasoning'],
+};
+
+export interface VerificationResult {
+  isMatchingDish: boolean;
+  confidence: number;
+  reasoning: string;
+}
+
+/**
+ * Verify whether a photo uploaded by the user matches the target recipe using Gemini Vision.
+ */
+export async function verifyCookedDishPhoto(
+  recipe: Recipe,
+  photoBase64: string,
+): Promise<VerificationResult> {
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+
+  try {
+    const cleanBase64 = photoBase64.replace(/^data:image\/\w+;base64,/, '');
+    const mimeMatch = photoBase64.match(/^data:(image\/\w+);base64,/);
+    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+
+    const model = genAI.getGenerativeModel({
+      model: config.GEMINI_MODEL,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: cookPhotoVerificationSchema,
+        temperature: 0.1,
+      } as any,
+    });
+
+    const ingredientsSummary = recipe.ingredients
+      ? recipe.ingredients.flatMap((g) => g.items.map((i) => i.name)).slice(0, 15).join(', ')
+      : '';
+
+    const prompt = `You are a culinary vision evaluator. The user claims they cooked the following recipe and uploaded a photo of their finished dish.
+
+Target Recipe Details:
+- Title: "${recipe.title}"
+- Description: "${recipe.description ?? ''}"
+- Key Ingredients: ${ingredientsSummary}
+
+Carefully evaluate the attached photo. Does this photo depict a cooked dish or food preparation that reasonably corresponds to "${recipe.title}"?
+- Be tolerant of home-cooking presentation variations, different plating, side dishes, or minor color differences.
+- Reject photos if they show non-food items, empty surfaces, raw uncooked single ingredients (like a single unpeeled onion), or a completely different food category (e.g. coffee/cake when recipe is soup/steak).
+
+IMPORTANT:
+- Provide your answer in the structured JSON schema format with reasoning in German.
+- Do NOT mention AI, KI, artificial intelligence, algorithms, or automated systems in your reasoning. Phrase your reasoning naturally (e.g. "Das Foto zeigt eine Suppe, das Rezept ist aber für eine Pizza.").`;
+
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          data: cleanBase64,
+          mimeType,
+        },
+      },
+    ]);
+
+    const text = result.response.text();
+    const parsed = JSON.parse(text) as VerificationResult;
+
+    const usageMeta = result.response.usageMetadata;
+    const tokenUsage: TokenUsage | undefined = usageMeta
+      ? {
+          promptTokens: usageMeta.promptTokenCount ?? 0,
+          candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+          totalTokens: usageMeta.totalTokenCount ?? 0,
+        }
+      : undefined;
+    const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
+
+    void writeGeminiLog({
+      timestamp,
+      requestType: 'verify_cook_photo',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: true,
+      input: { recipeTitle: recipe.title },
+      rawOutput: text,
+      tokenUsage,
+      costEstimate,
+    });
+
+    return {
+      isMatchingDish: !!parsed.isMatchingDish,
+      confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0,
+      reasoning: parsed.reasoning || (parsed.isMatchingDish ? 'Foto verifiziert.' : 'Foto konnte nicht verifiziert werden.'),
+    };
+  } catch (err: any) {
+    console.error('[verifyCookedDishPhoto] Error:', err);
+    void writeGeminiLog({
+      timestamp,
+      requestType: 'verify_cook_photo',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: false,
+      error: err?.message ?? String(err),
+      input: { recipeTitle: recipe.title },
+    });
+    throw new AppError('PHOTO_NOT_MATCHING', {
+      params: { reason: 'Die Foto-Verifizierung ist fehlgeschlagen. Bitte versuche es erneut.' },
+    });
+  }
+}
+

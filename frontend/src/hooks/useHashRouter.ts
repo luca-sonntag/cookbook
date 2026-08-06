@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export type AppTab = 'extract' | 'history' | 'shopping-list' | 'settings' | 'admin';
+export type AppTab = 'extract' | 'history' | 'shopping-list' | 'progress' | 'settings' | 'admin';
 
 export interface ParsedRoute {
   /** The active bottom-nav tab */
@@ -24,6 +24,8 @@ function parseHash(hash: string): ParsedRoute {
       return { tab: 'extract', subPath };
     case 'shopping-list':
       return { tab: 'shopping-list', subPath };
+    case 'progress':
+      return { tab: 'progress', subPath };
     case 'settings':
       return { tab: 'settings', subPath };
     case 'admin':

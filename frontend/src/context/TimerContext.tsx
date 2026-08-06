@@ -32,6 +32,12 @@ interface TimerContextValue {
   dismissAllFinished: () => void;
   pendingNavigation: PendingTimerNavigation | null;
   setPendingNavigation: (nav: PendingTimerNavigation | null) => void;
+  /**
+   * Recipe IDs whose timer has elapsed at least once this session. Persists
+   * across dismiss/remove so a cook recorded *after* the user dismissed the
+   * alarm still counts as timerElapsed. Not cleared on dismiss.
+   */
+  finishedRecipeIds: string[];
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -172,6 +178,8 @@ function generateId(): string {
 export function TimerProvider({ children }: { children: React.ReactNode }) {
   const [timers, setTimers] = useState<TimerEntry[]>([]);
   const [pendingNavigation, setPendingNavigation] = useState<PendingTimerNavigation | null>(null);
+  // Recipe IDs whose timer elapsed this session — survives dismiss/remove.
+  const [finishedRecipeIds, setFinishedRecipeIds] = useState<string[]>([]);
 
   // Ref mirror of timers — always current, readable inside intervals without stale closure
   const timersRef = useRef<TimerEntry[]>([]);
@@ -258,6 +266,13 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         setTimers(prev =>
           prev.map(t => expiredIds.has(t.id) ? { ...t, isFinished: true } : t)
         );
+        // Record elapsed recipe IDs persistently (survives dismiss/remove).
+        const elapsedRecipeIds = newlyExpired
+          .map(t => t.recipeId)
+          .filter((id): id is string => !!id);
+        if (elapsedRecipeIds.length > 0) {
+          setFinishedRecipeIds(prev => Array.from(new Set([...prev, ...elapsedRecipeIds])));
+        }
       } else if (hasRunning) {
         // Force re-render of context to update countdown times
         setTimers(prev => [...prev]);
@@ -318,6 +333,12 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         setTimers(prev =>
           prev.map(t => expiredIds.has(t.id) ? { ...t, isFinished: true } : t)
         );
+        const elapsedRecipeIds = missedExpiry
+          .map(t => t.recipeId)
+          .filter((id): id is string => !!id);
+        if (elapsedRecipeIds.length > 0) {
+          setFinishedRecipeIds(prev => Array.from(new Set([...prev, ...elapsedRecipeIds])));
+        }
       }
 
       // ── Reconcile cleared notifications (native only) ──
@@ -423,7 +444,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <TimerContext.Provider value={{ timers, addTimer, removeTimer, dismissFinished, dismissAllFinished, pendingNavigation, setPendingNavigation }}>
+    <TimerContext.Provider value={{ timers, addTimer, removeTimer, dismissFinished, dismissAllFinished, pendingNavigation, setPendingNavigation, finishedRecipeIds }}>
       {children}
     </TimerContext.Provider>
   );

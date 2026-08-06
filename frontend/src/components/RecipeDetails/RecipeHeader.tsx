@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Star } from 'lucide-react';
+import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Plus, Star, UtensilsCrossed } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeImageGallery from '../RecipeImageGallery';
 import { useI18n } from '../../context/I18nContext';
 import { isPhotoImportUrl } from '../../utils/photoImport';
+import { useCookHistory } from '../../hooks/useCookHistory';
+import { formatRelative } from '../../utils/formatRelative';
 
 interface RecipeHeaderProps {
   recipe: Recipe;
@@ -23,6 +25,7 @@ interface RecipeHeaderProps {
   flags?: string[];
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  cookRefreshKey?: number;
 }
 
 export default function RecipeHeader({
@@ -42,9 +45,11 @@ export default function RecipeHeader({
   flags,
   isFavorite = false,
   onToggleFavorite,
+  cookRefreshKey = 0,
 }: RecipeHeaderProps) {
   const { t, language } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { history } = useCookHistory(recipe.id, cookRefreshKey);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   // The description is clamped to two lines so the ingredient list starts
@@ -68,9 +73,8 @@ export default function RecipeHeader({
               isIconOnly
               variant="outline"
               onClick={onToggleFavorite}
-              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center transition-all ${
-                isFavorite ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center transition-all ${isFavorite ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
               aria-label="Toggle Favorite"
             >
               <Star className={`w-5 h-5 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
@@ -241,10 +245,40 @@ export default function RecipeHeader({
             )}
           </div>
         )}
-        {createdAt && (
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-medium">
-            {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
-          </p>
+        {(createdAt || (history && history.count > 0)) && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400 dark:text-gray-500 font-medium mt-1 select-none">
+            {createdAt && (
+              <span>
+                {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
+              </span>
+            )}
+            {createdAt && history && history.count > 0 && <span>·</span>}
+            {history && history.count > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('cook-history');
+                  if (el) {
+                    const stickyTopHeight = parseInt(
+                      getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
+                      10
+                    );
+                    const offset = stickyTopHeight + 80;
+                    const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+                    window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
+                  }
+                }}
+                className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer outline-none bg-transparent p-0 border-none transition-colors"
+              >
+                <span>{t('app.gamification.cookedChip', { count: history.count })}</span>
+                {history.lastCookedAt && (
+                  <span className="text-gray-400 dark:text-gray-500 font-normal">
+                    · {t('app.gamification.cookedChipLast', { when: formatRelative(history.lastCookedAt, language) })}
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
         )}
       </div>
     </>
