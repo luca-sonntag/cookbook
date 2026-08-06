@@ -240,15 +240,15 @@ export default function ExtractForm({
             className="flex flex-col gap-3"
           >
             {/* Input channel switch: a shared link vs. your own photos. */}
-            <div className="flex items-center gap-1 p-1 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-1 p-1 rounded-2xl bg-gray-100/80 dark:bg-white/5 border border-black/5 dark:border-white/5">
               {(['link', 'photo'] as const).map((option) => (
                 <button
                   key={option}
                   type="button"
                   onClick={() => setMode(option)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 ${mode === option
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer outline-none border-none ${mode === option
                     ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
                 >
                   {option === 'link' ? <Link2 className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
@@ -353,7 +353,7 @@ export default function ExtractForm({
                 <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <Input
                   placeholder={t('form.urlPlaceholderShort')}
-                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl pl-11 !pr-12 py-4 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-white/10 rounded-2xl pl-11 !pr-12 py-3.5 text-sm text-gray-900 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all"
                   disabled={isPending}
                 />
                 <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
