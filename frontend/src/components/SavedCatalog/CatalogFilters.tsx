@@ -197,7 +197,7 @@ export default function CatalogFilters({
           className={`relative h-11 min-w-[44px] px-3 rounded-xl border flex items-center gap-1.5 text-xs font-semibold active:scale-95 transition-all shrink-0 cursor-pointer ${
             hasActiveChips
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/10'
-              : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10'
+              : 'bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-emerald-500/50 shadow-xs'
           }`}
           aria-label={t('catalog.filterTitle')}
         >
