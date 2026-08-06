@@ -759,17 +759,19 @@ export default function App() {
               setPhotos={setPhotos}
               isUploadingPhotos={isUploadingPhotos}
               errorBanner={
-                <div className="flex flex-col gap-4">
-                  {extractionJobs.length > 0 && <ActiveExtractions />}
-                  <ErrorBanner
-                    isPending={isPending}
-                    jobStatus={jobStatus}
-                    jobError={jobError}
-                    jobErrorCode={jobErrorCode}
-                    jobErrorParams={jobErrorParams}
-                    onRetry={() => extractMode === 'photo' ? triggerPhotoExtraction() : triggerExtraction(url)}
-                  />
-                </div>
+                (extractionJobs.length > 0 || (jobStatus === 'failed' && jobErrorCode !== 'RATE_LIMIT_EXCEEDED')) ? (
+                  <div className="flex flex-col gap-3">
+                    {extractionJobs.length > 0 && <ActiveExtractions />}
+                    <ErrorBanner
+                      isPending={isPending}
+                      jobStatus={jobStatus}
+                      jobError={jobError}
+                      jobErrorCode={jobErrorCode}
+                      jobErrorParams={jobErrorParams}
+                      onRetry={() => extractMode === 'photo' ? triggerPhotoExtraction() : triggerExtraction(url)}
+                    />
+                  </div>
+                ) : null
               }
             />
           )}

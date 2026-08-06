@@ -218,7 +218,7 @@ export default function ExtractForm({
   ];
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-4 w-full">
       {/* Premium Upgrade Promotion — displayed at very top */}
       {!isPending && !hideUpgradeCard && (
         <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
