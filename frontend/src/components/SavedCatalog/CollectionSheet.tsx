@@ -450,7 +450,7 @@ export default function CollectionSheet({
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder={t('catalog.collectionPlaceholder') || 'z.B. Sonntagsbrunch'}
-                        className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-4 py-3 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                        className="w-full bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-xs"
                       />
                     </div>
 
