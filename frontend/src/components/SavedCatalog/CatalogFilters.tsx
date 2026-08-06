@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Button } from '@heroui/react';
-import { Search, List, LayoutGrid, CheckSquare, Square, ArrowLeft, Star, Tag, SlidersHorizontal, X, Clock } from 'lucide-react';
+import { Search, List, LayoutGrid, CheckSquare, ArrowLeft, Star, Tag, SlidersHorizontal, X, Clock } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import type { Collection } from '../../types';
 import { EMPTY_FILTERS, type CatalogFilterState, type CatalogSort } from '../../hooks/useSavedCatalog';
