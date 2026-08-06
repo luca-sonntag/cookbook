@@ -219,11 +219,11 @@ export default function ExtractForm({
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      {errorBanner}
-      {/* Premium Upgrade Promotion — displayed at top */}
+      {/* Premium Upgrade Promotion — displayed at very top */}
       {!isPending && !hideUpgradeCard && (
         <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
       )}
+      {errorBanner}
       {/* Input Card or Extraction Animation Card */}
       {isPending ? (
         <ExtractionAnimation
