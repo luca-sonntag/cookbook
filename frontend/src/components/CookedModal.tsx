@@ -212,7 +212,7 @@ export default function CookedModal({
 
             {/* Rejection Message if AI rejected previous attempt */}
             {rejectionReason && (
-              <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/15 p-3.5 flex items-start gap-3 text-rose-700 dark:text-rose-300">
+              <div className="rounded-2xl bg-rose-500/5 dark:bg-rose-500/10 p-3.5 flex items-start gap-3 text-rose-700 dark:text-rose-300">
                 <AlertTriangle className="w-5 h-5 shrink-0 text-rose-500 dark:text-rose-400 mt-0.5" />
                 <div className="space-y-1 text-xs">
                   <p className="font-semibold text-rose-900 dark:text-rose-200">{t('app.gamification.rejectionTitle')}</p>

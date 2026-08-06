@@ -35,7 +35,7 @@ export default function ErrorBanner({
   const canRetry = isRetryableError(jobErrorCode, jobError);
 
   return (
-    <div className="p-4 rounded-2xl bg-rose-500/10 dark:bg-rose-500/15">
+    <div className="p-4 rounded-2xl bg-rose-500/5 dark:bg-rose-500/10">
       <div className="flex items-start gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/15 text-rose-500 dark:text-rose-400">
           <AlertCircle className="h-5 w-5" />

@@ -56,7 +56,7 @@ export default function ActiveExtractions() {
               isDone
                 ? 'cursor-pointer active:scale-[0.99] bg-emerald-500/10 dark:bg-emerald-500/15'
                 : isFailed
-                  ? 'bg-rose-500/10 dark:bg-rose-500/15'
+                  ? 'bg-rose-500/5 dark:bg-rose-500/10'
                   : 'bg-black/5 dark:bg-white/5'
             }`}
           >
