@@ -45,7 +45,11 @@ import {
   restoreJob, 
   getRecentCookPhotos, 
   getDistinctCookedRecipeCount, 
-  getCookHistoryForJob
+  getCookHistoryForJob,
+  uploadCookPhoto,
+  getUserStats,
+  getUserBadgesDetailed,
+  getGamificationConfig
 } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
