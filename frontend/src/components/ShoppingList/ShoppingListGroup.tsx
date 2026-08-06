@@ -42,11 +42,11 @@ export default function ShoppingListGroup({
         return (
           <div
             key={group.category}
-            className={`flex flex-col p-2.5 rounded-2xl border border-black/5 dark:border-white/5 bg-white dark:bg-gray-900 transition-all hover:border-emerald-500/20 ${
+            className={`flex flex-col p-2.5 rounded-2xl bg-white dark:bg-gray-900 shadow-[0_2px_6px_rgba(0,0,0,0.03)] transition-all ${
               isGroupCollapsing ? 'animate-group-collapse' : 'animate-group-expand'
             }`}
           >
-            <div className="flex items-center justify-between gap-2 px-2 pt-1 pb-2 mb-0.5 border-b border-black/5 dark:border-white/5">
+            <div className="flex items-center justify-between gap-2 px-2 pt-1 pb-2 mb-0.5">
               <div className="flex items-center gap-2.5 select-none flex-1 min-w-0 text-left">
                 <span className="w-5 h-5 flex items-center justify-center flex-shrink-0 text-base">
                   {icon}

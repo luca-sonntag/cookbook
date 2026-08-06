@@ -31,7 +31,7 @@ export default function ShoppingCheckedDrawer({
   if (items.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-black/5 dark:border-white/5 bg-white dark:bg-gray-900 overflow-hidden transition-all">
+    <div className="rounded-2xl bg-white dark:bg-gray-900 shadow-[0_2px_6px_rgba(0,0,0,0.03)] overflow-hidden transition-all">
       <button
         type="button"
         onClick={() => setIsExpanded((prev) => !prev)}
@@ -52,7 +52,7 @@ export default function ShoppingCheckedDrawer({
       </button>
 
       {isExpanded && (
-        <ul className="flex flex-col gap-1 px-1.5 pb-2 pt-1 border-t border-black/5 dark:border-white/5 animate-fade-in">
+        <ul className="flex flex-col gap-1 px-1.5 pb-2 pt-1 animate-fade-in">
           {items.map((item) => {
             const displayKey = `checked-${getItemKey(item)}`;
             return (
