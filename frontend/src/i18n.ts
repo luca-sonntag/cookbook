@@ -975,20 +975,20 @@ export const uiTranslations = {
         },
         features: {
           extractions: {
-            title: 'Unbegrenzt Rezepte',
-            desc: 'Rezepte aus Social Media & Web importieren.'
+            title: 'Unbegrenzt & Multi-Import',
+            desc: 'Rezepte aus Reels, Web & Fotos importieren — auch im Hintergrund.'
           },
           remix: {
             title: 'Rezept-KI-Chat',
-            desc: 'Rezepte flexibel per Chat anpassen.'
+            desc: 'Rezepte per Chat anpassen, Zutaten ersetzen & Kochtipps holen.'
           },
           nutrition: {
             title: 'Nährwerte & Makros',
-            desc: 'Zutaten & Portionen im Blick behalten.'
+            desc: 'Kalorien, Makros & Portionen auf einen Blick.'
           },
           shoppingList: {
             title: 'Smarte Einkaufsliste',
-            desc: 'Zutaten automatisch kombinieren.'
+            desc: 'Zutaten aus allen Rezepten automatisch kombinieren.'
           }
         }
       },
@@ -1835,20 +1835,20 @@ export const uiTranslations = {
         },
         features: {
           extractions: {
-            title: 'Unlimited Recipes',
-            desc: 'Import recipes from social media & web.'
+            title: 'Unlimited & Multi-Import',
+            desc: 'Import recipes from reels, web & photos — even in background.'
           },
           remix: {
             title: 'Recipe AI Chat',
-            desc: 'Adapt recipes dynamically via chat.'
+            desc: 'Adapt recipes via chat, replace ingredients & get cooking tips.'
           },
           nutrition: {
             title: 'Nutrition & Macros',
-            desc: 'Keep track of ingredients & portions.'
+            desc: 'Calories, macros & portion breakdowns at a glance.'
           },
           shoppingList: {
             title: 'Smart Shopping List',
-            desc: 'Combine shopping items automatically.'
+            desc: 'Combine ingredients from all recipes automatically.'
           }
         }
       },
