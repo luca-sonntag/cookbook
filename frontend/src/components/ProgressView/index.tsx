@@ -96,7 +96,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
       </h1>
 
       {/* 1. Hero Level & Culinary Rank Card */}
-      <div className="rounded-3xl bg-white dark:bg-gray-900 p-5 border border-black/5 dark:border-white/5 shadow-sm">
+      <div className="rounded-3xl bg-white dark:bg-gray-900 p-5 border border-black/5 dark:border-white/5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
@@ -122,7 +122,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
 
         <div className="mt-4 space-y-1.5">
           <div className="flex justify-between text-xs font-semibold text-gray-500 dark:text-gray-400">
-            <span>{t('app.gamification.progressLabel') || 'Fortschritt'}</span>
+            <span>{t('app.gamification.progressLabel') !== 'app.gamification.progressLabel' ? t('app.gamification.progressLabel') : 'Fortschritt'}</span>
             <span>
               {toNext == null
                 ? t('app.gamification.maxLevel')
@@ -182,7 +182,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
             setShowLeaderboardNotice(true);
             setTimeout(() => setShowLeaderboardNotice(false), 3000);
           }}
-          className="w-full flex items-center gap-3.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-left border border-black/5 dark:border-white/5 shadow-sm transition-all active:scale-[0.98] cursor-pointer outline-none"
+          className="w-full flex items-center gap-3.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-left border border-black/5 dark:border-white/5 transition-all active:scale-[0.98] cursor-pointer outline-none"
         >
           <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-amber-500 bg-amber-500/10 dark:bg-amber-500/20">
             <Trophy className="h-5 w-5" />
@@ -211,7 +211,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
       </div>
 
       {/* 2. "Deine Koch-Galerie" (Food Photo Feed) */}
-      <div className="rounded-3xl bg-white dark:bg-gray-900 p-5 border border-black/5 dark:border-white/5 shadow-sm space-y-4">
+      <div className="rounded-3xl bg-white dark:bg-gray-900 p-5 border border-black/5 dark:border-white/5 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Camera className="h-4.5 w-4.5 text-emerald-500" />
@@ -259,7 +259,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
       </div>
 
       {/* 3. Badges Grid (Flat & Clean) */}
-      <div className="rounded-3xl bg-white dark:bg-gray-900 p-5 border border-black/5 dark:border-white/5 shadow-sm space-y-4">
+      <div className="rounded-3xl bg-white dark:bg-gray-900 p-5 border border-black/5 dark:border-white/5 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Award className="h-4.5 w-4.5 text-emerald-500" />
@@ -352,7 +352,7 @@ function StatTile({
       <button
         type="button"
         onClick={onClick}
-        className="flex flex-col items-center justify-between gap-1.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-center border border-black/5 dark:border-white/5 shadow-sm transition-all active:scale-95 cursor-pointer w-full h-full"
+        className="flex flex-col items-center justify-between gap-1.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-center border border-black/5 dark:border-white/5 transition-all active:scale-95 cursor-pointer w-full h-full"
       >
         {content}
       </button>
@@ -360,7 +360,7 @@ function StatTile({
   }
 
   return (
-    <div className="flex flex-col items-center justify-between gap-1.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-center border border-black/5 dark:border-white/5 shadow-sm w-full h-full">
+    <div className="flex flex-col items-center justify-between gap-1.5 rounded-3xl bg-white dark:bg-gray-900 p-4 text-center border border-black/5 dark:border-white/5 w-full h-full">
       {content}
     </div>
   );
