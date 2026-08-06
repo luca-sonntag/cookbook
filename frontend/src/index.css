@@ -302,10 +302,16 @@ html.dark .glass-panel {
   from {
     grid-template-rows: 1fr;
     opacity: 1;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    border-color: inherit;
   }
   to {
     grid-template-rows: 0fr;
     opacity: 0;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    border-color: transparent;
   }
 }
 
@@ -313,10 +319,16 @@ html.dark .glass-panel {
   from {
     grid-template-rows: 0fr;
     opacity: 0;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    border-color: transparent;
   }
   to {
     grid-template-rows: 1fr;
     opacity: 1;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    border-color: inherit;
   }
 }
 
