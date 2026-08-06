@@ -252,15 +252,32 @@ html.dark .glass-panel {
 
 /* CSS Grid Animations for item collapse/expand without hardcoded max-height */
 @keyframes item-collapse {
-  from {
+  0% {
     grid-template-rows: 1fr;
     opacity: 1;
     transform: translateX(0);
+    max-height: 200px;
+    margin-bottom: 0px;
   }
-  to {
+  100% {
     grid-template-rows: 0fr;
     opacity: 0;
     transform: translateX(10px);
+    max-height: 0px;
+    margin-bottom: -0.25rem;
+  }
+}
+
+@keyframes item-collapse-child {
+  0% {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+    min-height: 40px;
+  }
+  100% {
+    padding-top: 0px;
+    padding-bottom: 0px;
+    min-height: 0px;
   }
 }
 
@@ -280,11 +297,13 @@ html.dark .glass-panel {
 .animate-item-collapse {
   display: grid;
   animation: item-collapse 0.2s ease-out forwards;
+  overflow: hidden;
 }
 
 .animate-item-collapse > * {
-  overflow: hidden;
-  min-height: 0;
+  overflow: hidden !important;
+  min-height: 0 !important;
+  animation: item-collapse-child 0.2s ease-out forwards;
 }
 
 .animate-item-expand {
@@ -299,16 +318,18 @@ html.dark .glass-panel {
 
 /* CSS Grid Animations for category groups shifting */
 @keyframes group-collapse {
-  from {
+  0% {
     grid-template-rows: 1fr;
     opacity: 1;
+    max-height: 2000px;
     padding-top: 0.625rem;
     padding-bottom: 0.625rem;
     border-color: inherit;
   }
-  to {
+  100% {
     grid-template-rows: 0fr;
     opacity: 0;
+    max-height: 0px;
     padding-top: 0px;
     padding-bottom: 0px;
     border-color: transparent;
@@ -335,11 +356,12 @@ html.dark .glass-panel {
 .animate-group-collapse {
   display: grid;
   animation: group-collapse 0.2s ease-out forwards;
+  overflow: hidden;
 }
 
 .animate-group-collapse > * {
-  overflow: hidden;
-  min-height: 0;
+  overflow: hidden !important;
+  min-height: 0 !important;
 }
 
 .animate-group-expand {

@@ -63,13 +63,13 @@ export default function ShoppingList({
     });
     setTimeout(() => {
       action();
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         setCollapsingKeys((prev) => {
           const next = new Set(prev);
           keys.forEach((k) => next.delete(k));
           return next;
         });
-      }, 50);
+      });
     }, 200);
   };
 
