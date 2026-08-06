@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button, Drawer } from '@heroui/react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Check } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { uiTranslations } from '../../i18n';
 
@@ -12,27 +12,39 @@ interface CustomItemFormProps {
 
 export default function CustomItemForm({ isOpen, addCustomItem, onClose }: CustomItemFormProps) {
   const { t, language } = useI18n();
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Manual item state
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [unit, setUnit] = useState('');
+  const [lastAddedName, setLastAddedName] = useState<string | null>(null);
 
   // Quick unit suggestions
   const suggestions = uiTranslations[language].shopping.suggestionsList;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
 
     const numAmount = parseFloat(amount.replace(',', '.'));
-    addCustomItem(name.trim(), isNaN(numAmount) ? 0 : numAmount, unit.trim());
+    addCustomItem(trimmedName, isNaN(numAmount) ? 0 : numAmount, unit.trim());
 
-    // Reset state and close sheet
+    // Show temporary confirmation badge for multi-add feedback
+    setLastAddedName(trimmedName);
+    setTimeout(() => {
+      setLastAddedName((prev) => (prev === trimmedName ? null : prev));
+    }, 2500);
+
+    // Reset state & keep focus for immediate continuous entry
     setName('');
     setAmount('');
     setUnit('');
-    onClose();
+
+    requestAnimationFrame(() => {
+      nameInputRef.current?.focus();
+    });
   };
 
   return (
@@ -45,18 +57,26 @@ export default function CustomItemForm({ isOpen, addCustomItem, onClose }: Custo
 
               <Drawer.Header className="border-b border-black/5 dark:border-white/5 pb-3 mb-3">
                 <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
                       <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <Drawer.Heading className="text-base font-bold text-gray-900 dark:text-white">
-                      {t('shopping.addTitle')}
-                    </Drawer.Heading>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Drawer.Heading className="text-base font-bold text-gray-900 dark:text-white truncate">
+                        {t('shopping.addTitle')}
+                      </Drawer.Heading>
+                      {lastAddedName && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-fade-in truncate">
+                          <Check className="w-3 h-3 stroke-[3px]" />
+                          <span className="truncate">"{lastAddedName}"</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <Button
                     isIconOnly
                     variant="tertiary"
-                    className="w-8 h-8 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-500"
+                    className="w-8 h-8 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 flex-shrink-0"
                     onPress={onClose}
                   >
                     <X className="w-4 h-4" />
@@ -65,9 +85,11 @@ export default function CustomItemForm({ isOpen, addCustomItem, onClose }: Custo
               </Drawer.Header>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-3 pt-1">
+                {/* Optimized 7-2-3 Grid layout for mobile proportions */}
                 <div className="grid grid-cols-12 gap-2">
-                  <div className="col-span-6 md:col-span-6">
+                  <div className="col-span-7">
                     <input
+                      ref={nameInputRef}
                       type="text"
                       autoFocus
                       placeholder={t('shopping.placeholderName')}
@@ -77,22 +99,23 @@ export default function CustomItemForm({ isOpen, addCustomItem, onClose }: Custo
                       required
                     />
                   </div>
-                  <div className="col-span-3 md:col-span-3">
+                  <div className="col-span-2">
                     <input
                       type="text"
+                      inputMode="decimal"
                       placeholder={t('shopping.placeholderAmount')}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-2 py-2.5 text-base text-center text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none tabular-nums"
                     />
                   </div>
-                  <div className="col-span-3 md:col-span-3">
+                  <div className="col-span-3">
                     <input
                       type="text"
                       placeholder={t('shopping.placeholderUnit')}
                       value={unit}
                       onChange={(e) => setUnit(e.target.value)}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-2.5 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -127,5 +150,3 @@ export default function CustomItemForm({ isOpen, addCustomItem, onClose }: Custo
     </div>
   );
 }
-
-
