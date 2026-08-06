@@ -112,6 +112,8 @@ export default function App() {
     aggregatedList,
     addRecipeIngredients,
     addCustomItem,
+    toggleItemIds,
+    deleteItemIds,
     toggleItemGroup,
     deleteItemGroup,
     clearAll,
@@ -818,6 +820,8 @@ export default function App() {
           <ShoppingList
             aggregatedList={aggregatedList}
             addCustomItem={addCustomItem}
+            toggleItemIds={toggleItemIds}
+            deleteItemIds={deleteItemIds}
             toggleItemGroup={toggleItemGroup}
             deleteItemGroup={deleteItemGroup}
             clearAll={clearAll}

@@ -128,6 +128,7 @@ export interface AggregatedShoppingItem {
   checked: boolean;
   category?: string;
   modifier?: string;
+  itemIds: string[];
   sources: { recipeId?: string; recipeTitle?: string; amount: number; unit: string }[];
   subItems?: { name: string; amount: number; unit: string; recipeTitle?: string }[];
 }

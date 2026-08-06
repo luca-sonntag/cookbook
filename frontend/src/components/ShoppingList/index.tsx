@@ -20,6 +20,8 @@ interface ShoppingListProps {
     checked: AggregatedShoppingItem[];
   };
   addCustomItem: (name: string, amount: number, unit: string) => void;
+  toggleItemIds?: (itemIds: string[], targetChecked: boolean) => void;
+  deleteItemIds?: (itemIds: string[]) => void;
   toggleItemGroup: (name: string, modifier: string | undefined, unit: string, targetChecked: boolean) => void;
   deleteItemGroup: (name: string, modifier: string | undefined, unit: string) => void;
   clearAll: () => void;
@@ -29,6 +31,8 @@ interface ShoppingListProps {
 export default function ShoppingList({
   aggregatedList,
   addCustomItem,
+  toggleItemIds,
+  deleteItemIds,
   toggleItemGroup,
   deleteItemGroup,
   clearAll,
@@ -83,7 +87,11 @@ export default function ShoppingList({
     }
 
     triggerCollapseAndAction(keysToCollapse, () => {
-      toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, !item.checked);
+      if (toggleItemIds && item.itemIds?.length) {
+        toggleItemIds(item.itemIds, !item.checked);
+      } else {
+        toggleItemGroup(item.baseName || item.name, item.modifier, item.unit, !item.checked);
+      }
     });
   };
 
@@ -94,7 +102,12 @@ export default function ShoppingList({
     keysToCollapse.push(`group-${items[0].category || 'OTHER'}`);
 
     triggerCollapseAndAction(keysToCollapse, () => {
-      items.forEach((i) => toggleItemGroup(i.baseName || i.name, i.modifier, i.unit, true));
+      if (toggleItemIds) {
+        const allItemIds = items.flatMap((i) => i.itemIds || []);
+        toggleItemIds(allItemIds, true);
+      } else {
+        items.forEach((i) => toggleItemGroup(i.baseName || i.name, i.modifier, i.unit, true));
+      }
     });
   };
 
@@ -237,7 +250,7 @@ export default function ShoppingList({
               getItemKey={getItemKey}
               onItemToggle={handleItemToggle}
               onGroupHeaderClick={handleGroupHeaderClick}
-              onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
+              onDelete={(item) => (deleteItemIds && item.itemIds?.length ? deleteItemIds(item.itemIds) : deleteItemGroup(item.baseName || item.name, item.modifier, item.unit))}
               formatItemAmount={formatItemAmount}
               collapsingKeys={collapsingKeys}
             />
@@ -249,7 +262,7 @@ export default function ShoppingList({
             items={checkedSorted}
             getItemKey={getItemKey}
             onItemToggle={handleItemToggle}
-            onDelete={(item) => deleteItemGroup(item.baseName || item.name, item.modifier, item.unit)}
+            onDelete={(item) => (deleteItemIds && item.itemIds?.length ? deleteItemIds(item.itemIds) : deleteItemGroup(item.baseName || item.name, item.modifier, item.unit))}
             formatItemAmount={formatItemAmount}
             collapsingKeys={collapsingKeys}
           />
