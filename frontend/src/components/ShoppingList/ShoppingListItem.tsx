@@ -100,7 +100,7 @@ export default function ShoppingListItem({
             <span className="text-sm text-gray-400 dark:text-gray-500 line-through min-w-0 break-words">
               {amountStr && <span className="font-semibold mr-1.5">{amountStr}</span>}
               <span>{item.name}</span>
-              {extraNote && <span className="ml-1 font-normal opacity-75">({extraNote})</span>}
+              {extraNote && <span className="ml-1 font-normal opacity-75">{extraNote}</span>}
             </span>
           </button>
           <button
@@ -136,7 +136,7 @@ export default function ShoppingListItem({
             <span className="break-words">{item.name}</span>
             {extraNote && (
               <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
-                ({extraNote})
+                {extraNote}
               </span>
             )}
           </span>
