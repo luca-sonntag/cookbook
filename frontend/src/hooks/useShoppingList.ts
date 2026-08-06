@@ -190,11 +190,15 @@ export function useShoppingList() {
         // Initialize subItems on existing if merging items with different details/modifiers
         if (!existing.subItems && (existing.modifier !== item.modifier || existing.name !== item.name)) {
           const firstSubName = existing.modifier ? `${existing.name} (${existing.modifier})` : existing.name;
+          const firstItemSource = existing.sources[0];
           existing.subItems = [{
             name: firstSubName,
+            rawName: existing.name,
+            baseName: existing.baseName || existing.name,
+            modifier: existing.modifier,
             amount: existing.amount - item.amount,
             unit: existing.unit,
-            recipeTitle: existing.sources[0]?.recipeTitle || ''
+            recipeTitle: firstItemSource?.recipeTitle || ''
           }];
           existing.modifier = undefined;
         }
@@ -206,6 +210,9 @@ export function useShoppingList() {
           } else {
             existing.subItems.push({
               name: currentSubName,
+              rawName: item.name,
+              baseName: item.baseName || item.name,
+              modifier: item.modifier,
               amount: item.amount,
               unit: item.unit,
               recipeTitle: item.recipeTitle
@@ -232,6 +239,9 @@ export function useShoppingList() {
       } else {
         const initialSubItems = parent ? [{
           name: currentSubName,
+          rawName: item.name,
+          baseName: item.baseName || item.name,
+          modifier: item.modifier,
           amount: item.amount,
           unit: item.unit,
           recipeTitle: item.recipeTitle

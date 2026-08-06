@@ -28,53 +28,56 @@ export default function ShoppingListItem({
 
   const animationClass = isCollapsing ? 'animate-item-collapse' : 'animate-item-expand';
 
-  // Smart deduplication for sub-items and modifiers:
-  // Strips redundant main item names (and plurals) and redundant quantities already displayed on the chip.
+  // Smart structural deduplication for sub-items and modifiers (100% language-agnostic):
+  // Uses baseName matching from ingredient taxonomy and accumulates modifier amounts cleanly.
   const extraNote = useMemo(() => {
-    const mainName = (item.baseName || item.name || '').toLowerCase().trim();
-
-    const cleanName = (rawName: string): string => {
-      if (!rawName) return '';
-      let cleaned = rawName.trim();
-      if (mainName) {
-        const escaped = mainName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`\\b${escaped}(?:n|s|e|en)?\\b`, 'gi');
-        cleaned = cleaned.replace(regex, '');
-      }
-      return cleaned
-        .replace(/\(\s*\)/g, '')
-        .replace(/^[()\s,:-]+|[()\s,:-]+$/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-    };
+    const mainBaseName = (item.baseName || item.name || '').toLowerCase().trim();
 
     if (item.subItems && item.subItems.length > 0) {
-      const parts: string[] = [];
+      const notes: string[] = [];
+      const modifierAmounts = new Map<string, { totalAmount: number; unit: string; mod: string }>();
 
       for (const sub of item.subItems) {
-        const subName = cleanName(sub.name || '');
-        const subAmountStr = formatItemAmount(sub.amount, sub.unit);
+        const subRawName = (sub.rawName || sub.name || '').trim();
+        const subBaseName = (sub.baseName || subRawName).toLowerCase().trim();
 
-        // Include quantity only if there are multiple distinct sub-items with differing quantities
-        const shouldIncludeAmount =
-          subAmountStr && item.subItems.length > 1 && subAmountStr !== amountStr;
+        // Structural check: is subItem a distinct ingredient type (e.g. Eigelb vs Ei)?
+        const isDistinctName =
+          subBaseName &&
+          subBaseName !== mainBaseName &&
+          (!item.parentIngredient || subBaseName !== item.parentIngredient.baseName.toLowerCase().trim());
 
-        if (shouldIncludeAmount && subName) {
-          parts.push(`${subAmountStr} ${subName}`);
-        } else if (subName) {
-          parts.push(subName);
-        } else if (shouldIncludeAmount) {
-          parts.push(subAmountStr);
+        const mod = sub.modifier?.trim();
+
+        if (isDistinctName) {
+          const amtStr = formatItemAmount(sub.amount, sub.unit);
+          const modStr = mod ? ` (${mod})` : '';
+          notes.push(`${amtStr ? `${amtStr} ` : ''}${subRawName}${modStr}`);
+        } else if (mod) {
+          // Accumulate amounts for identical modifiers (e.g. gerieben, Saft von)
+          const key = `${mod.toLowerCase()}|${sub.unit.toLowerCase()}`;
+          const existing = modifierAmounts.get(key);
+          if (existing) {
+            existing.totalAmount += sub.amount;
+          } else {
+            modifierAmounts.set(key, { totalAmount: sub.amount, unit: sub.unit, mod });
+          }
         }
       }
 
-      const deduplicated = Array.from(new Set(parts.filter(Boolean))).join(', ');
-      if (deduplicated) return deduplicated;
+      // Add accumulated modifier notes
+      modifierAmounts.forEach(({ totalAmount, unit, mod }) => {
+        const amtStr = formatItemAmount(totalAmount, unit);
+        const shouldShowAmount = amtStr && totalAmount !== item.amount;
+        notes.push(`${shouldShowAmount ? `${amtStr} ` : ''}${mod}`);
+      });
+
+      const result = Array.from(new Set(notes.filter(Boolean))).join(', ');
+      if (result) return result;
     }
 
     if (item.modifier) {
-      const mod = cleanName(item.modifier);
-      return mod || null;
+      return item.modifier.trim() || null;
     }
 
     return null;

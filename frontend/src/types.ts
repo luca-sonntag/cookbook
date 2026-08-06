@@ -130,7 +130,15 @@ export interface AggregatedShoppingItem {
   modifier?: string;
   itemIds: string[];
   sources: { recipeId?: string; recipeTitle?: string; amount: number; unit: string }[];
-  subItems?: { name: string; amount: number; unit: string; recipeTitle?: string }[];
+  subItems?: {
+    name: string;
+    rawName?: string;
+    baseName?: string;
+    modifier?: string;
+    amount: number;
+    unit: string;
+    recipeTitle?: string;
+  }[];
 }
 
 // ── Gamification ─────────────────────────────────────────────────────────────
