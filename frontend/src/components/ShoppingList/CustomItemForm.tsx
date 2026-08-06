@@ -85,9 +85,9 @@ export default function CustomItemForm({ isOpen, addCustomItem, onClose }: Custo
               </Drawer.Header>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-3 pt-1">
-                {/* Optimized 7-2-3 Grid layout for mobile proportions */}
+                {/* Optimized 5-3-4 Grid layout so placeholders remain 100% visible */}
                 <div className="grid grid-cols-12 gap-2">
-                  <div className="col-span-7">
+                  <div className="col-span-5">
                     <input
                       ref={nameInputRef}
                       type="text"
@@ -99,40 +99,47 @@ export default function CustomItemForm({ isOpen, addCustomItem, onClose }: Custo
                       required
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-3">
                     <input
                       type="text"
                       inputMode="decimal"
                       placeholder={t('shopping.placeholderAmount')}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-2 py-2.5 text-base text-center text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none tabular-nums"
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-2.5 py-2.5 text-base text-center text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none tabular-nums"
                     />
                   </div>
-                  <div className="col-span-3">
+                  <div className="col-span-4">
                     <input
                       type="text"
                       placeholder={t('shopping.placeholderUnit')}
                       value={unit}
                       onChange={(e) => setUnit(e.target.value)}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-2.5 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                     />
                   </div>
                 </div>
 
-                {/* Quick suggestions */}
+                {/* Quick unit suggestion chips */}
                 <div className="flex flex-wrap gap-1.5 items-center mt-1">
-                  <span className="text-[11px] text-gray-500 dark:text-gray-400 mr-1">{t('shopping.suggestions')}</span>
-                  {suggestions.map((sug) => (
-                    <button
-                      key={sug}
-                      type="button"
-                      onClick={() => setUnit(sug)}
-                      className="text-xs px-2.5 py-1 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-colors cursor-pointer"
-                    >
-                      {sug}
-                    </button>
-                  ))}
+                  <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 mr-1">{t('shopping.suggestions')}</span>
+                  {suggestions.map((sug) => {
+                    const isActive = unit.trim().toLowerCase() === sug.trim().toLowerCase();
+                    return (
+                      <button
+                        key={sug}
+                        type="button"
+                        onClick={() => setUnit(isActive ? '' : sug)}
+                        className={`text-xs px-2.5 py-1 rounded-lg border transition-all cursor-pointer select-none active:scale-95 ${
+                          isActive
+                            ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
+                            : 'border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:border-emerald-500/50 hover:bg-emerald-500/5'
+                        }`}
+                      >
+                        {sug}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <Button
