@@ -49,7 +49,7 @@ export default function RecipeActionDock({
           title={t('recipe.startCooking')}
           aria-label={t('recipe.startCooking')}
         >
-          <Play className="w-5.5 h-5.5 fill-white translate-x-0.5" />
+          <Play className="w-5.5 h-5.5 fill-white" />
           {!isPremium && <PremiumCrownBadge />}
         </button>
       )}
