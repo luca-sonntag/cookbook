@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Check, Trash2, ChevronDown } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { useI18n } from '../../context/I18nContext';
@@ -28,10 +28,56 @@ export default function ShoppingListItem({
 
   const animationClass = isCollapsing ? 'animate-item-collapse' : 'animate-item-expand';
 
-  const hasDistinctSubItems = item.subItems && item.subItems.some(s => s.name.toLowerCase().trim() !== item.name.toLowerCase().trim());
-  const subItemsSummary = hasDistinctSubItems && item.subItems
-    ? item.subItems.map(s => `${formatItemAmount(s.amount, s.unit)} ${s.name}`).join(', ')
-    : null;
+  // Smart deduplication for sub-items and modifiers:
+  // Strips redundant main item names and redundant quantities already displayed on the chip.
+  const extraNote = useMemo(() => {
+    const mainName = (item.baseName || item.name || '').toLowerCase().trim();
+
+    if (item.subItems && item.subItems.length > 0) {
+      const parts: string[] = [];
+
+      for (const sub of item.subItems) {
+        let subName = (sub.name || '').trim();
+        const subNameLower = subName.toLowerCase();
+
+        // Deduplicate: remove main item name if contained in subItem name
+        if (mainName && subNameLower.includes(mainName)) {
+          subName = subName
+            .replace(new RegExp(mainName, 'gi'), '')
+            .replace(/^[()\s,-]+|[()\s,-]+$/g, '')
+            .trim();
+        } else {
+          subName = subName.replace(/^[()\s]+|[()\s]+$/g, '').trim();
+        }
+
+        const subAmountStr = formatItemAmount(sub.amount, sub.unit);
+        // Include quantity only if there are multiple distinct sub-items with differing quantities
+        const shouldIncludeAmount =
+          subAmountStr && item.subItems.length > 1 && subAmountStr !== amountStr;
+
+        if (shouldIncludeAmount && subName) {
+          parts.push(`${subAmountStr} ${subName}`);
+        } else if (subName) {
+          parts.push(subName);
+        } else if (shouldIncludeAmount) {
+          parts.push(subAmountStr);
+        }
+      }
+
+      const deduplicated = Array.from(new Set(parts.filter(Boolean))).join(', ');
+      if (deduplicated) return deduplicated;
+    }
+
+    if (item.modifier) {
+      let mod = item.modifier.trim();
+      if (mainName && mod.toLowerCase().includes(mainName)) {
+        mod = mod.replace(new RegExp(mainName, 'gi'), '').replace(/^[()\s,-]+|[()\s,-]+$/g, '').trim();
+      }
+      return mod || null;
+    }
+
+    return null;
+  }, [item, amountStr, formatItemAmount]);
 
   // Compact, dimmed row used inside the "Erledigt" drawer.
   if (isChecked) {
@@ -47,17 +93,14 @@ export default function ShoppingListItem({
             <span className="w-5 h-5 rounded-md bg-emerald-500 border border-emerald-500 flex items-center justify-center flex-shrink-0">
               <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
             </span>
-            <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate">
+            <span className="text-sm text-gray-400 dark:text-gray-500 line-through min-w-0 break-words">
               {amountStr && <span className="font-semibold mr-1.5">{amountStr}</span>}
               <span>{item.name}</span>
-              {subItemsSummary ? (
-                <span className="ml-1 font-normal opacity-75">({subItemsSummary})</span>
-              ) : item.modifier ? (
-                <span className="ml-1 font-normal">({item.modifier})</span>
-              ) : null}
+              {extraNote && <span className="ml-1 font-normal opacity-75">({extraNote})</span>}
             </span>
           </button>
           <button
+            type="button"
             onClick={onDelete}
             className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
             aria-label={t('shopping.deleteItem')}
@@ -85,21 +128,17 @@ export default function ShoppingListItem({
               {amountStr}
             </span>
           )}
-          <span className="text-sm font-medium text-gray-800 dark:text-gray-100 min-w-0 leading-tight flex flex-col">
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-100 min-w-0 leading-tight flex flex-wrap items-baseline gap-x-1.5">
             <span className="break-words">{item.name}</span>
-            {subItemsSummary ? (
-              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-normal leading-none mt-0.5">
-                ({subItemsSummary})
+            {extraNote && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                ({extraNote})
               </span>
-            ) : item.modifier ? (
-              <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
-                ({item.modifier})
-              </span>
-            ) : null}
+            )}
           </span>
         </button>
 
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center flex-shrink-0 gap-1">
           {hasMultipleSources && (
             <button
               type="button"
@@ -116,8 +155,9 @@ export default function ShoppingListItem({
             </button>
           )}
           <button
+            type="button"
             onClick={onDelete}
-            className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer flex-shrink-0"
+            className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
             aria-label={t('shopping.deleteItem')}
           >
             <Trash2 className="w-4 h-4" />
@@ -146,3 +186,4 @@ export default function ShoppingListItem({
     </li>
   );
 }
+
