@@ -1400,22 +1400,27 @@ const cookPhotoVerificationSchema = {
   properties: {
     isMatchingDish: {
       type: FunctionDeclarationSchemaType.BOOLEAN,
-      description: 'True if the photo shows a prepared dish or food item that plausibly matches or belongs to the target recipe. Set false if it shows something completely unrelated (e.g. shoes, animals, raw ingredients without preparation, empty plates, non-food items, or a completely different dish like a cup of coffee when the recipe is a pizza).',
+      description: 'True ONLY IF the image is a real, original photograph of a prepared dish matching the target recipe. Set false if it is a screenshot, a photo taken of a screen/monitor/phone/TV, a photo of a book/magazine, a stock image, or shows an unrelated dish/non-food items.',
+    },
+    isAuthenticPhoto: {
+      type: FunctionDeclarationSchemaType.BOOLEAN,
+      description: 'True if the photo is a genuine original photograph of real food. Set false if it shows app UI overlays, status bars, screen moiré/reflections, printed page borders, stock watermarks, or digital illustrations.',
     },
     confidence: {
       type: FunctionDeclarationSchemaType.NUMBER,
-      description: 'Confidence level between 0.0 and 1.0 that the image depicts the recipe.',
+      description: 'Confidence level between 0.0 and 1.0 that the image is an authentic photo matching the recipe.',
     },
     reasoning: {
       type: FunctionDeclarationSchemaType.STRING,
-      description: 'Short 1-2 sentence explanation in German of why the photo matches or does not match the recipe. NEVER mention AI, KI, artificial intelligence, or algorithms (e.g. use "Das Foto zeigt..." instead of "Die KI meint...").',
+      description: 'Short 1-2 sentence explanation in German of why the photo was accepted or rejected. NEVER mention AI, KI, artificial intelligence, or algorithms.',
     },
   },
-  required: ['isMatchingDish', 'confidence', 'reasoning'],
+  required: ['isMatchingDish', 'isAuthenticPhoto', 'confidence', 'reasoning'],
 };
 
 export interface VerificationResult {
   isMatchingDish: boolean;
+  isAuthenticPhoto?: boolean;
   confidence: number;
   reasoning: string;
 }
@@ -1448,20 +1453,34 @@ export async function verifyCookedDishPhoto(
       ? recipe.ingredients.flatMap((g) => g.items.map((i) => i.name)).slice(0, 15).join(', ')
       : '';
 
-    const prompt = `You are a culinary vision evaluator. The user claims they cooked the following recipe and uploaded a photo of their finished dish.
+    const prompt = `You are a strict food photo authenticity and recipe evaluator.
+The user claims they cooked the following recipe and uploaded a photo of their finished dish.
 
 Target Recipe Details:
 - Title: "${recipe.title}"
 - Description: "${recipe.description ?? ''}"
 - Key Ingredients: ${ingredientsSummary}
 
-Carefully evaluate the attached photo. Does this photo depict a cooked dish or food preparation that reasonably corresponds to "${recipe.title}"?
+Carefully evaluate the attached photo for BOTH Authenticity and Recipe Match:
+
+1. AUTHENTICITY CHECK (Is this an original, direct photo of actual food?):
+- MUST BE REJECTED (set isMatchingDish: false, isAuthenticPhoto: false):
+  * Screenshots of mobile apps, social media (Instagram, TikTok, YouTube UI buttons, status bars, video progress bars, battery icons).
+  * Photos taken of a screen, monitor, laptop, TV, or smartphone (visible moiré patterns, screen glare/reflections, display bezels, pixel grids).
+  * Photos taken of a printed page, cookbook, magazine, menu card, or physical photograph (visible page edges, paper texture, halftone printing dots).
+  * Stock photos or professional promotional studio images (watermarks, sterile stock backgrounds).
+  * Digital artwork, vector drawings, or AI-generated synthetic renderings.
+
+2. RECIPE MATCH CHECK (Is it the correct food?):
+- Must depict a cooked dish or food preparation that reasonably corresponds to "${recipe.title}".
 - Be tolerant of home-cooking presentation variations, different plating, side dishes, or minor color differences.
-- Reject photos if they show non-food items, empty surfaces, raw uncooked single ingredients (like a single unpeeled onion), or a completely different food category (e.g. coffee/cake when recipe is soup/steak).
+- Reject photos if they show non-food items, empty plates/surfaces, single raw uncooked ingredients, or a completely different food category (e.g. coffee/cake when recipe is soup/steak).
 
 IMPORTANT:
-- Provide your answer in the structured JSON schema format with reasoning in German.
-- Do NOT mention AI, KI, artificial intelligence, algorithms, or automated systems in your reasoning. Phrase your reasoning naturally (e.g. "Das Foto zeigt eine Suppe, das Rezept ist aber für eine Pizza.").`;
+- If the photo is a screenshot, a photo of a screen/book/magazine, or not an authentic original photo, set isMatchingDish: false and isAuthenticPhoto: false, and explain in German (e.g. "Das Foto scheint ein Screenshot oder abfotografierter Bildschirm zu sein. Bitte mache ein eigenes Foto deines Gerichts.").
+- If the food does not match the recipe, set isMatchingDish: false and explain in German (e.g. "Das Foto zeigt eine Suppe, das Rezept ist aber für eine Pizza.").
+- Provide your answer strictly in the specified JSON schema format.
+- NEVER mention AI, KI, artificial intelligence, algorithms, or automated systems in your reasoning.`;
 
     const result = await model.generateContent([
       prompt,
@@ -1498,10 +1517,13 @@ IMPORTANT:
       costEstimate,
     });
 
+    const isMatching = !!parsed.isMatchingDish && parsed.isAuthenticPhoto !== false;
+
     return {
-      isMatchingDish: !!parsed.isMatchingDish,
+      isMatchingDish: isMatching,
+      isAuthenticPhoto: parsed.isAuthenticPhoto ?? true,
       confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0,
-      reasoning: parsed.reasoning || (parsed.isMatchingDish ? 'Foto verifiziert.' : 'Foto konnte nicht verifiziert werden.'),
+      reasoning: parsed.reasoning || (isMatching ? 'Foto eingetragen.' : 'Das Foto konnte nicht zugeordnet werden.'),
     };
   } catch (err: any) {
     console.error('[verifyCookedDishPhoto] Error:', err);
