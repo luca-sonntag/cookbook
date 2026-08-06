@@ -71,10 +71,12 @@ export default function RecipeHeader({
           {onToggleFavorite && (
             <Button
               isIconOnly
-              variant="outline"
               onClick={onToggleFavorite}
-              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center transition-all ${isFavorite ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
-                }`}
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border-none rounded-xl flex items-center justify-center transition-all ${
+                isFavorite
+                  ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20'
+                  : 'bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+              }`}
               aria-label="Toggle Favorite"
             >
               <Star className={`w-5 h-5 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
@@ -84,8 +86,7 @@ export default function RecipeHeader({
             <Popover.Trigger>
               <Button
                 isIconOnly
-                variant="outline"
-                className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl flex items-center justify-center"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white border-none rounded-xl flex items-center justify-center transition-all"
                 aria-label="Options"
               >
                 <MoreVertical className="w-5 h-5" />
