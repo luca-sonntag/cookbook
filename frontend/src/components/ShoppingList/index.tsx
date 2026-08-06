@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { Popover, Button } from '@heroui/react';
 import { Plus, Trash2, X, MoreHorizontal } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
@@ -44,7 +44,6 @@ export default function ShoppingList({
   // Local UI states
   const [showAddForm, setShowAddForm] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const addFormRef = useRef<HTMLDivElement>(null);
   const [collapsingKeys, setCollapsingKeys] = useState<Set<string>>(new Set());
 
   const getItemKey = (item: AggregatedShoppingItem) =>
