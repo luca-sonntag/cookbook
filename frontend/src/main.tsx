@@ -29,9 +29,11 @@ createRoot(document.getElementById('root')!).render(
         <DialogProvider>
           <TimerProvider>
             <GamificationProvider>
-              <ErrorBoundary>
-                <App />
-              </ErrorBoundary>
+              <ExtractionJobsProvider>
+                <ErrorBoundary>
+                  <App />
+                </ErrorBoundary>
+              </ExtractionJobsProvider>
             </GamificationProvider>
           </TimerProvider>
         </DialogProvider>
