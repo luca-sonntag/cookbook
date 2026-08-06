@@ -936,7 +936,7 @@ export default function App() {
                 <div className="relative">
                   <Trophy className="w-5.5 h-5.5 mb-1" />
                   {userLevel !== null && (
-                    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[9px] font-black text-white leading-none">
+                    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[9px] font-black text-white leading-none ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
                       {userLevel}
                     </span>
                   )}
