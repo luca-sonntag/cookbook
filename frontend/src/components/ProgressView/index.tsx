@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Flame, Coins, Utensils, Trophy, Lock, Sparkles, X, Camera, Check, Soup, Award } from 'lucide-react';
+import { Flame, Coins, Utensils, Trophy, Lock, Sparkles, X, Camera, Check, ChefHat, UtensilsCrossed, Crown, Award } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useGamification } from '../../context/GamificationContext';
 import { progressPct, xpToNextLevel } from '../../utils/levels';
@@ -14,6 +14,15 @@ function getCulinaryRankKey(level: number): string {
   if (level === 4) return 'level_4';
   if (level === 5) return 'level_5';
   return 'level_6';
+}
+
+function getRankIcon(level: number): ReactNode {
+  if (level <= 1) return <Utensils className="h-6 w-6" />;
+  if (level === 2) return <ChefHat className="h-6 w-6" />;
+  if (level === 3) return <Sparkles className="h-6 w-6" />;
+  if (level === 4) return <UtensilsCrossed className="h-6 w-6" />;
+  if (level === 5) return <Trophy className="h-6 w-6" />;
+  return <Crown className="h-6 w-6" />;
 }
 
 function getBadgeXpReward(key: string): number {
@@ -91,7 +100,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-              <Soup className="h-6 w-6" />
+              {getRankIcon(level)}
             </div>
             <div>
               <div className="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
