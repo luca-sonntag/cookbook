@@ -380,8 +380,8 @@ export default function CollectionSheet({
                     )}
 
                     <Button
-                      variant="secondary"
-                      className="mt-2 py-3.5 rounded-2xl border border-dashed border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5 flex items-center justify-center gap-2 font-bold text-xs shrink-0"
+                      variant="outline"
+                      className="mt-2 py-3.5 rounded-2xl border border-dashed border-emerald-500/40 bg-transparent hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-2 font-bold text-xs shrink-0 shadow-none"
                       onPress={handleCreateOpen}
                     >
                       <Plus className="w-4 h-4" />
@@ -429,8 +429,8 @@ export default function CollectionSheet({
                     )}
 
                     <Button
-                      variant="secondary"
-                      className="mt-2 py-3.5 rounded-2xl border border-dashed border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5 flex items-center justify-center gap-2 font-bold text-xs shrink-0"
+                      variant="outline"
+                      className="mt-2 py-3.5 rounded-2xl border border-dashed border-emerald-500/40 bg-transparent hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-2 font-bold text-xs shrink-0 shadow-none"
                       onPress={handleCreateOpen}
                     >
                       <Plus className="w-4 h-4" />
