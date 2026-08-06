@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@heroui/react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -41,21 +41,7 @@ export default function FullscreenImageModal({
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd,
-  } = useImageGallery(images);
-
-  // Sync initialIndex when modal is opened with a non-null index
-  useEffect(() => {
-    if (initialIndex !== null) {
-      setFullscreenIndex(initialIndex);
-    }
-  }, [initialIndex, setFullscreenIndex]);
-
-  // When hook closes (e.g. back button / ESC / background click), trigger parent onClose
-  useEffect(() => {
-    if (fullscreenIndex === null && initialIndex !== null) {
-      onClose();
-    }
-  }, [fullscreenIndex, initialIndex, onClose]);
+  } = useImageGallery(images, initialIndex, onClose);
 
   if (fullscreenIndex === null || images.length === 0) {
     return null;
