@@ -1,8 +1,8 @@
 import type { ParentIngredientInfo } from '../types';
 
 /**
- * Dynamically normalizes an ingredient name for grouping without hardcoded dictionaries.
- * Removes parenthetical descriptions, trailing comma modifiers, and handles basic plural stemming.
+ * Dynamically normalizes an ingredient name for grouping without hardcoded dictionaries or language-specific rules.
+ * Removes parenthetical descriptions and trailing comma modifiers.
  */
 export function normalizeIngredientName(rawName: string): string {
   if (!rawName) return '';
@@ -18,21 +18,8 @@ export function normalizeIngredientName(rawName: string): string {
     name = name.slice(0, commaIndex).trim();
   }
 
-  // 3. Lowercase & character normalization
-  name = name.toLowerCase().replace(/ß/g, 'ss');
-
-  // 4. Plural stemming heuristic (German/English: "Zwiebeln" -> "zwiebel", "Onions" -> "onion")
-  if (name.length > 4) {
-    if (name.endsWith('n') && !name.endsWith('en')) {
-      name = name.slice(0, -1);
-    } else if (name.endsWith('en') && name.length > 5) {
-      name = name.slice(0, -1);
-    } else if (name.endsWith('s') && !name.endsWith('ss')) {
-      name = name.slice(0, -1);
-    }
-  }
-
-  return name;
+  // 3. Lowercase & trim
+  return name.toLowerCase().trim();
 }
 
 /**
