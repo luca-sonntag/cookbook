@@ -8,17 +8,10 @@ interface CollectionTileProps {
   onClick: () => void;
 }
 
-const QUADRANT_BG = [
-  'bg-amber-500/10 dark:bg-amber-500/15',
-  'bg-emerald-500/10 dark:bg-emerald-500/15',
-  'bg-indigo-500/10 dark:bg-indigo-500/15',
-  'bg-rose-500/10 dark:bg-rose-500/15',
-];
-
 const DEFAULT_EMOJIS = ['🍕', '🧀', '🍔', '🍝'];
 
 /**
- * Collection tile displaying a 2x2 emoji mosaic with soft gradient backgrounds
+ * Collection tile displaying a 2x2 emoji mosaic over a uniform gradient background
  * derived from the collection's recipes, and the collection badge emoji at the bottom left.
  */
 export default function CollectionTile({ collection, jobs, onClick }: CollectionTileProps) {
@@ -37,12 +30,12 @@ export default function CollectionTile({ collection, jobs, onClick }: Collection
       onClick={onClick}
       className="w-[6.5rem] shrink-0 flex flex-col gap-1.5 text-left active:scale-[0.97] transition-transform cursor-pointer group"
     >
-      <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 bg-white dark:bg-gray-900 shadow-xs">
-        <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-px bg-black/5 dark:bg-white/5">
+      <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 bg-gradient-to-br from-emerald-500/10 via-transparent to-indigo-500/10 shadow-xs">
+        <div className="grid grid-cols-2 grid-rows-2 w-full h-full">
           {displayEmojis.map((em, idx) => (
             <div
               key={idx}
-              className={`w-full h-full flex items-center justify-center ${QUADRANT_BG[idx % QUADRANT_BG.length]} transition-colors`}
+              className="w-full h-full flex items-center justify-center"
             >
               <span className="text-2xl select-none transition-transform group-hover:scale-110 duration-200" role="img" aria-hidden="true">
                 {em}
