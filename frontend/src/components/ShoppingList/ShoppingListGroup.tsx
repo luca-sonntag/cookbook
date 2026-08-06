@@ -45,13 +45,13 @@ export default function ShoppingListGroup({
               isGroupCollapsing ? 'animate-group-collapse' : 'animate-group-expand'
             }`}
           >
-            <div className="flex items-center gap-2 px-1 pt-0.5 pb-1.5 mb-0.5 border-b border-black/5 dark:border-white/5">
+            <div className="flex items-center justify-between gap-2 px-2 pt-1 pb-2 mb-0.5 border-b border-black/5 dark:border-white/5">
               <button
                 type="button"
                 onClick={() => onGroupHeaderClick(group.items)}
-                className="flex items-center gap-2 cursor-pointer select-none flex-1 min-w-0 text-left outline-none"
+                className="flex items-center gap-2.5 cursor-pointer select-none flex-1 min-w-0 text-left outline-none"
               >
-                <span className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-base">
+                <span className="w-5 h-5 flex items-center justify-center flex-shrink-0 text-base">
                   {icon}
                 </span>
                 <span className="flex flex-col min-w-0">
@@ -67,8 +67,10 @@ export default function ShoppingListGroup({
                 type="button"
                 onClick={() => onGroupHeaderClick(group.items)}
                 aria-label={t('shopping.checkGroup', { defaultValue: 'Gruppe abhaken' })}
-                className="flex-shrink-0 w-5 h-5 rounded-md border-2 border-black/15 dark:border-white/20 hover:border-emerald-500 hover:bg-emerald-500/10 flex items-center justify-center transition-all cursor-pointer active:scale-95"
-              />
+                className="flex-shrink-0 w-7 h-7 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center transition-all cursor-pointer active:scale-95"
+              >
+                <span className="w-5 h-5 rounded-md border-2 border-black/15 dark:border-white/20 hover:border-emerald-500 flex items-center justify-center transition-colors" />
+              </button>
             </div>
             <ul className="flex flex-col gap-0.5">
               {group.items.map((item) => {

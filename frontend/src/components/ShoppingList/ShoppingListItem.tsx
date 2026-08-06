@@ -58,7 +58,7 @@ export default function ShoppingListItem({
         </button>
         <button
           onClick={onDelete}
-          className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
+          className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
           aria-label={t('shopping.deleteItem')}
         >
           <Trash2 className="w-4 h-4" />
@@ -115,7 +115,7 @@ export default function ShoppingListItem({
           )}
           <button
             onClick={onDelete}
-            className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer flex-shrink-0"
             aria-label={t('shopping.deleteItem')}
           >
             <Trash2 className="w-4 h-4" />
