@@ -17,7 +17,7 @@ export default function PremiumUpgradeCard({ onUpgradeClick, className = '' }: P
   return (
     <div
       onClick={onUpgradeClick}
-      className={`cursor-pointer p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border border-emerald-500/20 shadow-md text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:brightness-[1.02] active:scale-[0.99] transition-all relative overflow-hidden group ${className}`}
+      className={`cursor-pointer p-5 bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 rounded-3xl border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:brightness-[1.02] active:scale-[0.99] transition-all relative overflow-hidden group ${className}`}
     >
       <div className="z-10">
         <h3 className="text-base font-bold flex items-center gap-2">

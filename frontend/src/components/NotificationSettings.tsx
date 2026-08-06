@@ -77,7 +77,7 @@ export default function NotificationSettings() {
         {isDe ? 'Benachrichtigungen' : 'Notifications'}
       </h3>
 
-      <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] overflow-hidden mx-2">
         {/* Master toggle */}
         <div className="p-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
