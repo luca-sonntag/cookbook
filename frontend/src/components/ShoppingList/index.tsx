@@ -141,13 +141,7 @@ export default function ShoppingList({
   };
 
   const toggleAddForm = () => {
-    const willOpen = !showAddForm;
-    setShowAddForm(willOpen);
-    if (willOpen) {
-      setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 50);
-    }
+    setShowAddForm((prev) => !prev);
   };
 
   const checkedCount = aggregatedList.checked.length;
@@ -238,7 +232,11 @@ export default function ShoppingList({
       {/* Inline add-item form */}
       {showAddForm && (
         <div>
-          <CustomItemForm addCustomItem={addCustomItem} addFormRef={addFormRef} />
+          <CustomItemForm
+            addCustomItem={addCustomItem}
+            addFormRef={addFormRef}
+            onClose={() => setShowAddForm(false)}
+          />
         </div>
       )}
 

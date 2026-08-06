@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Card, Button } from '@heroui/react';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { uiTranslations } from '../../i18n';
 
 interface CustomItemFormProps {
   addCustomItem: (name: string, amount: number, unit: string) => void;
   addFormRef: React.RefObject<HTMLDivElement | null>;
+  onClose?: () => void;
 }
 
-export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItemFormProps) {
+export default function CustomItemForm({ addCustomItem, addFormRef, onClose }: CustomItemFormProps) {
   const { t, language } = useI18n();
 
   // Manual item state
@@ -34,18 +35,31 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
   };
 
   return (
-    <div ref={addFormRef}>
-      <Card className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-none">
-        <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wider flex items-center gap-2">
-          <Plus className="w-4 h-4 text-emerald-500" />
-          <span>{t('shopping.addTitle')}</span>
-        </h3>
+    <div ref={addFormRef} className="animate-fade-in-up">
+      <Card className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-emerald-500/20 dark:border-emerald-500/30 shadow-md">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+            <Plus className="w-4 h-4 text-emerald-500" />
+            <span>{t('shopping.addTitle')}</span>
+          </h3>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+              aria-label={t('common.cancel', { defaultValue: 'Abbrechen' })}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="grid grid-cols-12 gap-2">
             <div className="col-span-6 md:col-span-6">
               <input
                 type="text"
+                autoFocus
                 placeholder={t('shopping.placeholderName')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -90,7 +104,7 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
 
           <Button
             type="submit"
-            className="w-full mt-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 h-10 text-sm"
+            className="w-full mt-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 h-10 text-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>{t('shopping.btnAdd')}</span>
@@ -100,3 +114,4 @@ export default function CustomItemForm({ addCustomItem, addFormRef }: CustomItem
     </div>
   );
 }
+
