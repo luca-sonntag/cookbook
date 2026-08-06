@@ -95,7 +95,7 @@ export default function CustomItemForm({ isOpen, addCustomItem, onClose }: Custo
                       placeholder={t('shopping.placeholderName')}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-none"
+                      className="w-full bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-xs"
                       required
                     />
                   </div>
@@ -106,7 +106,7 @@ export default function CustomItemForm({ isOpen, addCustomItem, onClose }: Custo
                       placeholder={t('shopping.placeholderAmount')}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl px-2.5 py-2.5 text-base text-center text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-none tabular-nums"
+                      className="w-full bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-2.5 text-base text-center text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-xs tabular-nums"
                     />
                   </div>
                   <div className="col-span-4">
@@ -115,7 +115,7 @@ export default function CustomItemForm({ isOpen, addCustomItem, onClose }: Custo
                       placeholder={t('shopping.placeholderUnit')}
                       value={unit}
                       onChange={(e) => setUnit(e.target.value)}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-none"
+                      className="w-full bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-xs"
                     />
                   </div>
                 </div>
