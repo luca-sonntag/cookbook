@@ -256,7 +256,7 @@ export default function CollectionSheet({
               <Drawer.Handle />
 
               {/* Header */}
-              <Drawer.Header className="border-b border-black/5 dark:border-white/5 pb-3">
+              <Drawer.Header className="pb-3">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
@@ -493,7 +493,7 @@ export default function CollectionSheet({
               </Drawer.Body>
 
               {/* Footer */}
-              <Drawer.Footer className="border-t border-black/5 dark:border-white/5 pt-3">
+              <Drawer.Footer className="pt-3">
                 {mode === 'assign' || mode === 'manage' ? (
                   <div className="flex gap-3 w-full">
                     <Button
@@ -545,9 +545,9 @@ export default function CollectionSheet({
                   within the drawer's modal interaction scope and is clickable. */}
               {pendingDelete && (
                 <div className="absolute inset-0 z-10 flex items-end justify-center rounded-[inherit] bg-black/40 backdrop-blur-[2px] p-4">
-                  <div className="w-full rounded-2xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 shadow-2xl p-5 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="w-full rounded-2xl border-none bg-white dark:bg-gray-900 shadow-2xl p-5 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
                     <div className="flex gap-3.5 items-start">
-                      <div className="p-2.5 rounded-xl border flex-shrink-0 flex items-center justify-center bg-rose-500/10 border-rose-500/20">
+                      <div className="p-2.5 rounded-xl border-none flex-shrink-0 flex items-center justify-center bg-rose-500/10">
                         <Trash2 className="w-5 h-5 text-rose-500" />
                       </div>
                       <div className="flex flex-col gap-1 min-w-0">

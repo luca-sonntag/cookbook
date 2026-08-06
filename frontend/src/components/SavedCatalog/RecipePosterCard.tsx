@@ -41,8 +41,8 @@ export default function RecipePosterCard({
 
   return (
     <div
-      className={`glass-panel rounded-2xl overflow-hidden border cursor-pointer active:scale-[0.98] transition-all select-none flex flex-col ${isShelf ? 'w-[9.5rem] shrink-0' : 'w-full'
-        } ${isSelected ? '!border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-black/5 dark:border-white/5 hover:border-emerald-500/30'}`}
+      className={`rounded-2xl overflow-hidden cursor-pointer active:scale-[0.98] transition-all select-none flex flex-col bg-white dark:bg-gray-900 shadow-[0_2px_6px_rgba(0,0,0,0.03)] ${isShelf ? 'w-[9.5rem] shrink-0' : 'w-full'
+        } ${isSelected ? 'ring-2 ring-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10' : ''}`}
       onClick={onClick}
       {...(bindLongPress ?? {})}
     >

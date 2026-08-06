@@ -118,7 +118,7 @@ export default function CatalogFilters({
   };
 
   return (
-    <div className="sticky top-[var(--app-sticky-top)] z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-black/5 dark:border-white/5 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-2.5 pt-3">
+    <div className="sticky top-[var(--app-sticky-top)] z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-2.5 pt-3">
       {/* Row 1: back + title + view/select toggles */}
       <div className="flex items-center gap-1 min-h-[44px]">
         {onBack && (
@@ -176,7 +176,7 @@ export default function CatalogFilters({
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder={t('catalog.searchPlaceholder')}
-            className="w-full bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-white/10 rounded-xl pl-10 pr-10 py-2.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-xs"
+            className="w-full bg-white dark:bg-gray-800/90 border-none rounded-xl pl-10 pr-10 py-2.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-[0_2px_6px_rgba(0,0,0,0.03)]"
           />
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           {searchQuery && (
@@ -194,10 +194,10 @@ export default function CatalogFilters({
         <button
           type="button"
           onClick={onOpenFilters}
-          className={`relative h-11 min-w-[44px] px-3 rounded-xl border flex items-center gap-1.5 text-xs font-semibold active:scale-95 transition-all shrink-0 cursor-pointer ${
+          className={`relative h-11 min-w-[44px] px-3 rounded-xl border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] flex items-center gap-1.5 text-xs font-semibold active:scale-95 transition-all shrink-0 cursor-pointer ${
             hasActiveChips
-              ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/10'
-              : 'bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-emerald-500/50 shadow-xs'
+              ? 'bg-emerald-600 text-white shadow-none'
+              : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`}
           aria-label={t('catalog.filterTitle')}
         >
@@ -247,7 +247,7 @@ export default function CatalogFilters({
           <button
             type="button"
             onClick={handleResetAll}
-            className="px-3 py-1.5 text-xs font-semibold rounded-full border border-black/10 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white whitespace-nowrap shrink-0 active:scale-95 transition-all cursor-pointer"
+            className="px-3 py-1.5 text-xs font-semibold rounded-full border-none bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 whitespace-nowrap shrink-0 active:scale-95 transition-all cursor-pointer"
           >
             {t('catalog.resetFilters')}
           </button>
@@ -269,13 +269,13 @@ function ActiveChip({
   accent?: 'emerald' | 'amber';
 }) {
   const tone = accent === 'amber'
-    ? 'bg-amber-500 border-amber-500 text-white'
-    : 'bg-emerald-600 border-emerald-600 text-white';
+    ? 'bg-amber-500 text-white'
+    : 'bg-emerald-600 text-white';
   return (
     <button
       type="button"
       onClick={onRemove}
-      className={`px-3 py-1.5 text-xs font-bold rounded-full border shadow-sm whitespace-nowrap shrink-0 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 ${tone}`}
+      className={`px-3 py-1.5 text-xs font-bold rounded-full border-none shadow-none whitespace-nowrap shrink-0 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 ${tone}`}
     >
       {icon}
       <span className="max-w-[9rem] truncate">{label}</span>

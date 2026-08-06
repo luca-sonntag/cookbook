@@ -85,9 +85,9 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
               <Drawer.Handle />
 
               {/* Header */}
-              <Drawer.Header className="border-b border-black/5 dark:border-white/5 pb-3">
+              <Drawer.Header className="pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full bg-amber-500/10 dark:bg-amber-500/20 border-none flex items-center justify-center">
                     <Tag className="w-4.5 h-4.5 text-amber-600 dark:text-amber-400" />
                   </div>
                   <Drawer.Heading className="text-base font-bold">
@@ -106,13 +106,13 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
                   
                   <div
                     onClick={handleContainerClick}
-                    className="flex flex-wrap items-center gap-1.5 p-3 bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-white/10 rounded-2xl focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all cursor-text min-h-[56px] shadow-xs"
+                    className="flex flex-wrap items-center gap-1.5 p-3 bg-gray-100 dark:bg-gray-800 border-none rounded-2xl focus-within:ring-2 focus-within:ring-emerald-500/30 transition-all cursor-text min-h-[56px] shadow-[0_1px_3px_rgba(0,0,0,0.02)]"
                   >
                     {/* Render active tags */}
                     {tags.map(tag => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2.5 py-1 rounded-xl border border-amber-500/20 select-none whitespace-nowrap"
+                        className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-2.5 py-1 rounded-xl border-none select-none whitespace-nowrap"
                       >
                         {tag}
                         <button
@@ -160,7 +160,7 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
                           key={flag}
                           type="button"
                           onClick={() => handleAddTag(flag)}
-                          className="bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 text-xs font-semibold px-3 py-1.5 rounded-xl border border-black/5 dark:border-white/5 transition-all active:scale-95"
+                          className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-semibold px-3 py-1.5 rounded-xl border-none transition-all active:scale-95 cursor-pointer"
                         >
                           + {flag}
                         </button>
@@ -171,18 +171,17 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
               </Drawer.Body>
 
               {/* Footer */}
-              <Drawer.Footer className="border-t border-black/5 dark:border-white/5 pt-3 flex gap-2">
+              <Drawer.Footer className="pt-3 flex gap-2">
                 <Button
-                  variant="outline"
                   onPress={onClose}
-                  className="flex-1 text-sm h-11 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl font-semibold active:scale-95 transition-all"
+                  className="flex-1 text-sm h-11 border-none bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-semibold active:scale-95 transition-all"
                 >
                   {t('dialog.cancelDefault') || 'Abbrechen'}
                 </Button>
                 <Button
                   onPress={handleSave}
                   isDisabled={isSaving}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm h-11 font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/10 active:scale-95 transition-all"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm h-11 font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-none active:scale-95 transition-all"
                 >
                   {isSaving ? (language === 'de' ? 'Speichern...' : 'Saving...') : (t('recipe.save') || 'Speichern')}
                 </Button>

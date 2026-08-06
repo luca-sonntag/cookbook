@@ -30,7 +30,7 @@ export default function CollectionTile({ collection, jobs, onClick }: Collection
       onClick={onClick}
       className="w-[6.5rem] shrink-0 flex flex-col gap-1.5 text-left active:scale-[0.97] transition-transform cursor-pointer group"
     >
-      <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 bg-gradient-to-br from-emerald-500/10 via-transparent to-indigo-500/10 shadow-xs">
+      <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-500/10 via-transparent to-indigo-500/10 shadow-[0_2px_6px_rgba(0,0,0,0.03)]">
         <div className="grid grid-cols-2 grid-rows-2 w-full h-full">
           {displayEmojis.map((em, idx) => (
             <div
