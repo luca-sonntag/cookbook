@@ -229,16 +229,12 @@ export default function ShoppingList({
         </div>
       )}
 
-      {/* Inline add-item form */}
-      {showAddForm && (
-        <div>
-          <CustomItemForm
-            addCustomItem={addCustomItem}
-            addFormRef={addFormRef}
-            onClose={() => setShowAddForm(false)}
-          />
-        </div>
-      )}
+      {/* Bottom Sheet add-item form */}
+      <CustomItemForm
+        isOpen={showAddForm}
+        addCustomItem={addCustomItem}
+        onClose={() => setShowAddForm(false)}
+      />
 
       {totalCount === 0 ? (
         <ShoppingEmptyState />
