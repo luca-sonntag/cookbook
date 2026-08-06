@@ -19,4 +19,15 @@ describe('ingredientTaxonomy', () => {
     });
     expect(custom).toEqual({ name: 'Raw Parent', baseName: 'raw_parent', unit: 'g' });
   });
+
+  it('correctly returns parent ingredient or normalized fallback', () => {
+    const zitroneExplicit = getParentIngredient({
+      name: 'Zitrone (abgerieben)',
+      parentIngredient: { name: 'Zitrone', baseName: 'lemon', unit: 'Stück' }
+    });
+    expect(zitroneExplicit).toEqual({ name: 'Zitrone', baseName: 'lemon', unit: 'Stück' });
+
+    const zitroneNormalized = getParentIngredient({ name: 'Zitrone (abgerieben)', unit: 'Stück' });
+    expect(zitroneNormalized).toEqual({ name: 'Zitrone', baseName: 'zitrone', unit: 'Stück' });
+  });
 });

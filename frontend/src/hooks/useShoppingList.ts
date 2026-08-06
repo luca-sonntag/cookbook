@@ -88,7 +88,23 @@ export function useShoppingList() {
     });
   };
 
-  // Toggle check state of an aggregated group
+  // Toggle check state of specific item IDs
+  const toggleItemIds = (itemIds: string[], targetChecked: boolean) => {
+    if (!itemIds || itemIds.length === 0) return;
+    const idSet = new Set(itemIds);
+    saveList(prevList =>
+      prevList.map(item => (idSet.has(item.id) ? { ...item, checked: targetChecked } : item))
+    );
+  };
+
+  // Delete specific items by ID
+  const deleteItemIds = (itemIds: string[]) => {
+    if (!itemIds || itemIds.length === 0) return;
+    const idSet = new Set(itemIds);
+    saveList(prevList => prevList.filter(item => !idSet.has(item.id)));
+  };
+
+  // Toggle check state of an aggregated group (legacy wrapper matching fallback)
   const toggleItemGroup = (groupKeyName: string, _modifier: string | undefined, unit: string, targetChecked: boolean) => {
     const keyName = groupKeyName.toLowerCase().trim();
     const keyUnit = unit.toLowerCase().trim();
@@ -96,10 +112,14 @@ export function useShoppingList() {
     saveList(prevList =>
       prevList.map(item => {
         const parent = getParentIngredient(item);
-        const effectiveKeyName = parent ? parent.name : (item.baseName || item.name);
-        const matchName = effectiveKeyName.toLowerCase().trim() === keyName || (item.name || '').toLowerCase().trim() === keyName;
+        const matchName =
+          (parent?.baseName && parent.baseName.toLowerCase().trim() === keyName) ||
+          (parent?.name && parent.name.toLowerCase().trim() === keyName) ||
+          (item.baseName && item.baseName.toLowerCase().trim() === keyName) ||
+          (item.name && item.name.toLowerCase().trim() === keyName);
+
         const effectiveUnit = parent ? (parent.unit || item.unit) : item.unit;
-        const matchUnit = effectiveUnit.toLowerCase().trim() === keyUnit;
+        const matchUnit = effectiveUnit.toLowerCase().trim() === keyUnit || item.unit.toLowerCase().trim() === keyUnit;
 
         if (matchName && matchUnit) {
           return { ...item, checked: targetChecked };
@@ -109,7 +129,7 @@ export function useShoppingList() {
     );
   };
 
-  // Delete all items of an aggregated group
+  // Delete all items of an aggregated group (legacy wrapper matching fallback)
   const deleteItemGroup = (groupKeyName: string, _modifier: string | undefined, unit: string) => {
     const keyName = groupKeyName.toLowerCase().trim();
     const keyUnit = unit.toLowerCase().trim();
@@ -117,10 +137,15 @@ export function useShoppingList() {
     saveList(prevList =>
       prevList.filter(item => {
         const parent = getParentIngredient(item);
-        const effectiveKeyName = parent ? parent.name : (item.baseName || item.name);
-        const matchName = effectiveKeyName.toLowerCase().trim() === keyName || (item.name || '').toLowerCase().trim() === keyName;
+        const matchName =
+          (parent?.baseName && parent.baseName.toLowerCase().trim() === keyName) ||
+          (parent?.name && parent.name.toLowerCase().trim() === keyName) ||
+          (item.baseName && item.baseName.toLowerCase().trim() === keyName) ||
+          (item.name && item.name.toLowerCase().trim() === keyName);
+
         const effectiveUnit = parent ? (parent.unit || item.unit) : item.unit;
-        const matchUnit = effectiveUnit.toLowerCase().trim() === keyUnit;
+        const matchUnit = effectiveUnit.toLowerCase().trim() === keyUnit || item.unit.toLowerCase().trim() === keyUnit;
+
         return !(matchName && matchUnit);
       })
     );
@@ -155,6 +180,9 @@ export function useShoppingList() {
       const existing = targetMap.get(key);
       if (existing) {
         existing.amount += item.amount;
+        if (!existing.itemIds.includes(item.id)) {
+          existing.itemIds.push(item.id);
+        }
         if (!existing.category && item.category) {
           existing.category = item.category;
         }
@@ -218,6 +246,7 @@ export function useShoppingList() {
           amount: item.amount,
           checked: item.checked,
           category: item.category,
+          itemIds: [item.id],
           sources: [{
             recipeId: item.recipeId,
             recipeTitle: item.recipeTitle,
@@ -240,6 +269,8 @@ export function useShoppingList() {
     aggregatedList,
     addRecipeIngredients,
     addCustomItem,
+    toggleItemIds,
+    deleteItemIds,
     toggleItemGroup,
     deleteItemGroup,
     clearAll,
