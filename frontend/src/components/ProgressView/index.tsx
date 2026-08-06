@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Flame, Coins, Utensils, Trophy, Lock, Sparkles, X, Camera, Check, Soup } from 'lucide-react';
+import { Flame, Coins, Utensils, Trophy, Lock, Sparkles, X, Camera, Check, Soup, Award } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useGamification } from '../../context/GamificationContext';
 import { progressPct, xpToNextLevel } from '../../utils/levels';
@@ -194,7 +194,7 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
             <div className="text-sm font-bold text-gray-900 dark:text-white">
               {t('app.gamification.leaderboardTitle')}
             </div>
-            <div className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 leading-tight">
+            <div className="text-[11px] text-gray-500 dark:text-gray-400">
               {t('app.gamification.leaderboardSubtitle', { xp })}
             </div>
           </div>
@@ -262,10 +262,10 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
       <div className="rounded-3xl bg-white p-5 dark:bg-gray-900 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Trophy className="h-4.5 w-4.5 text-amber-500" />
+            <Award className="h-4.5 w-4.5 text-emerald-500" />
             <span>{t('app.gamification.badgesTitle')}</span>
           </h2>
-          <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
             {earnedMap.size} / {ALL_BADGE_KEYS.length}
           </span>
         </div>
@@ -280,11 +280,10 @@ export default function ProgressView({ onSelectRecipe }: ProgressViewProps) {
                 key={key}
                 type="button"
                 onClick={() => setSelectedBadgeKey(key)}
-                className={`flex flex-col items-center justify-center min-h-[110px] gap-1.5 rounded-2xl p-3 text-center transition-all cursor-pointer outline-none active:scale-95 ${
-                  isEarned
-                    ? 'bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-200'
-                    : 'bg-gray-100 dark:bg-white/5 opacity-65 hover:opacity-85 text-gray-400'
-                }`}
+                className={`flex flex-col items-center justify-center min-h-[110px] gap-1.5 rounded-2xl p-3 text-center transition-all cursor-pointer outline-none active:scale-95 ${isEarned
+                  ? 'bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-200'
+                  : 'bg-gray-100 dark:bg-white/5 opacity-65 hover:opacity-85 text-gray-400'
+                  }`}
               >
                 <div className="relative mb-2">
                   <div className={`text-3xl ${!isEarned ? 'grayscale opacity-75' : ''}`}>
