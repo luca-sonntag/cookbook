@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { UtensilsCrossed, Camera, Clock, X } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { UtensilsCrossed, Camera, Clock } from 'lucide-react';
 import type { CookHistory } from '../hooks/useCookHistory';
 import { useI18n } from '../context/I18nContext';
 import { formatRelative } from '../utils/formatRelative';
+import FullscreenImageModal from './FullscreenImageModal';
 
 interface CookHistoryTimelineProps {
   history: CookHistory | null;
@@ -14,7 +15,15 @@ interface CookHistoryTimelineProps {
  */
 export default function CookHistoryTimeline({ history }: CookHistoryTimelineProps) {
   const { t, language } = useI18n();
-  const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null);
+  const [fullscreenPhotoIndex, setFullscreenPhotoIndex] = useState<number | null>(null);
+
+  // Collect all photos from history so user can swipe through them in fullscreen
+  const historyPhotos = useMemo(() => {
+    if (!history) return [];
+    return history.items
+      .map(item => item.photoUrl)
+      .filter((url): url is string => Boolean(url));
+  }, [history]);
 
   if (!history || history.count === 0) {
     return (
@@ -58,6 +67,7 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
         {history.items.map((item, index) => {
           const attemptNum = history.count - index;
           const exactTime = formatExactDate(item.cookedAt);
+          const photoIndex = item.photoUrl ? historyPhotos.indexOf(item.photoUrl) : -1;
 
           return (
             <div
@@ -68,8 +78,8 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
               {item.photoUrl ? (
                 <button
                   type="button"
-                  onClick={() => setPreviewPhotoUrl(item.photoUrl)}
-                  className="block flex-shrink-0 overflow-hidden rounded-xl border border-black/10 dark:border-white/10 shadow-2xs focus:outline-none group"
+                  onClick={() => setFullscreenPhotoIndex(photoIndex !== -1 ? photoIndex : 0)}
+                  className="block flex-shrink-0 overflow-hidden rounded-xl border border-black/10 dark:border-white/10 shadow-2xs focus:outline-none group cursor-pointer"
                 >
                   <img
                     src={item.photoUrl}
@@ -127,32 +137,12 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
         })}
       </div>
 
-      {/* Fullscreen Photo Lightbox Modal */}
-      {previewPhotoUrl && (
-        <div
-          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 backdrop-blur-xs animate-in fade-in"
-          onClick={() => setPreviewPhotoUrl(null)}
-        >
-          <div
-            className="relative max-w-lg w-full max-h-[85vh] flex flex-col items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setPreviewPhotoUrl(null)}
-              className="absolute -top-10 right-0 p-2 text-white/80 hover:text-white bg-black/40 rounded-full hover:bg-black/60 transition-colors focus:outline-none"
-              aria-label="Close"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <img
-              src={previewPhotoUrl}
-              alt=""
-              className="max-h-[80vh] w-auto max-w-full rounded-2xl shadow-2xl object-contain border border-white/10"
-            />
-          </div>
-        </div>
-      )}
+      {/* Fullscreen Photo Lightbox Modal using shared FullscreenImageModal component */}
+      <FullscreenImageModal
+        images={historyPhotos}
+        initialIndex={fullscreenPhotoIndex}
+        onClose={() => setFullscreenPhotoIndex(null)}
+      />
     </div>
   );
 }
