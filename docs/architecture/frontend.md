@@ -67,7 +67,15 @@ Der Rezept-Katalog ist als **Kochbuch mit drei Ebenen** aufgebaut:
   * Rezepte behalten ihre präzisen Zubereitungszutaten (z. B. *2 Eigelb*, *1 TL Zitronenabrieb*, *3 Knoblauchzehen*).
   * **Taxonomie-Engine (`ingredientTaxonomy.ts`):** Mapped Teilzutaten und Derivate automatisch auf übergeordnete Rohstoff-Einkaufsartikel (z. B. *Eigelb / Eiweiß ➔ Ei*, *Zitronenabrieb / Zitronensaft ➔ Zitrone*, *Knoblauchzehe ➔ Knoblauch*).
   * **Aggregations-Logik (`useShoppingList.ts`):** Fasst Zutaten desselben Rohstoffs auf der Einkaufsliste zusammen (z. B. 2 Stück Eigelb + 1 Stück Ei = **3 Stück Ei**).
-  * **Sub-Item Breakdown UI (`ShoppingListItem.tsx`):** Blendet unter der aggregierten Hauptzeile die Zusammensetzung der Originalzutaten (z. B. *„(2 Stück Eigelb, 1 Stück Ei)“*) transparent ein.
+* **Sub-Item Breakdown UI & Smart Deduplication (`ShoppingListItem.tsx`):**
+  * Blendet unter der aggregierten Hauptzeile die Zusammensetzung transparent ein.
+  * **Smart Deduplication**: Entfernt doppelte Mengen (z. B. `2 Stück`) und Hauptzutatennamen in Klammern (z. B. `[2 Stück] Französisches Baguette (klein)` statt redundanter Doppelnennung).
+  * Zeilenumbrüche (`break-words`) verhindern harte Wortkürzungen (`truncate`).
+* **Supermarkt-Supergruppen & Einklappbare Erledigt-Liste (`ShoppingListGroup.tsx` & `ShoppingCheckedDrawer.tsx`):**
+  * Sortierung nach echter Markt-Reihenfolge (Obst & Gemüse ➔ Brot ➔ Konserven etc.).
+  * **Erledigt-Accordion**: Abgehakte Artikel wohnen in einem standardmäßig eingeklappten Accordion (`Erledigt (X)`), um kognitive Unruhe im Laden zu minimieren.
+  * **Expliziter Gruppen-Check**: Die "Ganzes Regal abhaken"-Aktion ist als separater `CheckCheck`-Button abgetrennt, um versehentliches Abhaken beim Antippen von Kategorienamen zu verhindern.
+* **Add-Formular (`CustomItemForm.tsx`):** Sanftes Einblenden mit automatischem Eingabefokus (`autoFocus`) und Schließen-Option (`X`).
 
 ---
 
