@@ -250,107 +250,93 @@ html.dark .glass-panel {
   }
 }
 
-/* Animations for checking items in shopping list */
+/* CSS Grid Animations for item collapse/expand without hardcoded max-height */
 @keyframes item-collapse {
   from {
+    grid-template-rows: 1fr;
     opacity: 1;
     transform: translateX(0);
-    max-height: 1000px;
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
   }
   to {
+    grid-template-rows: 0fr;
     opacity: 0;
     transform: translateX(10px);
-    max-height: 0px;
-    padding-top: 0px;
-    padding-bottom: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    border-color: transparent;
   }
 }
 
 @keyframes item-expand {
   from {
+    grid-template-rows: 0fr;
     opacity: 0;
     transform: translateX(-10px);
-    max-height: 0px;
-    padding-top: 0px;
-    padding-bottom: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    border-color: transparent;
   }
   to {
+    grid-template-rows: 1fr;
     opacity: 1;
     transform: translateX(0);
-    max-height: 1000px;
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
   }
 }
 
 .animate-item-collapse {
+  display: grid;
   animation: item-collapse 0.2s ease-out forwards;
+}
+
+.animate-item-collapse > * {
   overflow: hidden;
-  pointer-events: none;
+  min-height: 0;
 }
 
 .animate-item-expand {
+  display: grid;
   animation: item-expand 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  overflow: hidden;
 }
 
-/* Animations for category groups shifting */
+.animate-item-expand > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* CSS Grid Animations for category groups shifting */
 @keyframes group-collapse {
   from {
+    grid-template-rows: 1fr;
     opacity: 1;
-    max-height: 5000px;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border-width: 1px;
   }
   to {
+    grid-template-rows: 0fr;
     opacity: 0;
-    max-height: 0px;
-    padding-top: 0px;
-    padding-bottom: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    border-width: 0px;
-    border-color: transparent;
   }
 }
 
 @keyframes group-expand {
   from {
+    grid-template-rows: 0fr;
     opacity: 0;
-    max-height: 0px;
-    padding-top: 0px;
-    padding-bottom: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    border-width: 0px;
-    border-color: transparent;
   }
   to {
+    grid-template-rows: 1fr;
     opacity: 1;
-    max-height: 5000px;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border-width: 1px;
   }
 }
 
 .animate-group-collapse {
+  display: grid;
   animation: group-collapse 0.2s ease-out forwards;
+}
+
+.animate-group-collapse > * {
   overflow: hidden;
-  pointer-events: none;
+  min-height: 0;
 }
 
 .animate-group-expand {
+  display: grid;
   animation: group-expand 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-group-expand > * {
   overflow: hidden;
+  min-height: 0;
 }
 
