@@ -72,7 +72,7 @@ export default function ShoppingListGroup({
                 <span className="w-5 h-5 rounded-md border-2 border-black/15 dark:border-white/20 hover:border-emerald-500 flex items-center justify-center transition-colors" />
               </button>
             </div>
-            <ul className="flex flex-col gap-0.5">
+            <ul className="flex flex-col gap-1 py-0.5">
               {group.items.map((item) => {
                 const displayKey = `unchecked-${getItemKey(item)}`;
                 return (

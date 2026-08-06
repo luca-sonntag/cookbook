@@ -38,7 +38,7 @@ export default function ShoppingCheckedDrawer({
         </span>
       </div>
 
-      <ul className="flex flex-col gap-0.5 px-1.5 pb-2">
+      <ul className="flex flex-col gap-1 px-1.5 pb-2">
         {items.map((item) => {
           const displayKey = `checked-${getItemKey(item)}`;
           return (

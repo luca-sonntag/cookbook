@@ -36,33 +36,35 @@ export default function ShoppingListItem({
   // Compact, dimmed row used inside the "Erledigt" drawer.
   if (isChecked) {
     return (
-      <li className={`flex items-center justify-between gap-2 py-1 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${animationClass}`}>
-        <button
-          type="button"
-          onClick={onClick}
-          className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 text-left outline-none"
-          aria-label={t('shopping.restoreItem')}
-        >
-          <span className="w-5 h-5 rounded-md bg-emerald-500 border border-emerald-500 flex items-center justify-center flex-shrink-0">
-            <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
-          </span>
-          <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate">
-            {amountStr && <span className="font-semibold mr-1.5">{amountStr}</span>}
-            <span>{item.name}</span>
-            {subItemsSummary ? (
-              <span className="ml-1 font-normal opacity-75">({subItemsSummary})</span>
-            ) : item.modifier ? (
-              <span className="ml-1 font-normal">({item.modifier})</span>
-            ) : null}
-          </span>
-        </button>
-        <button
-          onClick={onDelete}
-          className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
-          aria-label={t('shopping.deleteItem')}
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+      <li className={`rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${animationClass}`}>
+        <div className="flex items-center justify-between gap-2 py-1.5 px-2 min-h-[40px]">
+          <button
+            type="button"
+            onClick={onClick}
+            className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 text-left outline-none"
+            aria-label={t('shopping.restoreItem')}
+          >
+            <span className="w-5 h-5 rounded-md bg-emerald-500 border border-emerald-500 flex items-center justify-center flex-shrink-0">
+              <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
+            </span>
+            <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate">
+              {amountStr && <span className="font-semibold mr-1.5">{amountStr}</span>}
+              <span>{item.name}</span>
+              {subItemsSummary ? (
+                <span className="ml-1 font-normal opacity-75">({subItemsSummary})</span>
+              ) : item.modifier ? (
+                <span className="ml-1 font-normal">({item.modifier})</span>
+              ) : null}
+            </span>
+          </button>
+          <button
+            onClick={onDelete}
+            className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
+            aria-label={t('shopping.deleteItem')}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </li>
     );
   }
@@ -70,7 +72,7 @@ export default function ShoppingListItem({
   // Active (to-buy) row — big tap target, amount as a scannable chip.
   return (
     <li className={`rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors group ${animationClass}`}>
-      <div className="flex items-center justify-between gap-2 py-1 px-2 min-h-[36px]">
+      <div className="flex items-center justify-between gap-2 py-1.5 px-2 min-h-[40px]">
         <button
           type="button"
           onClick={onClick}
