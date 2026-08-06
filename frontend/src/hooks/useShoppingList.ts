@@ -89,21 +89,19 @@ export function useShoppingList() {
   };
 
   // Toggle check state of an aggregated group
-  const toggleItemGroup = (groupKeyName: string, modifier: string | undefined, unit: string, targetChecked: boolean) => {
+  const toggleItemGroup = (groupKeyName: string, _modifier: string | undefined, unit: string, targetChecked: boolean) => {
     const keyName = groupKeyName.toLowerCase().trim();
-    const keyModifier = (modifier || '').toLowerCase().trim();
     const keyUnit = unit.toLowerCase().trim();
 
     saveList(prevList =>
       prevList.map(item => {
         const parent = getParentIngredient(item);
-        const effectiveKeyName = parent ? parent.baseName : (item.baseName || item.name);
-        const matchName = effectiveKeyName.toLowerCase().trim() === keyName;
-        const matchModifier = parent ? true : (item.modifier || '').toLowerCase().trim() === keyModifier;
+        const effectiveKeyName = parent ? parent.name : (item.baseName || item.name);
+        const matchName = effectiveKeyName.toLowerCase().trim() === keyName || (item.name || '').toLowerCase().trim() === keyName;
         const effectiveUnit = parent ? (parent.unit || item.unit) : item.unit;
         const matchUnit = effectiveUnit.toLowerCase().trim() === keyUnit;
 
-        if (matchName && matchModifier && matchUnit) {
+        if (matchName && matchUnit) {
           return { ...item, checked: targetChecked };
         }
         return item;
@@ -112,20 +110,18 @@ export function useShoppingList() {
   };
 
   // Delete all items of an aggregated group
-  const deleteItemGroup = (groupKeyName: string, modifier: string | undefined, unit: string) => {
+  const deleteItemGroup = (groupKeyName: string, _modifier: string | undefined, unit: string) => {
     const keyName = groupKeyName.toLowerCase().trim();
-    const keyModifier = (modifier || '').toLowerCase().trim();
     const keyUnit = unit.toLowerCase().trim();
 
     saveList(prevList =>
       prevList.filter(item => {
         const parent = getParentIngredient(item);
-        const effectiveKeyName = parent ? parent.baseName : (item.baseName || item.name);
-        const matchName = effectiveKeyName.toLowerCase().trim() === keyName;
-        const matchModifier = parent ? true : (item.modifier || '').toLowerCase().trim() === keyModifier;
+        const effectiveKeyName = parent ? parent.name : (item.baseName || item.name);
+        const matchName = effectiveKeyName.toLowerCase().trim() === keyName || (item.name || '').toLowerCase().trim() === keyName;
         const effectiveUnit = parent ? (parent.unit || item.unit) : item.unit;
         const matchUnit = effectiveUnit.toLowerCase().trim() === keyUnit;
-        return !(matchName && matchModifier && matchUnit);
+        return !(matchName && matchUnit);
       })
     );
   };
@@ -140,7 +136,7 @@ export function useShoppingList() {
     saveList(prevList => prevList.filter(item => !item.checked));
   };
 
-  // Aggregate items: group by raw parent ingredient or lowercase name/unit.
+  // Aggregate items: group by raw parent ingredient or lowercase name/unit (ignoring modifier).
   const aggregatedList = useMemo(() => {
     const uncheckedMap = new Map<string, AggregatedShoppingItem>();
     const checkedMap = new Map<string, AggregatedShoppingItem>();
@@ -148,12 +144,13 @@ export function useShoppingList() {
     shoppingList.forEach(item => {
       const parent = getParentIngredient(item);
       const groupKeyName = parent ? parent.baseName : (item.baseName || item.name);
-      const displayName = parent ? parent.name : item.name;
+      const displayName = parent ? parent.name : (item.baseName || item.name);
       const displayUnit = parent ? (parent.unit || item.unit) : item.unit;
-      const displayModifier = parent ? undefined : item.modifier;
 
-      const key = `${groupKeyName.toLowerCase().trim()}|${(displayModifier || '').toLowerCase().trim()}|${displayUnit.toLowerCase().trim()}`;
+      const key = `${groupKeyName.toLowerCase().trim()}|${displayUnit.toLowerCase().trim()}`;
       const targetMap = item.checked ? checkedMap : uncheckedMap;
+
+      const currentSubName = item.modifier ? `${item.name} (${item.modifier})` : item.name;
 
       const existing = targetMap.get(key);
       if (existing) {
@@ -161,19 +158,33 @@ export function useShoppingList() {
         if (!existing.category && item.category) {
           existing.category = item.category;
         }
+
+        // Initialize subItems on existing if merging items with different details/modifiers
+        if (!existing.subItems && (existing.modifier !== item.modifier || existing.name !== item.name)) {
+          const firstSubName = existing.modifier ? `${existing.name} (${existing.modifier})` : existing.name;
+          existing.subItems = [{
+            name: firstSubName,
+            amount: existing.amount - item.amount,
+            unit: existing.unit,
+            recipeTitle: existing.sources[0]?.recipeTitle || ''
+          }];
+          existing.modifier = undefined;
+        }
+
         if (existing.subItems) {
-          const sub = existing.subItems.find(s => s.name.toLowerCase() === item.name.toLowerCase() && s.recipeTitle === item.recipeTitle);
+          const sub = existing.subItems.find(s => s.name.toLowerCase() === currentSubName.toLowerCase() && s.recipeTitle === item.recipeTitle);
           if (sub) {
             sub.amount += item.amount;
           } else {
             existing.subItems.push({
-              name: item.name,
+              name: currentSubName,
               amount: item.amount,
               unit: item.unit,
               recipeTitle: item.recipeTitle
             });
           }
         }
+
         // Avoid duplicate sources for the same recipe
         const hasSource = existing.sources.some(s => s.recipeId === item.recipeId);
         if (!hasSource) {
@@ -192,7 +203,7 @@ export function useShoppingList() {
         }
       } else {
         const initialSubItems = parent ? [{
-          name: item.name,
+          name: currentSubName,
           amount: item.amount,
           unit: item.unit,
           recipeTitle: item.recipeTitle
@@ -202,7 +213,7 @@ export function useShoppingList() {
           name: displayName,
           baseName: groupKeyName,
           parentIngredient: parent || undefined,
-          modifier: displayModifier,
+          modifier: parent ? undefined : item.modifier,
           unit: displayUnit,
           amount: item.amount,
           checked: item.checked,

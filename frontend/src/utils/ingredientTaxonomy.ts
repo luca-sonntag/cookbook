@@ -13,6 +13,16 @@ const KNOWN_TAXONOMY_RULES: KnownTaxonomyRule[] = [
     parent: { name: 'Ei', baseName: 'egg', unit: 'Stück' },
   },
   {
+    targetNames: ['zwiebel', 'zwiebeln', 'gemüsezwiebel', 'gemüsezwiebeln', 'rote zwiebel', 'rote zwiebeln', 'schalotte', 'schalotten'],
+    targetBaseNames: ['onion', 'onions', 'red onion', 'red onions', 'shallot', 'shallots'],
+    parent: { name: 'Zwiebel', baseName: 'onion', unit: 'Stück' },
+  },
+  {
+    targetNames: ['pizzasauce', 'pizzasoße'],
+    targetBaseNames: ['pizza sauce', 'pizzasauce'],
+    parent: { name: 'Pizzasauce', baseName: 'pizza sauce', unit: 'ml' },
+  },
+  {
     targetNames: ['zitrone', 'zitronen', 'zitronenabrieb', 'zitronenschale', 'zitronensaft', 'zitronenabrieb (bio)'],
     targetBaseNames: ['lemon', 'lemons', 'lemon zest', 'lemon juice', 'lemon peel'],
     parent: { name: 'Zitrone', baseName: 'lemon', unit: 'Stück' },
