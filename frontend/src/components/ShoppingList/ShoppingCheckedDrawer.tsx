@@ -46,8 +46,7 @@ export default function ShoppingCheckedDrawer({
             {t('shopping.doneCount', { count: items.length })}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0 text-gray-400 dark:text-gray-500 text-xs font-semibold">
-          <span>{isExpanded ? t('common.hide', { defaultValue: 'Ausblenden' }) : t('common.show', { defaultValue: 'Anzeigen' })}</span>
+        <div className="flex items-center flex-shrink-0 text-gray-400 dark:text-gray-500">
           <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
         </div>
       </button>
