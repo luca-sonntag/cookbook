@@ -29,28 +29,32 @@ export default function ShoppingListItem({
   const animationClass = isCollapsing ? 'animate-item-collapse' : 'animate-item-expand';
 
   // Smart deduplication for sub-items and modifiers:
-  // Strips redundant main item names and redundant quantities already displayed on the chip.
+  // Strips redundant main item names (and plurals) and redundant quantities already displayed on the chip.
   const extraNote = useMemo(() => {
     const mainName = (item.baseName || item.name || '').toLowerCase().trim();
+
+    const cleanName = (rawName: string): string => {
+      if (!rawName) return '';
+      let cleaned = rawName.trim();
+      if (mainName) {
+        const escaped = mainName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escaped}(?:n|s|e|en)?\\b`, 'gi');
+        cleaned = cleaned.replace(regex, '');
+      }
+      return cleaned
+        .replace(/\(\s*\)/g, '')
+        .replace(/^[()\s,:-]+|[()\s,:-]+$/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    };
 
     if (item.subItems && item.subItems.length > 0) {
       const parts: string[] = [];
 
       for (const sub of item.subItems) {
-        let subName = (sub.name || '').trim();
-        const subNameLower = subName.toLowerCase();
-
-        // Deduplicate: remove main item name if contained in subItem name
-        if (mainName && subNameLower.includes(mainName)) {
-          subName = subName
-            .replace(new RegExp(mainName, 'gi'), '')
-            .replace(/^[()\s,-]+|[()\s,-]+$/g, '')
-            .trim();
-        } else {
-          subName = subName.replace(/^[()\s]+|[()\s]+$/g, '').trim();
-        }
-
+        const subName = cleanName(sub.name || '');
         const subAmountStr = formatItemAmount(sub.amount, sub.unit);
+
         // Include quantity only if there are multiple distinct sub-items with differing quantities
         const shouldIncludeAmount =
           subAmountStr && item.subItems.length > 1 && subAmountStr !== amountStr;
@@ -69,10 +73,7 @@ export default function ShoppingListItem({
     }
 
     if (item.modifier) {
-      let mod = item.modifier.trim();
-      if (mainName && mod.toLowerCase().includes(mainName)) {
-        mod = mod.replace(new RegExp(mainName, 'gi'), '').replace(/^[()\s,-]+|[()\s,-]+$/g, '').trim();
-      }
+      const mod = cleanName(item.modifier);
       return mod || null;
     }
 
