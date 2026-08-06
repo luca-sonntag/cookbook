@@ -220,6 +220,10 @@ export default function ExtractForm({
   return (
     <div className="flex flex-col gap-6 w-full">
       {errorBanner}
+      {/* Premium Upgrade Promotion — displayed at top */}
+      {!isPending && !hideUpgradeCard && (
+        <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
+      )}
       {/* Input Card or Extraction Animation Card */}
       {isPending ? (
         <ExtractionAnimation
@@ -498,11 +502,6 @@ export default function ExtractForm({
       {/* Other cards & accordions — hidden during active extraction */}
       {!isPending && (
         <>
-          {/* Premium Upgrade Promotion — hidden when TrialBanner already covers it */}
-          {!hideUpgradeCard && (
-            <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
-          )}
-
           {/* Link-only guidance: sharing a post and the per-platform help below
               have no meaning for a photo import. */}
           {mode === 'link' && (<>
