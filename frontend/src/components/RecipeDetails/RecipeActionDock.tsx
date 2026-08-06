@@ -40,7 +40,7 @@ export default function RecipeActionDock({
   const showCookedDivider = showCooked && (showStart || showRemix || showShopping);
 
   return (
-    <FloatingActionBar className="bottom-28" isHidden={isHidden}>
+    <FloatingActionBar className="bottom-[calc(7rem_+_var(--safe-area-inset-bottom))]" isHidden={isHidden}>
       {/* Start Cooking Button */}
       {showStart && (
         <button

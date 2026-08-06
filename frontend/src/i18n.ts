@@ -181,11 +181,11 @@ export const uiTranslations = {
         },
         import: {
           title: 'Importieren & Teilen',
-          desc: 'Füge einen Link ein oder teile ein Reel direkt aus Instagram, TikTok, YouTube oder Facebook an Snagbite. Wir extrahieren das komplette Rezept für dich.',
+          desc: 'Füge einen Link ein oder teile ein Reel direkt aus Instagram, TikTok, YouTube oder Facebook an Snagbite. Wir erstellen das komplette Rezept für dich.',
         },
         cookbook: {
           title: 'Dein Kochbuch',
-          desc: 'Jedes extrahierte Rezept landet automatisch in deinem Kochbuch – durchsuchbar, filterbar und mit anpassbarer Portionsgröße.',
+          desc: 'Jedes gespeicherte Rezept landet automatisch in deinem Kochbuch – durchsuchbar, filterbar und mit anpassbarer Portionsgröße.',
         },
         organize: {
           title: 'Ordnen & Filtern',
@@ -352,7 +352,7 @@ export const uiTranslations = {
         tempUnitBoth: 'Beide (°C & °F)',
         unitSystemMetric: 'Metrisch (g, ml, kg)',
         unitSystemImperial: 'Imperial (oz, cups, lbs)',
-        settingInfoTooltip: 'Diese Einstellung wirkt sich nur auf neu extrahierte Rezepte aus.',
+        settingInfoTooltip: 'Diese Einstellung wirkt sich nur auf neu erstellte Rezepte aus.',
         saving: 'Speichern...',
         saved: 'Einstellungen gespeichert!',
         deleteAccount: 'Konto löschen',
@@ -360,8 +360,8 @@ export const uiTranslations = {
         premiumActive: 'Aktiv',
         premiumActiveDesc: 'Du hast unbegrenzten Zugriff auf alle Premium-Features.',
         alphaActive: 'Alpha-Zugriff',
-        alphaActiveDesc: 'Du bist Alpha-Tester! Du hast kostenlosen Zugriff auf alle Premium-Features während der Alpha. Extraktionslimits gelten weiterhin.',
-        premiumCardDesc: 'Schalte unbegrenzte Rezept-Extraktionen, KI-Chat & Remix und smarte Einkaufslisten frei.',
+        alphaActiveDesc: 'Du bist Alpha-Tester! Du hast kostenlosen Zugriff auf alle Premium-Features während der Alpha. Tageslimits gelten weiterhin.',
+        premiumCardDesc: 'Schalte unbegrenzten Rezept-Import, KI-Chat & Remix und smarte Einkaufslisten frei.',
         legal: {
           section: 'Rechtliches',
           privacy: 'Datenschutzerklärung',
@@ -424,10 +424,10 @@ export const uiTranslations = {
           queued: 'Warteschlange',
           scraping: 'Video-Daten laden',
           downloading_media: 'Audio & Video herunterladen',
-          extracting_frames: 'Videobilder extrahieren',
-          reading_photos: 'Fotos werden gelesen',
-          extracting_recipe: 'Rezept vorbereiten',
-          finalizing: 'Speichern & Fertigstellen'
+          extracting_frames: 'Videobilder analysieren',
+          reading_photos: 'Fotos auslesen',
+          extracting_recipe: 'Rezept strukturieren',
+          finalizing: 'Zusammenfassen'
         }
       },
       backgroundNotice: 'Dein Rezept wird im Hintergrund vorbereitet. Du kannst die App verlassen oder schließen – du wirst benachrichtigt, sobald das Rezept fertig ist.'
@@ -439,6 +439,10 @@ export const uiTranslations = {
       recipeReady: {
         title: 'Rezept bereit',
         body: 'Dein Rezept „{title}“ ist bereit zum Kochen!',
+      },
+      extractionInterrupted: {
+        title: '⚠️ Rezept-Import unterbrochen',
+        body: 'Rezepte können in der Free-Version nur erstellt werden, wenn die App geöffnet bleibt.',
       },
       prompt: {
         badge: 'Empfehlungen',
@@ -480,9 +484,9 @@ export const uiTranslations = {
         PHOTOS_TOO_LARGE: 'Die Fotos sind insgesamt zu groß. Bitte wähle weniger Fotos aus.',
         PARENT_JOB_NOT_COMPLETED: 'Das Ursprungsrezept ist noch nicht fertig. Bitte warte, bis es abgeschlossen ist.',
         UNAUTHORIZED: 'Nicht autorisiert. Bitte melde dich erneut an.',
-        COOKBOOK_FULL: 'Kochbuch voll ({counts}). Lösche ein Rezept oder hol dir Premium, um weitere Rezepte zu extrahieren.',
-        RATE_LIMIT_EXCEEDED: 'Du hast dein Limit von {limit} Rezept-Extraktionen pro {period} erreicht. {retry}',
-        ACTIVE_JOB_EXISTS: 'Du hast bereits {count} laufende Extraktion(en). Bitte warte, bis diese abgeschlossen sind.',
+        COOKBOOK_FULL: 'Kochbuch voll ({counts}). Lösche ein Rezept oder hol dir Premium, um weitere Rezepte zu speichern.',
+        RATE_LIMIT_EXCEEDED: 'Du hast dein Limit von {limit} Rezepten pro {period} erreicht. {retry}',
+        ACTIVE_JOB_EXISTS: 'Du hast bereits {count} laufende Rezept-Import(e). Bitte warte, bis diese abgeschlossen sind.',
         TOO_MANY_REQUESTS: 'Zu viele Anfragen. Bitte versuche es später noch einmal.',
         JOB_NOT_FOUND: 'Rezept nicht gefunden.',
         RECIPE_NOT_FOUND: 'Rezept nicht gefunden.',
@@ -544,12 +548,32 @@ export const uiTranslations = {
         days: 'Bitte versuche es in {dayStr}{hourStr} erneut.',
       },
     },
+    activeExtractions: {
+      title: 'Laufende Rezept-Importe',
+      titleDone: 'Fertige Rezepte',
+      statusRunning: 'Wird erstellt…',
+      ready: 'Rezept fertig',
+      tapToOpen: 'Tippen, um das Rezept zu öffnen',
+      dismiss: 'Ausblenden',
+      photoSource: 'Fotos',
+      stages: {
+        queued: 'In Warteschlange…',
+        scraping: 'Video wird geladen…',
+        downloading_media: 'Medien werden geladen…',
+        extracting_frames: 'Bilder werden analysiert…',
+        reading_photos: 'Fotos werden gelesen…',
+        extracting_recipe: 'Rezept wird erstellt…',
+        finalizing: 'Wird abgeschlossen…',
+      },
+    },
     form: {
       urlLabel: 'Rezept Link',
       urlPlaceholder: 'https://www.instagram.com/reel/...',
       urlPlaceholderShort: 'Link einfügen…',
       btnPending: 'Rezept wird gelesen...',
       btnSubmit: 'Rezept erstellen',
+      concurrentCounter: '{active}/{max} Rezepte werden erstellt',
+      concurrentLimitReached: 'Maximal {max} Rezepte gleichzeitig – warte, bis eines fertig ist.',
       mode: {
         link: 'Link',
         photo: 'Foto',
@@ -599,6 +623,7 @@ export const uiTranslations = {
         submitFailed: 'Auftrag konnte nicht übermittelt werden.',
         submissionError: 'Bei der Übermittlung ist ein Fehler aufgetreten.',
         serverError: 'Der Server hat keine gültige Antwort zurückgegeben. Bitte versuche es erneut.',
+        backgroundCancelled: 'Der Rezept-Import wurde abgebrochen, da die App in den Hintergrund gewechselt ist (Hintergrund-Verarbeitung ist nur in Premium enthalten).',
       }
     },
     recipe: {
@@ -631,7 +656,7 @@ export const uiTranslations = {
       aiEstimateTooltip: 'Diese Nährwerte wurden durch eine KI automatisiert basierend auf den Zutaten und Mengen geschätzt, da in der Quelle keine Angaben vorhanden waren.',
       aiIngredientsEstimateTooltip: 'Die Nährwerte der einzelnen Zutaten sind von der KI geschätzte Richtwerte und können je nach Sorte, Marke und Zubereitung variieren.',
       aiGeneratedNotice: 'KI-generierter Inhalt',
-      aiGeneratedDisclaimer: 'Dieses Rezept wurde KI-gestützt aus einem Social-Media-Video extrahiert und kann Fehler aufweisen. Bitte prüfe die Angaben sorgfältig.',
+      aiGeneratedDisclaimer: 'Dieses Rezept wurde KI-gestützt aus einem Social-Media-Video erstellt und kann Fehler aufweisen. Bitte prüfe die Angaben sorgfältig.',
       tabIngredients: 'Zutaten',
       tabInstructions: 'Zubereitung',
       ingredientsTitle: 'Zutaten-Checkliste',
@@ -675,7 +700,7 @@ export const uiTranslations = {
       photoImport: 'Foto-Import',
       title: 'Rezepte',
       emptyTitle: 'Keine gespeicherten Rezepte',
-      emptyDesc: 'Extrahiere Rezepte im "Neues Rezept" Tab, um sie hier zu speichern!',
+      emptyDesc: 'Erstelle Rezepte im "Neues Rezept" Tab, um sie hier zu speichern!',
       emptyState: {
         welcomeTitle: 'Dein Kochbuch wartet auf Rezepte!',
         welcomeDesc: 'Snagbite verwandelt Kochvideos von Instagram, TikTok oder YouTube in strukturierte Rezepte mit Einkaufslisten und Nährwertangaben.',
@@ -701,8 +726,6 @@ export const uiTranslations = {
       itemsSelected: '{count} Rezepte ausgewählt',
       confirmBulkDeleteTitle: 'Rezepte löschen?',
       confirmBulkDeleteMessage: 'Möchtest du die {count} ausgewählten Rezepte wirklich unwiderruflich löschen?',
-      confirmBulkAddTitle: 'Zutaten hinzufügen?',
-      confirmBulkAddMessage: 'Alle Zutaten aus {count} Rezepten zur Einkaufsliste hinzufügen?',
       favoritesFilter: 'Favoriten',
       sortNewest: 'Neueste',
       sortTitle: 'Name A–Z',
@@ -930,7 +953,7 @@ export const uiTranslations = {
           headerFeature: 'Funktion',
           headerFree: 'Kostenlos',
           headerPremium: 'Premium',
-          rowExtractions: 'Rezept-Extraktion',
+          rowExtractions: 'Rezept-Import',
           rowExtractionsFree: '1 / Tag',
           rowExtractionsPremium: 'Unbegrenzt',
           rowCookbook: 'Kochbuch (Speichern)',
@@ -975,7 +998,7 @@ export const uiTranslations = {
         extractUnlimited: 'Premium: Unbegrenzt freischalten',
         catalogFull: 'Kochbuch voll ({count}/{limit}) – Lösche ein Rezept oder upgrade.',
         catalogAlmostFull: 'Kochbuch fast voll ({count}/{limit})',
-        extractionLimitReached: 'Tageslimit erreicht ({used}/{limit}) – Upgrade auf Premium für unbegrenzte Extraktionen.',
+        extractionLimitReached: 'Tageslimit erreicht ({used}/{limit}) – Upgrade auf Premium für unbegrenzte Rezepte.',
         unlockNutrition: 'Nährwerte freischalten',
         upgrade: 'Upgrade'
       }
@@ -1187,7 +1210,7 @@ export const uiTranslations = {
         tempUnitBoth: 'Both (°C & °F)',
         unitSystemMetric: 'Metric (g, ml, kg)',
         unitSystemImperial: 'Imperial (oz, cups, lbs)',
-        settingInfoTooltip: 'This setting only affects newly extracted recipes.',
+        settingInfoTooltip: 'This setting only affects newly created recipes.',
         saving: 'Saving...',
         saved: 'Settings saved!',
         deleteAccount: 'Delete Account',
@@ -1195,8 +1218,8 @@ export const uiTranslations = {
         premiumActive: 'Active',
         premiumActiveDesc: 'You have unlimited access to all premium features.',
         alphaActive: 'Alpha Access',
-        alphaActiveDesc: 'You are an alpha tester! You have free access to all premium features during the alpha. Extraction limits apply.',
-        premiumCardDesc: 'Unlock unlimited recipe extractions, advanced remix capabilities, and smart shopping lists.',
+        alphaActiveDesc: 'You are an alpha tester! You have free access to all premium features during the alpha. Daily limits apply.',
+        premiumCardDesc: 'Unlock unlimited recipe imports, advanced remix capabilities, and smart shopping lists.',
         legal: {
           section: 'Legal',
           privacy: 'Privacy Policy',
@@ -1275,6 +1298,10 @@ export const uiTranslations = {
         title: 'Recipe Ready',
         body: 'Your recipe "{title}" is ready to cook!',
       },
+      extractionInterrupted: {
+        title: '⚠️ Recipe Import Interrupted',
+        body: 'In the Free version, recipes can only be created while the app remains open.',
+      },
       prompt: {
         badge: 'Smart recommendations',
         title: 'Need fresh cooking inspiration?',
@@ -1315,9 +1342,9 @@ export const uiTranslations = {
         PHOTOS_TOO_LARGE: 'Your photos are too large in total. Please pick fewer photos.',
         PARENT_JOB_NOT_COMPLETED: 'The original recipe is not ready yet. Please wait until it finishes.',
         UNAUTHORIZED: 'Unauthorized. Please sign in again.',
-        COOKBOOK_FULL: 'Cookbook full ({counts}). Delete a recipe or upgrade to Premium to extract more.',
-        RATE_LIMIT_EXCEEDED: 'You have reached your limit of {limit} recipe extractions per {period}. {retry}',
-        ACTIVE_JOB_EXISTS: 'You already have {count} extraction(s) in progress. Please wait for them to finish.',
+        COOKBOOK_FULL: 'Cookbook full ({counts}). Delete a recipe or upgrade to Premium to save more.',
+        RATE_LIMIT_EXCEEDED: 'You have reached your limit of {limit} recipes per {period}. {retry}',
+        ACTIVE_JOB_EXISTS: 'You already have {count} recipe import(s) in progress. Please wait for them to finish.',
         TOO_MANY_REQUESTS: 'Too many requests. Please try again later.',
         JOB_NOT_FOUND: 'Recipe not found.',
         RECIPE_NOT_FOUND: 'Recipe not found.',
@@ -1379,12 +1406,32 @@ export const uiTranslations = {
         days: 'Please try again in {dayStr}{hourStr}.',
       },
     },
+    activeExtractions: {
+      title: 'Active recipe imports',
+      titleDone: 'Finished recipes',
+      statusRunning: 'Creating recipe…',
+      ready: 'Recipe ready',
+      tapToOpen: 'Tap to open the recipe',
+      dismiss: 'Dismiss',
+      photoSource: 'Photos',
+      stages: {
+        queued: 'Queued…',
+        scraping: 'Fetching video…',
+        downloading_media: 'Downloading media…',
+        extracting_frames: 'Analyzing frames…',
+        reading_photos: 'Reading photos…',
+        extracting_recipe: 'Building recipe…',
+        finalizing: 'Finishing up…',
+      },
+    },
     form: {
       urlLabel: 'Recipe Link',
       urlPlaceholder: 'https://www.instagram.com/reel/...',
       urlPlaceholderShort: 'Paste link…',
       btnPending: 'Reading recipe...',
       btnSubmit: 'Import Recipe',
+      concurrentCounter: '{active}/{max} recipes being created',
+      concurrentLimitReached: 'Up to {max} recipes at once — wait for one to finish.',
       mode: {
         link: 'Link',
         photo: 'Photo',
@@ -1434,6 +1481,7 @@ export const uiTranslations = {
         submitFailed: 'Failed to submit extraction job.',
         submissionError: 'An error occurred during submission.',
         serverError: 'The server returned an unexpected response. Please try again.',
+        backgroundCancelled: 'Recipe import cancelled because the app entered the background (background processing is Premium only).',
       }
     },
     recipe: {
@@ -1466,7 +1514,7 @@ export const uiTranslations = {
       aiEstimateTooltip: 'These nutritional values were automatically estimated by an AI based on the ingredients and quantities since no specifications were present in the source.',
       aiIngredientsEstimateTooltip: 'The nutritional values for individual ingredients are guidelines estimated by the AI and may vary depending on variety, brand, and preparation.',
       aiGeneratedNotice: 'AI-Generated Content',
-      aiGeneratedDisclaimer: 'This recipe was extracted from a social media video with AI assistance and may contain errors. Please verify the information carefully.',
+      aiGeneratedDisclaimer: 'This recipe was created from a social media video with AI assistance and may contain errors. Please verify the information carefully.',
       tabIngredients: 'Ingredients',
       tabInstructions: 'Instructions',
       ingredientsTitle: 'Ingredients Checklist',
@@ -1510,7 +1558,7 @@ export const uiTranslations = {
       photoImport: 'Photo import',
       title: 'Recipes',
       emptyTitle: 'No Saved Recipes',
-      emptyDesc: 'Extract recipes in the "Extract New" tab to save them here!',
+      emptyDesc: 'Create recipes in the "New" tab to save them here!',
       emptyState: {
         welcomeTitle: 'Your Cookbook is Waiting for Recipes!',
         welcomeDesc: 'Snagbite turns cooking videos from Instagram, TikTok, or YouTube into structured recipes with shopping lists and nutritional values.',
@@ -1536,8 +1584,6 @@ export const uiTranslations = {
       itemsSelected: '{count} recipes selected',
       confirmBulkDeleteTitle: 'Delete selected recipes?',
       confirmBulkDeleteMessage: 'Are you sure you want to permanently delete the {count} selected recipes?',
-      confirmBulkAddTitle: 'Add ingredients?',
-      confirmBulkAddMessage: 'Add all ingredients from {count} recipes to the shopping list?',
       favoritesFilter: 'Favorites',
       sortNewest: 'Newest',
       sortTitle: 'Name A–Z',
@@ -1765,7 +1811,7 @@ export const uiTranslations = {
           headerFeature: 'Feature',
           headerFree: 'Free',
           headerPremium: 'Premium',
-          rowExtractions: 'Recipe Extraction',
+          rowExtractions: 'Recipe Import',
           rowExtractionsFree: '1 / day',
           rowExtractionsPremium: 'Unlimited',
           rowCookbook: 'Cookbook (Save)',
@@ -1810,7 +1856,7 @@ export const uiTranslations = {
         extractUnlimited: 'Premium: Unlock unlimited',
         catalogFull: 'Cookbook full ({count}/{limit}) – Delete a recipe or upgrade.',
         catalogAlmostFull: 'Cookbook almost full ({count}/{limit})',
-        extractionLimitReached: 'Daily limit reached ({used}/{limit}) – Upgrade to Premium for unlimited extractions.',
+        extractionLimitReached: 'Daily limit reached ({used}/{limit}) – Upgrade to Premium for unlimited recipes.',
         unlockNutrition: 'Unlock nutrition',
         upgrade: 'Upgrade'
       }
@@ -1953,8 +1999,8 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
       : (lang === 'de' ? `${days} Tagen` : `${days} days`);
 
     return lang === 'de'
-      ? `Du hast dein Limit von ${limit} Rezept-Extraktionen pro ${daysStr} erreicht. ${timeTextDe}`
-      : `You have reached your limit of ${limit} recipe extractions per ${daysStr}. ${timeTextEn}`;
+      ? `Du hast dein Limit von ${limit} Rezepten pro ${daysStr} erreicht. ${timeTextDe}`
+      : `You have reached your limit of ${limit} recipes per ${daysStr}. ${timeTextEn}`;
   }
 
   if (lowerMsg.includes('too many requests')) {
@@ -1967,8 +2013,8 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
     const match = errorMsg.match(/\d+/);
     const count = match ? match[0] : '1';
     return lang === 'de'
-      ? `Du hast bereits ${count} aktive(n) Auftrag/Aufträge. Bitte warte, bis diese abgeschlossen sind.`
-      : `You already have ${count} active job(s). Please wait for them to finish.`;
+      ? `Du hast bereits ${count} laufende(n) Rezept-Import(e). Bitte warte, bis diese abgeschlossen sind.`
+      : `You already have ${count} active recipe import(s). Please wait for them to finish.`;
   }
 
   if (lowerMsg.includes('cookbook full')) {
@@ -1977,8 +2023,8 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
     const limit = m ? m[2] : '5';
     const countStr = count ? `${count}/${limit}` : `${limit}`;
     return lang === 'de'
-      ? `Kochbuch voll (${countStr}). Lösche ein Rezept oder hol dir Premium, um weitere Rezepte zu extrahieren.`
-      : `Cookbook full (${countStr}). Delete a recipe or upgrade to Premium to extract more.`;
+      ? `Kochbuch voll (${countStr}). Lösche ein Rezept oder hol dir Premium, um weitere Rezepte zu speichern.`
+      : `Cookbook full (${countStr}). Delete a recipe or upgrade to Premium to save more.`;
   }
 
   if (lowerMsg.includes('youtube shorts')) {
@@ -2105,7 +2151,7 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
     return lang === 'de' ? 'Statusüberprüfung vom Server fehlgeschlagen.' : 'Failed to check status from server.';
   }
   if (errorMsg === 'failed_extraction' || errorMsg === 'failedExtraction') {
-    return lang === 'de' ? 'Die Rezept-Extraktion ist fehlgeschlagen.' : 'The recipe extraction failed.';
+    return lang === 'de' ? 'Die Rezept-Erstellung ist fehlgeschlagen.' : 'The recipe creation failed.';
   }
   if (errorMsg === 'lost_connection' || errorMsg === 'lostConnection') {
     return lang === 'de' ? 'Verbindung zum Backend-Server verloren.' : 'Lost connection to backend server.';

@@ -442,56 +442,13 @@ export function useSavedCatalog({
     }, 2000);
   };
 
-  // Bulk add to shopping list in Multi-Select mode
-  const handleBulkAddToShoppingList = async () => {
-    if (!onAddIngredients) return;
-
-    const count = selectedIds.size;
-    const confirmed = await dialog.confirm({
-      title: t('catalog.confirmBulkAddTitle'),
-      message: t('catalog.confirmBulkAddMessage', { count }),
-      confirmLabel: t('recipe.addedToShopping'),
-      cancelLabel: t('app.dialog.deleteRecipe.cancel'),
-      status: 'info'
-    });
-
-    if (!confirmed) return;
-
-    let totalAdded = 0;
-    const selectedJobs = completedJobs.filter(j => selectedIds.has(j.id));
-
-    selectedJobs.forEach(job => {
-      const r = job.recipe!;
-      const itemsToAdd: Ingredient[] = [];
-      r.ingredients.forEach((group) => {
-        group.items.forEach((ing) => {
-          itemsToAdd.push({
-            name: ing.name,
-            amount: ing.amount,
-            unit: ing.unit || '',
-            notes: ing.notes,
-            category: group.name
-          });
-        });
-      });
-
-      if (itemsToAdd.length > 0) {
-        onAddIngredients(itemsToAdd, job.id, r.title);
-        totalAdded++;
-      }
-    });
-
-    if (totalAdded > 0) {
-      setIsSelectMode(false);
-      setSelectedIds(new Set());
-
-      dialog.alert({
-        title: t('recipe.addedToShopping'),
-        message: t('catalog.bulkAddedMessage', { count: totalAdded }),
-        status: 'success'
-      });
-    }
+  // Bulk add to shopping list in Multi-Select mode.
+  // Returns the selected jobs for the caller to show the per-recipe
+  // ShoppingConfirmSheet sequentially — no direct add happens here.
+  const getBulkShoppingJobs = (): Job[] => {
+    return completedJobs.filter(j => selectedIds.has(j.id) && j.recipe);
   };
+
 
   // Bulk delete in Multi-Select mode
   const handleBulkDelete = async () => {
@@ -702,7 +659,7 @@ export function useSavedCatalog({
     bindLongPress,
     handleCardClick,
     handleDirectAddToShoppingList,
-    handleBulkAddToShoppingList,
+    getBulkShoppingJobs,
     handleBulkDelete,
     sortBy,
     setSortBy,

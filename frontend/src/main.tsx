@@ -7,6 +7,7 @@ import { I18nProvider } from './context/I18nContext.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { TimerProvider } from './context/TimerContext.tsx'
 import { GamificationProvider } from './context/GamificationContext.tsx'
+import { ExtractionJobsProvider } from './context/ExtractionJobsContext.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 import { initNativeUi } from './native'
 import { installConsoleBuffer } from './utils/consoleBuffer'
@@ -28,9 +29,11 @@ createRoot(document.getElementById('root')!).render(
         <DialogProvider>
           <TimerProvider>
             <GamificationProvider>
-              <ErrorBoundary>
-                <App />
-              </ErrorBoundary>
+              <ExtractionJobsProvider>
+                <ErrorBoundary>
+                  <App />
+                </ErrorBoundary>
+              </ExtractionJobsProvider>
             </GamificationProvider>
           </TimerProvider>
         </DialogProvider>

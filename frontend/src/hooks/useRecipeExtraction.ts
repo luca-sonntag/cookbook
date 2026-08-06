@@ -4,35 +4,10 @@ import { type ErrorParams, parseSerializedError } from '../errorCodes';
 import { useI18n } from '../context/I18nContext';
 import { apiUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { setCachedImage } from '../utils/imageStore';
 import { compressRecipePhotos } from '../utils/imageCompression';
-import { sendNativeNotification, requestNativeNotificationPermission, isNative } from '../native';
-
-/**
- * Pulls a completed job's recipe frames (a one-time, transient hand-off) and
- * stores them in the device's local IndexedDB cache under their `local:` keys.
- * The frames are deleted server-side once delivered, so this must run before the
- * recipe is shown — otherwise the images are gone for good. Best-effort: any
- * failure just means the recipe renders without images.
- */
-async function pullAndCacheFrames(jobId: string, token: string): Promise<void> {
-  try {
-    const response = await fetch(apiUrl(`/api/jobs/${jobId}/frames`), {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!response.ok) return;
-    const data = await response.json();
-    if (!data.success || !Array.isArray(data.frames)) return;
-
-    await Promise.all(
-      data.frames.map((f: { index: number; dataUrl: string }) =>
-        setCachedImage(`local:${jobId}:${f.index}`, f.dataUrl)
-      )
-    );
-  } catch (err) {
-    console.warn('Failed to pull recipe frames for local caching:', err);
-  }
-}
+import { pullAndCacheFrames } from '../utils/recipeFrames';
+import { useExtractionJobs, type ExtractionMode } from '../context/ExtractionJobsContext';
+import { sendNativeNotification, requestNativeNotificationPermission, isNative, registerAppStateListener } from '../native';
 
 // Tracks the currently in-flight extraction job across reloads/restarts, so a
 // still-running job can be resumed instead of the user re-submitting the same
@@ -50,7 +25,8 @@ const MAX_PHOTOS_TOTAL_CHARS = 8_000_000;
 
 export function useRecipeExtraction(getAccessToken: () => Promise<string | null>, onExtractionSuccess: (jobId: string) => void) {
   const { t } = useI18n();
-  const { user, refreshSession } = useAuth();
+  const { user, refreshSession, isPremium } = useAuth();
+  const { addJob } = useExtractionJobs();
   const [isPending, setIsPending] = useState(false);
   const [jobStatus, setJobStatus] = useState<Job['status'] | null>(null);
   const [jobError, setJobError] = useState<string | null>(null);
@@ -64,7 +40,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
   // re-submit the same photos without the form having to hand them around.
   const [photos, setPhotos] = useState<File[]>([]);
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
-  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'alpha' | 'premium'; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null>(null);
+  const [limitStatus, setLimitStatus] = useState<{ limit: number; used: number; remaining: number; windowDays: number; tier: 'free' | 'alpha' | 'premium'; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean; maxConcurrent: number; activeCount: number } | null>(null);
 
   const fetchLimitStatus = useCallback(async () => {
     try {
@@ -88,7 +64,9 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           tier: data.tier,
           savedRecipes: data.savedRecipes ?? 0,
           maxSavedRecipes: data.maxSavedRecipes ?? -1,
-          cookbookFull: data.cookbookFull ?? false
+          cookbookFull: data.cookbookFull ?? false,
+          maxConcurrent: data.maxConcurrent ?? 1,
+          activeCount: data.activeCount ?? 0
         });
 
         // Auto-refresh auth session on tier mismatch (e.g. after alpha auto-assignment)
@@ -136,12 +114,99 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     return true;
   }, [t]);
 
+  const activePollingJobIdRef = useRef<string | null>(null);
+  const activePollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopActivePolling = useCallback(() => {
+    if (activePollingIntervalRef.current) {
+      clearInterval(activePollingIntervalRef.current);
+      activePollingIntervalRef.current = null;
+    }
+    activePollingJobIdRef.current = null;
+  }, []);
+
+  const pollingStartTimeRef = useRef<number>(0);
+
+  const cancelActiveFreeJob = useCallback(async () => {
+    const jobId = activePollingJobIdRef.current || localStorage.getItem(PENDING_JOB_STORAGE_KEY);
+    if (!jobId) return;
+
+    stopActivePolling();
+    localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
+    setIsPending(false);
+    setJobStatus('failed');
+    setJobError('form.validation.backgroundCancelled');
+    setProgress(null);
+
+    // Fire local notification to inform the user that extraction was interrupted due to backgrounding
+    if (document.visibilityState !== 'visible') {
+      const notifTitle = t('notification.extractionInterrupted.title');
+      const notifBody = t('notification.extractionInterrupted.body');
+      sendNativeNotification(
+        notifTitle,
+        notifBody,
+        undefined,
+        undefined,
+        Math.floor(Date.now() / 1000),
+        { route: 'extract', action: 'interrupted' }
+      );
+    }
+
+    try {
+      const token = await getAccessToken();
+      if (token) {
+        fetch(apiUrl(`/api/jobs/${jobId}`), {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          keepalive: true
+        }).catch(err => console.warn('Failed to send DELETE for backgrounded job:', err));
+      }
+    } catch (err) {
+      console.warn('Error executing cancelActiveFreeJob:', err);
+    }
+  }, [getAccessToken, stopActivePolling, t]);
+
+  const runSimulatedProgress = useCallback(async (jobId: string, token: string, targetDurationMs: number = 10000) => {
+    setIsPending(true);
+    setJobStatus('processing');
+
+    const steps: Array<{ stage: ProgressData['stage']; percent: number; delayMs: number }> = [
+      { stage: 'scraping', percent: 20, delayMs: Math.round(targetDurationMs * 0.25) },
+      { stage: 'downloading_media', percent: 45, delayMs: Math.round(targetDurationMs * 0.25) },
+      { stage: 'extracting_recipe', percent: 75, delayMs: Math.round(targetDurationMs * 0.25) },
+      { stage: 'finalizing', percent: 95, delayMs: Math.round(targetDurationMs * 0.25) },
+    ];
+
+    for (const step of steps) {
+      if (activePollingJobIdRef.current !== jobId) return;
+      setProgress({ isProgress: true, percent: step.percent, stage: step.stage });
+      await new Promise(res => setTimeout(res, step.delayMs));
+    }
+
+    if (activePollingJobIdRef.current !== jobId) return;
+
+    await pullAndCacheFrames(jobId, token);
+    setProgress(null);
+    setIsPending(false);
+    setUrl('');
+    setPhotos([]);
+    localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
+    activePollingJobIdRef.current = null;
+    onExtractionSuccess(jobId);
+  }, [onExtractionSuccess]);
+
   const startPolling = useCallback((id: string) => {
+    stopActivePolling();
+    activePollingJobIdRef.current = id;
+    pollingStartTimeRef.current = Date.now();
+
     const interval = setInterval(async () => {
       try {
         const token = await getAccessToken();
         if (!token) {
-          clearInterval(interval);
+          stopActivePolling();
           setJobStatus('failed');
           setJobError('form.validation.unauthorized');
           setIsPending(false);
@@ -157,7 +222,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         try {
           data = await response.json();
         } catch {
-          clearInterval(interval);
+          stopActivePolling();
           setJobStatus('failed');
           setJobError(response.status === 429 ? 'too many requests' : 'form.validation.serverError');
           setIsPending(false);
@@ -166,7 +231,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         }
 
         if (!response.ok || !data.success) {
-          clearInterval(interval);
+          stopActivePolling();
           setJobStatus('failed');
           setJobError(data.error || 'form.validation.failedCheck');
           setIsPending(false);
@@ -178,9 +243,17 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         setJobStatus(job.status);
 
         if (job.status === 'completed') {
-          clearInterval(interval);
-          // Pull the transient frames into the local cache before showing the
-          // recipe — they are deleted server-side once fetched.
+          const elapsed = Date.now() - pollingStartTimeRef.current;
+          const remainingMs = 10000 - elapsed;
+
+          if (!isPremium && remainingMs > 2000) {
+            stopActivePolling();
+            activePollingJobIdRef.current = job.id;
+            await runSimulatedProgress(job.id, token, remainingMs);
+            return;
+          }
+
+          stopActivePolling();
           await pullAndCacheFrames(job.id, token);
           setProgress(null);
           setIsPending(false);
@@ -188,8 +261,6 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setPhotos([]);
           localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
           
-          // Send notification when recipe is ready — only if the user is not
-          // actively looking at the app (they already see the result in-UI).
           if (document.visibilityState !== 'visible') {
             const recipeTitle = job.recipe?.title || t('recipe.recipe') || 'Recipe';
             const notifTitle = t('notification.recipeReady.title');
@@ -199,9 +270,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
 
           onExtractionSuccess(job.id);
         } else if (job.status === 'failed') {
-          clearInterval(interval);
-          // The worker persists failures as a {code, params} envelope; surface the
-          // code/params so the banner can localize and branch (e.g. premium hints).
+          stopActivePolling();
           const envelope = job.error ? parseSerializedError(job.error) : null;
           setJobError(job.error || 'form.validation.failedExtraction');
           setJobErrorCode(envelope?.code ?? null);
@@ -213,7 +282,7 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
           setProgress(job.progress || null);
         }
       } catch (err: unknown) {
-        clearInterval(interval);
+        stopActivePolling();
         setJobStatus('failed');
         setJobError(err instanceof Error ? err.message : 'form.validation.lostConnection');
         setProgress(null);
@@ -221,25 +290,39 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         localStorage.removeItem(PENDING_JOB_STORAGE_KEY);
       }
     }, 2000);
-  }, [getAccessToken, onExtractionSuccess, t]);
+
+    activePollingIntervalRef.current = interval;
+  }, [getAccessToken, isPremium, onExtractionSuccess, runSimulatedProgress, stopActivePolling, t]);
 
   /**
-   * Shared submit path for both input channels: posts a job-creating request,
-   * unwraps the `{success, jobId}` envelope and starts polling. `buildBody` runs
-   * after the pending state is set, so slow client-side work (compressing
-   * photos) already shows a busy UI.
+   * Shared submit path for both input channels: posts a job-creating request and
+   * unwraps the `{success, jobId}` envelope. `buildBody` runs after the busy
+   * state is set, so slow client-side work (compressing photos) already shows a
+   * busy UI.
+   *
+   * Two flows depending on tier:
+   *  - **Free**: foreground/blocking — sets `isPending`, persists the single job
+   *    id and polls it here; the recipe auto-opens on completion. Free users may
+   *    only run one at a time (enforced server-side too).
+   *  - **Premium**: background — hands the job to `ExtractionJobsContext`, clears
+   *    the inputs and returns immediately so more can be queued. Progress is
+   *    shown by `ActiveExtractions`; nothing auto-opens.
    */
   const submitExtraction = useCallback(async (
     path: string,
     buildBody: () => Promise<unknown>,
+    meta: { mode: ExtractionMode; sourceLabel: string },
   ) => {
     // Proactively request local notification permissions on native startup of extraction
     if (isNative()) {
       requestNativeNotificationPermission().catch(err => console.warn('Failed to request notifications permission:', err));
     }
 
-    setIsPending(true);
-    setJobStatus('pending');
+    // Only the free/foreground flow blocks the form with the full-screen animation.
+    if (!isPremium) {
+      setIsPending(true);
+      setJobStatus('pending');
+    }
     setJobError(null);
     setJobErrorCode(null);
     setJobErrorParams(null);
@@ -283,10 +366,25 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
         });
       }
 
-      setJobStatus(data.status);
-      fetchLimitStatus();
-      localStorage.setItem(PENDING_JOB_STORAGE_KEY, data.jobId);
-      startPolling(data.jobId);
+      if (isPremium) {
+        // Background flow: track the job in the shared store and free the form.
+        addJob(data.jobId, { sourceLabel: meta.sourceLabel, mode: meta.mode });
+        setUrl('');
+        setPhotos([]);
+        setJobStatus(null);
+        fetchLimitStatus();
+      } else {
+        fetchLimitStatus();
+        if (data.status === 'completed') {
+          stopActivePolling();
+          activePollingJobIdRef.current = data.jobId;
+          runSimulatedProgress(data.jobId, token, 10000);
+        } else {
+          setJobStatus(data.status);
+          localStorage.setItem(PENDING_JOB_STORAGE_KEY, data.jobId);
+          startPolling(data.jobId);
+        }
+      }
     } catch (err: unknown) {
       const typed = err as (Error & { code?: string; params?: ErrorParams }) | undefined;
       setJobStatus('failed');
@@ -295,13 +393,16 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
       setJobErrorParams(typed?.params ?? null);
       setIsPending(false);
     }
-  }, [getAccessToken, startPolling, fetchLimitStatus]);
+  }, [getAccessToken, startPolling, fetchLimitStatus, isPremium, addJob, runSimulatedProgress, stopActivePolling]);
 
   const triggerExtraction = useCallback(async (targetUrl: string) => {
     const cleanUrl = targetUrl.trim();
     if (!validateUrl(cleanUrl)) return;
 
-    await submitExtraction('/api/extract-recipe', async () => ({ url: cleanUrl }));
+    await submitExtraction('/api/extract-recipe', async () => ({ url: cleanUrl }), {
+      mode: 'link',
+      sourceLabel: cleanUrl,
+    });
   }, [submitExtraction, validateUrl]);
 
   /**
@@ -317,17 +418,17 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     try {
       await submitExtraction('/api/extract-recipe/photos', async () => ({
         photos: await compressRecipePhotos(selected, MAX_PHOTOS_TOTAL_CHARS),
-      }));
+      }), {
+        mode: 'photo',
+        sourceLabel: t('activeExtractions.photoSource'),
+      });
     } finally {
       setIsUploadingPhotos(false);
     }
-  }, [photos, submitExtraction]);
+  }, [photos, submitExtraction, t]);
 
   // Resume a still-running extraction after a reload/restart wiped in-memory
-  // state (e.g. the app was backgrounded and killed by the OS, or the PWA was
-  // relaunched). Without this, the Extract tab looked blank even though a job
-  // was still running, which led users to re-submit the same URL and end up
-  // with two saved recipes for one source.
+  // state. Restricted to free users since premium extractions run in ExtractionJobsContext.
   const hasResumedPendingJobRef = useRef(false);
   useEffect(() => {
     if (hasResumedPendingJobRef.current) return;
@@ -336,10 +437,44 @@ export function useRecipeExtraction(getAccessToken: () => Promise<string | null>
     const pendingJobId = localStorage.getItem(PENDING_JOB_STORAGE_KEY);
     if (!pendingJobId) return;
 
-    setIsPending(true);
-    setJobStatus('pending');
-    startPolling(pendingJobId);
-  }, [startPolling]);
+    if (!isPremium) {
+      setIsPending(true);
+      setJobStatus('pending');
+      startPolling(pendingJobId);
+    }
+  }, [startPolling, isPremium]);
+
+  // Cancel in-flight extraction for Free users whenever the app enters background / tab is hidden
+  useEffect(() => {
+    if (isPremium) return;
+
+    const handleBackground = () => {
+      const pendingId = activePollingJobIdRef.current || localStorage.getItem(PENDING_JOB_STORAGE_KEY);
+      if (pendingId) {
+        console.log('[useRecipeExtraction] Free user backgrounded during extraction — cancelling job:', pendingId);
+        cancelActiveFreeJob();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleBackground();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const cleanupAppState = registerAppStateListener((isActive) => {
+      if (!isActive) {
+        handleBackground();
+      }
+    });
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      cleanupAppState();
+    };
+  }, [isPremium, cancelActiveFreeJob]);
 
 
   return {

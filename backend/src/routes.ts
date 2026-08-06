@@ -1,5 +1,56 @@
 import { Router, Request, Response } from 'express';
-import { createJob, createRemixJob, saveCompletedRemix, getJob, findCompletedJobByUrl, findActiveJobByUrl, getAllJobs, deleteJob, deleteRecipeFrames, getRecipeFrames, countActiveJobsForUser, getClient, getExtractionsForUserInTimeframe, countCompletedRecipesForUser, updateJob, isAlphaActive, getAlphaMaxExtractions, getAlphaMaxSavedRecipes, getFreeMaxExtractions, getFreeMaxSavedRecipes, getPremiumMaxExtractions, getPremiumMaxSavedRecipes, setFavorite, setFlags, listCollections, createCollection, updateCollection, deleteCollection, setRecipeCollections, createFeedback, getAllGlobalSettings, updateGlobalSettings, getAllFeedback, getJobMetrics, listAppBundles, setAppBundleActive, getExtractionsPerUser, getFailedJobs, getUserStats, getUserBadgesDetailed, getGamificationConfig, uploadCookPhoto, upsertPushToken, deletePushToken, deletePushTokensForUser, getRecentCookPhotos, getDistinctCookedRecipeCount, getCookHistoryForJob } from './db.js';
+import {
+  createJob,
+  createRemixJob,
+  saveCompletedRemix,
+  getJob,
+  findCompletedJobByUrl,
+  findActiveJobByUrl,
+  getAllJobs,
+  deleteJob,
+  deleteRecipeFrames,
+  getRecipeFrames,
+  countActiveJobsForUser,
+  getClient,
+  getExtractionsForUserInTimeframe,
+  countCompletedRecipesForUser,
+  updateJob,
+  isAlphaActive,
+  getAlphaMaxExtractions,
+  getAlphaMaxSavedRecipes,
+  getFreeMaxExtractions,
+  getFreeMaxSavedRecipes,
+  getPremiumMaxExtractions,
+  setFavorite,
+  setFlags,
+  listCollections,
+  createCollection,
+  updateCollection,
+  deleteCollection,
+  setRecipeCollections,
+  createFeedback,
+  getAllGlobalSettings,
+  updateGlobalSettings,
+  getAllFeedback,
+  getJobMetrics,
+  listAppBundles,
+  setAppBundleActive,
+  getExtractionsPerUser,
+  getFailedJobs,
+  upsertPushToken,
+  deletePushToken,
+  deletePushTokensForUser,
+  getPremiumMaxConcurrentExtractions,
+  getFreeMaxConcurrentExtractions,
+  restoreJob, 
+  getRecentCookPhotos, 
+  getDistinctCookedRecipeCount, 
+  getCookHistoryForJob,
+  uploadCookPhoto,
+  getUserStats,
+  getUserBadgesDetailed,
+  getGamificationConfig
+} from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { chatAboutRecipe, generateChatChips, remixRecipe, verifyCookedDishPhoto } from './gemini.js';
@@ -117,6 +168,24 @@ function isPremiumUser(user: any): boolean {
 }
 
 /**
+ * Resolves how many extractions a user may run *at the same time* (in-flight jobs).
+ * Premium/alpha (and unlimited overrides) get the premium concurrency setting so
+ * they can queue several background extractions; everyone else gets the free
+ * setting (1 by default — free users cannot extract in the background).
+ */
+async function resolveConcurrencyLimit(user: any): Promise<number> {
+  const meta = user?.app_metadata || {};
+  const premiumLike =
+    meta.tier === 'premium' ||
+    meta.tier === 'alpha' ||
+    meta.custom_extraction_limit === -1 ||
+    meta.max_extractions_per_window === -1;
+  return premiumLike
+    ? await getPremiumMaxConcurrentExtractions()
+    : await getFreeMaxConcurrentExtractions();
+}
+
+/**
  * Shared quota gate for everything that creates an extraction job: the active-job
  * quota, the cookbook cap and the rolling per-user extraction limit. Photo
  * imports go through exactly the same gate as link imports — they cost the same
@@ -128,13 +197,7 @@ function isPremiumUser(user: any): boolean {
 async function enforceExtractionQuota(req: Request): Promise<void> {
   const userId = req.userId!;
 
-  // Enforce per-user quota to protect Apify/Gemini budget
-  const activeCount = await countActiveJobsForUser(userId);
-  if (activeCount >= config.MAX_JOBS_PER_USER) {
-    throw new AppError('ACTIVE_JOB_EXISTS', { params: { count: activeCount } });
-  }
-
-  // Fetch the user once for tier-based gating (cookbook cap + rolling rate limit).
+  // Fetch the user once for tier-based gating (concurrency + cookbook cap + rolling rate limit).
   let user: any = null;
   try {
     user = await fetchAndSyncUser(userId);
@@ -143,6 +206,15 @@ async function enforceExtractionQuota(req: Request): Promise<void> {
   }
 
   const premium = isPremiumUser(user);
+
+  // Enforce per-user concurrency to protect Apify/Gemini budget. This is now
+  // tier-aware: free users may run only one extraction at a time (no background
+  // extraction), while premium/alpha users may run several in parallel.
+  const concurrencyLimit = await resolveConcurrencyLimit(user);
+  const activeCount = await countActiveJobsForUser(userId);
+  if (concurrencyLimit >= 0 && activeCount >= concurrencyLimit) {
+    throw new AppError('ACTIVE_JOB_EXISTS', { params: { count: activeCount } });
+  }
 
   // Enforce the cookbook cap: free accounts may only keep a limited number of
   // saved recipes. Existing recipes stay accessible — the user must delete one
@@ -215,24 +287,28 @@ apiRouter.post('/extract-recipe', async (req: Request, res: Response): Promise<v
       throw new AppError('INVALID_URL', { message: 'URL failed to parse.' });
     }
 
-    // Check if job for this URL has already successfully completed (scoped to user)
-    const existingJob = await findCompletedJobByUrl(cleanUrl, req.userId!);
+    // Check if job for this URL has already successfully completed (scoped to user, including soft-deleted ones)
+    const existingJob = await findCompletedJobByUrl(cleanUrl, req.userId!, true);
     if (existingJob) {
+      if (existingJob.deletedAt !== null) {
+        await restoreJob(existingJob.id, req.userId!);
+      }
       res.status(200).json({
         success: true,
         jobId: existingJob.id,
         status: existingJob.status,
+        isCached: true,
         message: 'Recipe already extracted successfully.',
       });
       return;
     }
 
-    // Check if a job for this URL is already running (scoped to user). Without this,
-    // re-submitting the same URL while the first extraction is still in flight -
-    // e.g. after the app was closed/reopened mid-extraction - creates a second job
-    // that also completes, resulting in a duplicate saved recipe.
-    const activeJob = await findActiveJobByUrl(cleanUrl, req.userId!);
+    // Check if a job for this URL is already running (scoped to user, including soft-deleted ones).
+    const activeJob = await findActiveJobByUrl(cleanUrl, req.userId!, true);
     if (activeJob) {
+      if (activeJob.deletedAt !== null) {
+        await restoreJob(activeJob.id, req.userId!);
+      }
       res.status(202).json({
         success: true,
         jobId: activeJob.id,
@@ -367,9 +443,9 @@ apiRouter.post('/jobs/:id/remix', async (req: Request, res: Response): Promise<v
       if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
-                    meta.tier === 'alpha' ||
-                    meta.custom_extraction_limit === -1 ||
-                    meta.max_extractions_per_window === -1;
+          meta.tier === 'alpha' ||
+          meta.custom_extraction_limit === -1 ||
+          meta.max_extractions_per_window === -1;
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for remix premium check:`, err);
@@ -562,8 +638,8 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
 
     if (user) {
       limit = await resolveUserRateLimit(user);
-      tier = user.app_metadata?.tier === 'premium' 
-        ? 'premium' 
+      tier = user.app_metadata?.tier === 'premium'
+        ? 'premium'
         : (user.app_metadata?.tier === 'alpha' ? 'alpha' : 'free');
     }
 
@@ -573,10 +649,16 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
     // extract screen can proactively show a "cookbook full" state.
     const premium = isPremiumUser(user);
     const savedRecipes = await countCompletedRecipesForUser(req.userId!);
-    const maxSavedRecipes = premium 
-      ? -1 
+    const maxSavedRecipes = premium
+      ? -1
       : (user?.app_metadata?.tier === 'alpha' ? await getAlphaMaxSavedRecipes() : await getFreeMaxSavedRecipes());
     const cookbookFull = maxSavedRecipes >= 0 && savedRecipes >= maxSavedRecipes;
+
+    // Concurrency budget: how many extractions may run in parallel and how many
+    // are currently in flight. Powers the extract screen's "X/Y running" counter
+    // and the submit-disable when the parallel limit is reached.
+    const maxConcurrent = await resolveConcurrencyLimit(user);
+    const activeCount = await countActiveJobsForUser(req.userId!);
 
     if (limit < 0) {
       res.status(200).json({
@@ -588,7 +670,9 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
         windowDays,
         savedRecipes,
         maxSavedRecipes,
-        cookbookFull
+        cookbookFull,
+        maxConcurrent,
+        activeCount
       });
       return;
     }
@@ -606,7 +690,9 @@ apiRouter.get('/extractions/limit', async (req: Request, res: Response): Promise
       windowDays,
       savedRecipes,
       maxSavedRecipes,
-      cookbookFull
+      cookbookFull,
+      maxConcurrent,
+      activeCount
     });
   } catch (error) {
     if (!(error instanceof AppError)) console.error('Error fetching rate limit status:', error);
@@ -786,7 +872,7 @@ apiRouter.post('/jobs/:id/chat/confirm', async (req: Request, res: Response): Pr
           preferredUnitSystem: meta.preferred_unit_system,
         };
       }
-    } catch {}
+    } catch { }
 
     const remixedRecipe = await remixRecipe(job.recipe, modificationRequest, undefined, userPrefs);
 
@@ -866,9 +952,9 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
       if (user) {
         const meta = user.app_metadata || {};
         isPremium = meta.tier === 'premium' ||
-                    meta.tier === 'alpha' ||
-                    meta.custom_extraction_limit === -1 ||
-                    meta.max_extractions_per_window === -1;
+          meta.tier === 'alpha' ||
+          meta.custom_extraction_limit === -1 ||
+          meta.max_extractions_per_window === -1;
       }
     } catch (err) {
       console.warn(`Failed to fetch user metadata for chat premium check:`, err);
@@ -893,7 +979,7 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
         'german': 'German',
         'english': 'English'
       };
-      
+
       let recipeLanguage: string | undefined;
       if (meta.language) {
         recipeLanguage = languageMap[meta.language.toLowerCase()];
@@ -961,9 +1047,9 @@ async function checkPremium(req: Request): Promise<boolean> {
     if (user) {
       const meta = user.app_metadata || {};
       isPremium = meta.tier === 'premium' ||
-                  meta.tier === 'alpha' ||
-                  meta.custom_extraction_limit === -1 ||
-                  meta.max_extractions_per_window === -1;
+        meta.tier === 'alpha' ||
+        meta.custom_extraction_limit === -1 ||
+        meta.max_extractions_per_window === -1;
     }
   } catch (err) {
     console.warn(`Failed to fetch user metadata for premium check:`, err);

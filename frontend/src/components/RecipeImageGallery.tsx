@@ -1,10 +1,6 @@
 import React from 'react';
 import { Button } from '@heroui/react';
-import { createPortal } from 'react-dom';
 import {
-  X,
-  ChevronLeft,
-  ChevronRight,
   ArrowLeft,
   Camera,
   ChefHat
@@ -161,29 +157,13 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
   const {
     fullscreenIndex,
     setFullscreenIndex,
-    scale,
-    offset,
-    swipeTranslation,
-    isDraggingImage,
-    fullscreenContainerRef,
     scrollContainerRef,
     isDragging,
-    handleNextImage,
-    handlePrevImage,
-    handleDoubleTap,
-    handleFullscreenPointerDown,
-    handleFullscreenPointerMove,
-    handleFullscreenPointerUp,
-    handleKeyDown,
-    handleFullscreenContainerClick,
     handlePointerDown,
     handlePointerLeave,
     handlePointerUp,
     handlePointerMove,
     handleImageClick,
-    handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
   } = useImageGallery(images);
 
   const overlayButtons = (
@@ -301,7 +281,7 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
         images={images}
         initialIndex={fullscreenIndex}
         onClose={() => setFullscreenIndex(null)}
-        emoji={recipe.emoji}
+        emoji={recipe.emoji ?? undefined}
       />
     </>
   );

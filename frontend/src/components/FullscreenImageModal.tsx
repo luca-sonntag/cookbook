@@ -1,4 +1,3 @@
-import React from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@heroui/react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';

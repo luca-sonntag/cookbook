@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { claimNextJob, updateJob, getJob, getClient, reclaimExpiredJobs, heartbeatJob, uploadRecipeFrame, sweepOldRecipeFrames, getMaxVideoDurationSeconds } from './db.js';
+import { claimNextJob, updateJob, getJob, getClient, reclaimExpiredJobs, heartbeatJob, uploadRecipeFrame, sweepOldRecipeFrames, getMaxVideoDurationSeconds, isJobDeleted } from './db.js';
 import { randomUUID } from 'node:crypto';
 import { getScraperForUrl } from './scrapers/index.js';
 import { downloadMedia } from './scrapers/download.js';
@@ -150,6 +150,11 @@ async function processJob(job: Job): Promise<void> {
       recipe.instagramHandle = null;
 
       await updateJob(jobId, { status: 'completed', recipe, error: null });
+      return;
+    }
+
+    if (await isJobDeleted(jobId)) {
+      console.log(`[Job ${jobId}] Job was cancelled/deleted by user, aborting.`);
       return;
     }
 

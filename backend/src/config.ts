@@ -29,6 +29,10 @@ export interface Config {
   MAX_VIDEO_DURATION_SECONDS: number;
   ROLE: 'web' | 'worker' | 'both';
   MAX_JOBS_PER_USER: number;
+  /** Max extractions a free user may run concurrently (in-flight jobs). Free users cannot extract in the background. */
+  FREE_MAX_CONCURRENT_EXTRACTIONS: number;
+  /** Max extractions a premium/alpha user may run concurrently (in-flight jobs) in the background. */
+  PREMIUM_MAX_CONCURRENT_EXTRACTIONS: number;
   EXTRACTION_LIMIT_WINDOW_DAYS: number;
   FREE_MAX_EXTRACTIONS_PER_WINDOW: number;
   PREMIUM_MAX_EXTRACTIONS_PER_WINDOW: number;
@@ -97,6 +101,8 @@ export const config: Config = {
   MAX_VIDEO_DURATION_SECONDS: parseInt(getEnv('MAX_VIDEO_DURATION_SECONDS', '90'), 10),
   ROLE: getEnv('ROLE', 'both') as 'web' | 'worker' | 'both',
   MAX_JOBS_PER_USER: parseInt(getEnv('MAX_JOBS_PER_USER', '3'), 10),
+  FREE_MAX_CONCURRENT_EXTRACTIONS: parseInt(getEnv('FREE_MAX_CONCURRENT_EXTRACTIONS', '1'), 10),
+  PREMIUM_MAX_CONCURRENT_EXTRACTIONS: parseInt(getEnv('PREMIUM_MAX_CONCURRENT_EXTRACTIONS', '3'), 10),
   EXTRACTION_LIMIT_WINDOW_DAYS: parseInt(getEnv('EXTRACTION_LIMIT_WINDOW_DAYS', '1'), 10),
   FREE_MAX_EXTRACTIONS_PER_WINDOW: parseInt(getEnv('FREE_MAX_EXTRACTIONS_PER_WINDOW', '3'), 10),
   PREMIUM_MAX_EXTRACTIONS_PER_WINDOW: parseInt(getEnv('PREMIUM_MAX_EXTRACTIONS_PER_WINDOW', '50'), 10),

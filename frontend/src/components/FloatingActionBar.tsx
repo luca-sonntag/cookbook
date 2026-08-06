@@ -28,7 +28,7 @@ interface FloatingActionBarProps {
  */
 export default function FloatingActionBar({ children, className = '', isHidden = false }: FloatingActionBarProps) {
   const hasBottomClass = className.split(' ').some(c => c.startsWith('bottom-') || c.includes(':bottom-'));
-  const defaultBottom = hasBottomClass ? '' : 'bottom-6';
+  const defaultBottom = hasBottomClass ? '' : 'bottom-[calc(1.5rem_+_var(--safe-area-inset-bottom))]';
 
   // Only the translate is toggled: `animate-fade-in-up` runs with `forwards`,
   // so an opacity utility here would lose against the animation's held end

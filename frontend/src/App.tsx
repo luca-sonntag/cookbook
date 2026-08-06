@@ -7,6 +7,8 @@ import { registerShareIntent, registerNotificationTap, hideSplashScreen, registe
 import { registerPushTapHandler, enablePushNotifications } from './push';
 import { parseSharedUrl } from './utils/shareUrl';
 import ExtractForm, { type ExtractMode } from './components/ExtractForm';
+import ActiveExtractions from './components/ActiveExtractions';
+import ExtractionAnimation from './components/ExtractionAnimation';
 import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog/index';
@@ -30,6 +32,7 @@ import { useI18n } from './context/I18nContext';
 import { useAuth } from './context/AuthContext';
 import { useGamification } from './context/GamificationContext';
 import { useHashRouter } from './hooks/useHashRouter';
+import { EXTRACTION_COMPLETE_EVENT, OPEN_RECIPE_EVENT, useExtractionJobs } from './context/ExtractionJobsContext';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
 import { useTimerManager } from './hooks/useTimerManager';
@@ -43,7 +46,7 @@ let isWebShareProcessed = false;
 export default function App() {
   const dialog = useDialog();
   const { t } = useI18n();
-  const { user, loading: authLoading, getAccessToken } = useAuth();
+  const { user, isPremium, loading: authLoading, getAccessToken } = useAuth();
   const { snapshot: gamificationSnapshot } = useGamification();
   const userLevel = gamificationSnapshot?.stats?.level ?? null;
 
@@ -221,6 +224,13 @@ export default function App() {
 
   // Which input channel the Extract tab is showing (shared link vs. own photos).
   const [extractMode, setExtractMode] = useState<ExtractMode>('link');
+
+  // Background extractions (premium multi-job flow). While at least one is
+  // running the Extract tab hides the form and shows the big ExtractionAnimation
+  // for the most recently started job, with the per-job boxes below it.
+  const { jobs: extractionJobs } = useExtractionJobs();
+  const runningExtractions = extractionJobs.filter(j => j.status !== 'completed' && j.status !== 'failed');
+  const latestRunning = runningExtractions.length ? runningExtractions[runningExtractions.length - 1] : null;
 
   const isViewingRecipe = !!selectedJob || (activeView === 'extract' && !!recipe);
 
@@ -424,8 +434,10 @@ export default function App() {
 
   // Listen for taps on native local notifications (Capacitor Android/iOS)
   useEffect(() => {
-    return registerNotificationTap((recipeId, stepNum) => {
-      if (recipeId) {
+    return registerNotificationTap((recipeId, stepNum, extra) => {
+      if (extra?.route === 'extract' || extra?.action === 'interrupted') {
+        navigate('extract');
+      } else if (recipeId) {
         if (stepNum !== undefined) {
           window.dispatchEvent(
             new CustomEvent('app:navigate-to-timer-step', {
@@ -466,6 +478,31 @@ export default function App() {
     }
   }, [user, getAccessToken]);
 
+  // Lock navigation to 'extract' tab while a Free user extraction is in-flight
+  useEffect(() => {
+    if (isPending && !isPremium && activeView !== 'extract') {
+      replace('extract');
+    }
+  }, [isPending, isPremium, activeView, replace]);
+
+  // Register Android hardware back-button handler (swallow back presses during Free extraction)
+  useEffect(() => {
+    return registerBackButtonHandler(() => {
+      if (isPending && !isPremium) {
+        return true;
+      }
+      if (selectedJob) {
+        setSelectedJob(null);
+        return true;
+      }
+      if (activeView !== 'history') {
+        navigate('history');
+        return true;
+      }
+      return false;
+    });
+  }, [isPending, isPremium, selectedJob, activeView, navigate, setSelectedJob]);
+
   // Allow Settings to re-open the onboarding guide via a decoupled event,
   // avoiding threading the hook's state through props into SettingsView.
   useEffect(() => {
@@ -473,6 +510,23 @@ export default function App() {
     window.addEventListener('app:replay-onboarding', handler);
     return () => window.removeEventListener('app:replay-onboarding', handler);
   }, [replayOnboarding]);
+
+  // Background extractions (premium multi-job flow) live in ExtractionJobsContext.
+  // When one completes we refresh history so the recipe is present; when the user
+  // taps a finished card we open that recipe (nothing auto-navigates on its own).
+  useEffect(() => {
+    const onComplete = () => { fetchHistory(); };
+    const onOpen = (e: Event) => {
+      const detail = (e as CustomEvent<{ jobId: string }>).detail;
+      if (detail?.jobId) handleExtractionSuccess(detail.jobId);
+    };
+    window.addEventListener(EXTRACTION_COMPLETE_EVENT, onComplete);
+    window.addEventListener(OPEN_RECIPE_EVENT, onOpen);
+    return () => {
+      window.removeEventListener(EXTRACTION_COMPLETE_EVENT, onComplete);
+      window.removeEventListener(OPEN_RECIPE_EVENT, onOpen);
+    };
+  }, [fetchHistory, handleExtractionSuccess]);
 
   const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -622,10 +676,10 @@ export default function App() {
       } ${(activeView === 'extract' && !recipe) ? 'pt-6' : (!isViewingRecipe ? 'pt-4' : '')}`}>
 
         {/* One-time trial banner for free users */}
-        <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
+        {!(isPending && !isPremium) && <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />}
 
         {/* Soft opt-in notification prompt (triggered after N saved recipes) */}
-        <NotificationPrompt savedCount={history.length} />
+        {!(isPending && !isPremium) && <NotificationPrompt savedCount={history.length} />}
 
         {/* ALWAYS-MOUNTED VIEWS — hidden via HTML `hidden` attribute (display:none)
             instead of conditional rendering. This preserves component state,
@@ -663,8 +717,37 @@ export default function App() {
                 }
               }}
             />
+          ) : latestRunning ? (
+            /* Premium background extraction running: keep the animation (newest
+               job) on top, the per-job boxes below, and hide the form. Further
+               extractions are started via the native share intent. */
+            <div className="flex flex-col gap-6">
+              <ExtractionAnimation
+                key={latestRunning.id}
+                url={latestRunning.sourceLabel}
+                isPending
+                jobStatus={latestRunning.status}
+                progress={latestRunning.progress}
+                variant={latestRunning.mode === 'photo' ? 'photo' : 'link'}
+              />
+              <ActiveExtractions />
+              <ErrorBanner
+                isPending={false}
+                jobStatus={jobStatus}
+                jobError={jobError}
+                jobErrorCode={jobErrorCode}
+                jobErrorParams={jobErrorParams}
+                onRetry={() => extractMode === 'photo' ? triggerPhotoExtraction() : triggerExtraction(url)}
+              />
+            </div>
           ) : (
-            /* Extraction Form & Error Banner */
+            /* Extraction Form & Error Banner (finished/failed boxes above it) */
+            <>
+            {extractionJobs.length > 0 && (
+              <div className="mb-6">
+                <ActiveExtractions />
+              </div>
+            )}
             <ExtractForm
               url={url}
               setUrl={setUrl}
@@ -692,6 +775,7 @@ export default function App() {
                 />
               }
             />
+            </>
           )}
         </div>
 
@@ -727,6 +811,7 @@ export default function App() {
             onSelectModeChange={setIsCatalogSelectMode}
             catalogSubPath={subPath}
             onNavigateCatalog={navigateCatalog}
+            limitStatus={limitStatus}
           />
         </div>
 
@@ -765,7 +850,7 @@ export default function App() {
 
       {/* Mobile Bottom Navigation Bar */}
       {(() => {
-        const isBottomBarHidden = (activeView === 'history' && isCatalogSelectMode) || activeView === 'admin';
+        const isBottomBarHidden = (activeView === 'history' && isCatalogSelectMode) || activeView === 'admin' || (isPending && !isPremium);
         const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out pb-safe ${isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
           }`;
 
