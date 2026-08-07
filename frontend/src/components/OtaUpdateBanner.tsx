@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw, Sparkles, X } from 'lucide-react';
+import { RefreshCw, X } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import {
   OTA_READY_EVENT,
@@ -42,28 +42,28 @@ export default function OtaUpdateBanner() {
     }
   };
 
-  const titleText = t('ota.banner.title') || 'Neues App-Update verfügbar';
-  const descText = t('ota.banner.description') || `Version ${updateInfo.version} wurde geladen. Jetzt neu laden?`;
-  const applyText = t('ota.banner.apply') || 'Jetzt neu laden';
-  const laterText = t('ota.banner.later') || 'Später';
+  const titleText = t('ota.banner.title');
+  const descText = t('ota.banner.description', { version: updateInfo.version });
+  const applyText = t('ota.banner.apply');
+  const laterText = t('ota.banner.later');
 
   return (
-    <div className="w-full bg-gradient-to-r from-emerald-900/90 via-emerald-950/95 to-slate-900/90 backdrop-blur-md border-b border-emerald-500/30 text-white shadow-lg animate-in slide-in-from-top duration-300">
-      <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(16,185,129,0.25)]">
-            <Sparkles className="w-4.5 h-4.5 animate-pulse" />
+    <div className="w-full bg-emerald-700 dark:bg-emerald-800 text-white border-b border-emerald-600/50 py-2.5 transition-all animate-in slide-in-from-top duration-200">
+      <div className="w-full max-w-md mx-auto px-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+            <RefreshCw className={`w-3.5 h-3.5 text-white ${applying ? 'animate-spin' : ''}`} />
           </div>
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold tracking-tight text-emerald-300">
+              <span className="text-xs font-bold text-white leading-tight">
                 {titleText}
               </span>
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/20 text-white shrink-0">
                 {updateInfo.version}
               </span>
             </div>
-            <p className="text-[11px] text-slate-300 truncate font-medium">
+            <p className="text-[11px] text-emerald-100/90 truncate font-medium leading-tight mt-0.5">
               {descText}
             </p>
           </div>
@@ -74,17 +74,16 @@ export default function OtaUpdateBanner() {
             type="button"
             onClick={handleApply}
             disabled={applying}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/30 transition-all cursor-pointer disabled:opacity-50"
+            className="px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-900 active:scale-95 text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${applying ? 'animate-spin' : ''}`} />
-            <span>{applying ? '...' : applyText}</span>
+            {applying ? '...' : applyText}
           </button>
 
           <button
             type="button"
             onClick={() => setDismissed(true)}
             disabled={applying}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             aria-label={laterText}
             title={laterText}
           >
