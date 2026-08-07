@@ -54,6 +54,16 @@ export default function App() {
   // ── URL-based routing ────────────────────────────────────────────────────
   const { tab: activeView, subPath, navigate, replace } = useHashRouter();
 
+  // Invite deep link (#/invite/<code>): capture the code, then redirect to the
+  // friends section of the progress tab (the 'invite' tab has no view of its own).
+  const [pendingInviteCode, setPendingInviteCode] = useState<string | null>(null);
+  useEffect(() => {
+    if (activeView === 'invite') {
+      if (subPath) setPendingInviteCode(subPath.toUpperCase());
+      navigate('progress');
+    }
+  }, [activeView, subPath, navigate]);
+
   // History & multi-view states
   const [history, setHistory] = useState<Job[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
@@ -836,6 +846,8 @@ export default function App() {
         {/* PROGRESS TAB */}
         <div hidden={activeView !== 'progress'} aria-hidden={activeView !== 'progress' || undefined}>
           <ProgressView
+            pendingInviteCode={pendingInviteCode}
+            onInviteConsumed={() => setPendingInviteCode(null)}
             onSelectRecipe={(jobId) => {
               navigate('history', jobId);
             }}
