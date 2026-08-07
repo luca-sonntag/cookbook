@@ -148,11 +148,45 @@ async function checkForUpdate(): Promise<void> {
     }
 
     await CapacitorUpdater.next({ id: bundleId });
-    console.log(`[OTA] Bundle ${result.version} staged — applied on next background/relaunch`);
+    console.log(`[OTA] Bundle ${result.version} staged — ready for instant or next relaunch`);
+
+    pendingUpdate = { version: result.version, bundleId };
+    window.dispatchEvent(new CustomEvent(OTA_READY_EVENT, { detail: pendingUpdate }));
   } catch (err) {
     console.error('[OTA] Update check failed:', err);
   } finally {
     checkInFlight = false;
+  }
+}
+
+export interface OtaReadyInfo {
+  version: string;
+  bundleId: string;
+}
+
+export const OTA_READY_EVENT = 'snagbite:ota-update-ready';
+let pendingUpdate: OtaReadyInfo | null = null;
+
+export function getPendingOtaUpdate(): OtaReadyInfo | null {
+  return pendingUpdate;
+}
+
+export async function applyOtaUpdateImmediately(bundleId?: string): Promise<void> {
+  if (!isOtaEnabled()) return;
+  try {
+    const targetId = bundleId || pendingUpdate?.bundleId;
+    if (targetId) {
+      console.log(`[OTA] Applying bundle ${targetId} immediately via set()...`);
+      await CapacitorUpdater.set({ id: targetId });
+    } else {
+      console.log('[OTA] Reloading app immediately...');
+      await CapacitorUpdater.reload();
+    }
+  } catch (err) {
+    console.warn('[OTA] Immediate set failed, falling back to reload():', err);
+    try {
+      await CapacitorUpdater.reload();
+    } catch {}
   }
 }
 
