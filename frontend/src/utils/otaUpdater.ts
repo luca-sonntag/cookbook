@@ -85,12 +85,24 @@ async function checkForUpdate(): Promise<void> {
     // 'builtin' on stock installs, otherwise the running OTA bundle version.
     const { bundle: currentBundle } = await CapacitorUpdater.current();
 
+    // Fetch the true native app build number (versionCode) from Capacitor
+    let nativeVersionCode = Number(APP_BUILD);
+    try {
+      const appInfo = await App.getInfo();
+      const parsed = Number(appInfo.build);
+      if (!isNaN(parsed) && parsed > 0) {
+        nativeVersionCode = parsed;
+      }
+    } catch {
+      // Fallback to static APP_BUILD
+    }
+
     const response = await fetch(apiUrl('/api/app-updates/check'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         channel,
-        versionCode: Number(APP_BUILD),
+        versionCode: nativeVersionCode,
         currentBundleVersion: currentBundle.version,
         appVersion: APP_VERSION,
       }),
