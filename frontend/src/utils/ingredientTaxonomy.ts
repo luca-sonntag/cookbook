@@ -1,42 +1,30 @@
 import type { ParentIngredientInfo } from '../types';
 
-interface KnownTaxonomyRule {
-  targetNames: string[];
-  targetBaseNames: string[];
-  parent: ParentIngredientInfo;
+/**
+ * Dynamically normalizes an ingredient name for grouping without hardcoded dictionaries or language-specific rules.
+ * Removes parenthetical descriptions and trailing comma modifiers.
+ */
+export function normalizeIngredientName(rawName: string): string {
+  if (!rawName) return '';
+
+  let name = rawName.trim();
+
+  // 1. Remove parenthetical descriptions, e.g. "Zwiebel (gewürfelt)" -> "Zwiebel"
+  name = name.replace(/\s*\([^)]*\)/g, '').trim();
+
+  // 2. Remove trailing comma modifiers, e.g. "Zwiebel, fein gewürfelt" -> "Zwiebel"
+  const commaIndex = name.indexOf(',');
+  if (commaIndex !== -1) {
+    name = name.slice(0, commaIndex).trim();
+  }
+
+  // 3. Lowercase & trim
+  return name.toLowerCase().trim();
 }
 
-const KNOWN_TAXONOMY_RULES: KnownTaxonomyRule[] = [
-  {
-    targetNames: ['ei', 'eier', 'eigelb', 'eiweiß', 'eigelbe', 'eiweiße'],
-    targetBaseNames: ['egg', 'eggs', 'egg yolk', 'egg white', 'egg-yolk', 'egg-white'],
-    parent: { name: 'Ei', baseName: 'egg', unit: 'Stück' },
-  },
-  {
-    targetNames: ['zitrone', 'zitronen', 'zitronenabrieb', 'zitronenschale', 'zitronensaft', 'zitronenabrieb (bio)'],
-    targetBaseNames: ['lemon', 'lemons', 'lemon zest', 'lemon juice', 'lemon peel'],
-    parent: { name: 'Zitrone', baseName: 'lemon', unit: 'Stück' },
-  },
-  {
-    targetNames: ['orange', 'orangen', 'orangenabrieb', 'orangenschale', 'orangensaft'],
-    targetBaseNames: ['orange', 'oranges', 'orange zest', 'orange juice', 'orange peel'],
-    parent: { name: 'Orange', baseName: 'orange', unit: 'Stück' },
-  },
-  {
-    targetNames: ['limette', 'limetten', 'limettenabrieb', 'limettenschale', 'limettensaft'],
-    targetBaseNames: ['lime', 'limes', 'lime zest', 'lime juice', 'lime peel'],
-    parent: { name: 'Limette', baseName: 'lime', unit: 'Stück' },
-  },
-  {
-    targetNames: ['knoblauch', 'knoblauchzehe', 'knoblauchzehen'],
-    targetBaseNames: ['garlic', 'garlic clove', 'garlic cloves'],
-    parent: { name: 'Knoblauch', baseName: 'garlic', unit: 'Zehe' },
-  },
-];
-
 /**
- * Resolves the raw parent ingredient for grocery store shopping list aggregation.
- * Checks explicit `ingredient.parentIngredient` first, then taxonomy rules, then regex heuristics.
+ * Resolves parent ingredient info dynamically.
+ * Checks explicit `ingredient.parentIngredient` first, then computes dynamic normalized baseName.
  */
 export function getParentIngredient(ing: {
   name: string;
@@ -44,23 +32,20 @@ export function getParentIngredient(ing: {
   unit?: string;
   parentIngredient?: ParentIngredientInfo;
 }): ParentIngredientInfo | null {
-  // 1. Explicitly provided parent
+  // 1. Explicitly provided parent from AI
   if (ing.parentIngredient?.baseName && ing.parentIngredient?.name) {
     return ing.parentIngredient;
   }
 
-  const cleanName = ing.name.toLowerCase().trim();
-  const cleanBaseName = (ing.baseName || '').toLowerCase().trim();
+  const normalized = normalizeIngredientName(ing.name);
+  if (!normalized) return null;
 
-  // 2. Known explicit rule matching
-  for (const rule of KNOWN_TAXONOMY_RULES) {
-    if (
-      rule.targetNames.includes(cleanName) ||
-      (cleanBaseName && rule.targetBaseNames.includes(cleanBaseName))
-    ) {
-      return rule.parent;
-    }
-  }
+  // Capitalize normalized name for clean display
+  const displayName = normalized.charAt(0).toUpperCase() + normalized.slice(1);
 
-  return null;
+  return {
+    name: displayName,
+    baseName: normalized,
+    unit: ing.unit
+  };
 }

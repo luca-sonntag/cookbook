@@ -1,21 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { getParentIngredient } from '../ingredientTaxonomy';
+import { getParentIngredient, normalizeIngredientName } from '../ingredientTaxonomy';
 
 describe('ingredientTaxonomy', () => {
-  it('resolves Eigelb and Eiweiß to Ei (egg)', () => {
-    const eigelb = getParentIngredient({ name: 'Eigelb', baseName: 'egg yolk' });
-    expect(eigelb).toEqual({ name: 'Ei', baseName: 'egg', unit: 'Stück' });
-
-    const eiweiss = getParentIngredient({ name: 'Eiweiß', baseName: 'egg white' });
-    expect(eiweiss).toEqual({ name: 'Ei', baseName: 'egg', unit: 'Stück' });
+  it('normalizes parenthetical and comma modifiers dynamically without hardcoded dictionaries or language rules', () => {
+    expect(normalizeIngredientName('Zwiebel (weiß, fein gewürfelt)')).toBe('zwiebel');
+    expect(normalizeIngredientName('Zwiebel, gewürfelt')).toBe('zwiebel');
   });
 
-  it('resolves Zitronenabrieb and Zitronensaft to Zitrone (lemon)', () => {
-    const abrieb = getParentIngredient({ name: 'Zitronenabrieb', baseName: 'lemon zest' });
-    expect(abrieb).toEqual({ name: 'Zitrone', baseName: 'lemon', unit: 'Stück' });
-
-    const saft = getParentIngredient({ name: 'Zitronensaft' });
-    expect(saft).toEqual({ name: 'Zitrone', baseName: 'lemon', unit: 'Stück' });
+  it('normalizes sauces and products with parenthetical modifiers', () => {
+    expect(normalizeIngredientName('Pizzasauce (klassisch)')).toBe('pizzasauce');
+    expect(normalizeIngredientName('Pizzasauce')).toBe('pizzasauce');
   });
 
   it('uses explicit parentIngredient when provided', () => {
@@ -26,8 +20,14 @@ describe('ingredientTaxonomy', () => {
     expect(custom).toEqual({ name: 'Raw Parent', baseName: 'raw_parent', unit: 'g' });
   });
 
-  it('returns null for standard non-derived ingredients', () => {
-    const salt = getParentIngredient({ name: 'Salz', baseName: 'salt' });
-    expect(salt).toBeNull();
+  it('correctly returns parent ingredient or normalized fallback', () => {
+    const zitroneExplicit = getParentIngredient({
+      name: 'Zitrone (abgerieben)',
+      parentIngredient: { name: 'Zitrone', baseName: 'lemon', unit: 'Stück' }
+    });
+    expect(zitroneExplicit).toEqual({ name: 'Zitrone', baseName: 'lemon', unit: 'Stück' });
+
+    const zitroneNormalized = getParentIngredient({ name: 'Zitrone (abgerieben)', unit: 'Stück' });
+    expect(zitroneNormalized).toEqual({ name: 'Zitrone', baseName: 'zitrone', unit: 'Stück' });
   });
 });

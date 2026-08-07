@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { Collection } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../api';
 
 export function useCollections() {
-  const { getAccessToken } = useAuth();
+  const { getAccessToken, user, loading: authLoading } = useAuth();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +39,15 @@ export function useCollections() {
       setLoading(false);
     }
   }, [getHeaders]);
+
+  // Fetch collections as soon as a logged-in user is available — in parallel
+  // with fetchHistory rather than waiting for it to finish.
+  useEffect(() => {
+    if (!authLoading && user) {
+      refreshCollections();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.id]);
 
   const createCollection = async (name: string, emoji?: string | null, position?: number) => {
     try {

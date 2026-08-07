@@ -428,7 +428,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
             </button>
 
             {/* Compact Header (Plain HTML elements to prevent HeroUI Drawer.Header flex-col / alignment overrides) */}
-            <div className="border-b border-black/5 dark:border-white/5 py-2.5 px-4 flex items-center justify-center flex-shrink-0 select-none bg-white dark:bg-gray-900 h-11 relative">
+            <div className="py-2.5 px-4 flex items-center justify-center flex-shrink-0 select-none bg-white dark:bg-gray-900 h-11 relative">
               <div className="flex items-center gap-2 max-w-[70%]">
                 <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 leading-none truncate">
                   {t('copilot.title')}
@@ -446,7 +446,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
               {/* Welcome message if history is empty */}
               {history.length === 0 && (
                 <div className="my-auto flex flex-col items-center text-center max-w-sm mx-auto gap-3 py-8">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                     <Sparkles className="w-6 h-6 animate-pulse" />
                   </div>
                   <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200">
@@ -467,15 +467,15 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                     className={`flex gap-3 max-w-[85%] ${isAI ? 'self-start' : 'self-end flex-row-reverse'}`}
                   >
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs ${isAI
-                        ? 'bg-emerald-600 border border-emerald-500/10'
-                        : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                        ? 'bg-emerald-600'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                       }`}>
                       {isAI ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <div className={`p-3.5 rounded-2xl text-sm leading-relaxed shadow-xs ${isAI
-                          ? 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-xs border border-black/5 dark:border-white/5'
+                      <div className={`p-3.5 rounded-2xl text-sm leading-relaxed ${isAI
+                          ? 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-xs shadow-[0_2px_6px_rgba(0,0,0,0.03)] border-none'
                           : 'bg-emerald-600 text-white rounded-tr-xs'
                         }`}>
                         {msg.text}
@@ -483,7 +483,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
 
                       {/* Remix system card if recipe was modified */}
                       {isAI && msg.isRemixReady && msg.newRecipe && msg.newJobId && (
-                        <Card className="p-4 border border-emerald-500/20 bg-emerald-500/5 flex flex-col gap-3 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <Card className="p-4 border-none bg-emerald-500/10 shadow-[0_2px_6px_rgba(0,0,0,0.03)] flex flex-col gap-3 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
                           <div className="flex items-center gap-2">
                             <Sparkles className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 animate-spin-slow" />
                             <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
@@ -495,7 +495,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                           </p>
                           <Button
                             size="sm"
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-none active:scale-95 transition-all text-xs"
                             onPress={() => handleLoadNewRecipe(msg.newRecipe!, msg.newJobId!)}
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
@@ -516,7 +516,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                     <Bot className="w-4 h-4 text-emerald-600/50" />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <div className="bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 text-xs px-3.5 py-3 rounded-2xl rounded-tl-xs border border-black/5 dark:border-white/5 flex items-center gap-2">
+                    <div className="bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 text-xs px-3.5 py-3 rounded-2xl rounded-tl-xs border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] flex items-center gap-2">
                       <Loader2 className="w-4.5 h-4.5 animate-spin text-emerald-600 dark:text-emerald-400" />
                       <span>{pendingAction || t('copilot.loading')}</span>
                     </div>
@@ -526,7 +526,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
 
               {/* Error Alert */}
               {error && (
-                <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center font-medium self-center max-w-[90%]">
+                <div className="p-3.5 rounded-2xl bg-red-500/10 border-none text-red-600 dark:text-red-400 text-xs text-center font-medium self-center max-w-[90%] shadow-xs">
                   {error}
                 </div>
               )}
@@ -535,11 +535,11 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
             </Drawer.Body>
 
             {/* Footer: Transaction Card, Quick Chips & Message Input */}
-            <div className="border-t border-black/5 dark:border-white/5 pt-4 pb-[calc(1rem_+_var(--safe-area-inset-bottom))] px-4 flex flex-col gap-3.5 bg-white dark:bg-gray-900 flex-shrink-0">
+            <div className="pt-3 pb-[calc(1rem_+_var(--safe-area-inset-bottom))] px-4 flex flex-col gap-3.5 bg-white dark:bg-gray-900 flex-shrink-0">
 
               {/* Transaction Card — collected (staged) changes, applied together */}
               {pendingChanges.length > 0 && (
-                <Card className="p-3.5 border border-emerald-500/20 bg-emerald-500/5 flex flex-col gap-3 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <Card className="p-3.5 border-none bg-emerald-500/10 shadow-[0_2px_6px_rgba(0,0,0,0.03)] flex flex-col gap-3 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
                   <div className="flex items-center gap-2">
                     <ListChecks className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
                     <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
@@ -552,7 +552,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                     {pendingChanges.map((change, idx) => (
                       <div
                         key={change.id}
-                        className="flex items-start gap-2 p-2 rounded-xl bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/5"
+                        className="flex items-start gap-2 p-2 rounded-xl bg-white dark:bg-gray-800 border-none shadow-[0_1px_3px_rgba(0,0,0,0.02)]"
                       >
                         <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0 w-4 text-center">
                           {idx + 1}.
@@ -583,7 +583,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs flex-1"
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-1.5 shadow-none active:scale-95 transition-all text-xs flex-1"
                           onPress={() => handleApplyChanges(true)}
                           isDisabled={isPending}
                         >
@@ -592,7 +592,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                         </Button>
                         <Button
                           size="sm"
-                          className="bg-white dark:bg-gray-700 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-medium rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs flex-1 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
+                          className="bg-white dark:bg-gray-700 border-none text-emerald-700 dark:text-emerald-400 font-medium rounded-xl flex items-center gap-1.5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] active:scale-95 transition-all text-xs flex-1 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
                           onPress={() => handleApplyChanges(false)}
                           isDisabled={isPending}
                         >
@@ -613,7 +613,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all text-xs flex-1"
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-none active:scale-95 transition-all text-xs flex-1"
                         onPress={() => setChoosingApply(true)}
                         isDisabled={isPending}
                       >
@@ -622,7 +622,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                       </Button>
                       <Button
                         size="sm"
-                        className="bg-white dark:bg-gray-800 border border-black/10 dark:border-white/10 text-gray-500 dark:text-gray-400 font-medium rounded-xl flex items-center gap-1.5 active:scale-95 transition-all text-xs hover:text-red-500 dark:hover:text-red-400 hover:border-red-500/30"
+                        className="bg-white dark:bg-gray-800 border-none text-gray-500 dark:text-gray-400 font-medium rounded-xl flex items-center gap-1.5 active:scale-95 transition-all text-xs hover:text-red-500 dark:hover:text-red-400 shadow-[0_1px_3px_rgba(0,0,0,0.02)]"
                         onPress={discardAllChanges}
                         isDisabled={isPending}
                       >
@@ -671,7 +671,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                                 key={idx}
                                 onClick={() => handleSend(chip.prompt)}
                                 disabled={isPending}
-                                className="px-3 py-1.5 text-xs font-semibold rounded-full border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-400 active:scale-95 transition-all whitespace-nowrap flex-shrink-0 cursor-pointer disabled:opacity-50"
+                                className="px-3 py-1.5 text-xs font-semibold rounded-full border-none bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 active:scale-95 transition-all whitespace-nowrap flex-shrink-0 cursor-pointer disabled:opacity-50"
                               >
                                 {chip.label}
                               </button>
@@ -697,13 +697,13 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                   <button
                     type="button"
                     onClick={() => setShowChips(true)}
-                    className="flex-shrink-0 h-11 w-10 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 hover:bg-emerald-500/10 hover:border-emerald-500/20 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+                    className="flex-shrink-0 h-11 w-10 rounded-2xl bg-gray-100 dark:bg-gray-800 border-none hover:bg-emerald-500/10 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
                     aria-label={t('copilot.showSuggestionsAria')}
                   >
                     <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   </button>
                 )}
-                <div className="relative flex-1 flex items-center bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl focus-within:ring-2 focus-within:ring-emerald-500 pr-1 h-11">
+                <div className="relative flex-1 flex items-center bg-gray-100 dark:bg-gray-800 border-none rounded-2xl focus-within:ring-2 focus-within:ring-emerald-500/30 pr-1 h-11 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                   <input
                     ref={textareaRef}
                     value={message}
@@ -717,7 +717,7 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                     <Button
                       type="submit"
                       isDisabled={isPending || !message.trim()}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl h-8 w-8 min-w-8 shadow-sm flex items-center justify-center active:scale-90 transition-all p-0"
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl h-8 w-8 min-w-8 shadow-none flex items-center justify-center active:scale-90 transition-all p-0"
                       aria-label={t('copilot.sendAria')}
                     >
                       <Send className="w-4 h-4 fill-white" />
@@ -731,9 +731,9 @@ export default function RecipeCopilot({ isOpen, onClose, recipe, onRemixSuccess,
                 drawer's focus trap and remains clickable (a global dialog would sit behind/under it). */}
             {confirmingClear && (
               <div className="absolute inset-0 z-[60] flex items-center justify-center p-5 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
-                <div className="w-full max-w-xs rounded-2xl border border-black/10 dark:border-white/10 p-5 shadow-2xl bg-white dark:bg-gray-900 flex flex-col gap-4 animate-in zoom-in-95 duration-200">
+                <div className="w-full max-w-xs rounded-2xl border-none p-5 shadow-2xl bg-white dark:bg-gray-900 flex flex-col gap-4 animate-in zoom-in-95 duration-200">
                   <div className="flex gap-3 items-start">
-                    <div className="p-2.5 rounded-xl border flex-shrink-0 flex items-center justify-center bg-amber-500/10 border-amber-500/20">
+                    <div className="p-2.5 rounded-xl border-none flex-shrink-0 flex items-center justify-center bg-amber-500/10">
                       <Trash2 className="w-5 h-5 text-amber-500" />
                     </div>
                     <div className="flex flex-col gap-1.5 min-w-0">

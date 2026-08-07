@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { claimNextJob, updateJob, getJob, getClient, reclaimExpiredJobs, heartbeatJob, uploadRecipeFrame, sweepOldRecipeFrames, getMaxVideoDurationSeconds } from './db.js';
+import { claimNextJob, updateJob, getJob, getClient, reclaimExpiredJobs, heartbeatJob, uploadRecipeFrame, sweepOldRecipeFrames, getMaxVideoDurationSeconds, isJobDeleted } from './db.js';
 import { randomUUID } from 'node:crypto';
 import { getScraperForUrl } from './scrapers/index.js';
 import { downloadMedia } from './scrapers/download.js';
@@ -10,12 +10,14 @@ import { isPhotoJobUrl, photoUploadIdFromUrl, downloadImportPhotos, deleteImport
 import type { Job } from './types.js';
 import { config } from './config.js';
 import { AppError, serializeJobError } from './errors.js';
+import { notificationTick } from './notifications/worker.js';
 
 const workerId = randomUUID();
 let activeJobs = 0;
 let workerInterval: NodeJS.Timeout | null = null;
 let reclaimInterval: NodeJS.Timeout | null = null;
 let cleanupInterval: NodeJS.Timeout | null = null;
+let notificationInterval: NodeJS.Timeout | null = null;
 
 /**
  * Processes a single job end-to-end.
@@ -56,7 +58,7 @@ async function processJob(job: Job): Promise<void> {
             'german': 'German',
             'english': 'English'
           };
-          
+
           let recipeLanguage: string | undefined;
           if (meta.language) {
             recipeLanguage = languageMap[meta.language.toLowerCase()];
@@ -148,6 +150,11 @@ async function processJob(job: Job): Promise<void> {
       recipe.instagramHandle = null;
 
       await updateJob(jobId, { status: 'completed', recipe, error: null });
+      return;
+    }
+
+    if (await isJobDeleted(jobId)) {
+      console.log(`[Job ${jobId}] Job was cancelled/deleted by user, aborting.`);
       return;
     }
 
@@ -421,7 +428,7 @@ export function startQueue(pollIntervalMs = 2000): void {
     () => reclaimExpiredJobs(config.WORKER_LEASE_TIMEOUT_MINUTES).catch(console.error),
     60_000
   );
-  
+
   // Run cleanup once at startup, then every 12 hours.
   // Local debug run-dirs are pruned after 30 days; the persistent gemini_logs
   // table is pruned after 90 days (wider than the 30-day metrics window).
@@ -440,6 +447,19 @@ export function startQueue(pollIntervalMs = 2000): void {
   runCleanup();
   cleanupInterval = setInterval(runCleanup, 12 * 60 * 60 * 1000);
 
+  // Smart AI push notifications: periodically check who is due for a personalized
+  // push. Fully gated by NOTIFICATIONS_ENABLED (no-ops otherwise). Runs in-process
+  // with the worker so it reuses db/gemini/logger directly.
+  if (config.NOTIFICATIONS_ENABLED) {
+    const runNotifTick = () => {
+      void notificationTick().catch((err) => console.error('[notifications] tick error:', err));
+    };
+    // Delay initial tick by 3 seconds so attached debuggers have time to register breakpoints
+    setTimeout(runNotifTick, 3000);
+    const notifMs = Math.max(1, config.NOTIFICATION_TICK_MINUTES) * 60 * 1000;
+    notificationInterval = setInterval(runNotifTick, notifMs);
+    console.log(`Smart notification worker started (every ${config.NOTIFICATION_TICK_MINUTES} min).`);
+  }
 }
 
 /**
@@ -449,5 +469,6 @@ export function stopQueue(): void {
   if (workerInterval) { clearInterval(workerInterval); workerInterval = null; }
   if (reclaimInterval) { clearInterval(reclaimInterval); reclaimInterval = null; }
   if (cleanupInterval) { clearInterval(cleanupInterval); cleanupInterval = null; }
+  if (notificationInterval) { clearInterval(notificationInterval); notificationInterval = null; }
   console.log('Background job queue worker stopped.');
 }

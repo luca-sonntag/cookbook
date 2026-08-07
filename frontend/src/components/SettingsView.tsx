@@ -12,6 +12,7 @@ import { APP_VERSION_LABEL } from '../version';
 import { getActiveOtaVersion } from '../utils/otaUpdater';
 import { LEGAL_URLS } from '../legal';
 import PremiumUpgradeCard from './PremiumUpgradeCard';
+import NotificationSettings from './NotificationSettings';
 
 function SettingInfo({ text }: { text: string }) {
   return (
@@ -102,7 +103,7 @@ export default function SettingsView() {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
       {/* Title */}
-      <div className="sticky top-[var(--app-sticky-top)] z-30 -mx-4 px-4 pt-2 pb-3 bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 flex items-center justify-between">
+      <div className="sticky top-[var(--app-sticky-top)] z-30 -mx-4 px-4 pt-2 pb-3 bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
           {t('app.nav.settings') || 'Settings'}
         </h2>
@@ -120,7 +121,7 @@ export default function SettingsView() {
       )}
 
       {/* Profile Card */}
-      <div className="mx-2 p-5 bg-white dark:bg-gray-900 border border-black/5 dark:border-white/10 rounded-3xl shadow-sm flex flex-col gap-4 relative overflow-hidden">
+      <div className="mx-2 p-5 bg-white dark:bg-gray-900 border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] rounded-3xl flex flex-col gap-4 relative overflow-hidden">
         {isPremium && (
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-2xl pointer-events-none -mr-8 -mt-8" />
         )}
@@ -185,7 +186,7 @@ export default function SettingsView() {
           {language === 'de' ? 'Einstellungen' : 'Preferences'}
         </h3>
         
-        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] overflow-hidden mx-2">
           {/* Language Option */}
           <div className="p-4 flex items-center justify-between gap-3 max-[400px]:flex-col max-[400px]:items-stretch max-[400px]:gap-2.5 border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -349,6 +350,9 @@ export default function SettingsView() {
         </div>
       </div>
 
+      {/* Notifications Section */}
+      <NotificationSettings />
+
       {/* Section: Admin */}
       {isAdmin && (
         <div className="flex flex-col gap-2">
@@ -357,7 +361,7 @@ export default function SettingsView() {
             {language === 'de' ? 'Verwaltung' : 'Administration'}
           </h3>
 
-          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] overflow-hidden mx-2">
             <button
               onClick={() => navigate('admin')}
               className="w-full p-4 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
@@ -387,7 +391,7 @@ export default function SettingsView() {
           {language === 'de' ? 'Hilfe' : 'Help'}
         </h3>
 
-        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] overflow-hidden mx-2">
           <button
             onClick={() => window.dispatchEvent(new Event('app:replay-onboarding'))}
             className="w-full p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99] text-left cursor-pointer group"
@@ -430,7 +434,7 @@ export default function SettingsView() {
           {t('app.settings.legal.section') || 'Rechtliches'}
         </h3>
 
-        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] overflow-hidden mx-2">
           {[
             { href: LEGAL_URLS.privacy, icon: Shield, label: t('app.settings.legal.privacy') || 'Datenschutzerklärung' },
             { href: LEGAL_URLS.terms, icon: ScrollText, label: t('app.settings.legal.terms') || 'AGB' },
@@ -467,7 +471,7 @@ export default function SettingsView() {
           {language === 'de' ? 'Konto-Aktionen' : 'Account Actions'}
         </h3>
         
-        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden mx-2">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] overflow-hidden mx-2">
           {/* Logout Option */}
           {!autoSignedIn && (
             <button

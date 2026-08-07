@@ -15,12 +15,12 @@ import { useCookingMode } from '../hooks/useCookingMode';
 import { extractInlineIngredientTags, textMentionsTerm } from '../utils/ingredientMatch';
 import RecipeInstructionText from './RecipeInstructionText';
 import { useI18n } from '../context/I18nContext';
-import { useDialog } from '../context/DialogContext';
 import { useTimerManager } from '../hooks/useTimerManager';
 import { useAuth } from '../context/AuthContext';
 import TimerConfirmSheet from './TimerConfirmSheet';
 import RecipeCopilot from './RecipeDetails/RecipeCopilot';
 import PremiumModal from './PremiumModal';
+import CookedModal from './CookedModal';
 
 // ─── Time parsing helper ──────────────────────────────────────────────────────
 function parseTimeToSeconds(timeStr: string): number {
@@ -70,13 +70,13 @@ export default function CookingMode({
   onRemixSuccess,
   onReplaceCurrent,
 }: CookingModeProps) {
-  const dialog = useDialog();
   const { t } = useI18n();
   const { timers, removeTimer, dismissFinished, setPendingNavigation } = useTimerManager();
   const { isPremium } = useAuth();
 
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [isCookedModalOpen, setIsCookedModalOpen] = useState(false);
   const [timerSheet, setTimerSheet] = useState<{ isOpen: boolean; seconds: number; label: string }>({
     isOpen: false,
     seconds: 0,
@@ -184,19 +184,19 @@ export default function CookingMode({
       onTouchEnd={handleTouchEnd}
     >
       {/* Top Bar */}
-      <div className="flex justify-between items-center pb-4 border-b border-black/5 dark:border-white/5">
+      <div className="flex justify-between items-center pb-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-900 dark:text-white">{t('recipe.cookingMode')}</span>
+          <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">{t('recipe.cookingMode')}</span>
         </div>
         {/* Progress indicator */}
-        <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+        <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full select-none">
           {t('recipe.cookingModeProgress', { current: cookingStepIndex + 1, total: recipe.instructions?.length || 0 })}
         </div>
         <Button
           isIconOnly
           variant="ghost"
           onPress={onClose}
-          className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-none"
+          className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-none transition-colors"
           aria-label={t('dialog.closeAria')}
         >
           <X className="w-5 h-5" />
@@ -205,9 +205,9 @@ export default function CookingMode({
 
       {/* Progress bar at the top */}
       {recipe.instructions && (
-        <div className="w-full bg-black/10 dark:bg-white/10 h-1.5 rounded-full overflow-hidden mt-2">
+        <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden my-2">
           <div
-            className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+            className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out"
             style={{ width: `${((cookingStepIndex + 1) / recipe.instructions.length) * 100}%` }}
           />
         </div>
@@ -241,7 +241,7 @@ export default function CookingMode({
                       detail: { recipeId, stepNum }
                     }));
                   } : undefined}
-                  className={`w-full relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl shadow-lg overflow-hidden transition-all duration-300 ${isAssociated ? 'cursor-pointer active:scale-[0.98]' : ''
+                  className={`w-full relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl overflow-hidden transition-all duration-300 ${isAssociated ? 'cursor-pointer active:scale-[0.98]' : ''
                     } ${isFinished
                       ? 'bg-rose-600 dark:bg-rose-700 animate-pulse text-white'
                       : 'bg-blue-600 dark:bg-blue-700 text-white'
@@ -283,7 +283,7 @@ export default function CookingMode({
                         removeTimer(timer.id);
                       }
                     }}
-                    className="relative flex-shrink-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center transition-colors cursor-pointer"
+                    className="relative flex-shrink-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center transition-colors cursor-pointer border-none"
                   >
                     <X className="w-4 h-4 text-white" />
                   </button>
@@ -301,38 +301,38 @@ export default function CookingMode({
       >
         {/* Step Number Badge */}
         {currentStep && (
-          <div className="w-12 h-12 rounded-full bg-emerald-600 dark:bg-emerald-500 text-white flex items-center justify-center font-bold text-lg mb-7 sm:mb-6 shadow-[0_4px_12px_rgba(16,185,129,0.3)] flex-shrink-0 opacity-85">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black text-xl mb-6 flex-shrink-0">
             {currentStep.step}
           </div>
         )}
 
         {/* Step Description */}
         {currentStep && (
-          <h1 className="text-xl sm:text-2xl md:text-3.5xl font-bold text-gray-900 dark:text-white tracking-tight leading-loose md:leading-[1.7] mb-4 sm:mb-8 max-h-[40dvh] overflow-y-auto px-2 flex-shrink-0">
+          <h1 className="text-2xl sm:text-3xl md:text-3.5xl font-bold text-gray-900 dark:text-white tracking-tight leading-relaxed md:leading-[1.6] mb-6 max-h-[40dvh] overflow-y-auto px-2 flex-shrink-0">
             <RecipeInstructionText text={currentStep.description} recipe={recipe} formatAmount={formatAmount} stepNum={currentStep.step} />
           </h1>
         )}
 
         {/* Contextual Ingredients needed for this step */}
         {currentStep && getIngredientsForStep(currentStep.description).length > 0 && (
-          <div className="w-full max-w-lg bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-3 sm:p-4 text-left backdrop-blur-sm flex flex-col min-h-0">
-            <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 flex-shrink-0 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
+          <div className="w-full max-w-lg bg-gray-50 dark:bg-gray-900 rounded-3xl p-4 sm:p-5 text-left flex flex-col min-h-0">
+            <h3 className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex-shrink-0 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-500" />
               <span>{t('recipe.ingredientsForStep')}</span>
             </h3>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-xs overflow-y-auto pr-1 min-h-0">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs overflow-y-auto pr-1 min-h-0">
               {getIngredientsForStep(currentStep.description).map((ing, i) => {
                 const scaledAmount = formatAmount(ing.amount, ing.unit);
                 const amountStr = scaledAmount ? `${scaledAmount} ` : '';
                 const unitStr = ing.unit ? `${ing.unit} ` : '';
                 return (
-                  <li key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg bg-white/50 dark:bg-black/35 border border-black/5 dark:border-white/5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap flex-shrink-0">{amountStr}{unitStr}</span>
-                    <span className="text-gray-700 dark:text-gray-300">
+                  <li key={i} className="flex items-center gap-2.5 py-2 px-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0">{amountStr}{unitStr}</span>
+                    <span className="font-medium truncate">
                       {ing.name}
                       {ing.modifier && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1 font-normal">
+                        <span className="text-xs text-gray-400 dark:text-gray-400 ml-1 font-normal">
                           ({ing.modifier})
                         </span>
                       )}
@@ -346,13 +346,12 @@ export default function CookingMode({
       </div>
 
       {/* Navigation Controls */}
-      <div className="flex flex-col gap-4 max-w-md mx-auto w-full border-t border-black/5 dark:border-white/5 pt-4">
+      <div className="flex flex-col gap-4 max-w-md mx-auto w-full pt-2">
         <div className="flex gap-3 justify-between items-center w-full">
           <Button
-            variant="outline"
             onPress={handlePrevCookingStep}
             isDisabled={cookingStepIndex === 0}
-            className="flex-1 py-3 h-12 rounded-xl font-semibold border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-300 disabled:opacity-40"
+            className="flex-1 py-3.5 h-13 rounded-2xl font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 border-none transition-all active:scale-95 disabled:opacity-40"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             {t('recipe.back')}
@@ -361,18 +360,17 @@ export default function CookingMode({
           {/* Mark Completed & Next Button */}
           {recipe.instructions && cookingStepIndex === recipe.instructions.length - 1 ? (
             <Button
-              className="flex-[2] py-3 h-12 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
+              className="flex-[2] py-3.5 h-13 rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white active:scale-[0.98] transition-all border-none"
               onPress={() => {
                 const currentStepNum = recipe.instructions[cookingStepIndex].step;
                 if (!checkedSteps[currentStepNum]) {
                   toggleStep(currentStepNum);
                 }
-                onClose();
-                dialog.alert({
-                  title: t('recipe.finishedAlertTitle'),
-                  message: t('recipe.finishedAlertMessage'),
-                  status: 'success'
-                });
+                if (recipe.id) {
+                  setIsCookedModalOpen(true);
+                } else {
+                  onClose();
+                }
               }}
             >
               {t('recipe.finish')}
@@ -380,7 +378,7 @@ export default function CookingMode({
             </Button>
           ) : (
             <Button
-              className="flex-[2] py-3 h-12 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
+              className="flex-[2] py-3.5 h-13 rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white active:scale-[0.98] transition-all border-none"
               onPress={() => {
                 if (recipe.instructions) {
                   const currentStepNum = recipe.instructions[cookingStepIndex].step;
@@ -397,13 +395,14 @@ export default function CookingMode({
           )}
         </div>
       </div>
+
       {/* Floating Action Buttons */}
-      <div className="absolute right-4 bottom-28 md:right-8 md:bottom-32 z-[100] flex flex-row gap-3">
+      <div className="absolute right-4 bottom-24 md:right-8 md:bottom-28 z-[100] flex flex-row gap-3">
         {/* Timer Button */}
         <Button
           isIconOnly
           size="lg"
-          className="rounded-full shadow-lg bg-blue-600 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400 text-white w-12 h-12 flex items-center justify-center transition-all active:scale-95"
+          className="rounded-full bg-blue-600 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400 text-white w-12 h-12 flex items-center justify-center transition-all active:scale-95 border-none shadow-sm"
           onPress={() => {
             if (!isPremium) {
               setIsPremiumModalOpen(true);
@@ -426,7 +425,7 @@ export default function CookingMode({
         <Button
           isIconOnly
           size="lg"
-          className="rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white w-12 h-12 flex items-center justify-center transition-all active:scale-95"
+          className="rounded-full bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white w-12 h-12 flex items-center justify-center transition-all active:scale-95 border-none shadow-sm"
           onPress={() => {
             if (!isPremium) {
               setIsPremiumModalOpen(true);
@@ -466,6 +465,19 @@ export default function CookingMode({
         isOpen={isPremiumModalOpen}
         onOpenChange={setIsPremiumModalOpen}
       />
+
+      {recipe.id && isCookedModalOpen && (
+        <CookedModal
+          isOpen={isCookedModalOpen}
+          onClose={() => {
+            setIsCookedModalOpen(false);
+            onClose();
+          }}
+          jobId={recipe.id}
+          recipeTitle={recipe.title}
+          viaCookingMode={true}
+        />
+      )}
     </div>
   );
 }

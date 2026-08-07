@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Check, Trash2, ChevronDown } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { useI18n } from '../../context/I18nContext';
@@ -28,41 +28,90 @@ export default function ShoppingListItem({
 
   const animationClass = isCollapsing ? 'animate-item-collapse' : 'animate-item-expand';
 
-  const hasDistinctSubItems = item.subItems && item.subItems.some(s => s.name.toLowerCase().trim() !== item.name.toLowerCase().trim());
-  const subItemsSummary = hasDistinctSubItems && item.subItems
-    ? item.subItems.map(s => `${formatItemAmount(s.amount, s.unit)} ${s.name}`).join(', ')
-    : null;
+  // Smart structural deduplication for sub-items and modifiers (100% language-agnostic):
+  // Uses baseName matching from ingredient taxonomy and accumulates modifier amounts cleanly.
+  const extraNote = useMemo(() => {
+    const mainBaseName = (item.baseName || item.name || '').toLowerCase().trim();
+
+    if (item.subItems && item.subItems.length > 0) {
+      const notes: string[] = [];
+      const modifierAmounts = new Map<string, { totalAmount: number; unit: string; mod: string }>();
+
+      for (const sub of item.subItems) {
+        const subRawName = (sub.rawName || sub.name || '').trim();
+        const subBaseName = (sub.baseName || subRawName).toLowerCase().trim();
+
+        // Structural check: is subItem a distinct ingredient type (e.g. Eigelb vs Ei)?
+        const isDistinctName =
+          subBaseName &&
+          subBaseName !== mainBaseName &&
+          (!item.parentIngredient || subBaseName !== item.parentIngredient.baseName.toLowerCase().trim());
+
+        const mod = sub.modifier?.trim();
+
+        if (isDistinctName) {
+          const amtStr = formatItemAmount(sub.amount, sub.unit);
+          const modStr = mod ? ` (${mod})` : '';
+          notes.push(`${amtStr ? `${amtStr} ` : ''}${subRawName}${modStr}`);
+        } else if (mod) {
+          // Accumulate amounts for identical modifiers (e.g. gerieben, Saft von)
+          const key = `${mod.toLowerCase()}|${sub.unit.toLowerCase()}`;
+          const existing = modifierAmounts.get(key);
+          if (existing) {
+            existing.totalAmount += sub.amount;
+          } else {
+            modifierAmounts.set(key, { totalAmount: sub.amount, unit: sub.unit, mod });
+          }
+        }
+      }
+
+      // Add accumulated modifier notes
+      modifierAmounts.forEach(({ totalAmount, unit, mod }) => {
+        const amtStr = formatItemAmount(totalAmount, unit);
+        const shouldShowAmount = amtStr && totalAmount !== item.amount;
+        notes.push(`${shouldShowAmount ? `${amtStr} ` : ''}${mod}`);
+      });
+
+      const result = Array.from(new Set(notes.filter(Boolean))).join(', ');
+      if (result) return result;
+    }
+
+    if (item.modifier) {
+      return item.modifier.trim() || null;
+    }
+
+    return null;
+  }, [item, amountStr, formatItemAmount]);
 
   // Compact, dimmed row used inside the "Erledigt" drawer.
   if (isChecked) {
     return (
-      <li className={`flex items-center justify-between gap-2 py-1 px-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${animationClass}`}>
-        <button
-          type="button"
-          onClick={onClick}
-          className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 text-left outline-none"
-          aria-label={t('shopping.restoreItem')}
-        >
-          <span className="w-5 h-5 rounded-md bg-emerald-500 border border-emerald-500 flex items-center justify-center flex-shrink-0">
-            <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
-          </span>
-          <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate">
-            {amountStr && <span className="font-semibold mr-1.5">{amountStr}</span>}
-            <span>{item.name}</span>
-            {subItemsSummary ? (
-              <span className="ml-1 font-normal opacity-75">({subItemsSummary})</span>
-            ) : item.modifier ? (
-              <span className="ml-1 font-normal">({item.modifier})</span>
-            ) : null}
-          </span>
-        </button>
-        <button
-          onClick={onDelete}
-          className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
-          aria-label={t('shopping.deleteItem')}
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+      <li className={`rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group ${animationClass}`}>
+        <div className="flex items-center justify-between gap-2 py-1.5 px-2 min-h-[40px]">
+          <button
+            type="button"
+            onClick={onClick}
+            className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 text-left outline-none"
+            aria-label={t('shopping.restoreItem')}
+          >
+            <span className="w-5 h-5 rounded-md bg-emerald-500 border border-emerald-500 flex items-center justify-center flex-shrink-0">
+              <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
+            </span>
+            <span className="text-sm text-gray-400 dark:text-gray-500 line-through min-w-0 break-words">
+              {amountStr && <span className="font-semibold mr-1.5">{amountStr}</span>}
+              <span>{item.name}</span>
+              {extraNote && <span className="ml-1 font-normal opacity-75">{extraNote}</span>}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
+            aria-label={t('shopping.deleteItem')}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </li>
     );
   }
@@ -70,7 +119,7 @@ export default function ShoppingListItem({
   // Active (to-buy) row — big tap target, amount as a scannable chip.
   return (
     <li className={`rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors group ${animationClass}`}>
-      <div className="flex items-center justify-between gap-2 py-1 px-2 min-h-[36px]">
+      <div className="flex items-center justify-between gap-2 py-1.5 px-2 min-h-[40px]">
         <button
           type="button"
           onClick={onClick}
@@ -83,21 +132,17 @@ export default function ShoppingListItem({
               {amountStr}
             </span>
           )}
-          <span className="text-sm font-medium text-gray-800 dark:text-gray-100 min-w-0 leading-tight flex flex-col">
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-100 min-w-0 leading-tight flex flex-wrap items-baseline gap-x-1.5">
             <span className="break-words">{item.name}</span>
-            {subItemsSummary ? (
-              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-normal leading-none mt-0.5">
-                ({subItemsSummary})
+            {extraNote && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                {extraNote}
               </span>
-            ) : item.modifier ? (
-              <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-normal">
-                ({item.modifier})
-              </span>
-            ) : null}
+            )}
           </span>
         </button>
 
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center flex-shrink-0 gap-1">
           {hasMultipleSources && (
             <button
               type="button"
@@ -114,8 +159,9 @@ export default function ShoppingListItem({
             </button>
           )}
           <button
+            type="button"
             onClick={onDelete}
-            className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer flex-shrink-0"
             aria-label={t('shopping.deleteItem')}
           >
             <Trash2 className="w-4 h-4" />
@@ -144,3 +190,4 @@ export default function ShoppingListItem({
     </li>
   );
 }
+

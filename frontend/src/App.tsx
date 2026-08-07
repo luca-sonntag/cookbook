@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Sparkles, BookOpen, ShoppingCart, User } from 'lucide-react';
+import { Sparkles, BookOpen, ShoppingCart, User, Trophy } from 'lucide-react';
 
 import type { Job } from './types';
 import { apiUrl } from './api';
 import { registerShareIntent, registerNotificationTap, hideSplashScreen, registerBackButtonHandler } from './native';
+import { registerPushTapHandler, enablePushNotifications } from './push';
 import { parseSharedUrl } from './utils/shareUrl';
 import ExtractForm, { type ExtractMode } from './components/ExtractForm';
+import ActiveExtractions from './components/ActiveExtractions';
+import ExtractionAnimation from './components/ExtractionAnimation';
 import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog/index';
@@ -13,11 +16,13 @@ import { isCatalogListRoute } from './components/SavedCatalog/catalogRoutes';
 import ShoppingList from './components/ShoppingList';
 import AuthForm from './components/AuthForm';
 import SettingsView from './components/SettingsView';
+import ProgressView from './components/ProgressView';
 import TimerBanner from './components/TimerBanner';
 import WelcomeGuide from './components/WelcomeGuide';
 import AlphaWelcome from './components/AlphaWelcome';
 import AdminView from './components/AdminView';
 import TrialBanner from './components/TrialBanner';
+import NotificationPrompt from './components/NotificationPrompt';
 import PremiumModal from './components/PremiumModal';
 
 import { useRecipeExtraction } from './hooks/useRecipeExtraction';
@@ -25,7 +30,9 @@ import { useShoppingList } from './hooks/useShoppingList';
 import { useDialog } from './context/DialogContext';
 import { useI18n } from './context/I18nContext';
 import { useAuth } from './context/AuthContext';
+import { useGamification } from './context/GamificationContext';
 import { useHashRouter } from './hooks/useHashRouter';
+import { EXTRACTION_COMPLETE_EVENT, OPEN_RECIPE_EVENT, useExtractionJobs } from './context/ExtractionJobsContext';
 import { useMobileNavigationBack } from './hooks/useMobileNavigationBack';
 import { deleteCachedImage } from './utils/imageStore';
 import { useTimerManager } from './hooks/useTimerManager';
@@ -39,7 +46,9 @@ let isWebShareProcessed = false;
 export default function App() {
   const dialog = useDialog();
   const { t } = useI18n();
-  const { user, loading: authLoading, getAccessToken } = useAuth();
+  const { user, isPremium, loading: authLoading, getAccessToken } = useAuth();
+  const { snapshot: gamificationSnapshot } = useGamification();
+  const userLevel = gamificationSnapshot?.stats?.level ?? null;
 
   // ── URL-based routing ────────────────────────────────────────────────────
   const { tab: activeView, subPath, navigate, replace } = useHashRouter();
@@ -103,6 +112,8 @@ export default function App() {
     aggregatedList,
     addRecipeIngredients,
     addCustomItem,
+    toggleItemIds,
+    deleteItemIds,
     toggleItemGroup,
     deleteItemGroup,
     clearAll,
@@ -215,6 +226,13 @@ export default function App() {
 
   // Which input channel the Extract tab is showing (shared link vs. own photos).
   const [extractMode, setExtractMode] = useState<ExtractMode>('link');
+
+  // Background extractions (premium multi-job flow). While at least one is
+  // running the Extract tab hides the form and shows the big ExtractionAnimation
+  // for the most recently started job, with the per-job boxes below it.
+  const { jobs: extractionJobs } = useExtractionJobs();
+  const runningExtractions = extractionJobs.filter(j => j.status !== 'completed' && j.status !== 'failed');
+  const latestRunning = runningExtractions.length ? runningExtractions[runningExtractions.length - 1] : null;
 
   const isViewingRecipe = !!selectedJob || (activeView === 'extract' && !!recipe);
 
@@ -344,12 +362,15 @@ export default function App() {
     }
   }, [activeView, user, fetchLimitStatus, initialSyncDone]);
 
-  // Hide native splash screen when app is fully ready
+  // Hide native splash screen as soon as auth has settled.
+  // We don't wait for initialSyncDone (fetchLimitStatus) because that API call
+  // would add unnecessary delay — the limit status can be loaded silently in
+  // the background while the app is already visible to the user.
   useEffect(() => {
-    if (!authLoading && initialSyncDone) {
+    if (!authLoading) {
       hideSplashScreen();
     }
-  }, [authLoading, initialSyncDone]);
+  }, [authLoading]);
 
   // After history loads, check if current URL references a valid jobId and keep it,
   // or clear the subPath if the jobId no longer exists.
@@ -415,18 +436,74 @@ export default function App() {
 
   // Listen for taps on native local notifications (Capacitor Android/iOS)
   useEffect(() => {
-    return registerNotificationTap((recipeId, stepNum) => {
-      if (recipeId) {
-        window.dispatchEvent(
-          new CustomEvent('app:navigate-to-timer-step', {
-            detail: { recipeId, stepNum },
-          })
-        );
+    return registerNotificationTap((recipeId, stepNum, extra) => {
+      if (extra?.route === 'extract' || extra?.action === 'interrupted') {
+        navigate('extract');
+      } else if (recipeId) {
+        if (stepNum !== undefined) {
+          window.dispatchEvent(
+            new CustomEvent('app:navigate-to-timer-step', {
+              detail: { recipeId, stepNum },
+            })
+          );
+        } else {
+          navigate('history', recipeId);
+        }
       }
       // Tapping the notification ends the finished timer(s) and stops the alarm.
       dismissAllFinished();
     });
-  }, [dismissAllFinished]);
+  }, [dismissAllFinished, navigate]);
+
+  // Smart AI push notifications: route taps into the app. A push carries a
+  // `jobId` (open that recipe), a `route` (e.g. the extract tab for reactivation
+  // nudges), or neither (just open the app).
+  useEffect(() => {
+    return registerPushTapHandler((payload) => {
+      const targetJobId = payload.jobId || (payload as any).recipeId;
+      if (targetJobId) {
+        navigate('history', targetJobId);
+      } else if (payload.route === 'extract') {
+        navigate('extract');
+      } else {
+        navigate('history');
+      }
+    });
+  }, [navigate]);
+
+  // Re-register this device for remote push whenever a signed-in user has
+  // notifications enabled (refreshes the FCM token server-side on each launch).
+  useEffect(() => {
+    if (!user) return;
+    if (user.user_metadata?.notifications_enabled === true) {
+      void enablePushNotifications(getAccessToken);
+    }
+  }, [user, getAccessToken]);
+
+  // Lock navigation to 'extract' tab while a Free user extraction is in-flight
+  useEffect(() => {
+    if (isPending && !isPremium && activeView !== 'extract') {
+      replace('extract');
+    }
+  }, [isPending, isPremium, activeView, replace]);
+
+  // Register Android hardware back-button handler (swallow back presses during Free extraction)
+  useEffect(() => {
+    return registerBackButtonHandler(() => {
+      if (isPending && !isPremium) {
+        return true;
+      }
+      if (selectedJob) {
+        setSelectedJob(null);
+        return true;
+      }
+      if (activeView !== 'history') {
+        navigate('history');
+        return true;
+      }
+      return false;
+    });
+  }, [isPending, isPremium, selectedJob, activeView, navigate, setSelectedJob]);
 
   // Allow Settings to re-open the onboarding guide via a decoupled event,
   // avoiding threading the hook's state through props into SettingsView.
@@ -435,6 +512,23 @@ export default function App() {
     window.addEventListener('app:replay-onboarding', handler);
     return () => window.removeEventListener('app:replay-onboarding', handler);
   }, [replayOnboarding]);
+
+  // Background extractions (premium multi-job flow) live in ExtractionJobsContext.
+  // When one completes we refresh history so the recipe is present; when the user
+  // taps a finished card we open that recipe (nothing auto-navigates on its own).
+  useEffect(() => {
+    const onComplete = () => { fetchHistory(); };
+    const onOpen = (e: Event) => {
+      const detail = (e as CustomEvent<{ jobId: string }>).detail;
+      if (detail?.jobId) handleExtractionSuccess(detail.jobId);
+    };
+    window.addEventListener(EXTRACTION_COMPLETE_EVENT, onComplete);
+    window.addEventListener(OPEN_RECIPE_EVENT, onOpen);
+    return () => {
+      window.removeEventListener(EXTRACTION_COMPLETE_EVENT, onComplete);
+      window.removeEventListener(OPEN_RECIPE_EVENT, onOpen);
+    };
+  }, [fetchHistory, handleExtractionSuccess]);
 
   const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -584,7 +678,10 @@ export default function App() {
       } ${(activeView === 'extract' && !recipe) ? 'pt-6' : (!isViewingRecipe ? 'pt-4' : '')}`}>
 
         {/* One-time trial banner for free users */}
-        <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
+        {!(isPending && !isPremium) && <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />}
+
+        {/* Soft opt-in notification prompt (triggered after N saved recipes) */}
+        {!(isPending && !isPremium) && <NotificationPrompt savedCount={history.length} />}
 
         {/* ALWAYS-MOUNTED VIEWS — hidden via HTML `hidden` attribute (display:none)
             instead of conditional rendering. This preserves component state,
@@ -622,6 +719,29 @@ export default function App() {
                 }
               }}
             />
+          ) : latestRunning ? (
+            /* Premium background extraction running: keep the animation (newest
+               job) on top, the per-job boxes below, and hide the form. Further
+               extractions are started via the native share intent. */
+            <div className="flex flex-col gap-6">
+              <ExtractionAnimation
+                key={latestRunning.id}
+                url={latestRunning.sourceLabel}
+                isPending
+                jobStatus={latestRunning.status}
+                progress={latestRunning.progress}
+                variant={latestRunning.mode === 'photo' ? 'photo' : 'link'}
+              />
+              <ActiveExtractions />
+              <ErrorBanner
+                isPending={false}
+                jobStatus={jobStatus}
+                jobError={jobError}
+                jobErrorCode={jobErrorCode}
+                jobErrorParams={jobErrorParams}
+                onRetry={() => extractMode === 'photo' ? triggerPhotoExtraction() : triggerExtraction(url)}
+              />
+            </div>
           ) : (
             /* Extraction Form & Error Banner */
             <ExtractForm
@@ -641,14 +761,19 @@ export default function App() {
               setPhotos={setPhotos}
               isUploadingPhotos={isUploadingPhotos}
               errorBanner={
-                <ErrorBanner
-                  isPending={isPending}
-                  jobStatus={jobStatus}
-                  jobError={jobError}
-                  jobErrorCode={jobErrorCode}
-                  jobErrorParams={jobErrorParams}
-                  onRetry={() => extractMode === 'photo' ? triggerPhotoExtraction() : triggerExtraction(url)}
-                />
+                (extractionJobs.length > 0 || (jobStatus === 'failed' && jobErrorCode !== 'RATE_LIMIT_EXCEEDED')) ? (
+                  <div className="flex flex-col gap-3">
+                    {extractionJobs.length > 0 && <ActiveExtractions />}
+                    <ErrorBanner
+                      isPending={isPending}
+                      jobStatus={jobStatus}
+                      jobError={jobError}
+                      jobErrorCode={jobErrorCode}
+                      jobErrorParams={jobErrorParams}
+                      onRetry={() => extractMode === 'photo' ? triggerPhotoExtraction() : triggerExtraction(url)}
+                    />
+                  </div>
+                ) : null
               }
             />
           )}
@@ -686,6 +811,7 @@ export default function App() {
             onSelectModeChange={setIsCatalogSelectMode}
             catalogSubPath={subPath}
             onNavigateCatalog={navigateCatalog}
+            limitStatus={limitStatus}
           />
         </div>
 
@@ -694,10 +820,21 @@ export default function App() {
           <ShoppingList
             aggregatedList={aggregatedList}
             addCustomItem={addCustomItem}
+            toggleItemIds={toggleItemIds}
+            deleteItemIds={deleteItemIds}
             toggleItemGroup={toggleItemGroup}
             deleteItemGroup={deleteItemGroup}
             clearAll={clearAll}
             clearChecked={clearChecked}
+          />
+        </div>
+
+        {/* PROGRESS TAB */}
+        <div hidden={activeView !== 'progress'} aria-hidden={activeView !== 'progress' || undefined}>
+          <ProgressView
+            onSelectRecipe={(jobId) => {
+              navigate('history', jobId);
+            }}
           />
         </div>
 
@@ -715,13 +852,13 @@ export default function App() {
 
       {/* Mobile Bottom Navigation Bar */}
       {(() => {
-        const isBottomBarHidden = (activeView === 'history' && isCatalogSelectMode) || activeView === 'admin';
+        const isBottomBarHidden = (activeView === 'history' && isCatalogSelectMode) || activeView === 'admin' || (isPending && !isPremium);
         const bottomBarClasses = `fixed bottom-0 inset-x-0 z-40 transition-all duration-300 ease-in-out pb-safe ${isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
           }`;
 
         return (
           <div className={bottomBarClasses}>
-            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-[calc(1.25rem_+_var(--safe-area-inset-bottom))] px-3">
+            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-none shadow-[0_-2px_10px_rgba(0,0,0,0.03)] w-full max-w-md mx-auto flex justify-around items-center pt-3 pb-[calc(1.25rem_+_var(--safe-area-inset-bottom))] px-3">
               {/* Extract / New Recipe Tab */}
               <button
                 onClick={() => navigate('extract')}
@@ -730,7 +867,14 @@ export default function App() {
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
-                <Sparkles className="w-5.5 h-5.5 mb-1" />
+                <div className="relative">
+                  <Sparkles className="w-5.5 h-5.5 mb-1" />
+                  {isPending && (
+                    <span className="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-gray-900 shadow-sm">
+                      <span className="h-2.5 w-2.5 rounded-full border-[1.5px] border-emerald-600 dark:border-emerald-400 border-t-transparent animate-spin" />
+                    </span>
+                  )}
+                </div>
                 <span className="text-[11px] tracking-wide font-medium">{t('app.nav.newRecipe')}</span>
                 {activeView === 'extract' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
@@ -781,6 +925,28 @@ export default function App() {
                 </div>
                 <span className="text-[11px] tracking-wide font-medium">{t('app.nav.shoppingList')}</span>
                 {activeView === 'shopping-list' && (
+                  <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                )}
+              </button>
+
+              {/* Progress Tab */}
+              <button
+                onClick={() => navigate('progress')}
+                className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${activeView === 'progress'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+              >
+                <div className="relative">
+                  <Trophy className="w-5.5 h-5.5 mb-1" />
+                  {userLevel !== null && (
+                    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[9px] font-black text-white leading-none ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
+                      {userLevel}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[11px] tracking-wide font-medium">{t('app.nav.progress')}</span>
+                {activeView === 'progress' && (
                   <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 )}
               </button>

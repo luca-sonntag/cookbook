@@ -21,6 +21,7 @@ export type AppErrorCode =
   | 'SCREENSHOTS_TOO_LARGE'
   | 'TOO_MANY_PHOTOS'
   | 'PHOTOS_TOO_LARGE'
+  | 'PHOTO_REQUIRED'
   | 'PARENT_JOB_NOT_COMPLETED'
   | 'UNAUTHORIZED'
   | 'PREMIUM_REQUIRED'
@@ -40,6 +41,7 @@ export type AppErrorCode =
   | 'MULTIPLE_RECIPES'
   | 'WEBSITE_NO_RECIPE'
   | 'PHOTO_UNREADABLE'
+  | 'PHOTO_NOT_MATCHING'
   | 'PHOTO_IMPORT_EXPIRED'
   | 'EXTRACTION_FAILED'
   | 'UNRELATED_REMIX_REQUEST'
@@ -72,6 +74,7 @@ export const ALL_ERROR_CODES: readonly AppErrorCode[] = [
   'SCREENSHOTS_TOO_LARGE',
   'TOO_MANY_PHOTOS',
   'PHOTOS_TOO_LARGE',
+  'PHOTO_REQUIRED',
   'PARENT_JOB_NOT_COMPLETED',
   'UNAUTHORIZED',
   'PREMIUM_REQUIRED',
@@ -91,6 +94,7 @@ export const ALL_ERROR_CODES: readonly AppErrorCode[] = [
   'MULTIPLE_RECIPES',
   'WEBSITE_NO_RECIPE',
   'PHOTO_UNREADABLE',
+  'PHOTO_NOT_MATCHING',
   'PHOTO_IMPORT_EXPIRED',
   'EXTRACTION_FAILED',
   'UNRELATED_REMIX_REQUEST',
@@ -139,6 +143,8 @@ export const NON_RETRYABLE_ERROR_CODES: ReadonlySet<AppErrorCode> = new Set<AppE
   // Retrying the same photos would fail identically — the user needs to take
   // better ones, so the UI hides the retry button.
   'PHOTO_UNREADABLE',
+  'PHOTO_REQUIRED',
+  'PHOTO_NOT_MATCHING',
   'UNRELATED_REMIX_REQUEST',
 ]);
 

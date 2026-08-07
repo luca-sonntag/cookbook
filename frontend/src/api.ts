@@ -5,9 +5,10 @@
 //
 // In native builds (Capacitor) the webview is served from capacitor://localhost
 // (iOS) or http://localhost (Android), so relative paths would hit the local
-// bundle instead of the backend. Set VITE_API_BASE_URL to your production
-// backend origin (e.g. https://api.snagbite.app) for native builds.
+// bundle instead of the backend. Set VITE_API_BASE_URL to your backend origin
+// (e.g. in .env.development or .env.production) for native builds.
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+console.log('[api] API_BASE_URL resolved:', API_BASE_URL);
 
 /**
  * Resolve an API path (e.g. "/api/jobs") to an absolute URL when a base URL is

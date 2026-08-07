@@ -181,11 +181,11 @@ export const uiTranslations = {
         },
         import: {
           title: 'Importieren & Teilen',
-          desc: 'Füge einen Link ein oder teile ein Reel direkt aus Instagram, TikTok, YouTube oder Facebook an Snagbite. Wir extrahieren das komplette Rezept für dich.',
+          desc: 'Füge einen Link ein oder teile ein Reel direkt aus Instagram, TikTok, YouTube oder Facebook an Snagbite. Wir erstellen das komplette Rezept für dich.',
         },
         cookbook: {
           title: 'Dein Kochbuch',
-          desc: 'Jedes extrahierte Rezept landet automatisch in deinem Kochbuch – durchsuchbar, filterbar und mit anpassbarer Portionsgröße.',
+          desc: 'Jedes gespeicherte Rezept landet automatisch in deinem Kochbuch – durchsuchbar, filterbar und mit anpassbarer Portionsgröße.',
         },
         organize: {
           title: 'Ordnen & Filtern',
@@ -221,7 +221,128 @@ export const uiTranslations = {
         newRecipe: 'Neu',
         savedRecipes: 'Rezepte',
         shoppingList: 'Einkaufsliste',
+        progress: 'Fortschritt',
         settings: 'Profil',
+      },
+      gamification: {
+        tabTitle: 'Fortschritt',
+        level: 'Level {level}',
+        levelShort: 'Lvl {level}',
+        xpToNext: 'Noch {xp} XP bis Lvl {level}',
+        maxLevel: 'Max-Level',
+        xp: 'XP',
+        xpGained: '+{xp} XP',
+        coinsGained: '+{coins}',
+        levelUp: 'Level {level}!',
+        newBadge: 'Neues Abzeichen!',
+        tapToContinue: 'Tippen zum Fortfahren',
+        streakDays: '{days} Tage Serie',
+        streakNone: 'Noch keine Serie',
+        longestStreak: 'Längste Serie: {days} Tage',
+        coins: 'Coins',
+        totalCooks: 'Gerichte gekocht',
+        badgesTitle: 'Abzeichen',
+        badgesEmpty: 'Koche Gerichte, um Abzeichen freizuschalten.',
+        emptyTitle: 'Leg los!',
+        emptySubtitle: 'Koch dein erstes Rezept und sammle XP.',
+        cooked: 'Ich hab das gekocht',
+        cooking: 'Speichern…',
+        cookedDone: 'Gekocht ✓',
+        addPhoto: 'Foto',
+        photoAdded: 'Foto ✓',
+        duplicate: 'Schon gezählt',
+        cookError: 'Konnte nicht gespeichert werden',
+        modalTitle: 'Als gekocht eintragen & XP sichern',
+        modalSubtitle: 'Lade ein Foto deines fertig gekochten Gerichts hoch, um dir deinen XP-Bonus zu sichern.',
+        takePhoto: 'Foto aufnehmen',
+        chooseGallery: 'Aus Galerie wählen',
+        verifyBtn: 'Foto hochladen & XP sichern',
+        verifyingTitle: 'Dein Foto wird hochgeladen...',
+        verifyingDesc: 'Gleich geschafft — Foto wird zu deiner Historie hinzugefügt...',
+        retryPhoto: 'Neues Foto versuchen',
+        rejectionTitle: 'Foto nicht erkannt',
+        rejectionReason: 'Das Foto passt leider nicht zu diesem Rezept.',
+        cookedCardTitle: 'Du hast dieses Gericht gekocht?',
+        cookedCardSubtitle: 'Lade ein Foto deines Gerichts hoch, um es in deiner Historie einzuloggen und XP zu kassieren.',
+        cookedCardBtn: 'Als gekocht eintragen',
+        cookedCardBtnAgain: 'Erneut gekocht ({count}×)',
+        cookedChip: '{count}× gekocht',
+        cookedChipLast: 'zuletzt {when}',
+        cookedTimelineTitle: 'Deine Koch-Historie',
+        cookedTimelineEmpty: 'Du hast dieses Rezept noch nicht gekocht.',
+        cookedViaMode: 'Koch-Modus',
+        cookedWithTimer: 'Timer genutzt',
+        cookedAttempt: '{count}. Zubereitung',
+        cookedVerified: 'Mit Foto',
+        cookedNoPhoto: 'Ohne Foto',
+        cookedTotalXp: '+{xp} XP gesammelt',
+        streakReminder: {
+          title: '🔥 Serie nicht verlieren',
+          body: 'Du bist bei {days} Tagen in Folge — koch heute, um die Serie zu halten!',
+        },
+        progressLabel: 'Fortschritt',
+        galleryTitle: 'Deine Koch-Galerie',
+        galleryEmpty: 'Noch keine Fotos. Lade bei deiner nächsten Zubereitung ein Foto hoch!',
+        coinsComingSoon: 'Demnächst',
+        coinsNotice: 'Der Coin-Shop kommt in Kürze!',
+        leaderboardTitle: 'Rangliste',
+        leaderboardSubtitle: 'Deine {xp} XP zählen schon — bald misst du dich mit Freunden in der Rangliste!',
+        leaderboardComingSoon: 'Demnächst',
+        leaderboardNotice: 'Die Rangliste kommt bald — misst du dich mit Freunden, deine XP zählen schon mit!',
+        streakWeekly: '{days} W-Serie',
+        ranks: {
+          level_1: 'Küchenneuling',
+          level_2: 'Hobby-Chef',
+          level_3: 'Küchen-Talent',
+          level_4: 'Gourmet-Koch',
+          level_5: 'Meisterkoch',
+          level_6: 'Sternekoch',
+        },
+        badgeDetail: {
+          statusLocked: 'Noch gesperrt',
+          statusUnlocked: 'Freigeschaltet',
+          reward: 'Belohnung: +{xp} XP',
+          progressLabel: '{current} von {total} erreicht',
+          unlockedOn: 'Freigeschaltet am {date}',
+        },
+        badgeDesc: {
+          first_cook: 'Koche dein allererstes Rezept in der App.',
+          cook_10: 'Koche insgesamt 10 leckere Gerichte.',
+          cook_25: 'Koche insgesamt 25 leckere Gerichte.',
+          cook_50: 'Koche insgesamt 50 leckere Gerichte.',
+          cook_100: 'Koche insgesamt 100 leckere Gerichte.',
+          streak_3: 'Halte deine Koch-Serie für 3 Wochen aktiv.',
+          streak_7: 'Halte deine Koch-Serie für 7 Wochen aktiv.',
+          streak_30: 'Halte deine Koch-Serie für 30 Wochen aktiv.',
+          first_photo: 'Verifiziere ein Gericht mit deinem ersten Foto.',
+          distinct_5: 'Koche 5 verschiedene Rezepte aus deiner Sammlung.',
+          distinct_10: 'Koche 10 verschiedene Rezepte aus deiner Sammlung.',
+          distinct_25: 'Koche 25 verschiedene Rezepte aus deiner Sammlung.',
+          night_owl: 'Koche ein Gericht nach 22 Uhr.',
+          weekend_chef: 'Koche 5 Gerichte am Wochenende.',
+          timer_first: 'Benutze den Koch-Timer zum ersten Mal.',
+          timer_10: 'Benutze den Koch-Timer insgesamt 10 Mal.',
+          same_recipe_3: 'Koche dasselbe Rezept mindestens 3 Mal.',
+        },
+        badges: {
+          first_cook: 'Erstes Gericht',
+          cook_10: '10 Gerichte',
+          cook_25: '25 Gerichte',
+          cook_50: '50 Gerichte',
+          cook_100: '100 Gerichte',
+          streak_3: '3-Wochen-Serie',
+          streak_7: '7-Wochen-Serie',
+          streak_30: '30-Wochen-Serie',
+          first_photo: 'Erstes Foto',
+          distinct_5: '5 verschiedene Rezepte',
+          distinct_10: '10 verschiedene Rezepte',
+          distinct_25: '25 verschiedene Rezepte',
+          night_owl: 'Nachteule',
+          weekend_chef: 'Wochenend-Koch',
+          timer_first: 'Erster Timer',
+          timer_10: 'Timer-Profi',
+          same_recipe_3: 'Lieblingsgericht',
+        },
       },
       settings: {
         language: 'Sprache',
@@ -233,7 +354,7 @@ export const uiTranslations = {
         tempUnitBoth: 'Beide (°C & °F)',
         unitSystemMetric: 'Metrisch (g, ml, kg)',
         unitSystemImperial: 'Imperial (oz, cups, lbs)',
-        settingInfoTooltip: 'Diese Einstellung wirkt sich nur auf neu extrahierte Rezepte aus.',
+        settingInfoTooltip: 'Diese Einstellung wirkt sich nur auf neu erstellte Rezepte aus.',
         saving: 'Speichern...',
         saved: 'Einstellungen gespeichert!',
         deleteAccount: 'Konto löschen',
@@ -241,8 +362,8 @@ export const uiTranslations = {
         premiumActive: 'Aktiv',
         premiumActiveDesc: 'Du hast unbegrenzten Zugriff auf alle Premium-Features.',
         alphaActive: 'Alpha-Zugriff',
-        alphaActiveDesc: 'Du bist Alpha-Tester! Du hast kostenlosen Zugriff auf alle Premium-Features während der Alpha. Extraktionslimits gelten weiterhin.',
-        premiumCardDesc: 'Schalte unbegrenzte Rezept-Extraktionen, KI-Chat & Remix und smarte Einkaufslisten frei.',
+        alphaActiveDesc: 'Du bist Alpha-Tester! Du hast kostenlosen Zugriff auf alle Premium-Features während der Alpha. Tageslimits gelten weiterhin.',
+        premiumCardDesc: 'Schalte unbegrenzten Rezept-Import, KI-Chat & Remix und smarte Einkaufslisten frei.',
         legal: {
           section: 'Rechtliches',
           privacy: 'Datenschutzerklärung',
@@ -305,10 +426,10 @@ export const uiTranslations = {
           queued: 'Warteschlange',
           scraping: 'Video-Daten laden',
           downloading_media: 'Audio & Video herunterladen',
-          extracting_frames: 'Videobilder extrahieren',
-          reading_photos: 'Fotos werden gelesen',
-          extracting_recipe: 'Rezept vorbereiten',
-          finalizing: 'Speichern & Fertigstellen'
+          extracting_frames: 'Videobilder analysieren',
+          reading_photos: 'Fotos auslesen',
+          extracting_recipe: 'Rezept strukturieren',
+          finalizing: 'Zusammenfassen'
         }
       },
       backgroundNotice: 'Dein Rezept wird im Hintergrund vorbereitet. Du kannst die App verlassen oder schließen – du wirst benachrichtigt, sobald das Rezept fertig ist.'
@@ -320,7 +441,21 @@ export const uiTranslations = {
       recipeReady: {
         title: 'Rezept bereit',
         body: 'Dein Rezept „{title}“ ist bereit zum Kochen!',
-      }
+      },
+      extractionInterrupted: {
+        title: '⚠️ Rezept-Import unterbrochen',
+        body: 'Rezepte können in der Free-Version nur erstellt werden, wenn die App geöffnet bleibt.',
+      },
+      prompt: {
+        badge: 'Empfehlungen',
+        title: 'Lust auf neue Koch-Inspiration?',
+        description: 'Nie wieder „Was koche ich heute?“ Erhalte mehrmals in der Woche abends passende Ideen aus deinen Rezepten.',
+        feature1: 'Passende Ideen aus deinen Rezepten',
+        feature2: 'Mehrmals in der Woche, kein Spam',
+        enable: 'Inspiration erhalten',
+        later: 'Später',
+        dismiss: 'Benachrichtigungshinweis schließen',
+      },
     },
     auth: {
       signInTitle: 'Melde dich an, um deine Rezepte zu verwalten',
@@ -351,9 +486,9 @@ export const uiTranslations = {
         PHOTOS_TOO_LARGE: 'Die Fotos sind insgesamt zu groß. Bitte wähle weniger Fotos aus.',
         PARENT_JOB_NOT_COMPLETED: 'Das Ursprungsrezept ist noch nicht fertig. Bitte warte, bis es abgeschlossen ist.',
         UNAUTHORIZED: 'Nicht autorisiert. Bitte melde dich erneut an.',
-        COOKBOOK_FULL: 'Kochbuch voll ({counts}). Lösche ein Rezept oder hol dir Premium, um weitere Rezepte zu extrahieren.',
-        RATE_LIMIT_EXCEEDED: 'Du hast dein Limit von {limit} Rezept-Extraktionen pro {period} erreicht. {retry}',
-        ACTIVE_JOB_EXISTS: 'Du hast bereits {count} laufende Extraktion(en). Bitte warte, bis diese abgeschlossen sind.',
+        COOKBOOK_FULL: 'Kochbuch voll ({counts}). Lösche ein Rezept oder hol dir Premium, um weitere Rezepte zu speichern.',
+        RATE_LIMIT_EXCEEDED: 'Du hast dein Limit von {limit} Rezepten pro {period} erreicht. {retry}',
+        ACTIVE_JOB_EXISTS: 'Du hast bereits {count} laufende Rezept-Import(e). Bitte warte, bis diese abgeschlossen sind.',
         TOO_MANY_REQUESTS: 'Zu viele Anfragen. Bitte versuche es später noch einmal.',
         JOB_NOT_FOUND: 'Rezept nicht gefunden.',
         RECIPE_NOT_FOUND: 'Rezept nicht gefunden.',
@@ -368,6 +503,8 @@ export const uiTranslations = {
         MULTIPLE_RECIPES: 'Dieser Beitrag enthält mehrere verschiedene Rezepte. Bitte verwende einen Beitrag mit genau einem Rezept.',
         WEBSITE_NO_RECIPE: 'Auf dieser Website konnte kein Rezept gefunden werden.',
         PHOTO_UNREADABLE: 'Auf deinen Fotos konnten wir kein Rezept lesen. Achte auf gutes Licht, lege die Seite flach hin und fotografiere die Schrift formatfüllend.',
+        PHOTO_REQUIRED: 'Für das Verifizieren deines Gerichts ist ein Foto erforderlich.',
+        PHOTO_NOT_MATCHING: 'Das Foto passt leider nicht zum Rezept: {reason}',
         PHOTO_IMPORT_EXPIRED: 'Deine Fotos sind nicht mehr verfügbar. Bitte wähle sie noch einmal aus.',
         PHOTO_UPLOAD_FAILED: 'Deine Fotos konnten nicht hochgeladen werden. Bitte prüfe deine Verbindung und versuche es noch einmal.',
         UNRELATED_REMIX_REQUEST: 'Ungültige Anfrage: Die KI hat keine Rezeptänderung im eingegebenen Text erkannt.',
@@ -413,12 +550,32 @@ export const uiTranslations = {
         days: 'Bitte versuche es in {dayStr}{hourStr} erneut.',
       },
     },
+    activeExtractions: {
+      title: 'Laufende Rezept-Importe',
+      titleDone: 'Fertige Rezepte',
+      statusRunning: 'Wird erstellt…',
+      ready: 'Rezept fertig',
+      tapToOpen: 'Tippen, um das Rezept zu öffnen',
+      dismiss: 'Ausblenden',
+      photoSource: 'Fotos',
+      stages: {
+        queued: 'In Warteschlange…',
+        scraping: 'Video wird geladen…',
+        downloading_media: 'Medien werden geladen…',
+        extracting_frames: 'Bilder werden analysiert…',
+        reading_photos: 'Fotos werden gelesen…',
+        extracting_recipe: 'Rezept wird erstellt…',
+        finalizing: 'Wird abgeschlossen…',
+      },
+    },
     form: {
       urlLabel: 'Rezept Link',
       urlPlaceholder: 'https://www.instagram.com/reel/...',
       urlPlaceholderShort: 'Link einfügen…',
       btnPending: 'Rezept wird gelesen...',
       btnSubmit: 'Rezept erstellen',
+      concurrentCounter: '{active}/{max} Rezepte werden erstellt',
+      concurrentLimitReached: 'Maximal {max} Rezepte gleichzeitig – warte, bis eines fertig ist.',
       mode: {
         link: 'Link',
         photo: 'Foto',
@@ -468,6 +625,7 @@ export const uiTranslations = {
         submitFailed: 'Auftrag konnte nicht übermittelt werden.',
         submissionError: 'Bei der Übermittlung ist ein Fehler aufgetreten.',
         serverError: 'Der Server hat keine gültige Antwort zurückgegeben. Bitte versuche es erneut.',
+        backgroundCancelled: 'Der Rezept-Import wurde abgebrochen, da die App in den Hintergrund gewechselt ist (Hintergrund-Verarbeitung ist nur in Premium enthalten).',
       }
     },
     recipe: {
@@ -500,7 +658,7 @@ export const uiTranslations = {
       aiEstimateTooltip: 'Diese Nährwerte wurden durch eine KI automatisiert basierend auf den Zutaten und Mengen geschätzt, da in der Quelle keine Angaben vorhanden waren.',
       aiIngredientsEstimateTooltip: 'Die Nährwerte der einzelnen Zutaten sind von der KI geschätzte Richtwerte und können je nach Sorte, Marke und Zubereitung variieren.',
       aiGeneratedNotice: 'KI-generierter Inhalt',
-      aiGeneratedDisclaimer: 'Dieses Rezept wurde KI-gestützt aus einem Social-Media-Video extrahiert und kann Fehler aufweisen. Bitte prüfe die Angaben sorgfältig.',
+      aiGeneratedDisclaimer: 'Dieses Rezept wurde KI-gestützt aus einem Social-Media-Video erstellt und kann Fehler aufweisen. Bitte prüfe die Angaben sorgfältig.',
       tabIngredients: 'Zutaten',
       tabInstructions: 'Zubereitung',
       ingredientsTitle: 'Zutaten-Checkliste',
@@ -544,7 +702,7 @@ export const uiTranslations = {
       photoImport: 'Foto-Import',
       title: 'Rezepte',
       emptyTitle: 'Keine gespeicherten Rezepte',
-      emptyDesc: 'Extrahiere Rezepte im "Neues Rezept" Tab, um sie hier zu speichern!',
+      emptyDesc: 'Erstelle Rezepte im "Neues Rezept" Tab, um sie hier zu speichern!',
       emptyState: {
         welcomeTitle: 'Dein Kochbuch wartet auf Rezepte!',
         welcomeDesc: 'Snagbite verwandelt Kochvideos von Instagram, TikTok oder YouTube in strukturierte Rezepte mit Einkaufslisten und Nährwertangaben.',
@@ -797,7 +955,7 @@ export const uiTranslations = {
           headerFeature: 'Funktion',
           headerFree: 'Kostenlos',
           headerPremium: 'Premium',
-          rowExtractions: 'Rezept-Extraktion',
+          rowExtractions: 'Rezept-Import',
           rowExtractionsFree: '1 / Tag',
           rowExtractionsPremium: 'Unbegrenzt',
           rowCookbook: 'Kochbuch (Speichern)',
@@ -817,20 +975,20 @@ export const uiTranslations = {
         },
         features: {
           extractions: {
-            title: 'Unbegrenzt Rezepte',
-            desc: 'Rezepte aus Social Media & Web importieren.'
+            title: 'Unbegrenzt & Multi-Import',
+            desc: 'Rezepte aus Reels, Web & Fotos importieren — auch im Hintergrund.'
           },
           remix: {
             title: 'Rezept-KI-Chat',
-            desc: 'Rezepte flexibel per Chat anpassen.'
+            desc: 'Rezepte per Chat anpassen, Zutaten ersetzen & Kochtipps holen.'
           },
           nutrition: {
             title: 'Nährwerte & Makros',
-            desc: 'Zutaten & Portionen im Blick behalten.'
+            desc: 'Kalorien, Makros & Portionen auf einen Blick.'
           },
           shoppingList: {
             title: 'Smarte Einkaufsliste',
-            desc: 'Zutaten automatisch kombinieren.'
+            desc: 'Zutaten aus allen Rezepten automatisch kombinieren.'
           }
         }
       },
@@ -842,7 +1000,7 @@ export const uiTranslations = {
         extractUnlimited: 'Premium: Unbegrenzt freischalten',
         catalogFull: 'Kochbuch voll ({count}/{limit}) – Lösche ein Rezept oder upgrade.',
         catalogAlmostFull: 'Kochbuch fast voll ({count}/{limit})',
-        extractionLimitReached: 'Tageslimit erreicht ({used}/{limit}) – Upgrade auf Premium für unbegrenzte Extraktionen.',
+        extractionLimitReached: 'Tageslimit erreicht ({used}/{limit}) – Upgrade auf Premium für unbegrenzte Rezepte.',
         unlockNutrition: 'Nährwerte freischalten',
         upgrade: 'Upgrade'
       }
@@ -923,7 +1081,128 @@ export const uiTranslations = {
         newRecipe: 'New',
         savedRecipes: 'Recipes',
         shoppingList: 'Shopping List',
+        progress: 'Progress',
         settings: 'Profile',
+      },
+      gamification: {
+        tabTitle: 'Progress',
+        level: 'Level {level}',
+        levelShort: 'Lvl {level}',
+        xpToNext: '{xp} XP to Lvl {level}',
+        maxLevel: 'Max level',
+        xp: 'XP',
+        xpGained: '+{xp} XP',
+        coinsGained: '+{coins}',
+        levelUp: 'Level {level}!',
+        newBadge: 'New badge!',
+        tapToContinue: 'Tap to continue',
+        streakDays: '{days}-day streak',
+        streakNone: 'No streak yet',
+        longestStreak: 'Longest streak: {days} days',
+        coins: 'Coins',
+        totalCooks: 'Dishes cooked',
+        badgesTitle: 'Badges',
+        badgesEmpty: 'Cook dishes to unlock badges.',
+        emptyTitle: 'Get started!',
+        emptySubtitle: 'Cook your first recipe and earn XP.',
+        cooked: 'I cooked this',
+        cooking: 'Saving…',
+        cookedDone: 'Cooked ✓',
+        addPhoto: 'Photo',
+        photoAdded: 'Photo ✓',
+        duplicate: 'Already counted',
+        cookError: 'Could not save',
+        modalTitle: 'Log Dish & Claim XP',
+        modalSubtitle: 'Upload a photo of your finished dish to claim your XP bonus.',
+        takePhoto: 'Take Photo',
+        chooseGallery: 'Choose from Gallery',
+        verifyBtn: 'Upload Photo & Claim XP',
+        verifyingTitle: 'Uploading your photo...',
+        verifyingDesc: 'Almost done — adding photo to your history...',
+        retryPhoto: 'Try another photo',
+        rejectionTitle: 'Photo not recognized',
+        rejectionReason: 'This photo does not seem to match this recipe.',
+        cookedCardTitle: 'Did you cook this dish?',
+        cookedCardSubtitle: 'Upload a photo of your dish to log it in your history and earn XP.',
+        cookedCardBtn: 'Log Cooked Dish',
+        cookedCardBtnAgain: 'Cooked again ({count}×)',
+        cookedChip: 'Cooked {count}×',
+        cookedChipLast: 'last {when}',
+        cookedTimelineTitle: 'Your cook history',
+        cookedTimelineEmpty: "You haven't cooked this recipe yet.",
+        cookedViaMode: 'Cooking Mode',
+        cookedWithTimer: 'Timer used',
+        cookedAttempt: 'Cook #{count}',
+        cookedVerified: 'With Photo',
+        cookedNoPhoto: 'No photo',
+        cookedTotalXp: '+{xp} XP total',
+        streakReminder: {
+          title: '🔥 Keep your streak',
+          body: "You're on a {days}-day streak — cook today to keep it going!",
+        },
+        progressLabel: 'Progress',
+        galleryTitle: 'Your Cooking Gallery',
+        galleryEmpty: 'No photos yet. Upload a photo next time you cook!',
+        coinsComingSoon: 'Soon',
+        coinsNotice: 'The Coin Shop is coming soon!',
+        leaderboardTitle: 'Leaderboard',
+        leaderboardSubtitle: 'Your {xp} XP is already stacking up for the rankings',
+        leaderboardComingSoon: 'Soon',
+        leaderboardNotice: 'The leaderboard is coming soon — your XP already counts!',
+        streakWeekly: '{days} W-Streak',
+        ranks: {
+          level_1: 'Kitchen Novice',
+          level_2: 'Hobby Chef',
+          level_3: 'Kitchen Talent',
+          level_4: 'Gourmet Cook',
+          level_5: 'Master Chef',
+          level_6: 'Starred Chef',
+        },
+        badgeDetail: {
+          statusLocked: 'Locked',
+          statusUnlocked: 'Unlocked',
+          reward: 'Reward: +{xp} XP',
+          progressLabel: '{current} of {total} completed',
+          unlockedOn: 'Unlocked on {date}',
+        },
+        badgeDesc: {
+          first_cook: 'Cook your very first recipe in the app.',
+          cook_10: 'Cook a total of 10 delicious dishes.',
+          cook_25: 'Cook a total of 25 delicious dishes.',
+          cook_50: 'Cook a total of 50 delicious dishes.',
+          cook_100: 'Cook a total of 100 delicious dishes.',
+          streak_3: 'Keep your cooking streak active for 3 weeks.',
+          streak_7: 'Keep your cooking streak active for 7 weeks.',
+          streak_30: 'Keep your cooking streak active for 30 weeks.',
+          first_photo: 'Verify a cooked dish with your first photo.',
+          distinct_5: 'Cook 5 different recipes from your collection.',
+          distinct_10: 'Cook 10 different recipes from your collection.',
+          distinct_25: 'Cook 25 different recipes from your collection.',
+          night_owl: 'Cook a dish after 10 PM.',
+          weekend_chef: 'Cook 5 dishes on a weekend.',
+          timer_first: 'Use the cooking timer for the first time.',
+          timer_10: 'Use the cooking timer a total of 10 times.',
+          same_recipe_3: 'Cook the same recipe at least 3 times.',
+        },
+        badges: {
+          first_cook: 'First dish',
+          cook_10: '10 dishes',
+          cook_25: '25 dishes',
+          cook_50: '50 dishes',
+          cook_100: '100 dishes',
+          streak_3: '3-week streak',
+          streak_7: '7-week streak',
+          streak_30: '30-week streak',
+          first_photo: 'First photo',
+          distinct_5: '5 different recipes',
+          distinct_10: '10 different recipes',
+          distinct_25: '25 different recipes',
+          night_owl: 'Night Owl',
+          weekend_chef: 'Weekend Chef',
+          timer_first: 'First Timer',
+          timer_10: 'Timer Pro',
+          same_recipe_3: 'Favourite Dish',
+        },
       },
       settings: {
         language: 'Language',
@@ -935,7 +1214,7 @@ export const uiTranslations = {
         tempUnitBoth: 'Both (°C & °F)',
         unitSystemMetric: 'Metric (g, ml, kg)',
         unitSystemImperial: 'Imperial (oz, cups, lbs)',
-        settingInfoTooltip: 'This setting only affects newly extracted recipes.',
+        settingInfoTooltip: 'This setting only affects newly created recipes.',
         saving: 'Saving...',
         saved: 'Settings saved!',
         deleteAccount: 'Delete Account',
@@ -943,8 +1222,8 @@ export const uiTranslations = {
         premiumActive: 'Active',
         premiumActiveDesc: 'You have unlimited access to all premium features.',
         alphaActive: 'Alpha Access',
-        alphaActiveDesc: 'You are an alpha tester! You have free access to all premium features during the alpha. Extraction limits apply.',
-        premiumCardDesc: 'Unlock unlimited recipe extractions, advanced remix capabilities, and smart shopping lists.',
+        alphaActiveDesc: 'You are an alpha tester! You have free access to all premium features during the alpha. Daily limits apply.',
+        premiumCardDesc: 'Unlock unlimited recipe imports, advanced remix capabilities, and smart shopping lists.',
         legal: {
           section: 'Legal',
           privacy: 'Privacy Policy',
@@ -1022,7 +1301,21 @@ export const uiTranslations = {
       recipeReady: {
         title: 'Recipe Ready',
         body: 'Your recipe "{title}" is ready to cook!',
-      }
+      },
+      extractionInterrupted: {
+        title: '⚠️ Recipe Import Interrupted',
+        body: 'In the Free version, recipes can only be created while the app remains open.',
+      },
+      prompt: {
+        badge: 'Smart recommendations',
+        title: 'Need fresh cooking inspiration?',
+        description: 'Never ask "What\'s for dinner?" again. Get personalized ideas from your saved recipes a few times a week in the evening.',
+        feature1: 'Tailored ideas from your saved recipes',
+        feature2: 'A few times a week, no spam',
+        enable: 'Get inspiration',
+        later: 'Later',
+        dismiss: 'Dismiss notification hint',
+      },
     },
     auth: {
       signInTitle: 'Sign in to manage your recipes',
@@ -1053,9 +1346,9 @@ export const uiTranslations = {
         PHOTOS_TOO_LARGE: 'Your photos are too large in total. Please pick fewer photos.',
         PARENT_JOB_NOT_COMPLETED: 'The original recipe is not ready yet. Please wait until it finishes.',
         UNAUTHORIZED: 'Unauthorized. Please sign in again.',
-        COOKBOOK_FULL: 'Cookbook full ({counts}). Delete a recipe or upgrade to Premium to extract more.',
-        RATE_LIMIT_EXCEEDED: 'You have reached your limit of {limit} recipe extractions per {period}. {retry}',
-        ACTIVE_JOB_EXISTS: 'You already have {count} extraction(s) in progress. Please wait for them to finish.',
+        COOKBOOK_FULL: 'Cookbook full ({counts}). Delete a recipe or upgrade to Premium to save more.',
+        RATE_LIMIT_EXCEEDED: 'You have reached your limit of {limit} recipes per {period}. {retry}',
+        ACTIVE_JOB_EXISTS: 'You already have {count} recipe import(s) in progress. Please wait for them to finish.',
         TOO_MANY_REQUESTS: 'Too many requests. Please try again later.',
         JOB_NOT_FOUND: 'Recipe not found.',
         RECIPE_NOT_FOUND: 'Recipe not found.',
@@ -1070,6 +1363,8 @@ export const uiTranslations = {
         MULTIPLE_RECIPES: 'This post contains several different recipes. Please use a post with exactly one recipe.',
         WEBSITE_NO_RECIPE: 'Could not find a recipe on this website.',
         PHOTO_UNREADABLE: "We couldn't read a recipe from your photos. Use good lighting, lay the page flat, and fill the frame with the writing.",
+        PHOTO_REQUIRED: 'A photo is required to verify your cooked dish.',
+        PHOTO_NOT_MATCHING: 'The photo does not match the recipe: {reason}',
         PHOTO_IMPORT_EXPIRED: 'Your photos are no longer available. Please pick them again.',
         PHOTO_UPLOAD_FAILED: 'Your photos could not be uploaded. Please check your connection and try again.',
         UNRELATED_REMIX_REQUEST: 'Invalid request: the AI did not recognize any recipe modification in the text.',
@@ -1115,12 +1410,32 @@ export const uiTranslations = {
         days: 'Please try again in {dayStr}{hourStr}.',
       },
     },
+    activeExtractions: {
+      title: 'Active recipe imports',
+      titleDone: 'Finished recipes',
+      statusRunning: 'Creating recipe…',
+      ready: 'Recipe ready',
+      tapToOpen: 'Tap to open the recipe',
+      dismiss: 'Dismiss',
+      photoSource: 'Photos',
+      stages: {
+        queued: 'Queued…',
+        scraping: 'Fetching video…',
+        downloading_media: 'Downloading media…',
+        extracting_frames: 'Analyzing frames…',
+        reading_photos: 'Reading photos…',
+        extracting_recipe: 'Building recipe…',
+        finalizing: 'Finishing up…',
+      },
+    },
     form: {
       urlLabel: 'Recipe Link',
       urlPlaceholder: 'https://www.instagram.com/reel/...',
       urlPlaceholderShort: 'Paste link…',
       btnPending: 'Reading recipe...',
       btnSubmit: 'Import Recipe',
+      concurrentCounter: '{active}/{max} recipes being created',
+      concurrentLimitReached: 'Up to {max} recipes at once — wait for one to finish.',
       mode: {
         link: 'Link',
         photo: 'Photo',
@@ -1170,6 +1485,7 @@ export const uiTranslations = {
         submitFailed: 'Failed to submit extraction job.',
         submissionError: 'An error occurred during submission.',
         serverError: 'The server returned an unexpected response. Please try again.',
+        backgroundCancelled: 'Recipe import cancelled because the app entered the background (background processing is Premium only).',
       }
     },
     recipe: {
@@ -1202,7 +1518,7 @@ export const uiTranslations = {
       aiEstimateTooltip: 'These nutritional values were automatically estimated by an AI based on the ingredients and quantities since no specifications were present in the source.',
       aiIngredientsEstimateTooltip: 'The nutritional values for individual ingredients are guidelines estimated by the AI and may vary depending on variety, brand, and preparation.',
       aiGeneratedNotice: 'AI-Generated Content',
-      aiGeneratedDisclaimer: 'This recipe was extracted from a social media video with AI assistance and may contain errors. Please verify the information carefully.',
+      aiGeneratedDisclaimer: 'This recipe was created from a social media video with AI assistance and may contain errors. Please verify the information carefully.',
       tabIngredients: 'Ingredients',
       tabInstructions: 'Instructions',
       ingredientsTitle: 'Ingredients Checklist',
@@ -1246,7 +1562,7 @@ export const uiTranslations = {
       photoImport: 'Photo import',
       title: 'Recipes',
       emptyTitle: 'No Saved Recipes',
-      emptyDesc: 'Extract recipes in the "Extract New" tab to save them here!',
+      emptyDesc: 'Create recipes in the "New" tab to save them here!',
       emptyState: {
         welcomeTitle: 'Your Cookbook is Waiting for Recipes!',
         welcomeDesc: 'Snagbite turns cooking videos from Instagram, TikTok, or YouTube into structured recipes with shopping lists and nutritional values.',
@@ -1499,7 +1815,7 @@ export const uiTranslations = {
           headerFeature: 'Feature',
           headerFree: 'Free',
           headerPremium: 'Premium',
-          rowExtractions: 'Recipe Extraction',
+          rowExtractions: 'Recipe Import',
           rowExtractionsFree: '1 / day',
           rowExtractionsPremium: 'Unlimited',
           rowCookbook: 'Cookbook (Save)',
@@ -1519,20 +1835,20 @@ export const uiTranslations = {
         },
         features: {
           extractions: {
-            title: 'Unlimited Recipes',
-            desc: 'Import recipes from social media & web.'
+            title: 'Unlimited & Multi-Import',
+            desc: 'Import recipes from reels, web & photos — even in background.'
           },
           remix: {
             title: 'Recipe AI Chat',
-            desc: 'Adapt recipes dynamically via chat.'
+            desc: 'Adapt recipes via chat, replace ingredients & get cooking tips.'
           },
           nutrition: {
             title: 'Nutrition & Macros',
-            desc: 'Keep track of ingredients & portions.'
+            desc: 'Calories, macros & portion breakdowns at a glance.'
           },
           shoppingList: {
             title: 'Smart Shopping List',
-            desc: 'Combine shopping items automatically.'
+            desc: 'Combine ingredients from all recipes automatically.'
           }
         }
       },
@@ -1544,7 +1860,7 @@ export const uiTranslations = {
         extractUnlimited: 'Premium: Unlock unlimited',
         catalogFull: 'Cookbook full ({count}/{limit}) – Delete a recipe or upgrade.',
         catalogAlmostFull: 'Cookbook almost full ({count}/{limit})',
-        extractionLimitReached: 'Daily limit reached ({used}/{limit}) – Upgrade to Premium for unlimited extractions.',
+        extractionLimitReached: 'Daily limit reached ({used}/{limit}) – Upgrade to Premium for unlimited recipes.',
         unlockNutrition: 'Unlock nutrition',
         upgrade: 'Upgrade'
       }
@@ -1687,8 +2003,8 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
       : (lang === 'de' ? `${days} Tagen` : `${days} days`);
 
     return lang === 'de'
-      ? `Du hast dein Limit von ${limit} Rezept-Extraktionen pro ${daysStr} erreicht. ${timeTextDe}`
-      : `You have reached your limit of ${limit} recipe extractions per ${daysStr}. ${timeTextEn}`;
+      ? `Du hast dein Limit von ${limit} Rezepten pro ${daysStr} erreicht. ${timeTextDe}`
+      : `You have reached your limit of ${limit} recipes per ${daysStr}. ${timeTextEn}`;
   }
 
   if (lowerMsg.includes('too many requests')) {
@@ -1701,8 +2017,8 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
     const match = errorMsg.match(/\d+/);
     const count = match ? match[0] : '1';
     return lang === 'de'
-      ? `Du hast bereits ${count} aktive(n) Auftrag/Aufträge. Bitte warte, bis diese abgeschlossen sind.`
-      : `You already have ${count} active job(s). Please wait for them to finish.`;
+      ? `Du hast bereits ${count} laufende(n) Rezept-Import(e). Bitte warte, bis diese abgeschlossen sind.`
+      : `You already have ${count} active recipe import(s). Please wait for them to finish.`;
   }
 
   if (lowerMsg.includes('cookbook full')) {
@@ -1711,8 +2027,8 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
     const limit = m ? m[2] : '5';
     const countStr = count ? `${count}/${limit}` : `${limit}`;
     return lang === 'de'
-      ? `Kochbuch voll (${countStr}). Lösche ein Rezept oder hol dir Premium, um weitere Rezepte zu extrahieren.`
-      : `Cookbook full (${countStr}). Delete a recipe or upgrade to Premium to extract more.`;
+      ? `Kochbuch voll (${countStr}). Lösche ein Rezept oder hol dir Premium, um weitere Rezepte zu speichern.`
+      : `Cookbook full (${countStr}). Delete a recipe or upgrade to Premium to save more.`;
   }
 
   if (lowerMsg.includes('youtube shorts')) {
@@ -1839,7 +2155,7 @@ export function translateApiError(errorMsg: string | null | undefined, lang: Sup
     return lang === 'de' ? 'Statusüberprüfung vom Server fehlgeschlagen.' : 'Failed to check status from server.';
   }
   if (errorMsg === 'failed_extraction' || errorMsg === 'failedExtraction') {
-    return lang === 'de' ? 'Die Rezept-Extraktion ist fehlgeschlagen.' : 'The recipe extraction failed.';
+    return lang === 'de' ? 'Die Rezept-Erstellung ist fehlgeschlagen.' : 'The recipe creation failed.';
   }
   if (errorMsg === 'lost_connection' || errorMsg === 'lostConnection') {
     return lang === 'de' ? 'Verbindung zum Backend-Server verloren.' : 'Lost connection to backend server.';
@@ -1964,6 +2280,8 @@ export function messageForCode(
       return getTranslation('error.codes.TOO_MANY_SCREENSHOTS', lang, { max: p.max ?? 6 });
     case 'ACTIVE_JOB_EXISTS':
       return getTranslation('error.codes.ACTIVE_JOB_EXISTS', lang, { count: p.count ?? 1 });
+    case 'PHOTO_NOT_MATCHING':
+      return getTranslation('app.gamification.rejectionReason', lang);
     default:
       return getTranslation(`error.codes.${c}`, lang);
   }

@@ -6,6 +6,7 @@ import { Clipboard as CapClipboard } from '@capacitor/clipboard';
 import { Capacitor } from '@capacitor/core';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
+import { useExtractionJobs } from '../context/ExtractionJobsContext';
 import { isTrialBannerDismissed, TRIAL_BANNER_DISMISS_EVENT } from './TrialBanner';
 import PremiumModal from './PremiumModal';
 import PremiumHint from './PremiumHint';
@@ -58,7 +59,7 @@ interface ExtractFormProps {
   validateUrl: (url: string) => boolean;
   isPending: boolean;
   handleFormSubmit: (e: React.FormEvent) => void;
-  limitStatus?: { limit: number; used: number; remaining: number; windowDays: number; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean } | null;
+  limitStatus?: { limit: number; used: number; remaining: number; windowDays: number; savedRecipes: number; maxSavedRecipes: number; cookbookFull: boolean; maxConcurrent?: number; activeCount?: number } | null;
   jobStatus: 'pending' | 'scraping' | 'processing' | 'completed' | 'failed' | null;
   progress: ProgressData | null;
   errorBanner?: React.ReactNode;
@@ -89,6 +90,7 @@ export default function ExtractForm({
 }: ExtractFormProps) {
   const { t } = useI18n();
   const { user, isPremium, hasTrialAvailable, trialDays, trialLoading } = useAuth();
+  const { activeCount: liveActiveCount } = useExtractionJobs();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [canPaste, setCanPaste] = useState(false);
   // React to TrialBanner dismissal so the upgrade card re-appears as soon
@@ -107,6 +109,14 @@ export default function ExtractForm({
   const cookbookFull = !isRealPremium && !!limitStatus?.cookbookFull;
   const extractionLimitReached = !isRealPremium && !cookbookFull && !!limitStatus && limitStatus.limit >= 0 && limitStatus.remaining <= 0;
   const blockedByLimit = cookbookFull || extractionLimitReached;
+
+  // Concurrency (premium/alpha background flow): how many extractions may run in
+  // parallel, and whether that ceiling is currently reached. Free users have a
+  // limit of 1 and run in the foreground, so no counter is shown for them.
+  const maxConcurrent = limitStatus?.maxConcurrent ?? 1;
+  const showConcurrency = isPremium && maxConcurrent > 1;
+  const atConcurrencyLimit = showConcurrency && liveActiveCount >= maxConcurrent;
+  const submitDisabled = blockedByLimit || atConcurrencyLimit || (mode === 'photo' && photos.length === 0);
 
   // Mirror TrialBanner's own visibility logic so the redundant UpgradeCard
   // disappears in exactly the same situations: premium users, while the
@@ -148,6 +158,7 @@ export default function ExtractForm({
 
   const handleDemoClick = (demoUrl: string) => {
     if (isPending) return;
+    if (atConcurrencyLimit) return;
     if (blockedByLimit) { setIsPremiumModalOpen(true); return; }
     setUrl(demoUrl);
     validateUrl(demoUrl);
@@ -207,7 +218,12 @@ export default function ExtractForm({
   ];
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-4 w-full">
+      {/* Premium Upgrade Promotion — displayed at very top */}
+      {!isPending && !hideUpgradeCard && (
+        <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
+      )}
+      {errorBanner}
       {/* Input Card or Extraction Animation Card */}
       {isPending ? (
         <ExtractionAnimation
@@ -218,24 +234,25 @@ export default function ExtractForm({
           variant={mode === 'photo' ? 'photo' : 'link'}
         />
       ) : (
-        <Card className="glass-panel p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
+        <Card className="!bg-white dark:!bg-gray-900 p-6 rounded-3xl border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)]">
           <form
             onSubmit={(e) => {
+              if (atConcurrencyLimit) { e.preventDefault(); return; }
               if (blockedByLimit) { e.preventDefault(); setIsPremiumModalOpen(true); return; }
               handleFormSubmit(e);
             }}
             className="flex flex-col gap-3"
           >
             {/* Input channel switch: a shared link vs. your own photos. */}
-            <div className="flex items-center gap-1 p-1 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-1 p-1 rounded-2xl bg-gray-100 dark:bg-gray-800 border-none">
               {(['link', 'photo'] as const).map((option) => (
                 <button
                   key={option}
                   type="button"
                   onClick={() => setMode(option)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 ${mode === option
-                    ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400'
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer outline-none border-none ${mode === option
+                    ? 'bg-white dark:bg-gray-900 text-emerald-600 dark:text-emerald-400 shadow-[0_2px_6px_rgba(0,0,0,0.03)]'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
                 >
                   {option === 'link' ? <Link2 className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
@@ -264,7 +281,7 @@ export default function ExtractForm({
                 />
 
                 {photos.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 py-6 px-4 rounded-2xl border border-dashed border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] text-center">
+                  <div className="flex flex-col items-center gap-2 py-6 px-4 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-center">
                     <div className="p-2.5 rounded-full bg-emerald-500/10">
                       <Camera className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
@@ -276,7 +293,7 @@ export default function ExtractForm({
                 ) : (
                   <div className="grid grid-cols-3 gap-2">
                     {photos.map((photo, index) => (
-                      <div key={`${photo.name}-${index}`} className="relative aspect-square rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
+                      <div key={`${photo.name}-${index}`} className="relative aspect-square rounded-xl overflow-hidden border-none bg-gray-100 dark:bg-gray-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                         <img
                           src={photoPreviews[index]}
                           alt=""
@@ -289,7 +306,7 @@ export default function ExtractForm({
                         <button
                           type="button"
                           onClick={() => removePhoto(index)}
-                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/65 text-white flex items-center justify-center backdrop-blur-sm active:scale-90 transition-transform"
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/65 text-white flex items-center justify-center backdrop-blur-sm active:scale-90 transition-transform cursor-pointer border-none"
                           aria-label={t('form.photo.remove')}
                         >
                           <X className="w-3 h-3" />
@@ -304,7 +321,7 @@ export default function ExtractForm({
                     type="button"
                     onClick={() => openPicker(cameraInputRef)}
                     disabled={photosFull}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-semibold bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white disabled:opacity-40 active:scale-95 transition-all"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-semibold bg-gray-100 dark:bg-gray-800 border-none text-gray-900 dark:text-white disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all cursor-pointer"
                   >
                     <Camera className="w-4 h-4" />
                     <span>{t('form.photo.takePhoto')}</span>
@@ -313,7 +330,7 @@ export default function ExtractForm({
                     type="button"
                     onClick={() => openPicker(galleryInputRef)}
                     disabled={photosFull}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-semibold bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white disabled:opacity-40 active:scale-95 transition-all"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-semibold bg-gray-100 dark:bg-gray-800 border-none text-gray-900 dark:text-white disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all cursor-pointer"
                   >
                     <ImagePlus className="w-4 h-4" />
                     <span>{t('form.photo.fromGallery')}</span>
@@ -340,14 +357,14 @@ export default function ExtractForm({
                 <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <Input
                   placeholder={t('form.urlPlaceholderShort')}
-                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl pl-11 !pr-12 py-4 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full !bg-gray-100 dark:!bg-gray-800 border-none rounded-2xl pl-11 !pr-12 py-3.5 text-sm text-gray-900 dark:text-white shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:ring-2 focus:ring-emerald-500/30 focus:outline-none transition-all"
                   disabled={isPending}
                 />
                 <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {url && (
                     <button
                       type="button"
-                      className="text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                      className="text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors border-none"
                       onClick={() => setUrl('')}
                       disabled={isPending}
                     >
@@ -357,7 +374,7 @@ export default function ExtractForm({
                   {canPaste && !url && (
                     <button
                       type="button"
-                      className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 w-8 h-8 flex items-center justify-center rounded-full hover:bg-emerald-500/10 transition-colors"
+                      className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 w-8 h-8 flex items-center justify-center rounded-full hover:bg-emerald-500/10 transition-colors border-none"
                       onClick={handlePaste}
                       disabled={isPending}
                       title={t('form.pasteTooltip')}
@@ -375,12 +392,12 @@ export default function ExtractForm({
               type="submit"
               fullWidth
               isPending={isPending || isUploadingPhotos}
-              isDisabled={blockedByLimit || (mode === 'photo' && photos.length === 0)}
-              className={`py-3.5 h-12 text-sm rounded-2xl font-semibold shadow-md shadow-emerald-600/20 text-white ${blockedByLimit || (mode === 'photo' && photos.length === 0)
+              isDisabled={submitDisabled}
+              className={`py-3.5 h-12 text-sm rounded-2xl font-semibold border-none text-white ${submitDisabled
                 ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-70 shadow-none'
                 : isPending
                   ? 'bg-emerald-800 shadow-none'
-                  : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all'
+                  : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all shadow-none'
                 }`}
             >
               {({ isPending }) => (
@@ -399,6 +416,17 @@ export default function ExtractForm({
                 </span>
               )}
             </Button>
+
+            {/* Premium parallel-extraction counter — how many run at once. */}
+            {showConcurrency && (liveActiveCount > 0 || atConcurrencyLimit) && (
+              <p className={`text-center text-xs font-medium -mt-1 ${
+                atConcurrencyLimit ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'
+              }`}>
+                {atConcurrencyLimit
+                  ? t('form.concurrentLimitReached', { max: maxConcurrent })
+                  : t('form.concurrentCounter', { active: liveActiveCount, max: maxConcurrent })}
+              </p>
+            )}
 
             {cookbookFull ? (
               <div className="flex flex-col gap-1.5 -mt-1">
@@ -474,14 +502,6 @@ export default function ExtractForm({
       {/* Other cards & accordions — hidden during active extraction */}
       {!isPending && (
         <>
-          {/* Error Banner — Rendered directly below the input card */}
-          {errorBanner}
-
-          {/* Premium Upgrade Promotion — hidden when TrialBanner already covers it */}
-          {!hideUpgradeCard && (
-            <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />
-          )}
-
           {/* Link-only guidance: sharing a post and the per-platform help below
               have no meaning for a photo import. */}
           {mode === 'link' && (<>

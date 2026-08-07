@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Snagbite brand color; used to tint FCM notification small icons. -->
+    <color name="notification_color">#064e3b</color>
+</resources>

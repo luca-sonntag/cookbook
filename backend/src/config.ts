@@ -29,6 +29,10 @@ export interface Config {
   MAX_VIDEO_DURATION_SECONDS: number;
   ROLE: 'web' | 'worker' | 'both';
   MAX_JOBS_PER_USER: number;
+  /** Max extractions a free user may run concurrently (in-flight jobs). Free users cannot extract in the background. */
+  FREE_MAX_CONCURRENT_EXTRACTIONS: number;
+  /** Max extractions a premium/alpha user may run concurrently (in-flight jobs) in the background. */
+  PREMIUM_MAX_CONCURRENT_EXTRACTIONS: number;
   EXTRACTION_LIMIT_WINDOW_DAYS: number;
   FREE_MAX_EXTRACTIONS_PER_WINDOW: number;
   PREMIUM_MAX_EXTRACTIONS_PER_WINDOW: number;
@@ -43,9 +47,29 @@ export interface Config {
   ADMIN_EMAILS: string;
   HEALTHCHECK_WEBSITE_URL?: string;
   HEALTHCHECK_BACKEND_URL?: string;
+  PUBLIC_BACKEND_URL?: string;
   NTFY_TOPIC?: string;
   TELEGRAM_BOT_TOKEN?: string;
   TELEGRAM_CHAT_ID?: string;
+  // ── Smart AI push notifications ──
+  /** Master feature flag for the AI push-notification worker. Default off. */
+  NOTIFICATIONS_ENABLED: boolean;
+  /** Firebase project id that owns the FCM app (for the HTTP v1 endpoint). */
+  FCM_PROJECT_ID?: string;
+  /** Firebase service-account credentials as a JSON string, or a path to the JSON file. */
+  FCM_SERVICE_ACCOUNT_JSON?: string;
+  /** How often the notification worker tick runs, in minutes. */
+  NOTIFICATION_TICK_MINUTES: number;
+  /** Local-time hour (0-23) the daily send window opens. */
+  NOTIFICATION_SEND_WINDOW_START: number;
+  /** Local-time hour (0-23) the daily send window closes. */
+  NOTIFICATION_SEND_WINDOW_END: number;
+  /** Hard cap on notifications sent to one user per rolling 7 days (max 1/day is always enforced). */
+  NOTIFICATION_MAX_PER_WEEK: number;
+  /** IANA timezone used when a user has no notification_timezone set. */
+  NOTIFICATION_DEFAULT_TZ: string;
+  /** When true, the worker generates + logs but never actually sends to FCM (local testing). */
+  NOTIFICATION_DRY_RUN: boolean;
 }
 
 // Validation helper
@@ -77,6 +101,8 @@ export const config: Config = {
   MAX_VIDEO_DURATION_SECONDS: parseInt(getEnv('MAX_VIDEO_DURATION_SECONDS', '90'), 10),
   ROLE: getEnv('ROLE', 'both') as 'web' | 'worker' | 'both',
   MAX_JOBS_PER_USER: parseInt(getEnv('MAX_JOBS_PER_USER', '3'), 10),
+  FREE_MAX_CONCURRENT_EXTRACTIONS: parseInt(getEnv('FREE_MAX_CONCURRENT_EXTRACTIONS', '1'), 10),
+  PREMIUM_MAX_CONCURRENT_EXTRACTIONS: parseInt(getEnv('PREMIUM_MAX_CONCURRENT_EXTRACTIONS', '3'), 10),
   EXTRACTION_LIMIT_WINDOW_DAYS: parseInt(getEnv('EXTRACTION_LIMIT_WINDOW_DAYS', '1'), 10),
   FREE_MAX_EXTRACTIONS_PER_WINDOW: parseInt(getEnv('FREE_MAX_EXTRACTIONS_PER_WINDOW', '3'), 10),
   PREMIUM_MAX_EXTRACTIONS_PER_WINDOW: parseInt(getEnv('PREMIUM_MAX_EXTRACTIONS_PER_WINDOW', '50'), 10),
@@ -90,9 +116,19 @@ export const config: Config = {
   ADMIN_EMAILS: getEnv('ADMIN_EMAILS', ''),
   HEALTHCHECK_WEBSITE_URL: process.env.HEALTHCHECK_WEBSITE_URL,
   HEALTHCHECK_BACKEND_URL: process.env.HEALTHCHECK_BACKEND_URL,
+  PUBLIC_BACKEND_URL: process.env.PUBLIC_BACKEND_URL || (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : undefined),
   NTFY_TOPIC: process.env.NTFY_TOPIC,
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
   TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID,
+  NOTIFICATIONS_ENABLED: getEnv('NOTIFICATIONS_ENABLED', 'false') === 'true',
+  FCM_PROJECT_ID: process.env.FCM_PROJECT_ID,
+  FCM_SERVICE_ACCOUNT_JSON: process.env.FCM_SERVICE_ACCOUNT_JSON,
+  NOTIFICATION_TICK_MINUTES: parseInt(getEnv('NOTIFICATION_TICK_MINUTES', '15'), 10),
+  NOTIFICATION_SEND_WINDOW_START: parseInt(getEnv('NOTIFICATION_SEND_WINDOW_START', '17'), 10),
+  NOTIFICATION_SEND_WINDOW_END: parseInt(getEnv('NOTIFICATION_SEND_WINDOW_END', '20'), 10),
+  NOTIFICATION_MAX_PER_WEEK: parseInt(getEnv('NOTIFICATION_MAX_PER_WEEK', '3'), 10),
+  NOTIFICATION_DEFAULT_TZ: getEnv('NOTIFICATION_DEFAULT_TZ', 'Europe/Vienna'),
+  NOTIFICATION_DRY_RUN: getEnv('NOTIFICATION_DRY_RUN', 'false') === 'true',
 };
 
 /**

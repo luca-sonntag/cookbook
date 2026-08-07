@@ -5,6 +5,7 @@ import { Recipe } from './types.js';
 import { writeGeminiLog, estimateCost, type TokenUsage } from './logger.js';
 import { AppError } from './errors.js';
 import { withRetry } from './retry.js';
+import type { Candidate } from './notifications/types.js';
 
 // Initialize Gemini Generative AI and File Manager
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -1266,3 +1267,278 @@ Respond in JSON only: {"chips":[{"category":"remix","label":"…","prompt":"…"
     return [];
   }
 }
+
+export interface NotificationCopy {
+  title: string;
+  body: string;
+  theme?: string;
+  emoji?: string;
+}
+
+/**
+ * Phrase a single push notification from a pre-selected candidate. The server
+ * has already decided *what* to say (type + raw slots); Gemini only turns those
+ * facts into a short, warm, non-spammy push in the user's language. This is the
+ * "hybrid" step — no selection happens here.
+ *
+ * Returns null on failure so the worker can simply skip this user for this tick
+ * (a template fallback is deliberately avoided to keep copy quality consistent).
+ */
+export async function generateNotificationCopy(
+  candidate: Candidate,
+  language: string = 'de',
+): Promise<NotificationCopy | null> {
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+  const langName = language === 'en' ? 'English' : 'German';
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: config.GEMINI_MODEL,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            title: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'Short push title, max ~35 chars, may include one fitting emoji.',
+            },
+            body: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'Ultra-concise push body, MAX ~80 CHARS (must fit completely on 2 lines on mobile without truncation). Warm and inviting.',
+            },
+            theme: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'Food category theme for card gradient: "italian" (pizza/pasta/pinsa), "fresh" (salads/veggie/bowls), "asian" (curry/ramen/wok/sushi), "hearty" (burger/steak/bbq), "sweet" (desserts/cakes), "breakfast" (pancakes/eggs/toast), "seafood" (fish/shrimp), or "emerald" (default).',
+            },
+            emoji: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'One single fitting food emoji matching the recipe (e.g. 🍕, 🍝, 🥗, 🍔, 🍰, 🥞, 🍣, 🥩, 🥣, 🍳).',
+            },
+          },
+          required: ['title', 'body', 'theme', 'emoji'],
+        },
+        temperature: 0.8,
+      } as any,
+    });
+
+    const prompt = `You write a single mobile push notification for "Snagbite", a personal recipe cookbook app.
+
+Goal: a short, warm, non-spammy nudge that makes the user want to cook a recipe they already saved. Never sound like an ad or use ALL CAPS. At most one emoji, only if it fits.
+CRITICAL CONSTRAINT: Keep "body" under 80 characters so it fits completely on mobile screens without being cut off with "..." ellipses.
+
+Notification type: "${candidate.type}"
+Facts to use (do NOT invent anything beyond these):
+${JSON.stringify(candidate.slots)}
+
+Guidance by type:
+- seasonal / holiday_event: tie the saved recipe to the current season/occasion.
+- saved_reminder / dormant_rediscovery / anniversary: gently remind them of a recipe they saved a while ago.
+- collection_nudge: reference the collection name and how many recipes it holds.
+- weekday_suggestion / quick_win / occasion_servings: fit the day/time/effort.
+- taste_affinity / ingredient_spotlight / creator_affinity: reference the pattern in their cookbook.
+- nutrition_goal: mention the protein/nutrition angle.
+- remix_nudge: suggest transforming the recipe (use "remixIdea").
+- milestone: celebrate their saving streak/count (no specific recipe).
+- reactivation: encourage them to extract/save a new recipe (they have few or none).
+
+Both "title" and "body" MUST be in ${langName}.
+
+Respond in JSON only: {"title":"…","body":"…","theme":"…","emoji":"…"}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const parsed = JSON.parse(text) as NotificationCopy;
+
+    const usageMeta = result.response.usageMetadata;
+    const tokenUsage: TokenUsage | undefined = usageMeta
+      ? {
+        promptTokens: usageMeta.promptTokenCount ?? 0,
+        candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+        totalTokens: usageMeta.totalTokenCount ?? 0,
+      }
+      : undefined;
+    const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
+
+    void writeGeminiLog({
+      timestamp,
+      requestType: 'notification_copy',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: true,
+      input: { type: candidate.type, category: candidate.category, jobId: candidate.jobId },
+      rawOutput: text,
+      tokenUsage,
+      costEstimate,
+    });
+
+    if (!parsed?.title || !parsed?.body) return null;
+    return {
+      title: parsed.title.trim(),
+      body: parsed.body.trim(),
+      theme: parsed.theme?.trim(),
+      emoji: parsed.emoji?.trim(),
+    };
+  } catch (err: any) {
+    console.error('[generateNotificationCopy] Error:', err?.message ?? err);
+    void writeGeminiLog({
+      timestamp,
+      requestType: 'notification_copy',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: false,
+      error: err?.message ?? String(err),
+      input: { type: candidate.type, category: candidate.category, jobId: candidate.jobId },
+    });
+    return null;
+  }
+}
+
+const cookPhotoVerificationSchema = {
+  type: FunctionDeclarationSchemaType.OBJECT,
+  properties: {
+    isMatchingDish: {
+      type: FunctionDeclarationSchemaType.BOOLEAN,
+      description: 'True ONLY IF the image is a real, original photograph of a prepared dish matching the target recipe. Set false if it is a screenshot, a photo taken of a screen/monitor/phone/TV, a photo of a book/magazine, a stock image, or shows an unrelated dish/non-food items.',
+    },
+    isAuthenticPhoto: {
+      type: FunctionDeclarationSchemaType.BOOLEAN,
+      description: 'True if the photo is a genuine original photograph of real food. Set false if it shows app UI overlays, status bars, screen moiré/reflections, printed page borders, stock watermarks, or digital illustrations.',
+    },
+    confidence: {
+      type: FunctionDeclarationSchemaType.NUMBER,
+      description: 'Confidence level between 0.0 and 1.0 that the image is an authentic photo matching the recipe.',
+    },
+    reasoning: {
+      type: FunctionDeclarationSchemaType.STRING,
+      description: 'Short 1-2 sentence explanation in German of why the photo was accepted or rejected. NEVER mention AI, KI, artificial intelligence, or algorithms.',
+    },
+  },
+  required: ['isMatchingDish', 'isAuthenticPhoto', 'confidence', 'reasoning'],
+};
+
+export interface VerificationResult {
+  isMatchingDish: boolean;
+  isAuthenticPhoto?: boolean;
+  confidence: number;
+  reasoning: string;
+}
+
+/**
+ * Verify whether a photo uploaded by the user matches the target recipe using Gemini Vision.
+ */
+export async function verifyCookedDishPhoto(
+  recipe: Recipe,
+  photoBase64: string,
+): Promise<VerificationResult> {
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+
+  try {
+    const cleanBase64 = photoBase64.replace(/^data:image\/\w+;base64,/, '');
+    const mimeMatch = photoBase64.match(/^data:(image\/\w+);base64,/);
+    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+
+    const model = genAI.getGenerativeModel({
+      model: config.GEMINI_MODEL,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: cookPhotoVerificationSchema,
+        temperature: 0.1,
+      } as any,
+    });
+
+    const ingredientsSummary = recipe.ingredients
+      ? recipe.ingredients.flatMap((g) => g.items.map((i) => i.name)).slice(0, 15).join(', ')
+      : '';
+
+    const prompt = `You are a strict food photo authenticity and recipe evaluator.
+The user claims they cooked the following recipe and uploaded a photo of their finished dish.
+
+Target Recipe Details:
+- Title: "${recipe.title}"
+- Description: "${recipe.description ?? ''}"
+- Key Ingredients: ${ingredientsSummary}
+
+Carefully evaluate the attached photo for BOTH Authenticity and Recipe Match:
+
+1. AUTHENTICITY CHECK (Is this an original, direct photo of actual food?):
+- MUST BE REJECTED (set isMatchingDish: false, isAuthenticPhoto: false):
+  * Screenshots of mobile apps, social media (Instagram, TikTok, YouTube UI buttons, status bars, video progress bars, battery icons).
+  * Photos taken of a screen, monitor, laptop, TV, or smartphone (visible moiré patterns, screen glare/reflections, display bezels, pixel grids).
+  * Photos taken of a printed page, cookbook, magazine, menu card, or physical photograph (visible page edges, paper texture, halftone printing dots).
+  * Stock photos or professional promotional studio images (watermarks, sterile stock backgrounds).
+  * Digital artwork, vector drawings, or AI-generated synthetic renderings.
+
+2. RECIPE MATCH CHECK (Is it the correct food?):
+- Must depict a cooked dish or food preparation that reasonably corresponds to "${recipe.title}".
+- Be tolerant of home-cooking presentation variations, different plating, side dishes, or minor color differences.
+- Reject photos if they show non-food items, empty plates/surfaces, single raw uncooked ingredients, or a completely different food category (e.g. coffee/cake when recipe is soup/steak).
+
+IMPORTANT:
+- If the photo is a screenshot, a photo of a screen/book/magazine, or not an authentic original photo, set isMatchingDish: false and isAuthenticPhoto: false, and explain in German (e.g. "Das Foto scheint ein Screenshot oder abfotografierter Bildschirm zu sein. Bitte mache ein eigenes Foto deines Gerichts.").
+- If the food does not match the recipe, set isMatchingDish: false and explain in German (e.g. "Das Foto zeigt eine Suppe, das Rezept ist aber für eine Pizza.").
+- Provide your answer strictly in the specified JSON schema format.
+- NEVER mention AI, KI, artificial intelligence, algorithms, or automated systems in your reasoning.`;
+
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          data: cleanBase64,
+          mimeType,
+        },
+      },
+    ]);
+
+    const text = result.response.text();
+    const parsed = JSON.parse(text) as VerificationResult;
+
+    const usageMeta = result.response.usageMetadata;
+    const tokenUsage: TokenUsage | undefined = usageMeta
+      ? {
+          promptTokens: usageMeta.promptTokenCount ?? 0,
+          candidateTokens: usageMeta.candidatesTokenCount ?? 0,
+          totalTokens: usageMeta.totalTokenCount ?? 0,
+        }
+      : undefined;
+    const costEstimate = tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined;
+
+    void writeGeminiLog({
+      timestamp,
+      requestType: 'verify_cook_photo',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: true,
+      input: { recipeTitle: recipe.title },
+      rawOutput: text,
+      tokenUsage,
+      costEstimate,
+    });
+
+    const isMatching = !!parsed.isMatchingDish && parsed.isAuthenticPhoto !== false;
+
+    return {
+      isMatchingDish: isMatching,
+      isAuthenticPhoto: parsed.isAuthenticPhoto ?? true,
+      confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0,
+      reasoning: parsed.reasoning || (isMatching ? 'Foto eingetragen.' : 'Das Foto konnte nicht zugeordnet werden.'),
+    };
+  } catch (err: any) {
+    console.error('[verifyCookedDishPhoto] Error:', err);
+    void writeGeminiLog({
+      timestamp,
+      requestType: 'verify_cook_photo',
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: false,
+      error: err?.message ?? String(err),
+      input: { recipeTitle: recipe.title },
+    });
+    throw new AppError('PHOTO_NOT_MATCHING', {
+      params: { reason: 'Die Foto-Verifizierung ist fehlgeschlagen. Bitte versuche es erneut.' },
+    });
+  }
+}
+

@@ -119,58 +119,64 @@ export default function CookbookHome({
         )}
       </section>
 
-      {/* Shelves */}
-      <RecipeShelf
-        title={t('catalog.shelfRecent')}
-        icon={<History className="w-4 h-4 text-emerald-500" />}
-        jobs={shelves.recent.items}
-        totalCount={shelves.recent.total}
-        formatTotalTime={formatTotalTime}
-        onOpenAll={() => onOpenList({ kind: 'recent' })}
-        onOpenRecipe={onOpenRecipe}
-        isSelectMode={isSelectMode}
-        selectedIds={selectedIds}
-        bindLongPress={bindLongPress}
-      />
+      {/* Shelves — only shown when the shelf has more than 5 recipes */}
+      {shelves.recent.total > 5 && (
+        <RecipeShelf
+          title={t('catalog.shelfRecent')}
+          icon={<History className="w-4 h-4 text-emerald-500" />}
+          jobs={shelves.recent.items}
+          totalCount={shelves.recent.total}
+          formatTotalTime={formatTotalTime}
+          onOpenAll={() => onOpenList({ kind: 'recent' })}
+          onOpenRecipe={onOpenRecipe}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          bindLongPress={bindLongPress}
+        />
+      )}
+
+      {shelves.favorites.total > 5 && (
+        <RecipeShelf
+          title={t('catalog.favoritesFilter')}
+          icon={<Star className="w-4 h-4 text-amber-500 fill-amber-500" />}
+          jobs={shelves.favorites.items}
+          totalCount={shelves.favorites.total}
+          formatTotalTime={formatTotalTime}
+          onOpenAll={() => onOpenList({ kind: 'favorites' })}
+          onOpenRecipe={onOpenRecipe}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          bindLongPress={bindLongPress}
+        />
+      )}
+
+      {shelves.quick.total > 5 && (
+        <RecipeShelf
+          title={t('catalog.shelfQuick')}
+          icon={<Zap className="w-4 h-4 text-emerald-500" />}
+          jobs={shelves.quick.items}
+          totalCount={shelves.quick.total}
+          formatTotalTime={formatTotalTime}
+          onOpenAll={() => onOpenList({ kind: 'quick' })}
+          onOpenRecipe={onOpenRecipe}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          bindLongPress={bindLongPress}
+        />
+      )}
 
       <RecipeShelf
-        title={t('catalog.favoritesFilter')}
-        icon={<Star className="w-4 h-4 text-amber-500 fill-amber-500" />}
-        jobs={shelves.favorites.items}
-        totalCount={shelves.favorites.total}
-        formatTotalTime={formatTotalTime}
-        onOpenAll={() => onOpenList({ kind: 'favorites' })}
-        onOpenRecipe={onOpenRecipe}
-        isSelectMode={isSelectMode}
-        selectedIds={selectedIds}
-        bindLongPress={bindLongPress}
-      />
-
-      <RecipeShelf
-        title={t('catalog.shelfQuick')}
-        icon={<Zap className="w-4 h-4 text-emerald-500" />}
-        jobs={shelves.quick.items}
-        totalCount={shelves.quick.total}
-        formatTotalTime={formatTotalTime}
-        onOpenAll={() => onOpenList({ kind: 'quick' })}
-        onOpenRecipe={onOpenRecipe}
-        isSelectMode={isSelectMode}
-        selectedIds={selectedIds}
-        bindLongPress={bindLongPress}
-      />
-
-      <RecipeShelf
-        title={t('catalog.shelfNewest')}
-        icon={<Sparkles className="w-4 h-4 text-emerald-500" />}
-        jobs={shelves.newest.items}
-        totalCount={shelves.newest.total}
-        formatTotalTime={formatTotalTime}
-        onOpenAll={() => onOpenList({ kind: 'all' })}
-        onOpenRecipe={onOpenRecipe}
-        isSelectMode={isSelectMode}
-        selectedIds={selectedIds}
-        bindLongPress={bindLongPress}
-      />
+          title={t('catalog.shelfNewest')}
+          icon={<Sparkles className="w-4 h-4 text-emerald-500" />}
+          jobs={shelves.newest.items}
+          totalCount={shelves.newest.total}
+          formatTotalTime={formatTotalTime}
+          onOpenAll={() => onOpenList({ kind: 'all' })}
+          onOpenRecipe={onOpenRecipe}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          bindLongPress={bindLongPress}
+        />
 
       {/* Labels */}
       {allFlags.length > 0 && (
@@ -185,7 +191,7 @@ export default function CookbookHome({
                 key={flag}
                 type="button"
                 onClick={() => onOpenList({ kind: 'flag', name: flag })}
-                className="px-3.5 py-1.5 text-xs font-semibold rounded-full border bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 active:scale-95 transition-all whitespace-nowrap cursor-pointer flex items-center gap-1"
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-full border-none bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 active:scale-95 transition-all whitespace-nowrap cursor-pointer flex items-center gap-1"
               >
                 <Tag className="w-2.5 h-2.5 text-amber-500" />
                 {flag}
@@ -199,7 +205,7 @@ export default function CookbookHome({
       <button
         type="button"
         onClick={() => onOpenList({ kind: 'all' })}
-        className="flex items-center justify-center gap-1.5 w-full h-12 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10 active:scale-[0.99] transition-all cursor-pointer"
+        className="flex items-center justify-center gap-1.5 w-full h-12 rounded-2xl bg-white dark:bg-gray-900 border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-[0.99] transition-all cursor-pointer"
       >
         {t('catalog.allRecipes', { count: totalRecipes })}
         <ChevronRight className="w-4 h-4" />

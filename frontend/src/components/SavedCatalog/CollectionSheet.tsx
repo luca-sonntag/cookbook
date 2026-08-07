@@ -256,7 +256,7 @@ export default function CollectionSheet({
               <Drawer.Handle />
 
               {/* Header */}
-              <Drawer.Header className="border-b border-black/5 dark:border-white/5 pb-3">
+              <Drawer.Header className="pb-3">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
@@ -380,8 +380,8 @@ export default function CollectionSheet({
                     )}
 
                     <Button
-                      variant="secondary"
-                      className="mt-2 py-3.5 rounded-2xl border border-dashed border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5 flex items-center justify-center gap-2 font-bold text-xs shrink-0"
+                      variant="outline"
+                      className="mt-2 py-3.5 rounded-2xl border border-dashed border-emerald-500/40 bg-transparent hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-2 font-bold text-xs shrink-0 shadow-none"
                       onPress={handleCreateOpen}
                     >
                       <Plus className="w-4 h-4" />
@@ -429,8 +429,8 @@ export default function CollectionSheet({
                     )}
 
                     <Button
-                      variant="secondary"
-                      className="mt-2 py-3.5 rounded-2xl border border-dashed border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5 flex items-center justify-center gap-2 font-bold text-xs shrink-0"
+                      variant="outline"
+                      className="mt-2 py-3.5 rounded-2xl border border-dashed border-emerald-500/40 bg-transparent hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-2 font-bold text-xs shrink-0 shadow-none"
                       onPress={handleCreateOpen}
                     >
                       <Plus className="w-4 h-4" />
@@ -450,7 +450,7 @@ export default function CollectionSheet({
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder={t('catalog.collectionPlaceholder') || 'z.B. Sonntagsbrunch'}
-                        className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-4 py-3 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                        className="w-full bg-white dark:bg-gray-800/90 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-xs"
                       />
                     </div>
 
@@ -493,7 +493,7 @@ export default function CollectionSheet({
               </Drawer.Body>
 
               {/* Footer */}
-              <Drawer.Footer className="border-t border-black/5 dark:border-white/5 pt-3">
+              <Drawer.Footer className="pt-3">
                 {mode === 'assign' || mode === 'manage' ? (
                   <div className="flex gap-3 w-full">
                     <Button
@@ -545,9 +545,9 @@ export default function CollectionSheet({
                   within the drawer's modal interaction scope and is clickable. */}
               {pendingDelete && (
                 <div className="absolute inset-0 z-10 flex items-end justify-center rounded-[inherit] bg-black/40 backdrop-blur-[2px] p-4">
-                  <div className="w-full rounded-2xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-900 shadow-2xl p-5 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="w-full rounded-2xl border-none bg-white dark:bg-gray-900 shadow-2xl p-5 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
                     <div className="flex gap-3.5 items-start">
-                      <div className="p-2.5 rounded-xl border flex-shrink-0 flex items-center justify-center bg-rose-500/10 border-rose-500/20">
+                      <div className="p-2.5 rounded-xl border-none flex-shrink-0 flex items-center justify-center bg-rose-500/10">
                         <Trash2 className="w-5 h-5 text-rose-500" />
                       </div>
                       <div className="flex flex-col gap-1 min-w-0">

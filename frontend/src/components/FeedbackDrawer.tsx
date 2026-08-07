@@ -120,9 +120,9 @@ export const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({ isOpen, onClose 
               <Drawer.Handle />
 
               {/* Header */}
-              <Drawer.Header className="border-b border-black/5 dark:border-white/5 pb-3">
+              <Drawer.Header className="pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border-none flex items-center justify-center">
                     <MessageSquare className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <Drawer.Heading className="text-base font-bold">
@@ -142,10 +142,10 @@ export const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({ isOpen, onClose 
                         key={opt.value}
                         type="button"
                         onClick={() => setType(opt.value)}
-                        className={`flex items-center justify-center gap-2 h-11 rounded-2xl border text-sm font-semibold transition-all active:scale-95 ${
+                        className={`flex items-center justify-center gap-2 h-11 rounded-2xl border-none text-sm font-semibold transition-all active:scale-95 cursor-pointer ${
                           active
-                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/10'
-                            : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10'
+                            ? 'bg-emerald-600 text-white shadow-none'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                       >
                         {opt.icon}
@@ -166,7 +166,7 @@ export const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({ isOpen, onClose 
                     rows={5}
                     maxLength={4000}
                     placeholder={t('feedback.placeholder') || 'Describe the issue or your idea...'}
-                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-4 py-3 text-base text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none resize-none"
+                    className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-2xl px-4 py-3 text-base text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/30 focus:outline-none resize-none shadow-[0_1px_3px_rgba(0,0,0,0.02)]"
                   />
                 </div>
 
@@ -191,13 +191,13 @@ export const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({ isOpen, onClose 
                           <img
                             src={src}
                             alt={`Screenshot ${index + 1}`}
-                            className="w-full h-full object-cover rounded-2xl border border-black/10 dark:border-white/10"
+                            className="w-full h-full object-cover rounded-2xl border-none shadow-[0_1px_3px_rgba(0,0,0,0.02)]"
                           />
                           <button
                             type="button"
                             onClick={() => removeScreenshot(index)}
                             aria-label={t('feedback.removeScreenshot') || 'Remove screenshot'}
-                            className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-gray-900 dark:bg-gray-700 text-white flex items-center justify-center shadow-md active:scale-90 transition-transform"
+                            className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-gray-900 dark:bg-gray-700 text-white flex items-center justify-center shadow-md active:scale-90 transition-transform cursor-pointer border-none"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -210,7 +210,7 @@ export const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({ isOpen, onClose 
                     <button
                       type="button"
                       onClick={handlePickScreenshot}
-                      className="flex items-center justify-center gap-2 h-12 rounded-2xl border border-dashed border-black/15 dark:border-white/15 text-gray-500 dark:text-gray-400 text-sm font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-[0.99]"
+                      className="flex items-center justify-center gap-2 h-12 rounded-2xl border-none bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-sm font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition-all active:scale-[0.99] cursor-pointer"
                     >
                       <ImagePlus className="w-4 h-4" />
                       {screenshots.length === 0
@@ -232,18 +232,17 @@ export const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({ isOpen, onClose 
               </Drawer.Body>
 
               {/* Footer */}
-              <Drawer.Footer className="border-t border-black/5 dark:border-white/5 pt-3 flex gap-2">
+              <Drawer.Footer className="pt-3 flex gap-2">
                 <Button
-                  variant="outline"
                   onPress={onClose}
-                  className="flex-1 text-sm h-11 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl font-semibold active:scale-95 transition-all"
+                  className="flex-1 text-sm h-11 border-none bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-semibold active:scale-95 transition-all"
                 >
                   {t('feedback.cancel') || t('dialog.cancelDefault') || 'Cancel'}
                 </Button>
                 <Button
                   onPress={handleSubmit}
                   isDisabled={isSaving || !message.trim()}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm h-11 font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/10 active:scale-95 transition-all disabled:opacity-50"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm h-11 font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-none active:scale-95 transition-all disabled:opacity-50"
                 >
                   {isSaving
                     ? (t('feedback.submitting') || 'Sending...')

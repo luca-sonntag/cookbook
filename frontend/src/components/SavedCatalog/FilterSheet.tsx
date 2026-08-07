@@ -28,12 +28,12 @@ const SORT_OPTIONS: CatalogSort[] = ['newest', 'recent', 'title', 'time'];
 function chipClass(isActive: boolean, accent: 'emerald' | 'amber' = 'emerald') {
   if (isActive) {
     return accent === 'amber'
-      ? 'bg-amber-500 border-amber-500 text-white shadow-sm font-bold'
-      : 'bg-emerald-600 border-emerald-600 text-white shadow-sm font-bold';
+      ? 'bg-amber-500 text-white font-bold border-none shadow-none'
+      : 'bg-emerald-600 text-white font-bold border-none shadow-none';
   }
   return accent === 'amber'
-    ? 'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
-    : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white';
+    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 border-none'
+    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border-none';
 }
 
 /**
@@ -82,7 +82,7 @@ export default function FilterSheet({
             <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 max-h-[85vh] flex flex-col pb-[calc(1.5rem_+_var(--safe-area-inset-bottom))]">
               <Drawer.Handle />
 
-              <Drawer.Header className="border-b border-black/5 dark:border-white/5 pb-3">
+              <Drawer.Header className="pb-3">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
@@ -216,7 +216,7 @@ export default function FilterSheet({
                 )}
               </Drawer.Body>
 
-              <Drawer.Footer className="border-t border-black/5 dark:border-white/5 pt-3">
+              <Drawer.Footer className="pt-3">
                 <div className="flex gap-3 w-full">
                   <Button
                     variant="tertiary"

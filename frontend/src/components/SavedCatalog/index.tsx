@@ -2,11 +2,13 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { SearchX } from 'lucide-react';
 import type { Job, Ingredient, Recipe } from '../../types';
 import RecipeDetails from '../RecipeDetails';
+import ShoppingConfirmSheet from '../RecipeDetails/ShoppingConfirmSheet';
 import { useMobileNavigationBack } from '../../hooks/useMobileNavigationBack';
 import { useI18n } from '../../context/I18nContext';
 import { useSavedCatalog, EMPTY_FILTERS } from '../../hooks/useSavedCatalog';
 import { useAuth } from '../../context/AuthContext';
 import { useCollections } from '../../hooks/useCollections';
+import { categoryOrder, legacyCategoryMap } from '../../i18n';
 import PremiumModal from '../PremiumModal';
 import PremiumHint from '../PremiumHint';
 import CollectionSheet from './CollectionSheet';
@@ -40,9 +42,19 @@ interface SavedCatalogProps {
   catalogSubPath?: string | null;
   /** Navigates within the catalog tab (`null` returns to the cookbook home). */
   onNavigateCatalog?: (subPath?: string | null) => void;
+  limitStatus?: {
+    limit: number;
+    used: number;
+    remaining: number;
+    windowDays: number;
+    tier: 'free' | 'alpha' | 'premium';
+    savedRecipes: number;
+    maxSavedRecipes: number;
+    cookbookFull: boolean;
+    maxConcurrent?: number;
+    activeCount?: number;
+  } | null;
 }
-
-const FREE_RECIPE_LIMIT = 5;
 
 export default function SavedCatalog({
   history,
@@ -58,7 +70,8 @@ export default function SavedCatalog({
   onRemixSuccess,
   onSelectModeChange,
   catalogSubPath = null,
-  onNavigateCatalog
+  onNavigateCatalog,
+  limitStatus
 }: SavedCatalogProps) {
   const { t } = useI18n();
   const { isPremium } = useAuth();
@@ -123,7 +136,7 @@ export default function SavedCatalog({
     getRecipeTags,
     bindLongPress,
     handleCardClick,
-    handleBulkAddToShoppingList,
+    getBulkShoppingJobs,
     handleBulkDelete,
     sortBy,
     setSortBy,
@@ -156,6 +169,12 @@ export default function SavedCatalog({
   const [collectionSheetBulkJobs, setCollectionSheetBulkJobs] = useState<Job[]>([]);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
+  // Bulk shopping: sequential per-recipe ShoppingConfirmSheet queue
+  const [bulkShoppingQueue, setBulkShoppingQueue] = useState<Job[]>([]);
+  const [bulkShoppingTotal, setBulkShoppingTotal] = useState(0);
+  const [bulkShoppingAdded, setBulkShoppingAdded] = useState(0);
+  const currentBulkShoppingJob = bulkShoppingQueue[0] ?? null;
+
   // FlagSheet states
   const [isFlagSheetOpen, setIsFlagSheetOpen] = useState(false);
   const [flagSheetJob, setFlagSheetJob] = useState<Job | null>(null);
@@ -186,11 +205,9 @@ export default function SavedCatalog({
     }
   }, [preset, collections, t]);
 
-  useEffect(() => {
-    if (historyLoaded) {
-      refreshCollections();
-    }
-  }, [historyLoaded, refreshCollections]);
+  // Collections are now auto-fetched by useCollections() in parallel with
+  // fetchHistory (triggered as soon as auth settles). refreshCollections() is
+  // still available for explicit refreshes (e.g. after create/delete).
 
   // Record recency centrally so deep links and notification taps count too.
   useEffect(() => {
@@ -254,6 +271,40 @@ export default function SavedCatalog({
     }
   };
 
+  const handleBulkAddToShoppingListClick = () => {
+    const jobs = getBulkShoppingJobs();
+    if (jobs.length === 0) return;
+    setBulkShoppingTotal(jobs.length);
+    setBulkShoppingAdded(0);
+    setBulkShoppingQueue(jobs);
+  };
+
+  const handleBulkShoppingConfirm = (items: Ingredient[]) => {
+    const job = bulkShoppingQueue[0];
+    if (!job || !onAddIngredients) return;
+    if (items.length > 0) {
+      onAddIngredients(items, job.id, job.recipe!.title);
+      setBulkShoppingAdded(prev => prev + 1);
+    }
+    // NOTE: onClose() is called by ShoppingConfirmSheet after onConfirm(),
+    // which triggers handleBulkShoppingClose → advances the queue.
+    // Do NOT call setBulkShoppingQueue here or every other recipe is skipped.
+  };
+
+  const handleBulkShoppingClose = () => {
+    setBulkShoppingQueue(prev => prev.slice(1));
+  };
+
+  // Exit select mode once the whole queue is done and at least one recipe was added.
+  const prevBulkQueueLenRef = useRef(0);
+  useEffect(() => {
+    if (prevBulkQueueLenRef.current > 0 && bulkShoppingQueue.length === 0 && bulkShoppingAdded > 0) {
+      setIsSelectMode(false);
+      setSelectedIds(new Set());
+    }
+    prevBulkQueueLenRef.current = bulkShoppingQueue.length;
+  }, [bulkShoppingQueue.length, bulkShoppingAdded, setIsSelectMode, setSelectedIds]);
+
   const handleBulkAddToCollectionClick = () => {
     if (!isPremium) {
       setIsPremiumModalOpen(true);
@@ -285,14 +336,18 @@ export default function SavedCatalog({
     setIsFlagSheetOpen(true);
   };
 
-  const premiumBanner = !isPremium && completedJobs.length >= FREE_RECIPE_LIMIT - 1 && (
+  const maxSavedRecipes = limitStatus?.maxSavedRecipes ?? 5;
+  const isCookbookFull = maxSavedRecipes >= 0 && completedJobs.length >= maxSavedRecipes;
+  const isCookbookAlmostFull = maxSavedRecipes >= 0 && completedJobs.length >= maxSavedRecipes - 1;
+
+  const premiumBanner = !isPremium && isCookbookAlmostFull && (
     <PremiumHint
       variant="banner"
       onClick={() => setIsPremiumModalOpen(true)}
       label={
-        completedJobs.length >= FREE_RECIPE_LIMIT
-          ? t('premium.hint.catalogFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
-          : t('premium.hint.catalogAlmostFull', { count: completedJobs.length, limit: FREE_RECIPE_LIMIT })
+        isCookbookFull
+          ? t('premium.hint.catalogFull', { count: completedJobs.length, limit: maxSavedRecipes })
+          : t('premium.hint.catalogAlmostFull', { count: completedJobs.length, limit: maxSavedRecipes })
       }
       cta={t('premium.hint.upgrade')}
     />
@@ -503,7 +558,7 @@ export default function SavedCatalog({
             setIsSelectMode(false);
             setSelectedIds(new Set());
           }}
-          onBulkAdd={handleBulkAddToShoppingList}
+          onBulkAdd={handleBulkAddToShoppingListClick}
           onBulkDelete={handleBulkDelete}
           onBulkAddToCollection={handleBulkAddToCollectionClick}
         />
@@ -534,6 +589,44 @@ export default function SavedCatalog({
       />
 
       {sheets}
+
+      {/* Bulk shopping confirm — shown one-by-one for each selected recipe */}
+      {currentBulkShoppingJob?.recipe && (() => {
+        const recipe = currentBulkShoppingJob.recipe!;
+        const mapped = recipe.ingredients.map((group, originalIdx) => ({ group, originalIdx }));
+        const sortedIngredients = mapped.sort((a, b) => {
+          const rank = (name: string) => {
+            const up = name.trim().toUpperCase();
+            const direct = categoryOrder.indexOf(up as any);
+            if (direct !== -1) return direct;
+            const key = legacyCategoryMap[name.trim().toLowerCase()];
+            return key ? categoryOrder.indexOf(key) : 999;
+          };
+          return rank(a.group.name) - rank(b.group.name);
+        });
+        const formatAmount = (amount: number | undefined, _unit: string | undefined) => {
+          if (!amount) return '';
+          const r = Math.round(amount * 10) / 10;
+          return r % 1 === 0 ? String(r) : r.toFixed(1);
+        };
+        const pos = bulkShoppingTotal - bulkShoppingQueue.length + 1;
+        const label = bulkShoppingTotal > 1
+          ? `${recipe.title} (${pos}/${bulkShoppingTotal})`
+          : recipe.title;
+        return (
+          <ShoppingConfirmSheet
+            key={currentBulkShoppingJob.id}
+            isOpen={true}
+            onClose={handleBulkShoppingClose}
+            recipe={recipe}
+            sortedIngredients={sortedIngredients}
+            scaleFactor={1}
+            formatAmount={formatAmount}
+            onConfirm={handleBulkShoppingConfirm}
+            recipeLabel={label}
+          />
+        );
+      })()}
     </div>
   );
 }

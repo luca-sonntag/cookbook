@@ -148,5 +148,13 @@ npm run deploy:all:internal    # bump + backend deploy + app to Play internal tr
   ```
 
 See `backend/src/routes.ts` for the full endpoint list (jobs, remix, chat, collections,
-favorites, extraction limits, billing sync, feedback, admin). A `GET /health` endpoint reports
-DB connectivity and role.
+favorites, extraction limits, billing sync, feedback, admin, push-notification tokens).
+A `GET /health` endpoint reports DB connectivity and role.
+
+### Smart AI push notifications
+
+The worker can generate personalized, context-aware push notifications from a user's saved
+cookbook (season, weekday/time, save-age, favorites, tags) and deliver them via **FCM**, with
+frequency capping and opt-in categories. Ships **off** (`NOTIFICATIONS_ENABLED=false`); see
+[`docs/push-notifications.md`](./docs/push-notifications.md) for the design, notification-type
+catalog, and how to enable it (Firebase project + `google-services.json` + a new AAB release).

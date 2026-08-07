@@ -66,9 +66,8 @@ Erweiterter Endpunkt prüft Supabase-Datenbankverbindung via `checkDbHealth()` (
 
 ---
 
-## 4. Health-Check & Monitoring-Dienst (`healthcheck/`)
+## 5. Smart AI Push-Benachrichtigungen & FCM Services
 
-Überwacht Express Backend, Website, Scraper-Dienste, Apify-Platform und Gemini-API unabhängig.
-* Versendet Benachrichtigungen über **ntfy.sh** und/oder **Telegram Bot** bei Statusänderungen (`up` ↔ `down`).
-* Entprellung über den persistenten Zustand `health_check_status` in Supabase `global_settings`.
-* Kann lokal via `npm run healthcheck` oder als eigenständiger Railway Cron-Job (`*/15 * * * *`) ausgeführt werden.
+* **Hybrid Selection & Copy Generation:** Abendliches Worker-Intervall (`backend/src/notifications/worker.ts`) wählt deterministisch den besten Kandidaten (`pickBestCandidate`) basierend auf Inaktivität, Lieblings-Kategorien oder Rezept-Sammlungen aus. Gemini formuliert anschließend kurze, persönliche Push-Texte (`generateNotificationCopy`) mit Emoji & Gradient-Theme.
+* **FCM High-Priority Data-Only Payloads:** `sendToToken` in `backend/src/push/fcm.ts` versendet reine Data-Payloads mit `title`, `body`, `iconUrl` (`GET /api/push-icon`) und `jobId`.
+* **Nativer Android FCM Empfänger:** `MyFirebaseMessagingService.java` übernimmt den Empfang auf Android (sowohl im Vordergrund, Hintergrund als auch bei beendeter App via `tools:node="replace"`). Er erzeugt eine native Android-Notifikation mit `setLargeIcon()` (256x256 quadratisches Farbverlauf-PNG mit Google Noto Color Emoji) und reicht Klick-Payloads an Capacitor für direkte Rezept-Navigation weiter.
