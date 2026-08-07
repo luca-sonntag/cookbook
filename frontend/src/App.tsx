@@ -18,6 +18,7 @@ import AuthForm from './components/AuthForm';
 import SettingsView from './components/SettingsView';
 import ProgressView from './components/ProgressView';
 import TimerBanner from './components/TimerBanner';
+import OtaUpdateBanner from './components/OtaUpdateBanner';
 import WelcomeGuide from './components/WelcomeGuide';
 import AlphaWelcome from './components/AlphaWelcome';
 import AdminView from './components/AdminView';
@@ -666,6 +667,9 @@ export default function App() {
 
         {/* Active Cooking Timers Banner */}
         <TimerBanner />
+
+        {/* Instant OTA Update Consent Banner */}
+        <OtaUpdateBanner />
       </div>
 
       {/* Main content body */}
