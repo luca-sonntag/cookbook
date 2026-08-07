@@ -1025,6 +1025,14 @@ export const uiTranslations = {
       successTitle: 'Danke!',
       success: 'Danke für dein Feedback! Wir schauen es uns an.',
       error: 'Feedback konnte nicht gesendet werden. Bitte versuche es erneut.'
+    },
+    ota: {
+      banner: {
+        title: 'Neues App-Update verfügbar',
+        description: 'Version {version} wurde geladen. Jetzt neu laden?',
+        apply: 'Jetzt neu laden',
+        later: 'Später'
+      }
     }
   },
   en: {
@@ -1885,6 +1893,14 @@ export const uiTranslations = {
       successTitle: 'Thank you!',
       success: 'Thanks for your feedback! We\'ll take a look.',
       error: 'Could not send feedback. Please try again.'
+    },
+    ota: {
+      banner: {
+        title: 'App update available',
+        description: 'Version {version} has been downloaded. Reload now?',
+        apply: 'Reload now',
+        later: 'Later'
+      }
     }
   }
 } as const;
