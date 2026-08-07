@@ -33,6 +33,8 @@ $frontendDir = Split-Path -Parent $PSScriptRoot
 $androidDir = "$frontendDir\android"
 $versionFile = "$androidDir\version.properties"
 
+. "$PSScriptRoot\git-utils.ps1"
+
 function Read-DotEnvValue {
     param([string]$Path, [string]$Key)
     if (-not (Test-Path $Path)) { return $null }
@@ -168,6 +170,10 @@ if (-not (Test-Path $releasesDir)) {
 $timestamp = Get-Date -Format "yyyy-MM-dd_HHmmss"
 $aabDest = "$releasesDir\snagbite-v${newName}-vc${newCode}-${timestamp}.aab"
 Copy-Item $aabSource $aabDest
+
+# -- 9. Cap open-ended stale OTA bundles in DB ----------------------
+Write-Host "[5/5] Capping stale OTA bundles in DB..." -ForegroundColor Yellow
+Cap-StaleAppBundles -NewVersionCode $newCode
 
 Write-Host ""
 Write-Host "  [OK] Release AAB ready!" -ForegroundColor Green

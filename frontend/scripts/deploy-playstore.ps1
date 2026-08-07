@@ -76,6 +76,12 @@ if (-not $SkipBuild) {
     if ($LASTEXITCODE -ne 0) { throw "release.ps1 failed" }
 } else {
     Write-Host "[1/4] Skipping build (-SkipBuild)." -ForegroundColor DarkGray
+    $versionFile = Join-Path $androidDir 'version.properties'
+    if (Test-Path $versionFile) {
+        $versionContent = Get-Content $versionFile -Raw
+        $versionCode = [int]([regex]::Match($versionContent, 'VERSION_CODE=(\d+)').Groups[1].Value)
+        Cap-StaleAppBundles -NewVersionCode $versionCode
+    }
 }
 
 # --- 2. Locate newest AAB --------------------------------------------
