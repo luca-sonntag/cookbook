@@ -13,6 +13,8 @@ import ErrorBanner from './components/ErrorBanner';
 import RecipeDetails from './components/RecipeDetails';
 import SavedCatalog from './components/SavedCatalog/index';
 import { isCatalogListRoute } from './components/SavedCatalog/catalogRoutes';
+import MealPlanner from './components/MealPlanner';
+import { isPlannerRoute, buildPlannerRoute } from './components/MealPlanner/plannerRoutes';
 import ShoppingList from './components/ShoppingList';
 import AuthForm from './components/AuthForm';
 import SettingsView from './components/SettingsView';
@@ -81,7 +83,7 @@ export default function App() {
 
   // Derived: which saved job is currently open (from URL sub-path)
   const selectedJob: Job | null =
-    activeView === 'history' && subPath && !isCatalogListRoute(subPath) && historyLoaded
+    activeView === 'history' && subPath && !isCatalogListRoute(subPath) && !isPlannerRoute(subPath) && historyLoaded
       ? (history.find(j => j.id === subPath) ?? null)
       : null;
 
@@ -377,7 +379,7 @@ export default function App() {
   // or clear the subPath if the jobId no longer exists.
   useEffect(() => {
     if (!historyLoaded) return;
-    if (activeView === 'history' && subPath && !isCatalogListRoute(subPath)) {
+    if (activeView === 'history' && subPath && !isCatalogListRoute(subPath) && !isPlannerRoute(subPath)) {
       const exists = history.some(j => j.id === subPath);
       if (exists) {
         // Clear the guard once the job is confirmed in history.
@@ -784,7 +786,7 @@ export default function App() {
         </div>
 
         {/* HISTORY / SAVED RECIPES TAB */}
-        <div hidden={activeView !== 'history'} aria-hidden={activeView !== 'history' || undefined}>
+        <div hidden={activeView !== 'history' || isPlannerRoute(subPath)} aria-hidden={activeView !== 'history' || isPlannerRoute(subPath) || undefined}>
           <SavedCatalog
             history={history}
             historyLoaded={historyLoaded}
@@ -813,9 +815,23 @@ export default function App() {
               fetchHistory();
             }}
             onSelectModeChange={setIsCatalogSelectMode}
-            catalogSubPath={subPath}
+            catalogSubPath={isPlannerRoute(subPath) ? null : subPath}
             onNavigateCatalog={navigateCatalog}
+            onOpenPlanner={() => navigate('history', buildPlannerRoute())}
             limitStatus={limitStatus}
+          />
+        </div>
+
+        {/* WEEKLY MEAL PLANNER — sub-route of the Recipes tab (#/history/planner) */}
+        <div hidden={!(activeView === 'history' && isPlannerRoute(subPath))} aria-hidden={!(activeView === 'history' && isPlannerRoute(subPath)) || undefined}>
+          <MealPlanner
+            history={history}
+            historyLoaded={historyLoaded}
+            subPath={subPath}
+            onNavigate={(sp) => navigate('history', sp)}
+            onAddIngredients={addRecipeIngredients}
+            onNavigateToShoppingList={() => navigate('shopping-list')}
+            onOpenRecipe={(jobId) => navigate('history', jobId)}
           />
         </div>
 

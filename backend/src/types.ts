@@ -112,6 +112,52 @@ export interface Collection {
   updatedAt: string;
 }
 
+// ── Weekly meal planner (Wochenplaner) ───────────────────────────────────────
+
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+/** One planned dish, referencing an existing recipe (job). */
+export interface MealPlanEntry {
+  id: string;
+  planId: string;
+  userId: string;
+  /** References jobs.id. NULL when the underlying recipe was deleted. */
+  jobId: string | null;
+  position: number;
+  dayIndex?: number | null;
+  mealType?: MealType | string | null;
+  /** Per-dish serving override; falls back to the plan's servings when absent. */
+  servings?: number | null;
+  note?: string | null;
+}
+
+/** A generated weekly meal plan (header + its dish entries). */
+export interface MealPlan {
+  id: string;
+  userId: string;
+  title?: string | null;
+  /** e.g. 'vegetarian' | 'balanced' | free text. */
+  goal?: string | null;
+  servings: number;
+  numDishes: number;
+  startDate?: string | null;
+  rationale?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  entries?: MealPlanEntry[];
+}
+
+/** Input configuration when generating a plan. */
+export interface MealPlanConfig {
+  goal?: string;
+  servings: number;
+  numDishes: number;
+  /** Recipes (job ids) that MUST be included in the plan. */
+  includeJobIds?: string[];
+  /** Optional number of days to spread the dishes across. */
+  dayCount?: number;
+}
+
 // ── Gamification ─────────────────────────────────────────────────────────────
 
 export interface StreakTier {

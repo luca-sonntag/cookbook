@@ -28,6 +28,12 @@ import {
   updateCollection,
   deleteCollection,
   setRecipeCollections,
+  createMealPlan,
+  getMealPlan,
+  listMealPlans,
+  updateMealPlan,
+  updateMealPlanEntry,
+  deleteMealPlan,
   createFeedback,
   getAllGlobalSettings,
   updateGlobalSettings,
@@ -53,7 +59,7 @@ import {
 } from './db.js';
 import { config } from './config.js';
 import { requireAuth, requireAdmin } from './auth.js';
-import { chatAboutRecipe, generateChatChips, remixRecipe, verifyCookedDishPhoto } from './gemini.js';
+import { chatAboutRecipe, generateChatChips, remixRecipe, verifyCookedDishPhoto, generateMealPlan, regenerateMealPlanEntry } from './gemini.js';
 import { getLlmMetrics } from './adminMetrics.js';
 import { AppError, sendAppError } from './errors.js';
 import { randomUUID } from 'node:crypto';
@@ -1039,18 +1045,43 @@ apiRouter.post('/jobs/:id/chat', async (req: Request, res: Response): Promise<vo
 });
 
 // Helper to check user premium status
+/**
+ * Whether a resolved Supabase user has premium/alpha access to AI features.
+ * Mirrors {@link checkPremium}'s predicate (alpha counts as premium), but works
+ * on an already-fetched user so callers can avoid a second admin lookup.
+ */
+function userHasPremiumAccess(user: any): boolean {
+  const meta = user?.app_metadata || {};
+  return meta.tier === 'premium' ||
+    meta.tier === 'alpha' ||
+    meta.custom_extraction_limit === -1 ||
+    meta.max_extractions_per_window === -1;
+}
+
+/** Resolve recipe language / unit preferences from a user's metadata. */
+function resolveRecipePrefs(user: any): { recipeLanguage?: string; preferredTemperatureUnit?: string; preferredUnitSystem?: string } | undefined {
+  const meta = user?.user_metadata;
+  if (!meta) return undefined;
+  const languageMap: Record<string, string> = {
+    de: 'German', en: 'English', german: 'German', english: 'English',
+  };
+  let recipeLanguage: string | undefined;
+  if (meta.language) recipeLanguage = languageMap[String(meta.language).toLowerCase()];
+  if (!recipeLanguage && meta.recipe_language) {
+    recipeLanguage = languageMap[String(meta.recipe_language).toLowerCase()] || meta.recipe_language;
+  }
+  return {
+    recipeLanguage,
+    preferredTemperatureUnit: meta.preferred_temperature_unit,
+    preferredUnitSystem: meta.preferred_unit_system,
+  };
+}
+
 async function checkPremium(req: Request): Promise<boolean> {
   let isPremium = false;
   try {
     let user = await fetchAndSyncUser(req.userId!);
-
-    if (user) {
-      const meta = user.app_metadata || {};
-      isPremium = meta.tier === 'premium' ||
-        meta.tier === 'alpha' ||
-        meta.custom_extraction_limit === -1 ||
-        meta.max_extractions_per_window === -1;
-    }
+    if (user) isPremium = isPremiumUser(user);
   } catch (err) {
     console.warn(`Failed to fetch user metadata for premium check:`, err);
   }
@@ -1403,6 +1434,202 @@ apiRouter.patch('/jobs/:id/collections', async (req: Request, res: Response): Pr
     res.status(200).json({ success: true, message: 'Recipe collections updated.' });
   } catch (error: any) {
     if (!(error instanceof AppError)) console.error('Error updating recipe collections:', error);
+    sendAppError(res, error);
+  }
+});
+
+// ── Weekly meal planner (Wochenplaner) ───────────────────────────────────────
+
+/** Hard cap on dishes per plan, to bound Gemini cost and payload size. */
+const MEAL_PLAN_MAX_DISHES = 21;
+
+/**
+ * Generate a weekly meal plan from the user's saved recipes via Gemini.
+ * POST /api/meal-plans/generate
+ * Body: { goal?, servings, numDishes, includeJobIds?, dayCount?, title? }
+ */
+apiRouter.post('/meal-plans/generate', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { goal, servings, numDishes, includeJobIds, dayCount, title } = req.body;
+
+    const servingsNum = Number(servings);
+    if (!Number.isInteger(servingsNum) || servingsNum < 1 || servingsNum > 50) {
+      throw new AppError('INVALID_FIELD', { params: { field: 'servings' } });
+    }
+    const numDishesNum = Number(numDishes);
+    if (!Number.isInteger(numDishesNum) || numDishesNum < 1 || numDishesNum > MEAL_PLAN_MAX_DISHES) {
+      throw new AppError('INVALID_FIELD', { params: { field: 'numDishes' } });
+    }
+    if (goal !== undefined && goal !== null && typeof goal !== 'string') {
+      throw new AppError('INVALID_FIELD', { params: { field: 'goal' } });
+    }
+    if (includeJobIds !== undefined && (!Array.isArray(includeJobIds) || !includeJobIds.every((x: unknown) => typeof x === 'string'))) {
+      throw new AppError('INVALID_FIELD', { params: { field: 'includeJobIds' } });
+    }
+    if (dayCount !== undefined && dayCount !== null && (!Number.isInteger(Number(dayCount)) || Number(dayCount) < 1 || Number(dayCount) > 14)) {
+      throw new AppError('INVALID_FIELD', { params: { field: 'dayCount' } });
+    }
+
+    // Premium gate + preferences from a single user fetch.
+    let user: any = null;
+    try {
+      user = await fetchAndSyncUser(req.userId!);
+    } catch (err) {
+      console.warn('Failed to fetch user metadata for meal plan:', err);
+    }
+    if (!user || !userHasPremiumAccess(user)) {
+      throw new AppError('PREMIUM_REQUIRED', { params: { feature: 'meal_plan' } });
+    }
+    const userPrefs = resolveRecipePrefs(user);
+
+    const jobs = await getAllJobs(req.userId!);
+
+    const planConfig = {
+      goal: typeof goal === 'string' && goal.trim() ? goal.trim() : undefined,
+      servings: servingsNum,
+      numDishes: numDishesNum,
+      includeJobIds: Array.isArray(includeJobIds) ? includeJobIds : undefined,
+      dayCount: dayCount != null ? Number(dayCount) : undefined,
+    };
+
+    const result = await generateMealPlan(req.userId!, planConfig, jobs, userPrefs);
+
+    const plan = await createMealPlan(
+      req.userId!,
+      { ...planConfig, title: typeof title === 'string' && title.trim() ? title.trim() : null },
+      result.rationale,
+      result.dishes,
+    );
+
+    res.status(201).json({ success: true, plan });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error generating meal plan:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
+ * List all meal plans for the user.
+ * GET /api/meal-plans
+ */
+apiRouter.get('/meal-plans', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const plans = await listMealPlans(req.userId!);
+    res.status(200).json({ success: true, plans });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error listing meal plans:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
+ * Get a single meal plan (with entries).
+ * GET /api/meal-plans/:id
+ */
+apiRouter.get('/meal-plans/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const plan = await getMealPlan(req.params.id, req.userId!);
+    if (!plan) throw new AppError('MEAL_PLAN_NOT_FOUND');
+    res.status(200).json({ success: true, plan });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error getting meal plan:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
+ * Update a plan's editable header fields (title, servings).
+ * PATCH /api/meal-plans/:id
+ */
+apiRouter.patch('/meal-plans/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { title, servings } = req.body;
+    if (servings !== undefined && (!Number.isInteger(Number(servings)) || Number(servings) < 1 || Number(servings) > 50)) {
+      throw new AppError('INVALID_FIELD', { params: { field: 'servings' } });
+    }
+    if (title !== undefined && title !== null && typeof title !== 'string') {
+      throw new AppError('INVALID_FIELD', { params: { field: 'title' } });
+    }
+
+    const plan = await updateMealPlan(req.params.id, req.userId!, {
+      title: title !== undefined ? (typeof title === 'string' ? title : null) : undefined,
+      servings: servings !== undefined ? Number(servings) : undefined,
+    });
+    if (!plan) throw new AppError('MEAL_PLAN_NOT_FOUND');
+    res.status(200).json({ success: true, plan });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error updating meal plan:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
+ * Delete a meal plan.
+ * DELETE /api/meal-plans/:id
+ */
+apiRouter.delete('/meal-plans/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const deleted = await deleteMealPlan(req.params.id, req.userId!);
+    if (!deleted) throw new AppError('MEAL_PLAN_NOT_FOUND');
+    res.status(200).json({ success: true, message: 'Meal plan deleted.' });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error deleting meal plan:', error);
+    sendAppError(res, error);
+  }
+});
+
+/**
+ * Re-roll a single dish in a plan: Gemini picks a different recipe for the slot.
+ * POST /api/meal-plans/:id/entries/:entryId/swap
+ */
+apiRouter.post('/meal-plans/:id/entries/:entryId/swap', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id, entryId } = req.params;
+
+    // Premium gate + preferences from a single user fetch.
+    let user: any = null;
+    try {
+      user = await fetchAndSyncUser(req.userId!);
+    } catch (err) {
+      console.warn('Failed to fetch user metadata for meal plan swap:', err);
+    }
+    if (!user || !userHasPremiumAccess(user)) {
+      throw new AppError('PREMIUM_REQUIRED', { params: { feature: 'meal_plan' } });
+    }
+    const userPrefs = resolveRecipePrefs(user);
+
+    const plan = await getMealPlan(id, req.userId!);
+    if (!plan) throw new AppError('MEAL_PLAN_NOT_FOUND');
+
+    const entry = (plan.entries || []).find(e => e.id === entryId);
+    if (!entry) throw new AppError('MEAL_PLAN_ENTRY_NOT_FOUND');
+
+    const usedJobIds = (plan.entries || [])
+      .map(e => e.jobId)
+      .filter((x): x is string => !!x);
+
+    const jobs = await getAllJobs(req.userId!);
+
+    const dish = await regenerateMealPlanEntry(
+      req.userId!,
+      { goal: plan.goal ?? undefined, servings: plan.servings, numDishes: plan.numDishes },
+      jobs,
+      entry.jobId,
+      usedJobIds,
+      userPrefs,
+    );
+
+    if (!dish) throw new AppError('MEAL_PLAN_FAILED', { message: 'No replacement recipe available.' });
+
+    const updated = await updateMealPlanEntry(entryId, req.userId!, {
+      jobId: dish.jobId,
+      note: dish.note ?? null,
+    });
+    if (!updated) throw new AppError('MEAL_PLAN_ENTRY_NOT_FOUND');
+
+    res.status(200).json({ success: true, entry: updated });
+  } catch (error: any) {
+    if (!(error instanceof AppError)) console.error('Error swapping meal plan entry:', error);
     sendAppError(res, error);
   }
 });

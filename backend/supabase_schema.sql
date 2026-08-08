@@ -97,6 +97,71 @@ CREATE POLICY "Allow users to update their own recipe_collections" ON public.rec
 CREATE POLICY "Allow users to delete their own recipe_collections" ON public.recipe_collections
   FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
+-- --- weekly meal planner (Wochenplaner) migration ---
+
+-- Header row for a generated weekly meal plan. One row per plan; the actual
+-- dishes live in meal_plan_entries. Mirrors the collections pattern
+-- (user_id scoping + RLS defense-in-depth; backend writes via service_role).
+CREATE TABLE IF NOT EXISTS public.meal_plans (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  title text,
+  goal text,                       -- e.g. 'vegetarian' | 'balanced' | free text; nullable
+  servings int NOT NULL DEFAULT 2, -- number of people the plan is scaled for
+  num_dishes int NOT NULL,         -- how many dishes the plan contains
+  start_date date,                 -- optional; a plan can be day-less
+  rationale text,                  -- short natural-language reasoning from Gemini
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- One dish per row, referencing an existing recipe (job). job_id uses
+-- ON DELETE SET NULL (intentionally different from recipe_collections' CASCADE):
+-- if the recipe is deleted, the slot survives and renders as "recipe removed".
+CREATE TABLE IF NOT EXISTS public.meal_plan_entries (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  plan_id uuid NOT NULL REFERENCES public.meal_plans(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL,
+  job_id text REFERENCES public.jobs(id) ON DELETE SET NULL,
+  position int NOT NULL DEFAULT 0,
+  day_index int,                   -- optional 0..n for day assignment
+  meal_type text,                  -- optional 'breakfast'|'lunch'|'dinner'|'snack'
+  servings int,                    -- optional per-dish override; falls back to plan.servings
+  note text                        -- optional Gemini hint (e.g. "cook once, eat twice")
+);
+
+CREATE INDEX IF NOT EXISTS meal_plans_user_id_idx ON public.meal_plans(user_id);
+CREATE INDEX IF NOT EXISTS meal_plan_entries_plan_id_idx ON public.meal_plan_entries(plan_id);
+CREATE INDEX IF NOT EXISTS meal_plan_entries_user_id_idx ON public.meal_plan_entries(user_id);
+CREATE INDEX IF NOT EXISTS meal_plan_entries_job_id_idx ON public.meal_plan_entries(job_id);
+
+ALTER TABLE public.meal_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meal_plan_entries ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow users to select their own meal_plans" ON public.meal_plans
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+CREATE POLICY "Allow users to insert their own meal_plans" ON public.meal_plans
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Allow users to update their own meal_plans" ON public.meal_plans
+  FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Allow users to delete their own meal_plans" ON public.meal_plans
+  FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+CREATE POLICY "Allow users to select their own meal_plan_entries" ON public.meal_plan_entries
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+CREATE POLICY "Allow users to insert their own meal_plan_entries" ON public.meal_plan_entries
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Allow users to update their own meal_plan_entries" ON public.meal_plan_entries
+  FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Allow users to delete their own meal_plan_entries" ON public.meal_plan_entries
+  FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
 -- --- feedback / bug reports migration ---
 
 -- In-app bug reports & feedback submitted from the Settings/Profile tab.

@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient, PostgrestError } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
 import { config } from './config.js';
-import type { Job, JobStatus, Recipe, ProgressData, Collection, GamificationConfig, UserStats } from './types.js';
+import type { Job, JobStatus, Recipe, ProgressData, Collection, GamificationConfig, UserStats, MealPlan, MealPlanEntry, MealPlanConfig } from './types.js';
 import { DEFAULT_GAMIFICATION_CONFIG } from './types.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -900,6 +900,245 @@ export async function setRecipeCollections(jobId: string, userId: string, collec
 
     if (insertError) throw wrapError('Failed to save new recipe collections', insertError);
   }
+}
+
+// ── Weekly meal planner (Wochenplaner) ───────────────────────────────────────
+
+interface MealPlanRow {
+  id: string;
+  user_id: string;
+  title: string | null;
+  goal: string | null;
+  servings: number;
+  num_dishes: number;
+  start_date: string | null;
+  rationale: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface MealPlanEntryRow {
+  id: string;
+  plan_id: string;
+  user_id: string;
+  job_id: string | null;
+  position: number;
+  day_index: number | null;
+  meal_type: string | null;
+  servings: number | null;
+  note: string | null;
+}
+
+function rowToMealPlan(row: MealPlanRow, entries: MealPlanEntry[] = []): MealPlan {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    title: row.title,
+    goal: row.goal,
+    servings: row.servings,
+    numDishes: row.num_dishes,
+    startDate: row.start_date,
+    rationale: row.rationale,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    entries,
+  };
+}
+
+function rowToMealPlanEntry(row: MealPlanEntryRow): MealPlanEntry {
+  return {
+    id: row.id,
+    planId: row.plan_id,
+    userId: row.user_id,
+    jobId: row.job_id,
+    position: row.position,
+    dayIndex: row.day_index,
+    mealType: row.meal_type,
+    servings: row.servings,
+    note: row.note,
+  };
+}
+
+/** A dish to persist into a plan (the validated Gemini output). */
+export interface MealPlanDishInput {
+  jobId: string;
+  dayIndex?: number;
+  mealType?: string;
+  servings?: number;
+  note?: string;
+}
+
+/** Create a meal plan header + its dish entries in one call. */
+export async function createMealPlan(
+  userId: string,
+  planConfig: MealPlanConfig & { title?: string | null; startDate?: string | null },
+  rationale: string,
+  dishes: MealPlanDishInput[],
+): Promise<MealPlan> {
+  const now = new Date().toISOString();
+  const planId = randomUUID();
+
+  const { data: planData, error: planError } = await getClient()
+    .from('meal_plans')
+    .insert({
+      id: planId,
+      user_id: userId,
+      title: planConfig.title ?? null,
+      goal: planConfig.goal ?? null,
+      servings: planConfig.servings,
+      num_dishes: dishes.length,
+      start_date: planConfig.startDate ?? null,
+      rationale: rationale || null,
+      created_at: now,
+      updated_at: now,
+    })
+    .select()
+    .returns<MealPlanRow>()
+    .single();
+
+  if (planError) throw wrapError('Failed to create meal plan', planError);
+
+  let entries: MealPlanEntry[] = [];
+  if (dishes.length > 0) {
+    const inserts = dishes.map((d, i) => ({
+      id: randomUUID(),
+      plan_id: planId,
+      user_id: userId,
+      job_id: d.jobId,
+      position: i,
+      day_index: d.dayIndex ?? null,
+      meal_type: d.mealType ?? null,
+      servings: d.servings ?? null,
+      note: d.note ?? null,
+    }));
+    const { data: entryData, error: entryError } = await getClient()
+      .from('meal_plan_entries')
+      .insert(inserts)
+      .select()
+      .returns<MealPlanEntryRow[]>();
+
+    if (entryError) throw wrapError('Failed to create meal plan entries', entryError);
+    entries = (entryData || []).map(rowToMealPlanEntry).sort((a, b) => a.position - b.position);
+  }
+
+  return rowToMealPlan(planData, entries);
+}
+
+/** Load a plan (with entries) scoped to the user. Returns null if not found. */
+export async function getMealPlan(id: string, userId: string): Promise<MealPlan | null> {
+  const { data: planData, error: planError } = await getClient()
+    .from('meal_plans')
+    .select()
+    .eq('id', id)
+    .eq('user_id', userId)
+    .returns<MealPlanRow>()
+    .single();
+
+  if (planError) {
+    if (isNoRowsError(planError)) return null;
+    throw wrapError(`Failed to get meal plan ${id}`, planError);
+  }
+
+  const { data: entryData, error: entryError } = await getClient()
+    .from('meal_plan_entries')
+    .select()
+    .eq('plan_id', id)
+    .eq('user_id', userId)
+    .order('position', { ascending: true })
+    .returns<MealPlanEntryRow[]>();
+
+  if (entryError) throw wrapError(`Failed to get meal plan entries for ${id}`, entryError);
+
+  return rowToMealPlan(planData, (entryData || []).map(rowToMealPlanEntry));
+}
+
+/** List all plans for a user (newest first), each with its entries. */
+export async function listMealPlans(userId: string): Promise<MealPlan[]> {
+  const { data: planData, error: planError } = await getClient()
+    .from('meal_plans')
+    .select()
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .returns<MealPlanRow[]>();
+
+  if (planError) throw wrapError('Failed to list meal plans', planError);
+  const plans = planData || [];
+  if (plans.length === 0) return [];
+
+  const { data: entryData, error: entryError } = await getClient()
+    .from('meal_plan_entries')
+    .select()
+    .eq('user_id', userId)
+    .order('position', { ascending: true })
+    .returns<MealPlanEntryRow[]>();
+
+  if (entryError) throw wrapError('Failed to list meal plan entries', entryError);
+
+  const entriesByPlan = new Map<string, MealPlanEntry[]>();
+  for (const row of entryData || []) {
+    const entry = rowToMealPlanEntry(row);
+    const list = entriesByPlan.get(entry.planId) ?? [];
+    list.push(entry);
+    entriesByPlan.set(entry.planId, list);
+  }
+
+  return plans.map(p => rowToMealPlan(p, entriesByPlan.get(p.id) ?? []));
+}
+
+/** Update a plan's editable header fields (title, servings). */
+export async function updateMealPlan(
+  id: string,
+  userId: string,
+  updates: { title?: string | null; servings?: number },
+): Promise<MealPlan | null> {
+  const patch: Record<string, any> = { updated_at: new Date().toISOString() };
+  if (updates.title !== undefined) patch.title = updates.title;
+  if (updates.servings !== undefined) patch.servings = updates.servings;
+
+  const { error } = await getClient()
+    .from('meal_plans')
+    .update(patch)
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) throw wrapError(`Failed to update meal plan ${id}`, error);
+  return getMealPlan(id, userId);
+}
+
+/** Replace the recipe (and optional note) of a single plan entry. */
+export async function updateMealPlanEntry(
+  entryId: string,
+  userId: string,
+  updates: { jobId?: string | null; note?: string | null },
+): Promise<MealPlanEntry | null> {
+  const patch: Record<string, any> = {};
+  if (updates.jobId !== undefined) patch.job_id = updates.jobId;
+  if (updates.note !== undefined) patch.note = updates.note;
+  if (Object.keys(patch).length === 0) return null;
+
+  const { data, error } = await getClient()
+    .from('meal_plan_entries')
+    .update(patch)
+    .eq('id', entryId)
+    .eq('user_id', userId)
+    .select()
+    .returns<MealPlanEntryRow[]>();
+
+  if (error) throw wrapError(`Failed to update meal plan entry ${entryId}`, error);
+  if (!data || data.length === 0) return null;
+  return rowToMealPlanEntry(data[0]);
+}
+
+/** Delete a plan (entries cascade), scoped to user. */
+export async function deleteMealPlan(id: string, userId: string): Promise<boolean> {
+  const { error, count } = await getClient()
+    .from('meal_plans')
+    .delete({ count: 'exact' })
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) throw wrapError(`Failed to delete meal plan ${id}`, error);
+  return (count ?? 0) > 0;
 }
 
 /** Retrieve database job execution and queue metrics. */

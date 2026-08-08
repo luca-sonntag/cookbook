@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, Zap, History, Sparkles, Plus, Tag, ChevronRight, Settings2 } from 'lucide-react';
+import { Star, Zap, History, Sparkles, Plus, Tag, ChevronRight, Settings2, CalendarDays } from 'lucide-react';
 import type { Collection, Job } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import CollectionTile from './CollectionTile';
@@ -27,6 +27,7 @@ interface CookbookHomeProps {
   onOpenRecipe: (e: React.MouseEvent, job: Job) => void;
   onAddCollection: () => void;
   onManageCollections: () => void;
+  onOpenPlanner?: () => void;
   isSelectMode?: boolean;
   selectedIds?: Set<string>;
   bindLongPress?: (id: string, job: Job) => any;
@@ -48,6 +49,7 @@ export default function CookbookHome({
   onOpenRecipe,
   onAddCollection,
   onManageCollections,
+  onOpenPlanner,
   isSelectMode = false,
   selectedIds = new Set(),
   bindLongPress,
@@ -56,6 +58,28 @@ export default function CookbookHome({
 
   return (
     <div className="flex flex-col gap-7 pb-4 pt-1">
+
+      {/* Weekly meal planner entry */}
+      {onOpenPlanner && (
+        <button
+          type="button"
+          onClick={onOpenPlanner}
+          className="flex items-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/[0.06] to-transparent border border-emerald-600/15 text-left hover:from-emerald-500/15 active:scale-[0.99] transition-all cursor-pointer"
+        >
+          <span className="w-11 h-11 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+            <CalendarDays className="w-5.5 h-5.5 text-emerald-600 dark:text-emerald-400" />
+          </span>
+          <span className="flex flex-col min-w-0 flex-1">
+            <span className="text-sm font-bold text-gray-900 dark:text-white">
+              {t('planner.entryTitle')}
+            </span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-snug">
+              {t('planner.entrySubtitle')}
+            </span>
+          </span>
+          <ChevronRight className="w-4 h-4 text-emerald-600/60 dark:text-emerald-400/60 shrink-0" />
+        </button>
+      )}
 
       {/* Collections */}
       <section className="flex flex-col gap-2.5">

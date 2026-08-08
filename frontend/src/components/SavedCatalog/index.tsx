@@ -42,6 +42,8 @@ interface SavedCatalogProps {
   catalogSubPath?: string | null;
   /** Navigates within the catalog tab (`null` returns to the cookbook home). */
   onNavigateCatalog?: (subPath?: string | null) => void;
+  /** Opens the weekly meal planner (a sub-route of the catalog tab). */
+  onOpenPlanner?: () => void;
   limitStatus?: {
     limit: number;
     used: number;
@@ -71,6 +73,7 @@ export default function SavedCatalog({
   onSelectModeChange,
   catalogSubPath = null,
   onNavigateCatalog,
+  onOpenPlanner,
   limitStatus
 }: SavedCatalogProps) {
   const { t } = useI18n();
@@ -494,6 +497,7 @@ export default function SavedCatalog({
           onOpenRecipe={(e, job) => handleCardClick(e, job)}
           onAddCollection={handleAddCollectionClick}
           onManageCollections={handleAddCollectionClick}
+          onOpenPlanner={onOpenPlanner}
           isSelectMode={isSelectMode}
           selectedIds={selectedIds}
           bindLongPress={bindLongPress}

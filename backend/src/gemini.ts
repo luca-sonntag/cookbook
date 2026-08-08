@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI, FunctionDeclarationSchemaType } from '@google/generative-ai';
 import { GoogleAIFileManager } from '@google/generative-ai/files';
 import { config } from './config.js';
-import { Recipe } from './types.js';
+import { Recipe, Job, MealPlanConfig } from './types.js';
 import { writeGeminiLog, estimateCost, type TokenUsage } from './logger.js';
 import { AppError } from './errors.js';
 import { withRetry } from './retry.js';
@@ -1154,6 +1154,375 @@ When the user requests a further modification, call modify_current_recipe with o
     });
     throw err;
   }
+}
+
+// ── Weekly meal planner (Wochenplaner) ───────────────────────────────────────
+
+/** A single dish Gemini placed into the plan. */
+export interface MealPlanResultDish {
+  jobId: string;
+  dayIndex?: number;
+  mealType?: string;
+  servings?: number;
+  note?: string;
+}
+
+/** The structured output of a meal-plan generation run. */
+export interface MealPlanResult {
+  dishes: MealPlanResultDish[];
+  rationale: string;
+}
+
+/** Only jobs that carry a usable, completed recipe are candidates for planning. */
+function planningCandidates(jobs: Job[]): Job[] {
+  return jobs.filter(j => j.status === 'completed' && j.recipe && j.recipe.isRecipe !== false);
+}
+
+/**
+ * Compact projection of a recipe for the `list_user_recipes` tool. Keeps tokens
+ * low while still giving Gemini enough signal (tags + a few ingredient names) to
+ * reason about dietary goals without a `get_recipe_details` round-trip per item.
+ */
+function compactRecipeForPlanning(job: Job) {
+  const r = job.recipe!;
+  const mainIngredients = (r.ingredients || [])
+    .flatMap(g => (g.items || []).map(i => i.name))
+    .filter(Boolean)
+    .slice(0, 12);
+  return {
+    jobId: job.id,
+    title: r.title,
+    emoji: r.emoji ?? undefined,
+    tags: r.tags ?? [],
+    prepTime: r.prepTime ?? null,
+    cookTime: r.cookTime ?? null,
+    servings: r.servings ?? null,
+    calories: r.nutritionalValues?.calories ?? null,
+    protein: r.nutritionalValues?.protein ?? null,
+    mainIngredients,
+  };
+}
+
+/** Full-ish detail for the `get_recipe_details` tool (dietary verification). */
+function recipeDetailsForPlanning(job: Job) {
+  const r = job.recipe!;
+  return {
+    jobId: job.id,
+    title: r.title,
+    description: r.description,
+    tags: r.tags ?? [],
+    servings: r.servings ?? null,
+    prepTime: r.prepTime ?? null,
+    cookTime: r.cookTime ?? null,
+    nutritionalValues: r.nutritionalValues ?? null,
+    ingredients: (r.ingredients || []).map(g => ({
+      group: g.name,
+      items: (g.items || []).map(i => `${i.name}${i.modifier ? ` (${i.modifier})` : ''}`),
+    })),
+  };
+}
+
+const mealPlanTools = [
+  {
+    functionDeclarations: [
+      {
+        name: 'list_user_recipes',
+        description: "Ruft die gespeicherten Rezepte des Nutzers als kompakte Liste ab (jobId, Titel, Tags, Zeiten, Portionen, Kalorien, Hauptzutaten). Rufe dies zuerst auf, um zu sehen, welche Rezepte zur Auswahl stehen.",
+        parameters: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            tagFilter: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'Optionaler Suchbegriff, um nach Titel/Tag zu filtern (case-insensitive). Leer lassen, um alle zu erhalten.',
+            },
+          },
+          required: [],
+        },
+      },
+      {
+        name: 'get_recipe_details',
+        description: 'Ruft die vollständigen Details eines einzelnen Rezepts ab (alle Zutaten, Nährwerte), z. B. um zu prüfen, ob ein Rezept vegetarisch/vegan ist oder zu einem Ziel passt.',
+        parameters: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            job_id: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'Die jobId des Rezepts, dessen Details geladen werden sollen.',
+            },
+          },
+          required: ['job_id'],
+        },
+      },
+      {
+        name: 'submit_meal_plan',
+        description: 'Übermittelt den fertigen Wochenplan. Rufe dies GENAU EINMAL auf, sobald die Auswahl steht. Verwende ausschließlich jobIds aus list_user_recipes.',
+        parameters: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            dishes: {
+              type: FunctionDeclarationSchemaType.ARRAY,
+              description: 'Die ausgewählten Gerichte in der gewünschten Reihenfolge.',
+              items: {
+                type: FunctionDeclarationSchemaType.OBJECT,
+                properties: {
+                  jobId: { type: FunctionDeclarationSchemaType.STRING, description: 'jobId eines vorhandenen Rezepts des Nutzers.' },
+                  dayIndex: { type: FunctionDeclarationSchemaType.INTEGER, description: 'Optionaler Tagesindex (0-basiert), falls der Plan auf Tage verteilt wird.' },
+                  mealType: { type: FunctionDeclarationSchemaType.STRING, description: "Optional: 'breakfast' | 'lunch' | 'dinner' | 'snack'.", enum: ['breakfast', 'lunch', 'dinner', 'snack'] },
+                  note: { type: FunctionDeclarationSchemaType.STRING, description: 'Optionaler kurzer Hinweis zu diesem Gericht (z. B. "einmal kochen, zweimal essen").' },
+                },
+                required: ['jobId'],
+              },
+            },
+            rationale: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: 'Kurze Begründung (2-4 Sätze) in der Sprache des Nutzers, warum diese Auswahl zum Ziel passt (Ausgewogenheit, Abwechslung usw.).',
+            },
+          },
+          required: ['dishes', 'rationale'],
+        },
+      },
+    ],
+  },
+];
+
+/** Max tool round-trips before we give up (guards against loops on the old SDK). */
+const MEAL_PLAN_MAX_ROUNDS = 8;
+
+/**
+ * Shared tool-calling loop for meal planning. Unlike `chatAboutRecipe` (whose
+ * tools are stubs), this actually executes `list_user_recipes` /
+ * `get_recipe_details` against the in-memory candidate jobs and terminates when
+ * Gemini calls `submit_meal_plan`. Returns validated dishes (only real jobIds).
+ */
+async function runMealPlanToolLoop(
+  systemInstruction: string,
+  initialUserText: string,
+  candidates: Job[],
+  requestType: 'meal_plan' | 'meal_plan_swap',
+  logInput: Record<string, unknown>,
+): Promise<MealPlanResult> {
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+  const byId = new Map(candidates.map(j => [j.id, j]));
+
+  const model = genAI.getGenerativeModel({
+    model: config.GEMINI_MODEL,
+    tools: mealPlanTools as any,
+    generationConfig: { temperature: config.GEMINI_TEMPERATURE } as any,
+  });
+
+  const contents: any[] = [{ role: 'user', parts: [{ text: initialUserText }] }];
+  let promptTokens = 0;
+  let candidateTokens = 0;
+  let totalTokens = 0;
+
+  try {
+    for (let round = 0; round < MEAL_PLAN_MAX_ROUNDS; round++) {
+      const result = await model.generateContent({ contents, systemInstruction });
+      const response = result.response;
+
+      const usage = response.usageMetadata;
+      if (usage) {
+        promptTokens += usage.promptTokenCount ?? 0;
+        candidateTokens += usage.candidatesTokenCount ?? 0;
+        totalTokens += usage.totalTokenCount ?? 0;
+      }
+
+      const call = response.functionCalls ? response.functionCalls()?.[0] : undefined;
+      if (!call) {
+        // No tool call — the model answered in plain text instead of finishing.
+        // Nudge it once toward submit_meal_plan by continuing the loop.
+        contents.push({ role: 'user', parts: [{ text: 'Bitte rufe jetzt submit_meal_plan mit deiner Auswahl auf.' }] });
+        continue;
+      }
+
+      // Record the model's function-call turn (preserve thought signatures).
+      if (response.candidates?.[0]?.content) {
+        contents.push(response.candidates[0].content);
+      } else {
+        contents.push({ role: 'model', parts: [{ functionCall: { name: call.name, args: call.args } }] });
+      }
+
+      if (call.name === 'submit_meal_plan') {
+        const rawDishes: any[] = Array.isArray((call.args as any)?.dishes) ? (call.args as any).dishes : [];
+        const seen = new Set<string>();
+        const dishes: MealPlanResultDish[] = [];
+        for (const d of rawDishes) {
+          const jobId = typeof d?.jobId === 'string' ? d.jobId : undefined;
+          if (!jobId || !byId.has(jobId) || seen.has(jobId)) continue;
+          seen.add(jobId);
+          dishes.push({
+            jobId,
+            dayIndex: Number.isInteger(d?.dayIndex) ? d.dayIndex : undefined,
+            mealType: typeof d?.mealType === 'string' ? d.mealType : undefined,
+            note: typeof d?.note === 'string' ? d.note : undefined,
+          });
+        }
+
+        const rationale = typeof (call.args as any)?.rationale === 'string' ? (call.args as any).rationale : '';
+
+        const tokenUsage: TokenUsage | undefined = totalTokens > 0
+          ? { promptTokens, candidateTokens, totalTokens }
+          : undefined;
+        void writeGeminiLog({
+          timestamp,
+          requestType,
+          model: config.GEMINI_MODEL,
+          durationMs: Date.now() - startTime,
+          success: true,
+          input: logInput,
+          parsedOutput: { dishCount: dishes.length, rounds: round + 1 },
+          rawOutput: rationale,
+          tokenUsage,
+          costEstimate: tokenUsage ? estimateCost(config.GEMINI_MODEL, tokenUsage) : undefined,
+        });
+
+        return { dishes, rationale };
+      }
+
+      // Execute a data tool and feed the result back.
+      let toolResponse: any;
+      if (call.name === 'list_user_recipes') {
+        const filter = (call.args as any)?.tagFilter;
+        const filterLc = typeof filter === 'string' ? filter.trim().toLowerCase() : '';
+        let list = candidates;
+        if (filterLc) {
+          list = candidates.filter(j => {
+            const r = j.recipe!;
+            const hay = `${r.title} ${(r.tags || []).join(' ')}`.toLowerCase();
+            return hay.includes(filterLc);
+          });
+        }
+        toolResponse = { recipes: list.map(compactRecipeForPlanning), total: list.length };
+      } else if (call.name === 'get_recipe_details') {
+        const jobId = (call.args as any)?.job_id;
+        const job = typeof jobId === 'string' ? byId.get(jobId) : undefined;
+        toolResponse = job
+          ? recipeDetailsForPlanning(job)
+          : { error: 'not_found', message: `Kein Rezept mit jobId ${jobId} gefunden.` };
+      } else {
+        toolResponse = { error: 'unknown_tool', message: `Unbekanntes Tool: ${call.name}` };
+      }
+
+      contents.push({
+        role: 'function',
+        parts: [{ functionResponse: { name: call.name, response: toolResponse } }],
+      });
+    }
+
+    // Loop exhausted without a submit_meal_plan call.
+    throw new AppError('MEAL_PLAN_FAILED', { message: 'Gemini did not submit a meal plan within the round limit.' });
+  } catch (err: any) {
+    void writeGeminiLog({
+      timestamp,
+      requestType,
+      model: config.GEMINI_MODEL,
+      durationMs: Date.now() - startTime,
+      success: false,
+      error: err?.message ?? String(err),
+      input: logInput,
+    });
+    throw err;
+  }
+}
+
+/**
+ * Generate a weekly meal plan from the user's saved recipes via Gemini
+ * function-calling. Only recipes present in `jobs` can be selected; Gemini
+ * fetches the list and per-recipe details itself through the tools.
+ */
+export async function generateMealPlan(
+  userId: string,
+  planConfig: MealPlanConfig,
+  jobs: Job[],
+  userPrefs?: UserPreferences,
+): Promise<MealPlanResult> {
+  const candidates = planningCandidates(jobs);
+  if (candidates.length === 0) {
+    throw new AppError('NO_RECIPES_FOR_PLAN');
+  }
+
+  const targetLanguage = userPrefs?.recipeLanguage || config.RECIPE_LANGUAGE;
+  const includeIds = (planConfig.includeJobIds || []).filter(id => candidates.some(j => j.id === id));
+
+  const systemInstruction = `You are a helpful meal-planning assistant for a home cook.
+Your job is to compose a weekly meal plan by SELECTING from the user's OWN saved recipes — never invent recipes or use any recipe that is not returned by the list_user_recipes tool.
+
+How to work:
+1. Call list_user_recipes to see the available recipes (jobId, title, tags, times, calories, main ingredients).
+2. If you need to verify whether a recipe fits a dietary goal (e.g. vegetarian, no pork), call get_recipe_details for that recipe and inspect its ingredients. Prefer the main-ingredient hints in the list to avoid unnecessary detail lookups.
+3. When your selection is ready, call submit_meal_plan exactly once.
+
+Selection rules:
+- Pick exactly ${planConfig.numDishes} dishes (or as many as exist if fewer are available; you MAY repeat a recipe only if there are not enough distinct ones, and note it).
+- The plan is for ${planConfig.servings} ${planConfig.servings === 1 ? 'person' : 'people'}.
+${planConfig.goal ? `- Goal / dietary focus: "${planConfig.goal}". Respect it strictly; verify with get_recipe_details when unsure.` : '- No specific dietary goal: aim for a varied, balanced week.'}
+${includeIds.length > 0 ? `- These recipes MUST be included (by jobId): ${includeIds.join(', ')}.` : ''}
+${planConfig.dayCount ? `- Spread the dishes across ${planConfig.dayCount} days using dayIndex (0-based).` : ''}
+- Favor variety (avoid near-duplicates), a reasonable mix of effort/time, and nutritional balance across the week.
+- Write the "rationale" in ${targetLanguage}.`;
+
+  const initialUserText = `Erstelle einen Wochenplan mit ${planConfig.numDishes} Gerichten für ${planConfig.servings} ${planConfig.servings === 1 ? 'Person' : 'Personen'}${planConfig.goal ? `, Ziel: ${planConfig.goal}` : ''}. Beginne mit list_user_recipes.`;
+
+  const result = await runMealPlanToolLoop(
+    systemInstruction,
+    initialUserText,
+    candidates,
+    'meal_plan',
+    { userId, numDishes: planConfig.numDishes, servings: planConfig.servings, goal: planConfig.goal ?? null, candidateCount: candidates.length },
+  );
+
+  if (result.dishes.length === 0) {
+    throw new AppError('MEAL_PLAN_FAILED', { message: 'No valid dishes were selected.' });
+  }
+
+  // Guarantee mandatory recipes are present even if the model dropped them.
+  for (const id of includeIds) {
+    if (!result.dishes.some(d => d.jobId === id)) {
+      result.dishes.push({ jobId: id });
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Re-roll a single slot: pick ONE replacement recipe, excluding the recipe
+ * currently in that slot and all other recipes already used in the plan.
+ */
+export async function regenerateMealPlanEntry(
+  userId: string,
+  planConfig: MealPlanConfig,
+  jobs: Job[],
+  currentJobId: string | null,
+  usedJobIds: string[],
+  userPrefs?: UserPreferences,
+): Promise<MealPlanResultDish | null> {
+  const excluded = new Set([currentJobId, ...usedJobIds].filter(Boolean) as string[]);
+  const candidates = planningCandidates(jobs).filter(j => !excluded.has(j.id));
+  if (candidates.length === 0) {
+    throw new AppError('NO_RECIPES_FOR_PLAN');
+  }
+
+  const targetLanguage = userPrefs?.recipeLanguage || config.RECIPE_LANGUAGE;
+  const systemInstruction = `You are helping a home cook swap ONE dish in an existing weekly meal plan.
+Select exactly ONE replacement recipe from the user's OWN saved recipes (never invent one).
+The plan is for ${planConfig.servings} ${planConfig.servings === 1 ? 'person' : 'people'}.
+${planConfig.goal ? `Goal / dietary focus: "${planConfig.goal}" — respect it; verify with get_recipe_details when unsure.` : 'Aim for variety and balance.'}
+Do NOT pick a recipe that is already used in the plan (those are excluded from the list you receive).
+Work by calling list_user_recipes, optionally get_recipe_details, then submit_meal_plan with EXACTLY ONE dish and a short rationale in ${targetLanguage}.`;
+
+  const initialUserText = 'Tausche ein Gericht aus. Beginne mit list_user_recipes und wähle genau ein passendes Ersatzrezept.';
+
+  const result = await runMealPlanToolLoop(
+    systemInstruction,
+    initialUserText,
+    candidates,
+    'meal_plan_swap',
+    { userId, servings: planConfig.servings, goal: planConfig.goal ?? null, excludedCount: excluded.size },
+  );
+
+  return result.dishes[0] ?? null;
 }
 
 export async function generateChatChips(
