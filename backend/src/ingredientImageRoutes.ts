@@ -212,20 +212,20 @@ function renderIngredientViewerHtml(): string {
     .pill-cost { background: #131d31; border: 1px solid #312e81; padding: 4px 10px; border-radius: 6px; font-weight: 500; color: #a5b4fc; }
     .pill-cost span { color: #818cf8; font-weight: 700; }
 
-    /* Split Main Container */
+    /* Split Main Container - EXACT 50 / 50 Split */
     .split-layout {
       flex: 1;
       display: grid;
-      grid-template-columns: 460px 1fr;
+      grid-template-columns: 1fr 1fr;
       min-height: 0;
       overflow: hidden;
     }
-    @media (max-width: 960px) {
+    @media (max-width: 900px) {
       .split-layout { grid-template-columns: 1fr; }
       .right-pane { display: none; }
     }
 
-    /* Left Pane: Controls & Master List */
+    /* Left Pane: Controls & Master Grid */
     .left-pane {
       display: flex;
       flex-direction: column;
@@ -293,35 +293,38 @@ function renderIngredientViewerHtml(): string {
     .progress-bar-track { width: 100%; height: 6px; background: #090d16; border-radius: 999px; overflow: hidden; margin: 6px 0; }
     .progress-bar-fill { width: 0%; height: 100%; background: var(--primary); transition: width 0.2s; }
 
-    /* Scrollable Ingredient List */
+    /* Scrollable Ingredient Grid */
     .list-container {
       flex: 1;
       overflow-y: auto;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      grid-auto-rows: max-content;
+      gap: 8px;
+      align-content: start;
     }
 
-    .item-row {
+    .grid-card {
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 8px 10px;
       background: var(--card-bg);
-      border: 1px solid transparent;
+      border: 1px solid var(--border);
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.1s;
       position: relative;
+      min-width: 0;
     }
-    .item-row:hover { background: #172640; border-color: #334155; }
-    .item-row.selected { background: var(--card-selected); border-color: var(--primary); }
-    .item-row.generating { border-color: var(--accent); }
+    .grid-card:hover { background: #172640; border-color: #334155; }
+    .grid-card.selected { background: var(--card-selected); border-color: var(--primary); }
+    .grid-card.generating { border-color: var(--accent); }
 
     .row-thumb {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 6px;
       background: #ffffff;
       flex-shrink: 0;
@@ -333,7 +336,7 @@ function renderIngredientViewerHtml(): string {
       border: 1px solid #334155;
     }
     .row-thumb img { width: 100%; height: 100%; object-fit: contain; }
-    .row-thumb .placeholder-emoji { font-size: 18px; }
+    .row-thumb .placeholder-emoji { font-size: 20px; }
 
     .spinner-overlay {
       position: absolute;
@@ -344,7 +347,7 @@ function renderIngredientViewerHtml(): string {
       justify-content: center;
       border-radius: 6px;
     }
-    .item-row.generating .spinner-overlay { display: flex; }
+    .grid-card.generating .spinner-overlay { display: flex; }
     .spinner {
       width: 16px;
       height: 16px;
@@ -357,13 +360,13 @@ function renderIngredientViewerHtml(): string {
 
     .row-info { flex: 1; min-width: 0; }
     .row-name-de { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .row-name-en { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .row-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 10px; }
-    .cat-pill { color: #94a3b8; background: #090d16; padding: 1px 5px; border-radius: 4px; font-size: 9px; text-transform: uppercase; }
-    .id-text { color: #475569; font-family: 'JetBrains Mono', monospace; }
+    .row-name-en { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+    .row-meta { display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 10px; }
+    .cat-pill { color: #94a3b8; background: #090d16; padding: 1px 5px; border-radius: 4px; font-size: 9px; text-transform: uppercase; max-width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .id-text { color: #475569; font-family: 'JetBrains Mono', monospace; font-size: 9px; }
 
     .row-btn {
-      padding: 5px 8px;
+      padding: 6px 8px;
       font-size: 11px;
       border-radius: 5px;
       background: #1e293b;
@@ -389,10 +392,10 @@ function renderIngredientViewerHtml(): string {
 
     .detail-card {
       width: 100%;
-      max-width: 640px;
+      max-width: 600px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
 
     .detail-header {
@@ -723,14 +726,14 @@ function renderIngredientViewerHtml(): string {
     function renderList() {
       list.innerHTML = '';
       if (ingredients.length === 0) {
-        list.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 40px; font-size: 13px;">Keine Zutaten gefunden.</div>';
+        list.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 40px; font-size: 13px; grid-column: 1 / -1;">Keine Zutaten gefunden.</div>';
         return;
       }
 
       for (const item of ingredients) {
         const row = document.createElement('div');
         const isSelected = selectedItem && selectedItem.id === item.id;
-        row.className = 'item-row' + (isSelected ? ' selected' : '');
+        row.className = 'grid-card' + (isSelected ? ' selected' : '');
         row.id = 'row-' + item.id;
         row.onclick = () => selectItem(item);
 
@@ -749,8 +752,8 @@ function renderIngredientViewerHtml(): string {
             '</div>' +
           '</div>' +
           '<div class="row-info">' +
-            '<div class="row-name-de">' + item.name_de + '</div>' +
-            '<div class="row-name-en">' + (item.name_en || '—') + '</div>' +
+            '<div class="row-name-de" title="' + item.name_de + '">' + item.name_de + '</div>' +
+            '<div class="row-name-en" title="' + (item.name_en || '') + '">' + (item.name_en || '—') + '</div>' +
             '<div class="row-meta">' +
               '<span class="cat-pill">' + item.category + '</span>' +
               '<span class="id-text">' + item.id + '</span>' +
@@ -770,8 +773,8 @@ function renderIngredientViewerHtml(): string {
 
       selectedItem = item;
 
-      // Update active highlight in left list
-      document.querySelectorAll('.item-row').forEach(r => r.classList.remove('selected'));
+      // Update active highlight in left grid
+      document.querySelectorAll('.grid-card').forEach(r => r.classList.remove('selected'));
       const activeRow = document.getElementById('row-' + item.id);
       if (activeRow) activeRow.classList.add('selected');
 
