@@ -3,6 +3,7 @@ import { Check, Trash2, ChevronDown } from 'lucide-react';
 import type { AggregatedShoppingItem } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { getCategoryTheme } from '../../i18n';
+import IngredientIcon from '../IngredientIcon';
 
 interface ShoppingListItemProps {
   item: AggregatedShoppingItem;
@@ -115,6 +116,13 @@ export default function ShoppingListItem({
             <span className="w-5 h-5 rounded-md bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 transition-colors">
               <Check className="w-3.5 h-3.5 stroke-[2.5]" />
             </span>
+            <IngredientIcon
+              canonicalId={item.canonicalId}
+              category={item.category}
+              name={item.name}
+              size="sm"
+              className="opacity-50 grayscale"
+            />
             {amountStr && (
               <span className="flex-shrink-0 bg-black/5 dark:bg-white/5 text-gray-400 dark:text-gray-500 font-semibold tabular-nums rounded-md px-1.5 py-0.5 text-[11px] whitespace-nowrap line-through opacity-70">
                 {amountStr}
@@ -123,7 +131,7 @@ export default function ShoppingListItem({
             <span className="text-sm text-gray-400 dark:text-gray-500 line-through min-w-0 leading-tight flex flex-wrap items-baseline gap-x-1.5">
               <span className="break-words">{item.name}</span>
               {extraNote && (
-                <span className="text-xs font-normal opacity-70">
+                <span className="text-xs font-normal opacity-70 text-gray-500 dark:text-gray-400">
                   {extraNote}
                 </span>
               )}
@@ -159,6 +167,13 @@ export default function ShoppingListItem({
           ) : (
             <span className="w-5 h-5 rounded-md border-2 border-black/15 dark:border-white/20 group-hover:border-emerald-500/60 flex items-center justify-center flex-shrink-0 transition-colors" />
           )}
+
+          <IngredientIcon
+            canonicalId={item.canonicalId}
+            category={item.category}
+            name={item.name}
+            size="sm"
+          />
 
           {amountStr && (
             <span

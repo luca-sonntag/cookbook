@@ -3,6 +3,7 @@ import { Flame, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAdOverlay } from '../../context/OverlayStackContext';
 import type { Ingredient } from '../../types';
+import IngredientIcon from '../IngredientIcon';
 
 interface IngredientNutritionSheetProps {
   isOpen: boolean;
@@ -68,15 +69,23 @@ export default function IngredientNutritionSheet({
               <div className="p-5 sm:p-6 flex flex-col gap-4 text-gray-900 dark:text-white max-w-lg mx-auto w-full">
                 {/* Header */}
                 <div className="w-full flex items-start justify-between gap-3 pt-1">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white truncate">
-                      {ingredient.name}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium mt-0.5">
-                      {scaledAmount > 0 && `${scaledAmount} ${ingredient.unit || ''}`.trim()}
-                      {ingredient.modifier && ` (${ingredient.modifier})`}
-                      {scaleFactor !== 1 && ` · ×${scaleFactor}`}
-                    </p>
+                  <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                    <IngredientIcon
+                      canonicalId={ingredient.canonicalId}
+                      category={ingredient.category}
+                      name={ingredient.name}
+                      size="lg"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white truncate">
+                        {ingredient.name}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium mt-0.5">
+                        {scaledAmount > 0 && `${scaledAmount} ${ingredient.unit || ''}`.trim()}
+                        {ingredient.modifier && ` (${ingredient.modifier})`}
+                        {scaleFactor !== 1 && ` · ×${scaleFactor}`}
+                      </p>
+                    </div>
                   </div>
                   <button
                     type="button"

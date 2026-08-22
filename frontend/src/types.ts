@@ -159,6 +159,7 @@ export interface ShoppingListItem {
   modifier?: string;
   createdAt: string;
   category?: string;
+  canonicalId?: string | null;
 }
 
 export interface AggregatedShoppingItem {
@@ -169,6 +170,7 @@ export interface AggregatedShoppingItem {
   amount: number;
   checked: boolean;
   category?: string;
+  canonicalId?: string | null;
   modifier?: string;
   itemIds: string[];
   sources: { recipeId?: string; recipeTitle?: string; amount: number; unit: string }[];

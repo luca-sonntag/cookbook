@@ -5,6 +5,7 @@ import type { Ingredient, Recipe } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { getCategoryTheme } from '../../i18n';
 import { getParentIngredient } from '../../utils/ingredientTaxonomy';
+import IngredientIcon from '../IngredientIcon';
 import IngredientNutritionSheet from './IngredientNutritionSheet';
 import RecipeServingsStepper from './RecipeServingsStepper';
 import PremiumModal from '../PremiumModal';
@@ -155,7 +156,13 @@ export default function RecipeIngredients({
                           : ''
                       }`}
                     >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                        <IngredientIcon
+                          canonicalId={ing.canonicalId}
+                          category={group.name}
+                          name={name}
+                          size="md"
+                        />
                         <span className="w-16 text-right pr-2.5 border-r border-black/5 dark:border-white/10 font-semibold text-emerald-600 dark:text-emerald-400 text-sm whitespace-nowrap flex-shrink-0">
                           {amountStr || '\u00A0'}{unitStr || '\u00A0'}
                         </span>
