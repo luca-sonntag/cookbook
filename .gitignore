@@ -20,3 +20,5 @@ frontend/releases/
 docs/FEATURE_IDEAS.md
 # graphify knowledge graph (locally generated, rebuild with: graphify extract . --code-only)
 graphify-out/
+generated-ingredient-images/
+backend/generated-ingredient-images/
