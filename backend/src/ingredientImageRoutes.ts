@@ -94,25 +94,28 @@ ingredientImageRouter.get('/api/dev/ingredients', (req: Request, res: Response) 
   }
 });
 
-// GET /api/dev/ingredients/:id/image - Serve the webp icon
-ingredientImageRouter.get('/api/dev/ingredients/:id/image', (req: Request, res: Response) => {
+// Public Ingredient Icons Endpoint: GET /api/ingredient-icons/:filenameOrId
+ingredientImageRouter.get(['/api/ingredient-icons/:filename', '/api/dev/ingredients/:id/image'], (req: Request, res: Response) => {
   try {
-    const id = req.params.id;
-    const filename = findExistingIngredientImage(id);
+    const rawParam = req.params.filename || req.params.id || '';
+    const cleanId = rawParam.replace(/\.webp$/i, '').toLowerCase().trim();
+    const filename = findExistingIngredientImage(cleanId);
     if (!filename) {
-      return res.status(404).send('Image not found');
+      return res.status(404).send('Ingredient icon not found');
     }
 
     const filePath = path.join(getIngredientImagesDir(), filename);
     if (!fs.existsSync(filePath)) {
-      return res.status(404).send('Image file missing');
+      return res.status(404).send('Ingredient icon file missing');
     }
 
     res.setHeader('Content-Type', 'image/webp');
-    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.sendFile(filePath);
   } catch (err: any) {
-    res.status(500).send('Error serving image');
+    res.status(500).send('Error serving ingredient icon');
   }
 });
 

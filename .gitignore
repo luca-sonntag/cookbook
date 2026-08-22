@@ -22,3 +22,5 @@ docs/FEATURE_IDEAS.md
 graphify-out/
 generated-ingredient-images/
 backend/generated-ingredient-images/
+backend/public/ingredient-icons/*
+!backend/public/ingredient-icons/.gitkeep

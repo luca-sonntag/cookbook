@@ -19,9 +19,9 @@ function getGeminiClient(): GoogleGenerativeAI | null {
 export function getIngredientImagesDir(): string {
   const cwd = process.cwd();
   if (path.basename(cwd).toLowerCase() === 'backend') {
-    return path.resolve(cwd, 'generated-ingredient-images');
+    return path.resolve(cwd, 'public', 'ingredient-icons');
   }
-  return path.resolve(cwd, 'backend', 'generated-ingredient-images');
+  return path.resolve(cwd, 'backend', 'public', 'ingredient-icons');
 }
 
 export const INGREDIENT_IMAGES_DIR = getIngredientImagesDir();
@@ -381,6 +381,11 @@ export function findExistingIngredientImage(ingredientId: string, outDir?: strin
   if (!fs.existsSync(dir)) return null;
 
   const targetPrefix = `${ingredientId.toLowerCase()}`;
+  const canonicalFile = `${targetPrefix}.webp`;
+  if (fs.existsSync(path.join(dir, canonicalFile))) {
+    return canonicalFile;
+  }
+
   const files = fs.readdirSync(dir);
   const matched = files.find(
     (f) =>
@@ -475,13 +480,20 @@ export async function generateIngredientIcon(
   const size = 'square_hd';
   const rawJpegBuffer = await fetchFluxImageBuffer(prompt, size, steps);
   const fileBaseName = getIngredientFileBaseName(item);
-  const filename = `${fileBaseName}.webp`;
-  const filePath = path.join(outDir, filename);
+  const slugFilename = `${fileBaseName}.webp`;
+  const canonicalFilename = `${item.id.toLowerCase()}.webp`;
+  const filePath = path.join(outDir, canonicalFilename);
+  const slugFilePath = path.join(outDir, slugFilename);
 
-  await sharp(rawJpegBuffer)
+  const webpBuffer = await sharp(rawJpegBuffer)
     .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
     .webp({ quality: 90, effort: 6 })
-    .toFile(filePath);
+    .toBuffer();
+
+  fs.writeFileSync(filePath, webpBuffer);
+  if (filePath !== slugFilePath) {
+    fs.writeFileSync(slugFilePath, webpBuffer);
+  }
 
   const durationMs = Date.now() - startTime;
   const stats = fs.statSync(filePath);
@@ -502,7 +514,7 @@ export async function generateIngredientIcon(
     name_de: item.name_de,
     name_en: item.name_en,
     category: item.category,
-    filename,
+    filename: canonicalFilename,
     prompt,
     gemini: geminiCost,
     flux: fluxCost,
@@ -515,7 +527,7 @@ export async function generateIngredientIcon(
 
   return {
     ingredientId: item.id,
-    filename,
+    filename: canonicalFilename,
     filePath,
     prompt,
     durationMs,
