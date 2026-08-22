@@ -156,24 +156,22 @@ export default function RecipeIngredients({
                           : ''
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
                         <IngredientIcon
                           canonicalId={ing.canonicalId}
                           category={group.name}
                           name={name}
                           size="md"
                         />
-                        <span className="w-16 text-right pr-2.5 border-r border-black/5 dark:border-white/10 font-semibold text-emerald-600 dark:text-emerald-400 text-sm whitespace-nowrap flex-shrink-0">
-                          {amountStr || '\u00A0'}{unitStr || '\u00A0'}
-                        </span>
-                        <div className="flex-1 pl-2 min-w-0 flex flex-col justify-center py-0.5">
+                        <div className="flex-1 min-w-0 flex flex-col justify-center">
                           {ing.replacedOriginal && (
                             <span className="text-[11px] leading-tight text-red-500/70 dark:text-red-400/70 line-through font-normal truncate block mb-0.5">
                               {ing.replacedOriginal}
                             </span>
                           )}
-                          <div className="flex items-baseline flex-wrap gap-x-1.5 min-w-0 text-sm text-gray-800 dark:text-gray-200">
-                            <span className="font-medium">{name}</span>
+                          {/* 1. Name oben */}
+                          <div className="flex items-baseline flex-wrap gap-x-1.5 min-w-0 text-sm font-medium text-gray-900 dark:text-white leading-snug">
+                            <span>{name}</span>
                             {showParentBadge && (
                               <span className="text-xs text-gray-400 dark:text-gray-400 font-normal">
                                 {t('recipe.parentDerivedLabel', { parent: parent.name })}
@@ -185,7 +183,20 @@ export default function RecipeIngredients({
                               </span>
                             )}
                           </div>
-                          {ing.notes && <span className="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">{ing.notes}</span>}
+
+                          {/* 2. Menge darunter und etwas kleiner */}
+                          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5">
+                            {(amountStr || unitStr) && (
+                              <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                                {`${amountStr}${unitStr}`.trim()}
+                              </span>
+                            )}
+                            {ing.notes && (
+                              <span className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                                {ing.notes}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
