@@ -316,33 +316,13 @@ async function main(): Promise<void> {
     savedFiles.push(jpegPath);
   }
 
-  // Save optimized WebP (512x512 with standardized 420x420 visual scale)
+  // Save optimized WebP (512x512 icon size) if requested
   if (options.format === 'webp' || options.format === 'both') {
     const webpPath = path.join(options.outDir, `${fileBaseName}.webp`);
-    try {
-      // Trim white background border to isolate true subject bounds
-      const trimmedBuffer = await sharp(rawJpegBuffer)
-        .trim({ background: '#ffffff', threshold: 15 })
-        .toBuffer();
-
-      // Fit trimmed subject into 420x420 and add uniform 46px padding (total 512x512)
-      await sharp(trimmedBuffer)
-        .resize(420, 420, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
-        .extend({
-          top: 46,
-          bottom: 46,
-          left: 46,
-          right: 46,
-          background: { r: 255, g: 255, b: 255, alpha: 1 },
-        })
-        .webp({ quality: 90, effort: 6 })
-        .toFile(webpPath);
-    } catch {
-      await sharp(rawJpegBuffer)
-        .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
-        .webp({ quality: 90, effort: 6 })
-        .toFile(webpPath);
-    }
+    await sharp(rawJpegBuffer)
+      .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
+      .webp({ quality: 90, effort: 6 })
+      .toFile(webpPath);
     savedFiles.push(webpPath);
   }
 
