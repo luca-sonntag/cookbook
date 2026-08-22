@@ -146,7 +146,7 @@ export default function RecipeIngredients({
                           if (!isPremium) {
                             setIsPremiumModalOpen(true);
                           } else {
-                            setSelectedNutritionIngredient(ing);
+                            setSelectedNutritionIngredient({ ...ing, category: ing.category || group.name });
                           }
                         }
                       }}
@@ -208,7 +208,7 @@ export default function RecipeIngredients({
                             if (!isPremium) {
                               setIsPremiumModalOpen(true);
                             } else {
-                              setSelectedNutritionIngredient(ing);
+                              setSelectedNutritionIngredient({ ...ing, category: ing.category || group.name });
                             }
                           }}
                           className={`px-2 py-1 rounded-full inline-flex items-center gap-1 text-xs font-semibold shrink-0 border-none transition-all active:scale-95 cursor-pointer ${
