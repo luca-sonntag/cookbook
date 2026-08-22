@@ -91,7 +91,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const prompt = buildIngredientPrompt(ingredient, options.promptOverride);
+  const prompt = await buildIngredientPrompt(ingredient, { promptOverride: options.promptOverride });
   const existing = findExistingIngredientImage(ingredient.id, options.outDir);
 
   console.log('\n======================================================');

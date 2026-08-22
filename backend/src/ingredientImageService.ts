@@ -1,10 +1,19 @@
 import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from './config.js';
 import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from './data/canonicalIngredients.js';
 
 const FAL_FLUX_ENDPOINT = 'https://fal.run/fal-ai/flux-1/schnell';
+
+let geminiClient: GoogleGenerativeAI | null = null;
+function getGeminiClient(): GoogleGenerativeAI | null {
+  if (!geminiClient && config.GEMINI_API_KEY) {
+    geminiClient = new GoogleGenerativeAI(config.GEMINI_API_KEY);
+  }
+  return geminiClient;
+}
 
 export function getIngredientImagesDir(): string {
   const cwd = process.cwd();
@@ -41,7 +50,7 @@ export function cleanIngredientName(rawName: string): string {
     .trim();
 }
 
-export function getCategoryTags(category: string, cleanName: string, nameDe: string): string {
+export function getFallbackCategoryTags(category: string, cleanName: string, nameDe: string): string {
   const lowerEn = cleanName.toLowerCase();
   const lowerDe = nameDe.toLowerCase();
 
@@ -137,16 +146,69 @@ export function getCategoryTags(category: string, cleanName: string, nameDe: str
   }
 }
 
-export function buildIngredientPrompt(item: CanonicalIngredient, promptOverride?: string): string {
-  if (promptOverride && promptOverride.trim()) {
-    return promptOverride.trim();
+/**
+ * Uses Gemini Flash Lite to craft a dense, accurate physical description of the specific ingredient.
+ */
+export async function describeIngredientVisuallyWithGemini(item: CanonicalIngredient): Promise<string> {
+  const client = getGeminiClient();
+  const fallback = getFallbackCategoryTags(item.category, cleanIngredientName(item.name_en || item.name_de), item.name_de);
+  if (!client) {
+    return fallback;
+  }
+
+  const modelName = config.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+  try {
+    const model = client.getGenerativeModel({
+      model: modelName,
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 60,
+      },
+      systemInstruction:
+        'You are an expert food photography art director. Given a food ingredient name in German/English and its category, output a dense, compact English visual subject description (8 to 15 words max) for an isolated studio food icon asset. ' +
+        'Rules: ' +
+        '- Output ONLY the comma-separated visual tags/description, no introductory text, no sentences, no quotes, no markdown. ' +
+        '- Describe the physical item, its authentic real-world shape, best culinary container/presentation (e.g. glass bottle for oils, white ceramic pinch bowl for spices/powders/quark, whole produce with stem, clean butchered cut, or raw dough/pasta), and natural textures/colors. ' +
+        '- Do NOT mention background, lighting, or camera angle (handled by the template). ' +
+        '- Keep it compact and dense.',
+    });
+
+    const userPrompt = `Ingredient: "${item.name_de}" (English: "${item.name_en}", Category: ${item.category})`;
+    const res = await model.generateContent(userPrompt);
+    const text = res.response.text().trim().replace(/^["']|["']$/g, '').replace(/\.$/, '');
+
+    if (text && text.length > 5) {
+      return text;
+    }
+  } catch (err: any) {
+    console.warn(`[ingredientImageService] Gemini visual description failed for ${item.id}: ${err.message}`);
+  }
+
+  return fallback;
+}
+
+export async function buildIngredientPrompt(
+  item: CanonicalIngredient,
+  options: {
+    promptOverride?: string;
+    useGemini?: boolean;
+  } = {}
+): Promise<string> {
+  if (options.promptOverride && options.promptOverride.trim()) {
+    return options.promptOverride.trim();
   }
 
   const rawName = item.name_en || item.name_de;
   const cleanName = cleanIngredientName(rawName);
-  const categoryTags = getCategoryTags(item.category, cleanName, item.name_de);
 
-  return `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, ${categoryTags}, symmetrical softbox studio lighting, sharp focus, vibrant natural colors, zero shadows, no floor shadow, no text, no labels, no watermark`;
+  let visualTags: string;
+  if (options.useGemini !== false && config.GEMINI_API_KEY) {
+    visualTags = await describeIngredientVisuallyWithGemini(item);
+  } else {
+    visualTags = getFallbackCategoryTags(item.category, cleanName, item.name_de);
+  }
+
+  return `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, ${visualTags}, symmetrical softbox studio lighting, sharp focus, vibrant natural colors, zero shadows, no floor shadow, no text, no labels, no watermark`;
 }
 
 export function getIngredientSlug(item: CanonicalIngredient): string {
@@ -184,6 +246,8 @@ export async function fetchFluxImageBuffer(prompt: string, size: string = 'squar
 
   const authHeader = apiKey.startsWith('Key ') ? apiKey : `Key ${apiKey}`;
 
+  console.log(`[fal.ai] Calling FLUX.1 [schnell] (size: ${size}, steps: ${steps})...`);
+
   const response = await fetch(FAL_FLUX_ENDPOINT, {
     method: 'POST',
     headers: {
@@ -210,6 +274,9 @@ export async function fetchFluxImageBuffer(prompt: string, size: string = 'squar
     throw new Error('fal.ai response did not contain an image URL');
   }
 
+  console.log(`[fal.ai] Image generated: ${imageUrl}`);
+  console.log(`[fal.ai] Downloading image buffer...`);
+
   const imgRes = await fetch(imageUrl);
   if (!imgRes.ok) {
     throw new Error(`Failed to download image from CDN (${imgRes.status})`);
@@ -234,13 +301,17 @@ export async function generateIngredientIcon(
     outDir?: string;
     promptOverride?: string;
     steps?: number;
+    useGemini?: boolean;
   } = {}
 ): Promise<GenerateIconResult> {
-  const outDir = options.outDir || INGREDIENT_IMAGES_DIR;
+  const outDir = options.outDir || getIngredientImagesDir();
   ensureImageDirExists(outDir);
 
-  const prompt = buildIngredientPrompt(item, options.promptOverride);
   const startTime = Date.now();
+  const prompt = await buildIngredientPrompt(item, {
+    promptOverride: options.promptOverride,
+    useGemini: options.useGemini,
+  });
 
   const rawJpegBuffer = await fetchFluxImageBuffer(prompt, 'square_hd', options.steps || 4);
   const fileBaseName = getIngredientFileBaseName(item);
