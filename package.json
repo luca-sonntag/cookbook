@@ -19,7 +19,8 @@
     "deploy:all:internal": "powershell -ExecutionPolicy Bypass -File deploy.ps1 -All -Bump patch -Track internal",
     "deploy:all:alpha": "powershell -ExecutionPolicy Bypass -File deploy.ps1 -All -Bump patch -Track alpha",
     "healthcheck": "npm run start --prefix healthcheck",
-    "generate:ingredient-image": "npm run generate:ingredient-image -w backend --"
+    "generate:ingredient-image": "npm run generate:ingredient-image -w backend --",
+    "generate:basename-icons": "npm run generate:basename-icons -w backend --"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"
