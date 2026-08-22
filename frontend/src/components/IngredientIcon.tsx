@@ -11,15 +11,15 @@ export interface IngredientIconProps {
 }
 
 const SIZE_MAP = {
-  sm: 'w-7 h-7 min-w-[28px] text-xs rounded-lg',
-  md: 'w-9 h-9 min-w-[36px] text-sm rounded-xl',
-  lg: 'w-12 h-12 min-w-[48px] text-xl rounded-2xl',
+  sm: 'w-8 h-8 min-w-[32px] text-sm rounded-lg',
+  md: 'w-11 h-11 min-w-[44px] text-base rounded-xl',
+  lg: 'w-14 h-14 min-w-[56px] text-2xl rounded-2xl',
 };
 
 const ICON_SIZE_MAP = {
-  sm: 'w-6 h-6',
-  md: 'w-8 h-8',
-  lg: 'w-11 h-11',
+  sm: 'w-full h-full p-0.5',
+  md: 'w-full h-full p-0.5',
+  lg: 'w-full h-full p-1',
 };
 
 export const IngredientIcon: React.FC<IngredientIconProps> = ({
@@ -43,7 +43,7 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
         className={`${SIZE_MAP[size]} flex items-center justify-center overflow-hidden flex-shrink-0 select-none bg-black/[0.03] dark:bg-white/[0.06] rounded-xl ${className}`}
         title={category || name}
       >
-        <span className="leading-none text-base sm:text-lg">{categoryIcon}</span>
+        <span className="leading-none text-lg sm:text-xl">{categoryIcon}</span>
       </div>
     );
   }
@@ -52,7 +52,7 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
     <div className={containerClasses} title={name}>
       {/* Background fallback until image is fully loaded */}
       {!isLoaded && (
-        <span className="absolute inset-0 flex items-center justify-center opacity-60 text-xs">
+        <span className="absolute inset-0 flex items-center justify-center opacity-60 text-base">
           {categoryIcon}
         </span>
       )}
