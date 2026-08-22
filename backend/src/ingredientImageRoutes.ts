@@ -167,166 +167,479 @@ function renderIngredientViewerHtml(): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zutaten Icon Studio (FLUX + Gemini)</title>
+  <title>Ingredient Icon Studio (Dev)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg: #090d16;
+      --panel-bg: #0f172a;
+      --card-bg: #131d31;
+      --card-selected: #172640;
+      --border: #1e293b;
+      --border-focus: #10b981;
+      --text: #f1f5f9;
+      --text-muted: #64748b;
+      --text-sub: #94a3b8;
       --primary: #10b981;
       --primary-hover: #059669;
       --accent: #6366f1;
       --danger: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px 20px; }
-    
-    .container { max-width: 1400px; margin: 0 auto; }
-    
-    header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
-    .title-area h1 { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-    .title-area p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
-    
-    .header-badges { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .stats-badge { background: #1e293b; border: 1px solid var(--card-border); padding: 8px 16px; border-radius: 9999px; font-size: 13px; font-weight: 600; }
-    .stats-badge span { color: var(--primary); }
-    .stats-badge.cost-badge { border-color: #6366f1; }
-    
-    .controls { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--card-border); align-items: center; }
-    .search-box { flex: 1; min-width: 250px; position: relative; }
-    .search-box input { width: 100%; background: #0f172a; border: 1px solid var(--card-border); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 14px; outline: none; }
-    .search-box input:focus { border-color: var(--primary); }
-    
-    select, button { background: #0f172a; border: 1px solid var(--card-border); color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.15s; outline: none; }
-    select:focus, button:hover { border-color: var(--primary); }
-    
-    button.btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    button.btn-primary:hover { background: var(--primary-hover); }
-    button.btn-danger { background: var(--danger); border-color: var(--danger); }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-    .batch-bar { display: none; background: #1e293b; border: 1px solid var(--primary); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
-    .batch-bar.active { display: block; }
-    .progress-track { width: 100%; height: 8px; background: #0f172a; border-radius: 9999px; overflow: hidden; margin: 12px 0; }
-    .progress-fill { height: 100%; width: 0%; background: var(--primary); transition: width 0.3s; }
-    .batch-status { font-size: 14px; display: flex; justify-content: space-between; color: var(--text-muted); }
+    /* Minimal Top Dev Bar */
+    header {
+      height: 52px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .logo { font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; letter-spacing: -0.3px; }
+    .dev-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; background: #1e293b; color: #94a3b8; padding: 2px 6px; border-radius: 4px; border: 1px solid #334155; font-family: 'JetBrains Mono', monospace; }
+    
+    .header-right { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .pill-stat { background: #131d31; border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; font-weight: 500; color: var(--text-sub); }
+    .pill-stat span { color: var(--primary); font-weight: 700; }
+    .pill-cost { background: #131d31; border: 1px solid #312e81; padding: 4px 10px; border-radius: 6px; font-weight: 500; color: #a5b4fc; }
+    .pill-cost span { color: #818cf8; font-weight: 700; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+    /* Split Main Container */
+    .split-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      min-height: 0;
+      overflow: hidden;
+    }
+    @media (max-width: 960px) {
+      .split-layout { grid-template-columns: 1fr; }
+      .right-pane { display: none; }
+    }
+
+    /* Left Pane: Controls & Master List */
+    .left-pane {
+      display: flex;
+      flex-direction: column;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .filter-bar {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--panel-bg);
+      flex-shrink: 0;
+    }
+    .search-input {
+      width: 100%;
+      background: #090d16;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-input:focus { border-color: var(--border-focus); }
+
+    .filter-row { display: flex; gap: 6px; }
+    select, button {
+      background: #090d16;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.15s;
+    }
+    select:focus, button:hover { border-color: var(--border-focus); color: #fff; }
     
-    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 14px; transition: border-color 0.15s, transform 0.15s; position: relative; }
-    .card:hover { border-color: #475569; }
-    .card.has-image { border-left: 3px solid var(--primary); }
-    .card.generating { border-color: var(--accent); }
-    
-    .thumbnail { width: 64px; height: 64px; border-radius: 10px; background: #ffffff; border: 1px solid #334155; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-    .thumbnail img { width: 100%; height: 100%; object-fit: contain; }
-    .thumbnail .placeholder { color: #94a3b8; font-size: 24px; }
-    
-    .spinner-overlay { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.85); display: none; align-items: center; justify-content: center; z-index: 2; border-radius: 10px; }
-    .card.generating .spinner-overlay { display: flex; }
-    
-    .spinner { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    .btn-batch {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #000;
+      font-weight: 700;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+    .btn-batch:hover { background: var(--primary-hover); }
+    .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+    .batch-progress {
+      display: none;
+      padding: 10px 12px;
+      background: #172640;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .batch-progress.active { display: block; }
+    .progress-bar-track { width: 100%; height: 6px; background: #090d16; border-radius: 999px; overflow: hidden; margin: 6px 0; }
+    .progress-bar-fill { width: 0%; height: 100%; background: var(--primary); transition: width 0.2s; }
+
+    /* Scrollable Ingredient List */
+    .list-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: var(--card-bg);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.1s;
+      position: relative;
+    }
+    .item-row:hover { background: #172640; border-color: #334155; }
+    .item-row.selected { background: var(--card-selected); border-color: var(--primary); }
+    .item-row.generating { border-color: var(--accent); }
+
+    .row-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      background: #ffffff;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid #334155;
+    }
+    .row-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .row-thumb .placeholder-emoji { font-size: 18px; }
+
+    .spinner-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+    .item-row.generating .spinner-overlay { display: flex; }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .info { flex: 1; min-width: 0; }
-    .name-de { font-weight: 600; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .name-en { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-    
-    .meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
-    .category-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: #334155; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px; }
-    .id-pill { font-size: 10px; color: #64748b; font-family: monospace; }
-    
-    .actions { flex-shrink: 0; }
-    .btn-gen { padding: 8px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; background: #334155; color: #fff; border: 1px solid transparent; }
-    .btn-gen:hover { background: var(--primary); border-color: var(--primary); }
-    .btn-gen.re-gen { background: transparent; border-color: #475569; color: var(--text-muted); }
-    .btn-gen.re-gen:hover { border-color: var(--primary); color: #fff; }
+    .row-info { flex: 1; min-width: 0; }
+    .row-name-de { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row-name-en { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 10px; }
+    .cat-pill { color: #94a3b8; background: #090d16; padding: 1px 5px; border-radius: 4px; font-size: 9px; text-transform: uppercase; }
+    .id-text { color: #475569; font-family: 'JetBrains Mono', monospace; }
 
-    .toast { position: fixed; bottom: 24px; right: 24px; background: #1e293b; border: 1px solid var(--primary); color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 999; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
+    .row-btn {
+      padding: 5px 8px;
+      font-size: 11px;
+      border-radius: 5px;
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid transparent;
+      flex-shrink: 0;
+    }
+    .row-btn:hover { background: var(--primary); color: #000; font-weight: 600; }
+    .row-btn.has-img { background: transparent; border-color: #334155; }
+    .row-btn.has-img:hover { border-color: var(--primary); color: #fff; }
+
+    /* Right Pane: Fullscreen Inspection View */
+    .right-pane {
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 24px 32px;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .detail-card {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    .detail-title h2 { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .detail-title p { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+    .detail-tags { display: flex; gap: 6px; margin-top: 8px; }
+    .tag-badge { background: #1e293b; color: #cbd5e1; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px; }
+    .tag-id { background: #0f172a; color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 8px; border-radius: 5px; border: 1px solid #1e293b; }
+
+    /* Big Image Container */
+    .big-preview-wrapper {
+      width: 100%;
+      aspect-ratio: 1/1;
+      max-height: 440px;
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      cursor: zoom-in;
+      transition: transform 0.15s;
+    }
+    .big-preview-wrapper:hover { border-color: var(--primary); }
+    .big-preview-wrapper img { width: 100%; height: 100%; object-fit: contain; }
+    .big-placeholder { text-align: center; color: #64748b; }
+    .big-placeholder .big-emoji { font-size: 64px; margin-bottom: 8px; }
+    .big-placeholder p { font-size: 14px; color: #94a3b8; }
+
+    .zoom-hint {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #cbd5e1;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-action-primary {
+      flex: 1;
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #000;
+      font-weight: 700;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-action-primary:hover { background: var(--primary-hover); }
+    .btn-action-secondary {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .btn-action-secondary:hover { border-color: #475569; color: #fff; }
+
+    .meta-box {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .meta-box-row { display: flex; justify-content: space-between; gap: 10px; color: var(--text-sub); }
+    .meta-box-row strong { color: #fff; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; }
+
+    /* Lightbox Modal */
+    .lightbox-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+    .lightbox-modal.active { display: flex; }
+    .lightbox-content {
+      width: 90vmin;
+      height: 90vmin;
+      max-width: 680px;
+      max-height: 680px;
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+    .lightbox-content img { width: 100%; height: 100%; object-fit: contain; }
+    .lightbox-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(15, 23, 42, 0.9);
+      color: #fff;
+      border: 1px solid #334155;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1e293b;
+      border: 1px solid var(--primary);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 999;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.25s;
+    }
     .toast.show { transform: translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="title-area">
-        <h1>🥑 Zutaten Icon Studio <span style="font-size: 14px; font-weight: normal; color: var(--text-muted);">(FLUX.1 + Gemini)</span></h1>
-        <p>Erstelle und verwalte freigestellte Zutaten-Icons auf reinweißem Studio-Hintergrund</p>
-      </div>
-      <div class="header-badges">
-        <div class="stats-badge" id="statsDisplay">
-          Generiert: <span id="statCount">0</span> / <span id="statTotal">0</span> (<span id="statPercent">0%</span>)
-        </div>
-        <div class="stats-badge cost-badge" id="costDisplay">
-          💰 Kosten: <span id="costTotal" style="color: #818cf8;">$0.0000</span> <span id="costEur" style="color: #a5b4fc; font-weight: normal;">(~0.00 €)</span>
-          <span style="font-size: 11px; color: var(--text-muted); margin-left: 4px;">(Gemini: <span id="costGemini" style="color: #cbd5e1;">$0.00</span> | FLUX: <span id="costFlux" style="color: #cbd5e1;">$0.00</span>)</span>
-        </div>
-      </div>
-    </header>
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <div class="logo">🥑 Icon Studio</div>
+      <span class="dev-tag">dev</span>
+    </div>
+    <div class="header-right">
+      <div class="pill-stat">Icons: <span id="statCount">0</span> / <span id="statTotal">0</span> (<span id="statPercent">0%</span>)</div>
+      <div class="pill-cost">💰 <span id="costTotal">$0.00</span> <span id="costEur">(~0.00 €)</span></div>
+    </div>
+  </header>
 
-    <div class="controls">
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Suche nach Zutat (z. B. Apfel, Hafer, Barilla, bls_...)" />
+  <!-- Split Screen View -->
+  <div class="split-layout">
+    <!-- Left Pane -->
+    <div class="left-pane">
+      <div class="filter-bar">
+        <input type="text" id="searchInput" class="search-input" placeholder="Zutat suchen (z. B. Apfel, Hafer, bls_...)" />
+        <div class="filter-row">
+          <select id="categorySelect" style="flex: 1;">
+            <option value="ALL">Alle Kategorien</option>
+            <option value="FRUITS_VEGETABLES">Obst & Gemüse</option>
+            <option value="GRAINS_PASTA">Getreide & Pasta</option>
+            <option value="DAIRY">Milch & Käse</option>
+            <option value="MEAT_FISH">Fleisch & Fisch</option>
+            <option value="SPICES_OILS">Gewürze & Öle</option>
+            <option value="BREAD_BAKERY">Brot & Backwaren</option>
+            <option value="BAKING_COOKING">Backen & Kochen</option>
+            <option value="SWEETS_SNACKS">Süßes & Snacks</option>
+            <option value="CANNED_PRESERVED">Konserven & Gläser</option>
+            <option value="BEVERAGES">Getränke</option>
+            <option value="FROZEN">Tiefkühl</option>
+            <option value="READY_MEALS">Fertiggerichte</option>
+          </select>
+          <select id="statusSelect">
+            <option value="all">Alle</option>
+            <option value="false">Fehlend</option>
+            <option value="true">Vorhanden</option>
+          </select>
+          <select id="concurrencySelect" title="Parallelität">
+            <option value="5" selected>⚡ 5x</option>
+            <option value="3">⚡ 3x</option>
+            <option value="1">1x</option>
+          </select>
+          <button class="btn-batch" id="btnBatch">
+            ⚡ Batch (<span id="batchTargetCount">0</span>)
+          </button>
+        </div>
       </div>
-      <select id="categorySelect">
-        <option value="ALL">Alle Kategorien</option>
-        <option value="FRUITS_VEGETABLES">Obst & Gemüse</option>
-        <option value="GRAINS_PASTA">Getreide & Pasta</option>
-        <option value="DAIRY">Milch & Käse</option>
-        <option value="MEAT_FISH">Fleisch & Fisch</option>
-        <option value="SPICES_OILS">Gewürze & Öle</option>
-        <option value="BREAD_BAKERY">Brot & Backwaren</option>
-        <option value="BAKING_COOKING">Backen & Kochen</option>
-        <option value="SWEETS_SNACKS">Süßes & Snacks</option>
-        <option value="CANNED_PRESERVED">Konserven & Gläser</option>
-        <option value="BEVERAGES">Getränke</option>
-        <option value="FROZEN">Tiefkühl</option>
-        <option value="READY_MEALS">Fertiggerichte</option>
-      </select>
-      <select id="statusSelect">
-        <option value="all">Alle Einträge</option>
-        <option value="false">Nur ohne Icon</option>
-        <option value="true">Nur mit Icon</option>
-      </select>
-      <select id="concurrencySelect" title="Parallele Anfragen">
-        <option value="5" selected>⚡ 5 parallel</option>
-        <option value="3">⚡ 3 parallel</option>
-        <option value="1">1 einzeln</option>
-      </select>
-      <button class="btn-primary" id="btnBatch">
-        ⚡ Batch generieren (<span id="batchTargetCount">0</span>)
-      </button>
+
+      <div class="batch-progress" id="batchBar">
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub);">
+          <strong id="batchTitle">Batch läuft...</strong>
+          <span id="batchProgressText">0 / 0</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="batchProgressFill"></div>
+        </div>
+        <button class="btn-danger" id="btnCancelBatch" style="padding: 4px 10px; font-size: 11px; margin-top: 2px;">
+          Abbrechen
+        </button>
+      </div>
+
+      <div class="list-container" id="ingredientsList"></div>
     </div>
 
-    <div class="batch-bar" id="batchBar">
-      <div class="batch-status">
-        <strong id="batchTitle">Batch-Generierung läuft...</strong>
-        <span id="batchProgressText">0 / 0</span>
+    <!-- Right Pane: Fullscreen Inspection View -->
+    <div class="right-pane" id="rightPane">
+      <div class="detail-card" id="detailContainer">
+        <div style="color: var(--text-muted); text-align: center; margin-top: 80px;">
+          Wähle eine Zutat aus der linken Liste aus
+        </div>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="batchProgressFill"></div>
-      </div>
-      <button class="btn-danger" id="btnCancelBatch" style="padding: 6px 14px; font-size: 12px; margin-top: 4px;">
-        Abbrechen
-      </button>
     </div>
+  </div>
 
-    <div class="grid" id="ingredientsGrid"></div>
+  <!-- Lightbox Modal for Fullscreen View -->
+  <div class="lightbox-modal" id="lightboxModal" onclick="closeLightbox()">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <button class="lightbox-close" onclick="closeLightbox()">✕ Schließen (ESC)</button>
+      <img id="lightboxImg" src="" alt="Vollbild Vorschau" />
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>
 
   <script>
     let ingredients = [];
+    let selectedItem = null;
     let isBatchRunning = false;
     let cancelBatchRequested = false;
 
-    const grid = document.getElementById('ingredientsGrid');
+    const list = document.getElementById('ingredientsList');
+    const rightPane = document.getElementById('rightPane');
+    const detailContainer = document.getElementById('detailContainer');
     const searchInput = document.getElementById('searchInput');
     const categorySelect = document.getElementById('categorySelect');
     const statusSelect = document.getElementById('statusSelect');
@@ -336,36 +649,49 @@ function renderIngredientViewerHtml(): string {
     const statPercent = document.getElementById('statPercent');
     const costTotal = document.getElementById('costTotal');
     const costEur = document.getElementById('costEur');
-    const costGemini = document.getElementById('costGemini');
-    const costFlux = document.getElementById('costFlux');
     const btnBatch = document.getElementById('btnBatch');
     const batchTargetCount = document.getElementById('batchTargetCount');
     const batchBar = document.getElementById('batchBar');
+    const batchTitle = document.getElementById('batchTitle');
     const batchProgressText = document.getElementById('batchProgressText');
     const batchProgressFill = document.getElementById('batchProgressFill');
     const btnCancelBatch = document.getElementById('btnCancelBatch');
     const toast = document.getElementById('toast');
+    const lightboxModal = document.getElementById('lightboxModal');
+    const lightboxImg = document.getElementById('lightboxImg');
 
     function showToast(msg) {
       toast.textContent = msg;
       toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3500);
+      setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
     function updateCostsDisplay(costs) {
       if (!costs) return;
       costTotal.textContent = '$' + (costs.totalCostUsd || 0).toFixed(4);
       costEur.textContent = '(~' + (costs.approxEur || 0).toFixed(2) + ' €)';
-      costGemini.textContent = '$' + (costs.totalGeminiCostUsd || 0).toFixed(4);
-      costFlux.textContent = '$' + (costs.totalFluxCostUsd || 0).toFixed(4);
     }
+
+    function openLightbox(url) {
+      if (!url) return;
+      lightboxImg.src = url;
+      lightboxModal.classList.add('active');
+    }
+
+    function closeLightbox() {
+      lightboxModal.classList.remove('active');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
 
     async function loadData() {
       const q = encodeURIComponent(searchInput.value.trim());
       const cat = encodeURIComponent(categorySelect.value);
       const hasImg = encodeURIComponent(statusSelect.value);
       
-      const res = await fetch(\`/api/dev/ingredients?search=\${q}&category=\${cat}&hasImage=\${hasImg}&limit=1000\`);
+      const res = await fetch('/api/dev/ingredients?search=' + q + '&category=' + cat + '&hasImage=' + hasImg + '&limit=1500');
       const data = await res.json();
       
       if (!data.success) return;
@@ -383,58 +709,132 @@ function renderIngredientViewerHtml(): string {
         updateCostsDisplay(data.costs);
       }
 
-      renderGrid();
+      renderList();
+
+      // Keep current selection or select first item
+      if (selectedItem) {
+        const found = ingredients.find(i => i.id === selectedItem.id);
+        selectItem(found || ingredients[0] || null);
+      } else if (ingredients.length > 0) {
+        selectItem(ingredients[0]);
+      }
     }
 
-    function renderGrid() {
-      grid.innerHTML = '';
+    function renderList() {
+      list.innerHTML = '';
       if (ingredients.length === 0) {
-        grid.innerHTML = '<div style="color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">Keine Zutaten gefunden.</div>';
+        list.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 40px; font-size: 13px;">Keine Zutaten gefunden.</div>';
         return;
       }
 
       for (const item of ingredients) {
-        const card = document.createElement('div');
-        card.className = 'card' + (item.hasImage ? ' has-image' : '');
-        card.id = 'card-' + item.id;
+        const row = document.createElement('div');
+        const isSelected = selectedItem && selectedItem.id === item.id;
+        row.className = 'item-row' + (isSelected ? ' selected' : '');
+        row.id = 'row-' + item.id;
+        row.onclick = () => selectItem(item);
 
-        const thumbContent = item.hasImage && item.imageUrl
-          ? \`<img src="\${item.imageUrl}" alt="\${item.name_de}" loading="lazy" />\`
-          : \`<div class="placeholder">🍽️</div>\`;
+        const thumbImg = item.hasImage && item.imageUrl
+          ? '<img src="' + item.imageUrl + '" alt="' + item.name_de + '" loading="lazy" />'
+          : '<div class="placeholder-emoji">🍽️</div>';
 
-        const btnText = item.hasImage ? '🔄 Neu' : '✨ Generieren';
-        const btnClass = item.hasImage ? 'btn-gen re-gen' : 'btn-gen';
+        const btnText = item.hasImage ? '🔄' : '✨';
+        const btnClass = item.hasImage ? 'row-btn has-img' : 'row-btn';
 
-        card.innerHTML = \`
-          <div class="thumbnail">
-            <div class="spinner-overlay"><div class="spinner"></div></div>
-            <div class="thumb-img-wrapper" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
-              \${thumbContent}
-            </div>
-          </div>
-          <div class="info">
-            <div class="name-de" title="\${item.name_de}">\${item.name_de}</div>
-            <div class="name-en" title="\${item.name_en}">\${item.name_en || '—'}</div>
-            <div class="meta">
-              <span class="category-badge">\${item.category}</span>
-              <span class="id-pill">\${item.id}</span>
-            </div>
-          </div>
-          <div class="actions">
-            <button class="\${btnClass}" onclick="generateSingle('\${item.id}')">\${btnText}</button>
-          </div>
-        \`;
+        row.innerHTML = 
+          '<div class="row-thumb">' +
+            '<div class="spinner-overlay"><div class="spinner"></div></div>' +
+            '<div class="thumb-img-wrapper" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">' +
+              thumbImg +
+            '</div>' +
+          '</div>' +
+          '<div class="row-info">' +
+            '<div class="row-name-de">' + item.name_de + '</div>' +
+            '<div class="row-name-en">' + (item.name_en || '—') + '</div>' +
+            '<div class="row-meta">' +
+              '<span class="cat-pill">' + item.category + '</span>' +
+              '<span class="id-text">' + item.id + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button class="' + btnClass + '" onclick="event.stopPropagation(); generateSingle(\\'' + item.id + '\\')">' + btnText + '</button>';
 
-        grid.appendChild(card);
+        list.appendChild(row);
       }
     }
 
+    function selectItem(item) {
+      if (!item) {
+        detailContainer.innerHTML = '<div style="color: var(--text-muted); text-align: center; margin-top: 80px;">Keine Zutat ausgewählt</div>';
+        return;
+      }
+
+      selectedItem = item;
+
+      // Update active highlight in left list
+      document.querySelectorAll('.item-row').forEach(r => r.classList.remove('selected'));
+      const activeRow = document.getElementById('row-' + item.id);
+      if (activeRow) activeRow.classList.add('selected');
+
+      renderDetailView();
+    }
+
+    function renderDetailView() {
+      const item = selectedItem;
+      if (!item) return;
+
+      const hasImg = item.hasImage && item.imageUrl;
+      const previewContent = hasImg
+        ? '<img src="' + item.imageUrl + '" alt="' + item.name_de + '" id="detailImagePreview" />' +
+          '<span class="zoom-hint">🔍 Klick für Vollbild</span>'
+        : '<div class="big-placeholder"><div class="big-emoji">🍽️</div><p>Noch kein Bild generiert</p></div>';
+
+      const publicUrl = '/api/ingredient-icons/' + item.id + '.webp';
+
+      detailContainer.innerHTML = 
+        '<div class="detail-header">' +
+          '<div class="detail-title">' +
+            '<h2>' + item.name_de + '</h2>' +
+            '<p>' + (item.name_en || 'Kein englischer Name') + '</p>' +
+            '<div class="detail-tags">' +
+              '<span class="tag-badge">' + item.category + '</span>' +
+              '<span class="tag-id">' + item.id + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button class="btn-action-primary" style="flex:0; padding:8px 14px; white-space:nowrap;" id="btnDetailGen" onclick="generateSingle(\\'' + item.id + '\\')">' +
+            (hasImg ? '🔄 Neu generieren' : '✨ Icon generieren') +
+          '</button>' +
+        '</div>' +
+        '<div class="big-preview-wrapper" onclick="' + (hasImg ? 'openLightbox(\\'' + item.imageUrl + '\\')' : 'generateSingle(\\'' + item.id + '\\')') + '">' +
+          previewContent +
+        '</div>' +
+        '<div class="detail-actions">' +
+          '<button class="btn-action-secondary" style="flex:1;" onclick="copyToClipboard(\\'' + publicUrl + '\\')">📋 URL kopieren</button>' +
+          (hasImg ? '<button class="btn-action-secondary" style="flex:1;" onclick="openLightbox(\\'' + item.imageUrl + '\\')">🔍 Vollbild</button>' : '') +
+        '</div>' +
+        '<div class="meta-box">' +
+          '<div class="meta-box-row"><span>Öffentliche API:</span><strong>' + publicUrl + '</strong></div>' +
+          '<div class="meta-box-row"><span>Format & Auflösung:</span><strong>512 × 512 px (WebP)</strong></div>' +
+          '<div class="meta-box-row"><span>Freisteller:</span><strong>Pure Solid White Margin</strong></div>' +
+        '</div>';
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(window.location.origin + text);
+      showToast('📋 In Zwischenablage kopiert!');
+    }
+
     async function generateSingle(id) {
-      const card = document.getElementById('card-' + id);
-      if (card) card.classList.add('generating');
+      const row = document.getElementById('row-' + id);
+      if (row) row.classList.add('generating');
+
+      const detailBtn = document.getElementById('btnDetailGen');
+      if (detailBtn && selectedItem && selectedItem.id === id) {
+        detailBtn.disabled = true;
+        detailBtn.textContent = '⏳ Generiere...';
+      }
 
       try {
-        const res = await fetch(\`/api/dev/ingredients/\${id}/generate\`, { method: 'POST' });
+        const res = await fetch('/api/dev/ingredients/' + id + '/generate', { method: 'POST' });
         const data = await res.json();
 
         if (data.success && data.item) {
@@ -445,57 +845,61 @@ function renderIngredientViewerHtml(): string {
             ingredients[itemIdx].filename = data.item.filename;
           }
 
-          if (card) {
-            card.classList.remove('generating');
-            card.classList.add('has-image');
-            const wrapper = card.querySelector('.thumb-img-wrapper');
-            if (wrapper) wrapper.innerHTML = \`<img src="\${data.item.imageUrl}" alt="\${data.item.name_de}" />\`;
-            const btn = card.querySelector('.btn-gen');
+          if (selectedItem && selectedItem.id === id) {
+            selectedItem.hasImage = true;
+            selectedItem.imageUrl = data.item.imageUrl;
+            selectedItem.filename = data.item.filename;
+            renderDetailView();
+          }
+
+          if (row) {
+            row.classList.remove('generating');
+            const wrapper = row.querySelector('.thumb-img-wrapper');
+            if (wrapper) wrapper.innerHTML = '<img src="' + data.item.imageUrl + '" alt="' + data.item.name_de + '" />';
+            const btn = row.querySelector('.row-btn');
             if (btn) {
-              btn.className = 'btn-gen re-gen';
-              btn.textContent = '🔄 Neu';
+              btn.className = 'row-btn has-img';
+              btn.textContent = '🔄';
             }
           }
+
           const costStr = data.costs?.totalCostUsd ? ' | $' + data.costs.totalCostUsd.toFixed(5) : '';
-          showToast(\`🎉 \${data.item.name_de} generiert (\${(data.durationMs / 1000).toFixed(1)}s\${costStr})\`);
+          showToast('🎉 ' + data.item.name_de + ' generiert (' + (data.durationMs / 1000).toFixed(1) + 's' + costStr + ')');
           statCount.textContent = parseInt(statCount.textContent || 0) + 1;
 
           if (data.costsSummary) {
             updateCostsDisplay(data.costsSummary);
           }
-        } else {
-          console.error('Fehler:', data.error);
         }
       } catch (err) {
-        console.error('Netzwerkfehler:', err);
+        console.error('Generierungsfehler:', err);
       } finally {
-        if (card) card.classList.remove('generating');
+        if (row) row.classList.remove('generating');
+        if (detailBtn) detailBtn.disabled = false;
       }
     }
 
     async function startBatch() {
       const targets = ingredients.filter(i => !i.hasImage);
       if (targets.length === 0) {
-        alert('Alle aktuell angezeigten Zutaten besitzen bereits ein generiertes Bild.');
+        alert('Alle aktuell gefilterten Zutaten besitzen bereits ein Bild.');
         return;
       }
 
       const concurrency = parseInt(concurrencySelect.value, 10) || 5;
-
-      if (!confirm(\`Möchtest du \${targets.length} Zutaten-Icons generieren? (\${concurrency} parallel)\`)) {
+      if (!confirm('Möchtest du ' + targets.length + ' Zutaten-Icons generieren? (' + concurrency + ' parallel)')) {
         return;
       }
 
       isBatchRunning = true;
       cancelBatchRequested = false;
       batchBar.classList.add('active');
-      batchTitle.textContent = 'Batch-Generierung läuft...';
+      batchTitle.textContent = 'Batch läuft...';
       btnCancelBatch.disabled = false;
       btnCancelBatch.textContent = 'Abbrechen';
       
       btnBatch.className = 'btn-danger';
-      btnBatch.disabled = false;
-      btnBatch.textContent = '🛑 Batch abbrechen';
+      btnBatch.textContent = '🛑 Stop';
 
       let queueIndex = 0;
       let completed = 0;
@@ -503,9 +907,9 @@ function renderIngredientViewerHtml(): string {
 
       function updateProgress() {
         if (cancelBatchRequested) {
-          batchProgressText.textContent = 'Wird beendet... (' + runningCount + ' noch aktiv)';
+          batchProgressText.textContent = 'Beenden... (' + runningCount + ' aktiv)';
         } else {
-          batchProgressText.textContent = completed + ' / ' + targets.length + ' fertig (' + runningCount + ' aktiv)';
+          batchProgressText.textContent = completed + ' / ' + targets.length + ' (' + runningCount + ' aktiv)';
         }
         batchProgressFill.style.width = ((completed / targets.length) * 100) + '%';
       }
@@ -533,46 +937,35 @@ function renderIngredientViewerHtml(): string {
 
       batchProgressFill.style.width = '100%';
       batchProgressText.textContent = cancelBatchRequested
-        ? 'Abgebrochen! ' + completed + ' Icons generiert.'
-        : 'Fertig! ' + completed + ' Icons generiert.';
-
-      if (cancelBatchRequested) {
-        showToast('🛑 Batch abgebrochen (' + completed + ' generiert)');
-      }
+        ? 'Abgebrochen (' + completed + ' fertig)'
+        : 'Fertig (' + completed + ' fertig)';
 
       setTimeout(() => {
         batchBar.classList.remove('active');
-        btnBatch.className = 'btn-primary';
-        btnBatch.disabled = false;
+        btnBatch.className = 'btn-batch';
         isBatchRunning = false;
         loadData();
-      }, 1500);
+      }, 1200);
     }
 
     function requestCancelBatch() {
       if (!isBatchRunning) return;
       cancelBatchRequested = true;
       btnCancelBatch.disabled = true;
-      btnCancelBatch.textContent = 'Wird beendet...';
-      btnBatch.disabled = true;
-      btnBatch.textContent = 'Wird beendet...';
-      batchTitle.textContent = 'Batch wird abgebrochen...';
+      btnCancelBatch.textContent = 'Beenden...';
+      btnBatch.textContent = 'Beenden...';
     }
 
     btnCancelBatch.addEventListener('click', requestCancelBatch);
-
     btnBatch.addEventListener('click', () => {
-      if (isBatchRunning) {
-        requestCancelBatch();
-      } else {
-        startBatch();
-      }
+      if (isBatchRunning) requestCancelBatch();
+      else startBatch();
     });
 
     let searchTimer;
     searchInput.addEventListener('input', () => {
       clearTimeout(searchTimer);
-      searchTimer = setTimeout(loadData, 250);
+      searchTimer = setTimeout(loadData, 200);
     });
 
     categorySelect.addEventListener('change', loadData);
