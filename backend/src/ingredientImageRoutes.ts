@@ -276,6 +276,11 @@ function renderIngredientViewerHtml(): string {
         <option value="false">Nur ohne Icon</option>
         <option value="true">Nur mit Icon</option>
       </select>
+      <select id="concurrencySelect" title="Parallele Anfragen">
+        <option value="5" selected>⚡ 5 parallel</option>
+        <option value="3">⚡ 3 parallel</option>
+        <option value="1">1 einzeln</option>
+      </select>
       <button class="btn-primary" id="btnBatch">
         ⚡ Batch generieren (<span id="batchTargetCount">0</span>)
       </button>
@@ -308,6 +313,7 @@ function renderIngredientViewerHtml(): string {
     const searchInput = document.getElementById('searchInput');
     const categorySelect = document.getElementById('categorySelect');
     const statusSelect = document.getElementById('statusSelect');
+    const concurrencySelect = document.getElementById('concurrencySelect');
     const statCount = document.getElementById('statCount');
     const statTotal = document.getElementById('statTotal');
     const statPercent = document.getElementById('statPercent');
@@ -420,10 +426,10 @@ function renderIngredientViewerHtml(): string {
           showToast(\`🎉 \${data.item.name_de} generiert (\${(data.durationMs / 1000).toFixed(1)}s, \${data.sizeKb} KB)\`);
           statCount.textContent = parseInt(statCount.textContent || 0) + 1;
         } else {
-          alert('Fehler: ' + (data.error || 'Generierung fehlgeschlagen'));
+          console.error('Fehler:', data.error);
         }
       } catch (err) {
-        alert('Netzwerkfehler: ' + err.message);
+        console.error('Netzwerkfehler:', err);
       } finally {
         if (card) card.classList.remove('generating');
       }
@@ -436,7 +442,9 @@ function renderIngredientViewerHtml(): string {
         return;
       }
 
-      if (!confirm(\`Möchtest du \${targets.length} Zutaten-Icons via FLUX.1 generieren? (Dauer ca. \${Math.round(targets.length * 3.2)} Sekunden)\`)) {
+      const concurrency = parseInt(concurrencySelect.value, 10) || 5;
+
+      if (!confirm(\`Möchtest du \${targets.length} Zutaten-Icons generieren? (\${concurrency} parallel)\`)) {
         return;
       }
 
@@ -445,24 +453,45 @@ function renderIngredientViewerHtml(): string {
       batchBar.classList.add('active');
       btnBatch.disabled = true;
 
+      let queueIndex = 0;
       let completed = 0;
-      for (const item of targets) {
-        if (cancelBatchRequested) break;
+      let runningCount = 0;
 
-        batchProgressText.textContent = \`\${completed + 1} / \${targets.length} (\${item.name_de})\`;
+      function updateProgress() {
+        batchProgressText.textContent = \`\${completed} / \${targets.length} fertig (\${runningCount} aktiv)\`;
         batchProgressFill.style.width = ((completed / targets.length) * 100) + '%';
-
-        await generateSingle(item.id);
-        completed++;
       }
 
+      async function worker() {
+        while (queueIndex < targets.length && !cancelBatchRequested) {
+          const item = targets[queueIndex++];
+          runningCount++;
+          updateProgress();
+          try {
+            await generateSingle(item.id);
+          } catch (e) {
+            console.error('Batch error for ' + item.id, e);
+          } finally {
+            runningCount--;
+            completed++;
+            updateProgress();
+          }
+        }
+      }
+
+      const workers = Array.from({ length: Math.min(concurrency, targets.length) }, () => worker());
+      await Promise.all(workers);
+
       batchProgressFill.style.width = '100%';
-      batchProgressText.textContent = \`Fertig! \${completed} Icons generiert.\`;
+      batchProgressText.textContent = cancelBatchRequested
+        ? \`Abgebrochen! \${completed} Icons generiert.\`
+        : \`Fertig! \${completed} Icons generiert.\`;
+
       setTimeout(() => {
         batchBar.classList.remove('active');
         btnBatch.disabled = false;
         isBatchRunning = false;
-      }, 2000);
+      }, 2500);
     }
 
     btnCancelBatch.addEventListener('click', () => {
