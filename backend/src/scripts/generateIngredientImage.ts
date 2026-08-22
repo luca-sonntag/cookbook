@@ -89,16 +89,20 @@ function buildPrompt(item: CanonicalIngredient, promptOverride?: string): string
     return promptOverride.trim();
   }
 
-  // Clean English name for prompt (e.g., remove ", raw", ", fresh", etc.)
+  // Clean English name for prompt (e.g., remove "raw", "fresh", "cooked", etc.)
   const rawName = item.name_en || item.name_de;
   const cleanName = rawName
     .replace(/,\s*raw/gi, '')
+    .replace(/\s*raw\b/gi, '')
     .replace(/,\s*cooked/gi, '')
+    .replace(/\s*cooked\b/gi, '')
     .replace(/,\s*fresh/gi, '')
+    .replace(/\s*fresh\b/gi, '')
     .replace(/,\s*dried/gi, ' dried')
+    .replace(/\s+/g, ' ')
     .trim();
 
-  return `Studio product photograph of fresh ${cleanName}, isolated on pure solid bright white background, centered, commercial food photography, sharp focus, 45 degree angle, soft subtle ground contact shadow, vibrant natural colors, ultra high quality, clean minimalist, no packaging text, no watermarks`;
+  return `Close-up studio icon photograph of a single fresh ${cleanName}, filling the frame, floating in the exact center of the canvas, perfectly centered horizontally and vertically, symmetrical, isolated on solid pure bright white background #ffffff, soft even studio lighting from all angles, no table, no ground, no shadows, clean minimal food asset, sharp focus`;
 }
 
 async function fetchFluxImage(prompt: string, size: string, steps: number): Promise<Buffer> {
