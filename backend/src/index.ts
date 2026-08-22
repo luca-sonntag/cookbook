@@ -6,6 +6,7 @@ import { config } from './config.js';
 import { startQueue, stopQueue } from './queue.js';
 import { apiRouter } from './routes.js';
 import { appUpdatesRouter } from './appUpdates.js';
+import { ingredientImageRouter } from './ingredientImageRoutes.js';
 import { checkDbHealth } from './db.js';
 import { generateIconPNG } from './bannerGenerator.js';
 
@@ -137,6 +138,9 @@ async function bootstrap() {
     // the app may check before a session exists). Covered by apiLimiter above.
     app.use('/api/app-updates', appUpdatesRouter);
 
+    // Development ingredient image viewer & generator
+    app.use(ingredientImageRouter);
+
     app.use('/api', apiRouter);
 
     app.get('/health', async (_req, res) => {
@@ -152,7 +156,13 @@ async function bootstrap() {
 
     // API-only server: the frontend ships as the native Capacitor app, not from here.
     app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/proxy')) {
+      if (
+        req.path.startsWith('/api') ||
+        req.path.startsWith('/health') ||
+        req.path.startsWith('/proxy') ||
+        req.path.startsWith('/dev') ||
+        req.path.startsWith('/ingredients-viewer')
+      ) {
         return next();
       }
       res.status(404).json({ error: 'API only server. Frontend is not deployed on this instance.' });
