@@ -22,7 +22,7 @@ function parseArgs(): CliOptions {
   const options: CliOptions = {
     outDir: path.resolve(process.cwd(), 'generated-ingredient-images'),
     size: 'square_hd',
-    format: 'both',
+    format: 'webp',
     steps: 4,
     dryRun: false,
   };
@@ -372,16 +372,22 @@ async function main(): Promise<void> {
 
   const savedFiles: string[] = [];
 
+  const rawSlug = (ingredient.name_en || ingredient.name_de || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  const fileBaseName = rawSlug ? `${ingredient.id}_${rawSlug}` : ingredient.id;
+
   // Save JPEG if requested
   if (options.format === 'jpeg' || options.format === 'both') {
-    const jpegPath = path.join(options.outDir, `${ingredient.id}.jpg`);
+    const jpegPath = path.join(options.outDir, `${fileBaseName}.jpg`);
     fs.writeFileSync(jpegPath, rawJpegBuffer);
     savedFiles.push(jpegPath);
   }
 
   // Save optimized WebP (512x512 icon size) if requested
   if (options.format === 'webp' || options.format === 'both') {
-    const webpPath = path.join(options.outDir, `${ingredient.id}.webp`);
+    const webpPath = path.join(options.outDir, `${fileBaseName}.webp`);
     await sharp(rawJpegBuffer)
       .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
       .webp({ quality: 90, effort: 6 })
