@@ -154,7 +154,7 @@ async function main() {
   console.log(`==================================================`);
   console.log(`✅ Erfolgreich: ${succeeded}`);
   console.log(`❌ Fehlgeschlagen: ${failed}`);
-  console.log(`💰 Gesamtkosten-Historie: $${costSummary.totalCostUsd.toFixed(4)} (~${costSummary.totalCostEur.toFixed(2)} €) für ${costSummary.totalCount} Bilder`);
+  console.log(`💰 Gesamtkosten-Historie: $${costSummary.totalCostUsd.toFixed(4)} (~${costSummary.approxEur.toFixed(2)} €) für ${costSummary.totalGenerations} Bilder`);
   console.log(`📂 Gespeichert in: ${options.outDir}`);
 }
 
