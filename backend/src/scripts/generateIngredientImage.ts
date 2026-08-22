@@ -207,7 +207,7 @@ function buildPrompt(item: CanonicalIngredient, promptOverride?: string): string
   const cleanName = cleanIngredientName(rawName);
   const categoryTags = getCategoryTags(item.category, cleanName, item.name_de);
 
-  return `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, ${categoryTags}, symmetrical softbox studio lighting, sharp focus, vibrant natural colors, zero shadows, no floor shadow, no text, no labels, no watermark`;
+  return `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, large macro close-up, filling the frame, ${categoryTags}, symmetrical softbox studio lighting, sharp focus, vibrant natural colors, zero shadows, no floor shadow, no text, no labels, no watermark`;
 }
 
 async function fetchFluxImage(prompt: string, size: string, steps: number): Promise<Buffer> {
@@ -316,13 +316,33 @@ async function main(): Promise<void> {
     savedFiles.push(jpegPath);
   }
 
-  // Save optimized WebP (512x512 icon size) if requested
+  // Save optimized WebP (512x512 with standardized 420x420 visual scale)
   if (options.format === 'webp' || options.format === 'both') {
     const webpPath = path.join(options.outDir, `${fileBaseName}.webp`);
-    await sharp(rawJpegBuffer)
-      .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
-      .webp({ quality: 90, effort: 6 })
-      .toFile(webpPath);
+    try {
+      // Trim white background border to isolate true subject bounds
+      const trimmedBuffer = await sharp(rawJpegBuffer)
+        .trim({ background: '#ffffff', threshold: 15 })
+        .toBuffer();
+
+      // Fit trimmed subject into 420x420 and add uniform 46px padding (total 512x512)
+      await sharp(trimmedBuffer)
+        .resize(420, 420, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
+        .extend({
+          top: 46,
+          bottom: 46,
+          left: 46,
+          right: 46,
+          background: { r: 255, g: 255, b: 255, alpha: 1 },
+        })
+        .webp({ quality: 90, effort: 6 })
+        .toFile(webpPath);
+    } catch {
+      await sharp(rawJpegBuffer)
+        .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
+        .webp({ quality: 90, effort: 6 })
+        .toFile(webpPath);
+    }
     savedFiles.push(webpPath);
   }
 
