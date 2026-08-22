@@ -168,7 +168,9 @@ export async function describeIngredientVisuallyWithGemini(item: CanonicalIngred
         'You are an expert food photography art director. Given a food ingredient name in German/English and its category, output a dense, compact English visual subject description (8 to 15 words max) for an isolated studio food icon asset. ' +
         'Rules: ' +
         '- Output ONLY the comma-separated visual tags/description, no introductory text, no sentences, no quotes, no markdown. ' +
-        '- Describe the physical item, its authentic real-world shape, best culinary container/presentation (e.g. glass bottle for oils, white ceramic pinch bowl for spices/powders/quark, whole produce with stem, clean butchered cut, or raw dough/pasta), and natural textures/colors. ' +
+        '- Describe ONE single primary item or ONE single tight compact cluster in the exact center. ' +
+        '- Never include multiple scattered items spread across the canvas. ' +
+        '- Describe authentic real-world shape, best culinary container/presentation (e.g. glass bottle for oils, white ceramic pinch bowl for spices/powders/quark, whole produce with stem, clean butchered cut, or raw dough/pasta), and natural textures/colors. ' +
         '- Do NOT mention background, lighting, or camera angle (handled by the template). ' +
         '- Keep it compact and dense.',
     });
@@ -208,7 +210,7 @@ export async function buildIngredientPrompt(
     visualTags = getFallbackCategoryTags(item.category, cleanName, item.name_de);
   }
 
-  return `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, ${visualTags}, symmetrical softbox studio lighting, sharp focus, vibrant natural colors, zero shadows, no floor shadow, no text, no labels, no watermark`;
+  return `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, fully contained within frame with generous white margin on all sides, complete object visible, ${visualTags}, symmetrical softbox studio lighting, sharp focus, vibrant natural colors, zero shadows, no floor shadow, no edge cutoff, not cropped, nothing touching the frame edges, no text, no labels, no watermark`;
 }
 
 export function getIngredientSlug(item: CanonicalIngredient): string {
