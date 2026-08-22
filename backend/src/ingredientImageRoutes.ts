@@ -486,20 +486,31 @@ function renderIngredientViewerHtml(): string {
       isBatchRunning = true;
       cancelBatchRequested = false;
       batchBar.classList.add('active');
-      btnBatch.disabled = true;
+      batchTitle.textContent = 'Batch-Generierung läuft...';
+      btnCancelBatch.disabled = false;
+      btnCancelBatch.textContent = 'Abbrechen';
+      
+      btnBatch.className = 'btn-danger';
+      btnBatch.disabled = false;
+      btnBatch.textContent = '🛑 Batch abbrechen';
 
       let queueIndex = 0;
       let completed = 0;
       let runningCount = 0;
 
       function updateProgress() {
-        batchProgressText.textContent = \`\${completed} / \${targets.length} fertig (\${runningCount} aktiv)\`;
+        if (cancelBatchRequested) {
+          batchProgressText.textContent = `Wird beendet... (${runningCount} noch aktiv)`;
+        } else {
+          batchProgressText.textContent = `${completed} / ${targets.length} fertig (${runningCount} aktiv)`;
+        }
         batchProgressFill.style.width = ((completed / targets.length) * 100) + '%';
       }
 
       async function worker() {
         while (queueIndex < targets.length && !cancelBatchRequested) {
           const item = targets[queueIndex++];
+          if (!item) break;
           runningCount++;
           updateProgress();
           try {
@@ -519,21 +530,41 @@ function renderIngredientViewerHtml(): string {
 
       batchProgressFill.style.width = '100%';
       batchProgressText.textContent = cancelBatchRequested
-        ? \`Abgebrochen! \${completed} Icons generiert.\`
-        : \`Fertig! \${completed} Icons generiert.\`;
+        ? `Abgebrochen! ${completed} Icons generiert.`
+        : `Fertig! ${completed} Icons generiert.`;
+
+      if (cancelBatchRequested) {
+        showToast(`🛑 Batch abgebrochen (${completed} generiert)`);
+      }
 
       setTimeout(() => {
         batchBar.classList.remove('active');
+        btnBatch.className = 'btn-primary';
         btnBatch.disabled = false;
         isBatchRunning = false;
-      }, 2500);
+        loadData();
+      }, 1500);
     }
 
-    btnCancelBatch.addEventListener('click', () => {
+    function requestCancelBatch() {
+      if (!isBatchRunning) return;
       cancelBatchRequested = true;
-    });
+      btnCancelBatch.disabled = true;
+      btnCancelBatch.textContent = 'Wird beendet...';
+      btnBatch.disabled = true;
+      btnBatch.textContent = 'Wird beendet...';
+      batchTitle.textContent = 'Batch wird abgebrochen...';
+    }
 
-    btnBatch.addEventListener('click', startBatch);
+    btnCancelBatch.addEventListener('click', requestCancelBatch);
+
+    btnBatch.addEventListener('click', () => {
+      if (isBatchRunning) {
+        requestCancelBatch();
+      } else {
+        startBatch();
+      }
+    });
 
     let searchTimer;
     searchInput.addEventListener('input', () => {
