@@ -8,11 +8,12 @@ import {
   getIngredientImagesDir,
   ensureImageDirExists,
   getIngredientSlug,
+  getGenerationCostsSummary,
 } from './ingredientImageService.js';
 
 export const ingredientImageRouter = express.Router();
 
-// GET /api/dev/ingredients - List canonical ingredients with image status
+// GET /api/dev/ingredients - List canonical ingredients with image status & cost summary
 ingredientImageRouter.get('/api/dev/ingredients', (req: Request, res: Response) => {
   try {
     const imageDir = getIngredientImagesDir();
@@ -78,12 +79,14 @@ ingredientImageRouter.get('/api/dev/ingredients', (req: Request, res: Response) 
 
     const totalFiltered = filtered.length;
     const paged = limit > 0 ? filtered.slice(offset, offset + limit) : filtered;
+    const costsSummary = getGenerationCostsSummary(imageDir);
 
     res.json({
       success: true,
       totalTotal: CANONICAL_INGREDIENTS.length,
       totalGenerated: generatedCount,
       totalFiltered,
+      costs: costsSummary,
       items: paged,
     });
   } catch (err: any) {
@@ -126,6 +129,7 @@ ingredientImageRouter.post('/api/dev/ingredients/:id/generate', async (req: Requ
     }
 
     const result = await generateIngredientIcon(item);
+    const costsSummary = getGenerationCostsSummary(getIngredientImagesDir());
 
     res.json({
       success: true,
@@ -138,6 +142,8 @@ ingredientImageRouter.post('/api/dev/ingredients/:id/generate', async (req: Requ
         imageUrl: `/api/dev/ingredients/${item.id}/image?v=${Date.now()}`,
         hasImage: true,
       },
+      costs: result.costs,
+      costsSummary,
       durationMs: result.durationMs,
       sizeKb: result.sizeKb,
     });
@@ -158,7 +164,7 @@ function renderIngredientViewerHtml(): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zutaten Icon Studio (FLUX)</title>
+  <title>Zutaten Icon Studio (FLUX + Gemini)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -183,8 +189,10 @@ function renderIngredientViewerHtml(): string {
     .title-area h1 { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
     .title-area p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
     
-    .stats-badge { background: #1e293b; border: 1px solid var(--card-border); padding: 8px 16px; border-radius: 9999px; font-size: 14px; font-weight: 600; }
+    .header-badges { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .stats-badge { background: #1e293b; border: 1px solid var(--card-border); padding: 8px 16px; border-radius: 9999px; font-size: 13px; font-weight: 600; }
     .stats-badge span { color: var(--primary); }
+    .stats-badge.cost-badge { border-color: #6366f1; }
     
     .controls { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--card-border); align-items: center; }
     .search-box { flex: 1; min-width: 250px; position: relative; }
@@ -244,11 +252,17 @@ function renderIngredientViewerHtml(): string {
   <div class="container">
     <header>
       <div class="title-area">
-        <h1>🥑 Zutaten Icon Studio <span style="font-size: 14px; font-weight: normal; color: var(--text-muted);">(FLUX.1 schnell)</span></h1>
+        <h1>🥑 Zutaten Icon Studio <span style="font-size: 14px; font-weight: normal; color: var(--text-muted);">(FLUX.1 + Gemini)</span></h1>
         <p>Erstelle und verwalte freigestellte Zutaten-Icons auf reinweißem Studio-Hintergrund</p>
       </div>
-      <div class="stats-badge" id="statsDisplay">
-        Generiert: <span id="statCount">0</span> / <span id="statTotal">0</span> (<span id="statPercent">0%</span>)
+      <div class="header-badges">
+        <div class="stats-badge" id="statsDisplay">
+          Generiert: <span id="statCount">0</span> / <span id="statTotal">0</span> (<span id="statPercent">0%</span>)
+        </div>
+        <div class="stats-badge cost-badge" id="costDisplay">
+          💰 Kosten: <span id="costTotal" style="color: #818cf8;">$0.0000</span> <span id="costEur" style="color: #a5b4fc; font-weight: normal;">(~0.00 €)</span>
+          <span style="font-size: 11px; color: var(--text-muted); margin-left: 4px;">(Gemini: <span id="costGemini" style="color: #cbd5e1;">$0.00</span> | FLUX: <span id="costFlux" style="color: #cbd5e1;">$0.00</span>)</span>
+        </div>
       </div>
     </header>
 
@@ -317,6 +331,10 @@ function renderIngredientViewerHtml(): string {
     const statCount = document.getElementById('statCount');
     const statTotal = document.getElementById('statTotal');
     const statPercent = document.getElementById('statPercent');
+    const costTotal = document.getElementById('costTotal');
+    const costEur = document.getElementById('costEur');
+    const costGemini = document.getElementById('costGemini');
+    const costFlux = document.getElementById('costFlux');
     const btnBatch = document.getElementById('btnBatch');
     const batchTargetCount = document.getElementById('batchTargetCount');
     const batchBar = document.getElementById('batchBar');
@@ -329,6 +347,14 @@ function renderIngredientViewerHtml(): string {
       toast.textContent = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    function updateCostsDisplay(costs) {
+      if (!costs) return;
+      costTotal.textContent = '$' + (costs.totalCostUsd || 0).toFixed(4);
+      costEur.textContent = '(~' + (costs.approxEur || 0).toFixed(2) + ' €)';
+      costGemini.textContent = '$' + (costs.totalGeminiCostUsd || 0).toFixed(4);
+      costFlux.textContent = '$' + (costs.totalFluxCostUsd || 0).toFixed(4);
     }
 
     async function loadData() {
@@ -349,6 +375,10 @@ function renderIngredientViewerHtml(): string {
       
       const missingInView = ingredients.filter(i => !i.hasImage).length;
       batchTargetCount.textContent = missingInView;
+
+      if (data.costs) {
+        updateCostsDisplay(data.costs);
+      }
 
       renderGrid();
     }
@@ -423,8 +453,13 @@ function renderIngredientViewerHtml(): string {
               btn.textContent = '🔄 Neu';
             }
           }
-          showToast(\`🎉 \${data.item.name_de} generiert (\${(data.durationMs / 1000).toFixed(1)}s, \${data.sizeKb} KB)\`);
+          const costStr = data.costs?.totalCostUsd ? ' | $' + data.costs.totalCostUsd.toFixed(5) : '';
+          showToast(\`🎉 \${data.item.name_de} generiert (\${(data.durationMs / 1000).toFixed(1)}s\${costStr})\`);
           statCount.textContent = parseInt(statCount.textContent || 0) + 1;
+
+          if (data.costsSummary) {
+            updateCostsDisplay(data.costsSummary);
+          }
         } else {
           console.error('Fehler:', data.error);
         }

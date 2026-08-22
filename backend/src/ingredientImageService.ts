@@ -6,6 +6,7 @@ import { config } from './config.js';
 import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from './data/canonicalIngredients.js';
 
 const FAL_FLUX_ENDPOINT = 'https://fal.run/fal-ai/flux-1/schnell';
+const FLUX_COST_PER_IMAGE_USD = 0.0035; // fal.ai flux-1/schnell square_hd standard rate
 
 let geminiClient: GoogleGenerativeAI | null = null;
 function getGeminiClient(): GoogleGenerativeAI | null {
@@ -30,6 +31,102 @@ export function ensureImageDirExists(dirPath: string = INGREDIENT_IMAGES_DIR): v
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
   }
+}
+
+export function getCostLogFilePath(dirPath: string = getIngredientImagesDir()): string {
+  return path.join(dirPath, 'generation_costs.jsonl');
+}
+
+export interface GeminiCostDetails {
+  model: string;
+  promptTokens: number;
+  candidatesTokens: number;
+  totalTokens: number;
+  costUsd: number;
+}
+
+export interface FluxCostDetails {
+  model: string;
+  steps: number;
+  size: string;
+  costUsd: number;
+}
+
+export interface GenerationCostEntry {
+  timestamp: string;
+  ingredientId: string;
+  name_de: string;
+  name_en: string;
+  category: string;
+  filename: string;
+  prompt: string;
+  gemini: GeminiCostDetails;
+  flux: FluxCostDetails;
+  totalCostUsd: number;
+  durationMs: number;
+}
+
+export interface CostsSummary {
+  totalGenerations: number;
+  totalCostUsd: number;
+  totalGeminiCostUsd: number;
+  totalFluxCostUsd: number;
+  totalTokens: number;
+  approxEur: number;
+}
+
+export function appendCostLog(entry: GenerationCostEntry, outDir: string = getIngredientImagesDir()): void {
+  try {
+    ensureImageDirExists(outDir);
+    const logPath = getCostLogFilePath(outDir);
+    const line = JSON.stringify(entry) + '\n';
+    fs.appendFileSync(logPath, line, 'utf-8');
+  } catch (err: any) {
+    console.error('[ingredientImageService] Failed to write cost log:', err.message);
+  }
+}
+
+export function getGenerationCostsSummary(outDir: string = getIngredientImagesDir()): CostsSummary {
+  const logPath = getCostLogFilePath(outDir);
+  const summary: CostsSummary = {
+    totalGenerations: 0,
+    totalCostUsd: 0,
+    totalGeminiCostUsd: 0,
+    totalFluxCostUsd: 0,
+    totalTokens: 0,
+    approxEur: 0,
+  };
+
+  if (!fs.existsSync(logPath)) {
+    return summary;
+  }
+
+  try {
+    const content = fs.readFileSync(logPath, 'utf-8');
+    const lines = content.split('\n');
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        const entry: GenerationCostEntry = JSON.parse(line);
+        summary.totalGenerations++;
+        summary.totalCostUsd += entry.totalCostUsd || 0;
+        summary.totalGeminiCostUsd += entry.gemini?.costUsd || 0;
+        summary.totalFluxCostUsd += entry.flux?.costUsd || 0;
+        summary.totalTokens += entry.gemini?.totalTokens || 0;
+      } catch {
+        // Skip corrupted line
+      }
+    }
+  } catch (err: any) {
+    console.error('[ingredientImageService] Failed to read cost log:', err.message);
+  }
+
+  summary.totalCostUsd = Number(summary.totalCostUsd.toFixed(5));
+  summary.totalGeminiCostUsd = Number(summary.totalGeminiCostUsd.toFixed(5));
+  summary.totalFluxCostUsd = Number(summary.totalFluxCostUsd.toFixed(5));
+  summary.approxEur = Number((summary.totalCostUsd * 0.93).toFixed(4));
+
+  return summary;
 }
 
 export function cleanIngredientName(rawName: string): string {
@@ -70,7 +167,7 @@ export function getFallbackCategoryTags(category: string, cleanName: string, nam
         return 'fresh vibrant green herb sprig, crisp aromatic leaves, dewy organic leaf texture, lush vivid green';
       }
       if (lowerEn.includes('berry') || lowerEn.includes('berries') || lowerDe.includes('beere')) {
-        return 'plump ripe fresh berries cluster, juicy glistening skin, morning dew drops, rich vibrant color';
+        return 'single neat compact cluster of fresh ripe berries in the center, glistening skin, rich vibrant color';
       }
       return 'single whole pristine fresh fruit, intact natural stem, crisp dewy skin texture, farm-fresh, organic vibrancy';
 
@@ -146,17 +243,31 @@ export function getFallbackCategoryTags(category: string, cleanName: string, nam
   }
 }
 
+export interface GeminiVisualDescriptionResult {
+  visualTags: string;
+  geminiCost: GeminiCostDetails;
+}
+
 /**
  * Uses Gemini Flash Lite to craft a dense, accurate physical description of the specific ingredient.
  */
-export async function describeIngredientVisuallyWithGemini(item: CanonicalIngredient): Promise<string> {
+export async function describeIngredientVisuallyWithGemini(item: CanonicalIngredient): Promise<GeminiVisualDescriptionResult> {
   const client = getGeminiClient();
-  const fallback = getFallbackCategoryTags(item.category, cleanIngredientName(item.name_en || item.name_de), item.name_de);
+  const modelName = config.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+  const fallbackTags = getFallbackCategoryTags(item.category, cleanIngredientName(item.name_en || item.name_de), item.name_de);
+
+  const defaultCost: GeminiCostDetails = {
+    model: modelName,
+    promptTokens: 0,
+    candidatesTokens: 0,
+    totalTokens: 0,
+    costUsd: 0,
+  };
+
   if (!client) {
-    return fallback;
+    return { visualTags: fallbackTags, geminiCost: defaultCost };
   }
 
-  const modelName = config.GEMINI_MODEL || 'gemini-3.1-flash-lite';
   try {
     const model = client.getGenerativeModel({
       model: modelName,
@@ -179,14 +290,36 @@ export async function describeIngredientVisuallyWithGemini(item: CanonicalIngred
     const res = await model.generateContent(userPrompt);
     const text = res.response.text().trim().replace(/^["']|["']$/g, '').replace(/\.$/, '');
 
+    // Extract exact token usage metadata from Gemini response
+    const usage = (res.response as any).usageMetadata;
+    const promptTokens = usage?.promptTokenCount || 85;
+    const candidatesTokens = usage?.candidatesTokenCount || 25;
+    const totalTokens = usage?.totalTokenCount || promptTokens + candidatesTokens;
+
+    // Pricing for Gemini 3.1 Flash Lite ($0.075 / 1M input, $0.30 / 1M output)
+    const costUsd = Number(((promptTokens * 0.075) / 1_000_000 + (candidatesTokens * 0.30) / 1_000_000).toFixed(7));
+
+    const geminiCost: GeminiCostDetails = {
+      model: modelName,
+      promptTokens,
+      candidatesTokens,
+      totalTokens,
+      costUsd,
+    };
+
     if (text && text.length > 5) {
-      return text;
+      return { visualTags: text, geminiCost };
     }
   } catch (err: any) {
     console.warn(`[ingredientImageService] Gemini visual description failed for ${item.id}: ${err.message}`);
   }
 
-  return fallback;
+  return { visualTags: fallbackTags, geminiCost: defaultCost };
+}
+
+export interface PromptBuildResult {
+  prompt: string;
+  geminiCost: GeminiCostDetails;
 }
 
 export async function buildIngredientPrompt(
@@ -195,22 +328,40 @@ export async function buildIngredientPrompt(
     promptOverride?: string;
     useGemini?: boolean;
   } = {}
-): Promise<string> {
+): Promise<PromptBuildResult> {
+  const modelName = config.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+  const defaultCost: GeminiCostDetails = {
+    model: modelName,
+    promptTokens: 0,
+    candidatesTokens: 0,
+    totalTokens: 0,
+    costUsd: 0,
+  };
+
   if (options.promptOverride && options.promptOverride.trim()) {
-    return options.promptOverride.trim();
+    return {
+      prompt: options.promptOverride.trim(),
+      geminiCost: defaultCost,
+    };
   }
 
   const rawName = item.name_en || item.name_de;
   const cleanName = cleanIngredientName(rawName);
 
   let visualTags: string;
+  let geminiCost = defaultCost;
+
   if (options.useGemini !== false && config.GEMINI_API_KEY) {
-    visualTags = await describeIngredientVisuallyWithGemini(item);
+    const result = await describeIngredientVisuallyWithGemini(item);
+    visualTags = result.visualTags;
+    geminiCost = result.geminiCost;
   } else {
     visualTags = getFallbackCategoryTags(item.category, cleanName, item.name_de);
   }
 
-  return `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, fully contained within frame with generous white margin on all sides, complete object visible, ${visualTags}, symmetrical softbox studio lighting, sharp focus, vibrant natural colors, zero shadows, no floor shadow, no edge cutoff, not cropped, nothing touching the frame edges, no text, no labels, no watermark`;
+  const prompt = `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, fully contained within frame with generous white margin on all sides, complete object visible, ${visualTags}, symmetrical softbox studio lighting, sharp focus, vibrant natural colors, zero shadows, no floor shadow, no edge cutoff, not cropped, nothing touching the frame edges, no text, no labels, no watermark`;
+
+  return { prompt, geminiCost };
 }
 
 export function getIngredientSlug(item: CanonicalIngredient): string {
@@ -295,6 +446,11 @@ export interface GenerateIconResult {
   prompt: string;
   durationMs: number;
   sizeKb: number;
+  costs: {
+    gemini: GeminiCostDetails;
+    flux: FluxCostDetails;
+    totalCostUsd: number;
+  };
 }
 
 export async function generateIngredientIcon(
@@ -310,12 +466,14 @@ export async function generateIngredientIcon(
   ensureImageDirExists(outDir);
 
   const startTime = Date.now();
-  const prompt = await buildIngredientPrompt(item, {
+  const { prompt, geminiCost } = await buildIngredientPrompt(item, {
     promptOverride: options.promptOverride,
     useGemini: options.useGemini,
   });
 
-  const rawJpegBuffer = await fetchFluxImageBuffer(prompt, 'square_hd', options.steps || 4);
+  const steps = options.steps || 4;
+  const size = 'square_hd';
+  const rawJpegBuffer = await fetchFluxImageBuffer(prompt, size, steps);
   const fileBaseName = getIngredientFileBaseName(item);
   const filename = `${fileBaseName}.webp`;
   const filePath = path.join(outDir, filename);
@@ -329,6 +487,32 @@ export async function generateIngredientIcon(
   const stats = fs.statSync(filePath);
   const sizeKb = Number((stats.size / 1024).toFixed(1));
 
+  const fluxCost: FluxCostDetails = {
+    model: 'flux-1/schnell',
+    steps,
+    size,
+    costUsd: FLUX_COST_PER_IMAGE_USD,
+  };
+
+  const totalCostUsd = Number((geminiCost.costUsd + fluxCost.costUsd).toFixed(6));
+
+  const costEntry: GenerationCostEntry = {
+    timestamp: new Date().toISOString(),
+    ingredientId: item.id,
+    name_de: item.name_de,
+    name_en: item.name_en,
+    category: item.category,
+    filename,
+    prompt,
+    gemini: geminiCost,
+    flux: fluxCost,
+    totalCostUsd,
+    durationMs,
+  };
+
+  // Write log to generation_costs.jsonl in the images directory
+  appendCostLog(costEntry, outDir);
+
   return {
     ingredientId: item.id,
     filename,
@@ -336,5 +520,10 @@ export async function generateIngredientIcon(
     prompt,
     durationMs,
     sizeKb,
+    costs: {
+      gemini: geminiCost,
+      flux: fluxCost,
+      totalCostUsd,
+    },
   };
 }
