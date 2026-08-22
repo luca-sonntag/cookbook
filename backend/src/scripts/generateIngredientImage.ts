@@ -102,7 +102,7 @@ function cleanIngredientName(rawName: string): string {
     .trim();
 }
 
-function getCategoryDirectives(category: string, cleanName: string, nameDe: string): { presentation: string; texture: string } {
+function getCategoryTags(category: string, cleanName: string, nameDe: string): string {
   const lowerEn = cleanName.toLowerCase();
   const lowerDe = nameDe.toLowerCase();
 
@@ -119,75 +119,39 @@ function getCategoryDirectives(category: string, cleanName: string, nameDe: stri
         lowerDe.includes('basilikum') ||
         lowerDe.includes('petersilie')
       ) {
-        return {
-          presentation: 'a fresh vibrant aromatic herb sprig with crisp leaves',
-          texture: 'natural dewy organic leaf texture, lush vibrant green tones',
-        };
+        return 'fresh vibrant green herb sprig, crisp aromatic leaves, dewy organic leaf texture, lush vivid green';
       }
       if (lowerEn.includes('berry') || lowerEn.includes('berries') || lowerDe.includes('beere')) {
-        return {
-          presentation: 'a small neat cluster of plump ripe fresh berries',
-          texture: 'glistening rich natural colors, subtle morning dew drops, juicy organic skin',
-        };
+        return 'plump ripe fresh berries cluster, juicy glistening skin, morning dew drops, rich vibrant color';
       }
-      return {
-        presentation: 'a single whole pristine fresh produce item with natural stem',
-        texture: 'crisp vibrant natural skin texture, subtle micro-dew drops, authentic farm-fresh appearance',
-      };
+      return 'single whole pristine fresh fruit, intact natural stem, crisp dewy skin texture, farm-fresh, organic vibrancy';
 
     case 'SPICES_OILS':
       if (lowerEn.includes('oil') || lowerEn.includes('vinegar') || lowerDe.includes('öl') || lowerDe.includes('essig')) {
-        return {
-          presentation: 'in a modern minimalist clear glass cruet bottle',
-          texture: 'glowing liquid with warm translucent amber-gold tones, crystal clear glass reflection',
-        };
+        return 'clear minimalist luxury glass cruet bottle, glowing golden translucent liquid, clean glass reflections, liquid food asset';
       }
       if (lowerEn.includes('sauce') || lowerEn.includes('paste') || lowerEn.includes('mustard') || lowerDe.includes('soße') || lowerDe.includes('senf')) {
-        return {
-          presentation: 'neatly presented in a small modern white ceramic dipping bowl',
-          texture: 'smooth rich glossy texture, vibrant culinary sheen',
-        };
+        return 'small modern white ceramic dipping bowl, rich glossy sauce texture, appetizing culinary sheen';
       }
-      return {
-        presentation: 'in a tiny minimalist white porcelain spice pinch bowl alongside whole natural spice pieces',
-        texture: 'finely textured ground spice powder with rich aromatic saturation and organic grains',
-      };
+      return 'tiny minimalist white porcelain spice bowl, finely ground aromatic spice powder, vivid saturation, organic grains';
 
     case 'GRAINS_PASTA':
       if (lowerEn.includes('pasta') || lowerEn.includes('spaghetti') || lowerEn.includes('noodle') || lowerDe.includes('nudel') || lowerDe.includes('pasta')) {
-        return {
-          presentation: 'an artfully arranged neat bundle of raw dry artisanal pasta shapes',
-          texture: 'authentic golden semolina matte surface texture, crisp edges',
-        };
+        return 'neat bundle of raw dry artisanal pasta shapes, authentic golden durum semolina matte texture, crisp edges';
       }
       if (lowerEn.includes('flake') || lowerEn.includes('oat') || lowerEn.includes('cereal') || lowerDe.includes('flocken')) {
-        return {
-          presentation: 'a neat clean cluster of whole wholesome rolled flakes',
-          texture: 'toasted golden organic grain texture, rustic wholesome flakes',
-        };
+        return 'neat clean mound of whole wholesome rolled flakes, toasted golden organic grain texture';
       }
-      return {
-        presentation: 'a clean neat mound of raw grains in a minimalist white ceramic scoop',
-        texture: 'glistening individual raw polished grains, organic natural texture',
-      };
+      return 'clean neat mound of raw polished grains, minimalist white ceramic scoop, organic grain texture';
 
     case 'DAIRY':
       if (lowerEn.includes('cheese') || lowerEn.includes('parmesan') || lowerEn.includes('mozzarella') || lowerDe.includes('käse')) {
-        return {
-          presentation: 'a gourmet artisanal wedge or ball of authentic cheese',
-          texture: 'rich creamy matte cheese texture with subtle natural crystallization and rustic rind',
-        };
+        return 'gourmet artisanal cheese wedge, creamy matte texture, natural rustic rind, fine crystallization';
       }
       if (lowerEn.includes('butter') || lowerDe.includes('butter')) {
-        return {
-          presentation: 'a neat geometric block of creamy golden farm butter with clean cut edges',
-          texture: 'silky smooth golden dairy sheen, appetizing gourmet quality',
-        };
+        return 'clean geometric block of golden farm butter, smooth clean cut edges, silky dairy sheen';
       }
-      return {
-        presentation: 'pure fresh white dairy in a minimalist clear glass bottle or white porcelain bowl',
-        texture: 'creamy velvety smooth consistency, pure clean dairy white',
-      };
+      return 'pure fresh white dairy in minimalist clear glass bottle, velvety smooth consistency, clean dairy white';
 
     case 'MEAT_FISH':
       if (
@@ -199,71 +163,38 @@ function getCategoryDirectives(category: string, cleanName: string, nameDe: stri
         lowerDe.includes('lachs') ||
         lowerDe.includes('garnele')
       ) {
-        return {
-          presentation: 'a prime sashimi-grade raw fish fillet or cleaned prawns',
-          texture: 'fresh ocean sheen, delicate natural flake marbling, vibrant coral-pink color',
-        };
+        return 'prime sashimi-grade raw fish fillet, fresh ocean sheen, delicate flake marbling, coral-pink color';
       }
-      return {
-        presentation: 'a prime butcher-grade artisanal raw cut or clean poultry breast',
-        texture: 'succulent tender meat fibers, delicate fine marbling, fresh butcher-shop sheen',
-      };
+      return 'prime butcher-grade artisanal raw cut, succulent meat fibers, delicate fine marbling, fresh butcher sheen';
 
     case 'BREAD_BAKERY':
-      return {
-        presentation: 'an artisanal freshly baked bakery piece with golden-brown crust',
-        texture: 'crispy blistered crust with subtle flour dusting, airy comforting baked crumb texture',
-      };
+      return 'freshly baked artisan bakery piece, golden-brown blistered crust, flour dusting, airy crisp crumb texture';
 
     case 'BAKING_COOKING':
-      return {
-        presentation: 'a pure gourmet baking ingredient presented in a minimalist white ceramic baker\'s dish or whole natural form',
-        texture: 'ultra-fine pure consistency, clean and pristine culinary grade',
-      };
+      return 'pure gourmet baking ingredient, minimalist white ceramic pinch bowl, ultra-fine consistency, pristine culinary grade';
 
     case 'CANNED_PRESERVED':
-      return {
-        presentation: 'in a modern unlabeled crystal-clear glass preserving jar',
-        texture: 'rich preserved culinary texture, vibrant authentic color seen through clear glass',
-      };
+      return 'modern unlabeled transparent glass preserving jar, rich preserved culinary texture, vivid authentic food color';
 
     case 'BEVERAGES':
-      return {
-        presentation: 'in an elegant minimalist crystal-clear glass tumbler with crisp clear ice cubes',
-        texture: 'sparkling refreshing liquid with subtle cool glass condensation, vibrant pure color',
-      };
+      return 'crystal-clear minimalist glass tumbler, clear ice cubes, subtle condensation droplets, vibrant refreshing liquid';
 
     case 'SWEETS_SNACKS':
       if (lowerEn.includes('chocolate') || lowerDe.includes('schokolade')) {
-        return {
-          presentation: 'broken artisanal chunks of rich dark gourmet chocolate with clean snap fractures',
-          texture: 'silky matte-gloss finish, fine cocoa richness, crisp fractured edges',
-        };
+        return 'broken rustic chunks of rich dark gourmet chocolate, sharp snap fracture edges, silky matte-gloss cocoa richness';
       }
       if (lowerEn.includes('nut') || lowerEn.includes('walnut') || lowerEn.includes('almond') || lowerDe.includes('nuss')) {
-        return {
-          presentation: 'a small neat group of whole raw shelled gourmet nuts',
-          texture: 'intricate natural ridged nut kernels, warm earthy organic tones',
-        };
+        return 'neat cluster of whole raw shelled gourmet nuts, textured ridged kernels, warm earthy organic tones';
       }
-      return {
-        presentation: 'a single premium gourmet confection or snack',
-        texture: 'appetizing artisanal texture, indulgent culinary finish',
-      };
+      return 'single premium gourmet confectionery treat, artisanal texture, indulgent finish';
 
     case 'FROZEN':
-      return {
-        presentation: 'crisp frosty frozen whole pieces',
-        texture: 'glistening delicate ice crystals, vibrant frozen freshness, crisp cold look',
-      };
+      return 'crisp frosty frozen whole pieces, glistening delicate ice crystals, vibrant cold freshness';
 
     case 'REFRIGERATED_CONVENIENCE':
     case 'READY_MEALS':
     default:
-      return {
-        presentation: 'a neat gourmet culinary portion arranged with chef-level minimalism',
-        texture: 'fresh authentic food textures, vibrant appetizing culinary colors',
-      };
+      return 'gourmet culinary portion, chef-level minimalist presentation, fresh authentic food textures, vibrant colors';
   }
 }
 
@@ -274,9 +205,9 @@ function buildPrompt(item: CanonicalIngredient, promptOverride?: string): string
 
   const rawName = item.name_en || item.name_de;
   const cleanName = cleanIngredientName(rawName);
-  const { presentation, texture } = getCategoryDirectives(item.category, cleanName, item.name_de);
+  const categoryTags = getCategoryTags(item.category, cleanName, item.name_de);
 
-  return `Close-up studio icon photograph of fresh ${cleanName}, presented as ${presentation}, ${texture}, filling the frame, floating in the exact center of the 1:1 canvas, perfectly centered horizontally and vertically, symmetrical composition, isolated on solid pure bright white background #ffffff, soft even studio softbox lighting from all angles, no table, no ground, no shadows, clean minimal food asset, ultra sharp focus, 8k commercial quality, no text, no labels, no watermark`;
+  return `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, ${categoryTags}, symmetrical softbox studio lighting, sharp focus, vibrant natural colors, zero shadows, no floor shadow, no text, no labels, no watermark`;
 }
 
 async function fetchFluxImage(prompt: string, size: string, steps: number): Promise<Buffer> {
