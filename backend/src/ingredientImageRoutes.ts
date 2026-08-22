@@ -412,25 +412,22 @@ function renderIngredientViewerHtml(): string {
     .tag-badge { background: #1e293b; color: #cbd5e1; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px; }
     .tag-id { background: #0f172a; color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 8px; border-radius: 5px; border: 1px solid #1e293b; }
 
-    /* Big Image Container */
+    /* Big Image Container - Pure Square without extra borders/padding */
     .big-preview-wrapper {
       width: 100%;
       aspect-ratio: 1/1;
-      max-height: 440px;
-      background: #ffffff;
-      border-radius: 12px;
-      border: 1px solid #334155;
+      max-width: 512px;
+      max-height: 512px;
+      margin: 0 auto;
+      background: transparent;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
       position: relative;
       cursor: zoom-in;
-      transition: transform 0.15s;
     }
-    .big-preview-wrapper:hover { border-color: var(--primary); }
-    .big-preview-wrapper img { width: 100%; height: 100%; object-fit: contain; }
-    .big-placeholder { text-align: center; color: #64748b; }
+    .big-preview-wrapper img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .big-placeholder { text-align: center; color: #64748b; padding: 40px 0; }
     .big-placeholder .big-emoji { font-size: 64px; margin-bottom: 8px; }
     .big-placeholder p { font-size: 14px; color: #94a3b8; }
 
@@ -494,18 +491,17 @@ function renderIngredientViewerHtml(): string {
       height: 90vmin;
       max-width: 680px;
       max-height: 680px;
-      background: #ffffff;
-      border-radius: 16px;
-      border: 1px solid #334155;
-      overflow: hidden;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     }
-    .lightbox-content img { width: 100%; height: 100%; object-fit: contain; }
+    .lightbox-content img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .lightbox-close {
       position: absolute;
-      top: 16px;
-      right: 16px;
+      top: -40px;
+      right: 0;
       background: rgba(15, 23, 42, 0.9);
       color: #fff;
       border: 1px solid #334155;
