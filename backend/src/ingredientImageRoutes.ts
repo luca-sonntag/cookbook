@@ -577,6 +577,7 @@ function renderIngredientViewerHtml(): string {
             <option value="true">Vorhanden</option>
           </select>
           <select id="concurrencySelect" title="Parallelität">
+            <option value="10">⚡ 10x</option>
             <option value="5" selected>⚡ 5x</option>
             <option value="3">⚡ 3x</option>
             <option value="1">1x</option>

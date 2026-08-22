@@ -39,7 +39,7 @@ function parseArgs(): CliOptions {
     } else if (arg === '--batch' && args[i + 1]) {
       options.batch = parseInt(args[++i], 10) || 10;
     } else if ((arg === '--concurrency' || arg === '-c') && args[i + 1]) {
-      options.concurrency = Math.max(1, Math.min(10, parseInt(args[++i], 10) || 5));
+      options.concurrency = Math.max(1, Math.min(20, parseInt(args[++i], 10) || 5));
     } else if ((arg === '--category' || arg === '-cat') && args[i + 1]) {
       options.category = args[++i].toUpperCase();
     } else if (arg === '--id' && args[i + 1]) {

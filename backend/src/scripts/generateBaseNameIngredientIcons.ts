@@ -34,7 +34,7 @@ function parseArgs(): CliOptions {
     } else if (arg === '--dry-run') {
       options.dryRun = true;
     } else if ((arg === '--concurrency' || arg === '-c') && args[i + 1]) {
-      options.concurrency = Math.max(1, Math.min(10, parseInt(args[++i], 10) || 5));
+      options.concurrency = Math.max(1, Math.min(20, parseInt(args[++i], 10) || 5));
     } else if ((arg === '--limit' || arg === '-l') && args[i + 1]) {
       options.limit = parseInt(args[++i], 10);
     } else if ((arg === '--out-dir' || arg === '-o') && args[i + 1]) {
