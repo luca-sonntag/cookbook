@@ -479,11 +479,8 @@ export async function generateIngredientIcon(
   const steps = options.steps || 4;
   const size = 'square_hd';
   const rawJpegBuffer = await fetchFluxImageBuffer(prompt, size, steps);
-  const fileBaseName = getIngredientFileBaseName(item);
-  const slugFilename = `${fileBaseName}.webp`;
   const canonicalFilename = `${item.id.toLowerCase()}.webp`;
   const filePath = path.join(outDir, canonicalFilename);
-  const slugFilePath = path.join(outDir, slugFilename);
 
   const webpBuffer = await sharp(rawJpegBuffer)
     .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
@@ -491,9 +488,6 @@ export async function generateIngredientIcon(
     .toBuffer();
 
   fs.writeFileSync(filePath, webpBuffer);
-  if (filePath !== slugFilePath) {
-    fs.writeFileSync(slugFilePath, webpBuffer);
-  }
 
   const durationMs = Date.now() - startTime;
   const stats = fs.statSync(filePath);
