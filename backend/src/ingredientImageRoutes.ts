@@ -500,9 +500,9 @@ function renderIngredientViewerHtml(): string {
 
       function updateProgress() {
         if (cancelBatchRequested) {
-          batchProgressText.textContent = `Wird beendet... (${runningCount} noch aktiv)`;
+          batchProgressText.textContent = 'Wird beendet... (' + runningCount + ' noch aktiv)';
         } else {
-          batchProgressText.textContent = `${completed} / ${targets.length} fertig (${runningCount} aktiv)`;
+          batchProgressText.textContent = completed + ' / ' + targets.length + ' fertig (' + runningCount + ' aktiv)';
         }
         batchProgressFill.style.width = ((completed / targets.length) * 100) + '%';
       }
@@ -530,11 +530,11 @@ function renderIngredientViewerHtml(): string {
 
       batchProgressFill.style.width = '100%';
       batchProgressText.textContent = cancelBatchRequested
-        ? `Abgebrochen! ${completed} Icons generiert.`
-        : `Fertig! ${completed} Icons generiert.`;
+        ? 'Abgebrochen! ' + completed + ' Icons generiert.'
+        : 'Fertig! ' + completed + ' Icons generiert.';
 
       if (cancelBatchRequested) {
-        showToast(`🛑 Batch abgebrochen (${completed} generiert)`);
+        showToast('🛑 Batch abgebrochen (' + completed + ' generiert)');
       }
 
       setTimeout(() => {
