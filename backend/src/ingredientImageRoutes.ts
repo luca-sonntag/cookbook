@@ -434,19 +434,6 @@ function renderIngredientViewerHtml(): string {
     .big-placeholder .big-emoji { font-size: 64px; margin-bottom: 8px; }
     .big-placeholder p { font-size: 14px; color: #94a3b8; }
 
-    .zoom-hint {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      background: rgba(15, 23, 42, 0.85);
-      color: #cbd5e1;
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      pointer-events: none;
-      backdrop-filter: blur(4px);
-    }
-
     .detail-actions {
       display: flex;
       gap: 10px;
@@ -883,8 +870,7 @@ function renderIngredientViewerHtml(): string {
 
       const hasImg = item.hasImage && item.imageUrl;
       const previewContent = hasImg
-        ? '<img src="' + item.imageUrl + '" alt="' + item.name_de + '" id="detailImagePreview" />' +
-          '<span class="zoom-hint">🔍 Klick für Vollbild</span>'
+        ? '<img src="' + item.imageUrl + '" alt="' + item.name_de + '" id="detailImagePreview" />'
         : '<div class="big-placeholder"><div class="big-emoji">🍽️</div><p>Noch kein Bild generiert</p></div>';
 
       const publicUrl = '/api/ingredient-icons/' + item.id + '.webp';
