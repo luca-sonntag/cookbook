@@ -553,6 +553,12 @@ function renderIngredientViewerHtml(): string {
     <div class="header-left">
       <div class="logo">🥑 Icon Studio</div>
       <span class="dev-tag">dev</span>
+      <div style="display: flex; gap: 8px; font-size: 11px; color: var(--text-muted); margin-left: 12px;">
+        <span><kbd style="background: #131d31; padding: 2px 5px; border-radius: 4px; color: #cbd5e1; border: 1px solid #1e293b;">↓/→</kbd> Nächstes</span>
+        <span><kbd style="background: #131d31; padding: 2px 5px; border-radius: 4px; color: #cbd5e1; border: 1px solid #1e293b;">↑/←</kbd> Vorheriges</span>
+        <span><kbd style="background: #131d31; padding: 2px 5px; border-radius: 4px; color: #cbd5e1; border: 1px solid #1e293b;">Enter</kbd> Generieren</span>
+        <span><kbd style="background: #131d31; padding: 2px 5px; border-radius: 4px; color: #cbd5e1; border: 1px solid #1e293b;">F</kbd> Vollbild</span>
+      </div>
     </div>
     <div class="header-right">
       <div class="pill-stat">Icons: <span id="statCount">0</span> / <span id="statTotal">0</span> (<span id="statPercent">0%</span>)</div>
@@ -685,8 +691,98 @@ function renderIngredientViewerHtml(): string {
       lightboxModal.classList.remove('active');
     }
 
+    function toggleLightbox() {
+      if (lightboxModal.classList.contains('active')) {
+        closeLightbox();
+      } else if (selectedItem && selectedItem.hasImage && selectedItem.imageUrl) {
+        openLightbox(selectedItem.imageUrl);
+      }
+    }
+
+    function selectNext() {
+      if (ingredients.length === 0) return;
+      if (!selectedItem) {
+        selectItem(ingredients[0]);
+        return;
+      }
+      const idx = ingredients.findIndex(i => i.id === selectedItem.id);
+      if (idx !== -1 && idx < ingredients.length - 1) {
+        selectItem(ingredients[idx + 1]);
+        scrollSelectedIntoView();
+      }
+    }
+
+    function selectPrev() {
+      if (ingredients.length === 0) return;
+      if (!selectedItem) {
+        selectItem(ingredients[0]);
+        return;
+      }
+      const idx = ingredients.findIndex(i => i.id === selectedItem.id);
+      if (idx > 0) {
+        selectItem(ingredients[idx - 1]);
+        scrollSelectedIntoView();
+      }
+    }
+
+    function scrollSelectedIntoView() {
+      if (!selectedItem) return;
+      const card = document.getElementById('row-' + selectedItem.id);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeLightbox();
+      const isInput = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA');
+
+      if (e.key === 'Escape') {
+        if (lightboxModal.classList.contains('active')) {
+          closeLightbox();
+        } else if (isInput) {
+          e.target.blur();
+        }
+        return;
+      }
+
+      // If user is currently typing in the search input
+      if (isInput) {
+        if (e.key === 'ArrowDown' || e.key === 'Enter') {
+          e.target.blur();
+          selectNext();
+          e.preventDefault();
+        }
+        return;
+      }
+
+      // Arrow Down / Arrow Right / J -> Next
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'j' || e.key === 'J') {
+        e.preventDefault();
+        selectNext();
+      }
+      // Arrow Up / Arrow Left / K -> Previous
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'k' || e.key === 'K') {
+        e.preventDefault();
+        selectPrev();
+      }
+      // Enter / Space / G / R -> Generate / Regenerate
+      else if (e.key === 'Enter' || e.key === ' ' || e.key === 'g' || e.key === 'G' || e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        if (selectedItem) {
+          generateSingle(selectedItem.id);
+        }
+      }
+      // F / V -> Fullscreen Preview Lightbox
+      else if (e.key === 'f' || e.key === 'F' || e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        toggleLightbox();
+      }
+      // / -> Focus Search Input
+      else if (e.key === '/') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
     });
 
     async function loadData() {
