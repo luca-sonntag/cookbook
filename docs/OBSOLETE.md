@@ -6,6 +6,20 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ## 📜 Chronologische Übersicht
 
+### 2026-08-23: Emojis als Fallback für Zutaten-Icons durch 3D-Studio-Kategorie-Icon-Set ersetzt
+
+* **Ersetzter Code / Anti-Pattern:**
+  - Fallback- und Lade-Zustand-Emojis (`categoryIcons` mit `🥦`, `🍎`, `🥛`, `🥩`, `🍝` etc.) in [`IngredientIcon.tsx`](file:///c:/Users/lucas/source/repos/cookbook/frontend/src/components/IngredientIcon.tsx), wenn kein spezifisches Canonical-Icon vorhanden war oder dieses noch geladen wurde.
+  - Führte zu optischer Diskrepanz (unterschiedliche Betriebssystem-Emoji-Renderings auf Android/iOS/Desktop, pixelige Darstellung, mangelnder Einklang mit dem modernen App-Design).
+* **Ersetzt durch:**
+  - **3D-Studio-Kategorie-Icon-Set (`frontend/public/category-icons/*.webp` & `backend/public/category-icons/*.webp`):** Einheitlich auf reinweißem Hintergrund gerenderte, isolierte 3D-Food-Icons für alle Supermarkt-Kategorien im exakt gleichen Stil wie die individuellen Zutat-Icons.
+  - **`getCategoryIconUrl()` in [`frontend/src/i18n.ts`](file:///c:/Users/lucas/source/repos/cookbook/frontend/src/i18n.ts):** Schnelles O(1)-Mapping für Standard- und Legacy-Kategorien zu lokalen WebP-Assets.
+  - **`IngredientIcon.tsx` Update:** Rendert das Kategorie-Icon im identischen Kachel-Stil (`bg-white rounded-xl`) als Fallback und als dezentes semi-transparentes Lade-Overlay.
+  - **Endpoint `GET /api/category-icons/:filename` in [`backend/src/ingredientImageRoutes.ts`](file:///c:/Users/lucas/source/repos/cookbook/backend/src/ingredientImageRoutes.ts):** Backend-seitige Bereitstellung mit Fallback auf `other.webp`.
+* **Betroffene Dateien:** `frontend/src/components/IngredientIcon.tsx`, `frontend/src/i18n.ts`, `frontend/public/category-icons/`, `backend/src/ingredientImageRoutes.ts`, `backend/public/category-icons/`.
+
+---
+
 ### 2026-08-22: Quota-Verbrauch bei abgebrochenen/unterbrochenen Extraktionen (`status = 'cancelled'`) entfernt
 
 * **Ersetzter Code / Anti-Pattern:**
