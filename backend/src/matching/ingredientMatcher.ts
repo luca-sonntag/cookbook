@@ -133,6 +133,73 @@ function getGenAI(): GoogleGenerativeAI | null {
 }
 
 /**
+ * Detects if an ingredient is a zero-calorie, sugar-free, sweetener, diet, or specialized low-calorie/protein product.
+ */
+export const DIET_ZERO_TERMS_REGEX = /\b(zero|0%|null zucker|zero zucker|zuckerfrei|zuckerfreie|zuckerfreier|zuckerfreies|ohne zucker|ohne zuckerzusatz|ohne fruchtzucker|kein zucker|zuckerarm|zuckerreduziert|sugarfree|sugar-free|sugar free|no sugar|zero sugar|diet|diät|kalorienarm|kalorienfrei|kalorienreduziert|low cal|low calorie|low-calorie|0 kcal|zero cal|zero calorie|fettfrei|fat-free|fat free|0% fett|ohne fett|light mayo|leichte mayo|light ketchup|zero ketchup|zero sirup|zero syrup|zero sauce|zero soße|zero dressing|erythrit|erythritol|xylit|xylitol|birkenzucker|stevia|sucralose|süßstoff|süßungsmittel|flüssigsüßstoff|streusüße|sweetener|flavour drops|flavor drops|chunky flavour|smacktastic|proteinpulver|protein powder|clear whey|total protein|whey protein|kasein|casein|protein pudding|protein pasta|protein wrap|protein toast|protein riegel|protein bar)\b/i;
+
+export function isDietOrZeroIngredient(
+  name?: string,
+  baseName?: string,
+  modifier?: string,
+  synonyms?: string[],
+  searchQueries?: string[]
+): boolean {
+  const combined = [
+    name || '',
+    baseName || '',
+    modifier || '',
+    ...(synonyms || []),
+    ...(searchQueries || []),
+  ]
+    .join(' ')
+    .toLowerCase();
+
+  return DIET_ZERO_TERMS_REGEX.test(combined);
+}
+
+/**
+ * Checks if a BLS candidate is an authentic diet/zero/sweetener product or inherently neutral (e.g. water/tea),
+ * rather than a regular sugar-heavy, full-fat, or high-calorie standard staple.
+ */
+export function isCompatibleDietMatch(
+  candidate: CanonicalIngredient | null | undefined,
+  isDiet: boolean
+): boolean {
+  if (!candidate) return false;
+  if (!isDiet) return true;
+
+  const de = (candidate.name_de || '').toLowerCase();
+  const en = (candidate.name_en || '').toLowerCase();
+  const aliases = (candidate.aliases || []).join(' ').toLowerCase();
+  const combined = `${de} ${en} ${aliases}`;
+
+  // Authentic sweetener / diet entries in BLS (e.g. "Colagetränk ... mit Süßungsmitteln", "Tafelsüße", "zuckerfrei")
+  const isExplicitDietBLS =
+    combined.includes('süßungsmittel') ||
+    combined.includes('süßstoff') ||
+    combined.includes('zuckerfrei') ||
+    combined.includes('kalorienarm') ||
+    combined.includes('sweetener') ||
+    combined.includes('sugar-free') ||
+    combined.includes('sugar free') ||
+    combined.includes('xylit') ||
+    combined.includes('erythrit');
+
+  if (isExplicitDietBLS) {
+    return true;
+  }
+
+  // Inherently zero-calorie / negligible basics (e.g. Wasser, ungesüßter Tee, Kaffee)
+  if (candidate.category === 'BEVERAGES' && candidate.nutrients_per_100g.calories <= 3) {
+    return true;
+  }
+
+  // Otherwise, standard high-carb/high-fat/high-calorie items (ketchup, sugar, syrup, mayo, chocolate, etc.)
+  // are incompatible with zero/diet queries and must be rejected in favor of Gemini's estimate.
+  return false;
+}
+
+/**
  * Cleans punctuation, parentheses, brackets, quantities, and superfluous culinary adjectives.
  */
 export function normalizeSearchTerm(term: string): string {
@@ -232,7 +299,8 @@ function buildSearchQueries(
   name: string,
   baseName?: string,
   synonyms?: string[],
-  searchQueries?: string[]
+  searchQueries?: string[],
+  isDiet?: boolean
 ): string[] {
   const queries: string[] = [];
   const seen = new Set<string>();
@@ -247,17 +315,27 @@ function buildSearchQueries(
   };
 
   add(name);
-  add(baseName);
+  if (!isDiet) {
+    add(baseName);
+  }
 
   if (searchQueries && Array.isArray(searchQueries)) {
-    for (const sq of searchQueries) add(sq);
+    for (const sq of searchQueries) {
+      if (!isDiet || DIET_ZERO_TERMS_REGEX.test(sq)) {
+        add(sq);
+      }
+    }
   }
 
   if (synonyms && Array.isArray(synonyms)) {
-    for (const syn of synonyms) add(syn);
+    for (const syn of synonyms) {
+      if (!isDiet || DIET_ZERO_TERMS_REGEX.test(syn)) {
+        add(syn);
+      }
+    }
   }
 
-  if (name.includes(' ') || name.includes('-')) {
+  if (!isDiet && (name.includes(' ') || name.includes('-'))) {
     const words = name.split(/[\s-]+/).map(normalizeSearchTerm).filter(w => w.length > 2);
     for (const w of words) add(w);
     if (words.length >= 2) {
@@ -314,8 +392,10 @@ export function findFastPathMatch(
   category?: string,
   synonyms?: string[],
   searchQueries?: string[],
-  parentIngredient?: ParentIngredientInfo
+  parentIngredient?: ParentIngredientInfo,
+  modifier?: string
 ): CanonicalIngredient | null {
+  const isDiet = isDietOrZeroIngredient(name, baseName, modifier, synonyms, searchQueries);
   const isPowderQuery = /\b(pulver|powder)\b/i.test(name) || /\b(pulver|powder)\b/i.test(baseName || '');
 
   // 0. Stage 0: Universal BaseName Fast-Path (authoritative direct English key match + safe singularizer)
@@ -325,7 +405,11 @@ export function findFastPathMatch(
     const mappedId = BASE_NAME_TO_CANONICAL_ID[normBase] || BASE_NAME_TO_CANONICAL_ID[singular];
     if (mappedId) {
       const item = byId.get(mappedId.toLowerCase().trim()) || byId.get('bls_' + mappedId.toLowerCase().trim());
-      if (item) return item;
+      if (item) {
+        if (!isDiet || isCompatibleDietMatch(item, isDiet)) {
+          return item;
+        }
+      }
     }
   }
 
@@ -337,26 +421,35 @@ export function findFastPathMatch(
       const mappedParentId = BASE_NAME_TO_CANONICAL_ID[normParentBase] || BASE_NAME_TO_CANONICAL_ID[singularParent];
       if (mappedParentId) {
         const item = byId.get(mappedParentId.toLowerCase().trim()) || byId.get('bls_' + mappedParentId.toLowerCase().trim());
-        if (item) return item;
+        if (item) {
+          if (!isDiet || isCompatibleDietMatch(item, isDiet)) {
+            return item;
+          }
+        }
       }
     }
     if (parentIngredient.name) {
       const normParent = normalizeSearchTerm(parentIngredient.name);
       const directParent = byAlias.get(normParent) || byNameDe.get(normParent) || byId.get(normParent);
       if (directParent) {
-        return directParent;
+        if (!isDiet || isCompatibleDietMatch(directParent, isDiet)) {
+          return directParent;
+        }
       }
     }
   }
 
   // 2. Build search query list
-  const queriesToTest = buildSearchQueries(name, baseName, synonyms, searchQueries);
+  const queriesToTest = buildSearchQueries(name, baseName, synonyms, searchQueries, isDiet);
 
   // 3. Stage 1: Exact O(1) Fast-Path (authoritative direct alias match)
   for (const q of queriesToTest) {
     const direct = byAlias.get(q) || byNameDe.get(q) || byId.get(q) || byNameEn.get(q);
     if (direct) {
       if (isPowderQuery && direct.category === 'FRUITS_VEGETABLES' && !direct.name_de.toLowerCase().includes('pulver')) {
+        continue;
+      }
+      if (isDiet && !isCompatibleDietMatch(direct, isDiet)) {
         continue;
       }
       return direct;
@@ -375,15 +468,17 @@ export function getMiniSearchCandidates(
   category?: string,
   synonyms?: string[],
   searchQueries?: string[],
-  limit = 10
+  limit = 10,
+  modifier?: string
 ): CanonicalIngredient[] {
+  const isDiet = isDietOrZeroIngredient(name, baseName, modifier, synonyms, searchQueries);
   const cleanCategory = normalizeCategory(category);
   const targetMiniSearch = cleanCategory && categoryMiniSearchMap.has(cleanCategory) ? categoryMiniSearchMap.get(cleanCategory)! : null;
   const searchEngine = targetMiniSearch || globalMiniSearch;
-  const queriesToTest = buildSearchQueries(name, baseName, synonyms, searchQueries);
+  const queriesToTest = buildSearchQueries(name, baseName, synonyms, searchQueries, isDiet);
 
   const candidateMap = new Map<string, { item: CanonicalIngredient; score: number }>();
-  const lowerQuery = (name + ' ' + (baseName || '')).toLowerCase();
+  const lowerQuery = (name + ' ' + (baseName || '') + ' ' + (modifier || '')).toLowerCase();
 
   for (const q of queriesToTest) {
     if (q.length < 2) continue;
@@ -408,6 +503,11 @@ export function getMiniSearchCandidates(
 
   for (const { item } of candidateMap.values()) {
     const candDe = (item.name_de || '').toLowerCase();
+
+    // Diet / Zero compatibility guard: Never match zero/diet foods to standard calorie-dense staples
+    if (isDiet && !isCompatibleDietMatch(item, isDiet)) {
+      continue;
+    }
 
     // Never match fitness protein powder to baking leavening agents (Backpulver/Natron)
     const isBakingLeavening = item.bls_code?.startsWith('R42') || candDe.includes('backpulver') || candDe.includes('natron');
@@ -487,6 +587,7 @@ export interface UnmatchedBatchItem {
   id: string;
   name: string;
   baseName?: string;
+  modifier?: string;
   category?: string;
   candidates: CanonicalIngredient[];
 }
@@ -542,16 +643,18 @@ export async function rerankIngredientsBatchWithGemini(
     systemInstruction: `You are an expert culinary nutrition scientist.
 Your task is to match recipe ingredients to their authoritative food database entries (BLS).
 For each ingredient in the input list:
-- Inspect the recipe ingredient name and baseName.
+- Inspect the recipe ingredient name, modifier and baseName.
 - Review the provided BLS candidates.
 - If one candidate accurately represents the ingredient nutritionally and culinarily (e.g. matching a specific vegetable, cut of meat, dairy staple, grain or oil), select its exact code.
-- CRITICAL ANTI-HALLUCINATION RULE: If NONE of the candidates accurately represent the ingredient (e.g., matching a dry spice/powder to a whole fresh fruit or fish, matching an exotic unlisted item to a random food), you MUST set selectedCode to null or empty string. NEVER pick a candidate just because it's in the list. Accuracy is paramount.`,
+- CRITICAL ANTI-HALLUCINATION RULE: If NONE of the candidates accurately represent the ingredient (e.g., matching a dry spice/powder to a whole fresh fruit or fish, matching an exotic unlisted item to a random food), you MUST set selectedCode to null or empty string. NEVER pick a candidate just because it's in the list. Accuracy is paramount.
+- CRITICAL DIET / ZERO / SWEETENER RULE: NEVER match "zero", "sugar-free" (zuckerfrei), "diet", "light", "erythritol" (Erythrit), "flavor drops", "syrup zero", or "protein powder" products to regular sugar-heavy, full-fat, or standard versions (e.g. NEVER match "Zero Ketchup" or "zuckerfreier Sirup" to standard "Tomatenketchup" or "Ahornsirup", NEVER match "Erythrit" to "Zucker", NEVER match "Light Mayo" to regular "Mayonnaise"). If there is no specific zero/diet/sweetener version in the candidates, you MUST select null or empty string.`,
   });
 
   const promptPayload = unmatchedItems.map(item => ({
     id: item.id,
     ingredientName: item.name,
     baseName: item.baseName || '',
+    modifier: item.modifier || '',
     category: item.category || '',
     candidates: item.candidates.map(c => ({
       code: c.bls_code || c.id,
@@ -612,14 +715,15 @@ export async function findCanonicalIngredient(
   category?: string,
   synonyms?: string[],
   searchQueries?: string[],
-  parentIngredient?: ParentIngredientInfo
+  parentIngredient?: ParentIngredientInfo,
+  modifier?: string
 ): Promise<CanonicalIngredient | null> {
   // 1. Synchronous Fast-Path
-  const fast = findFastPathMatch(name, baseName, category, synonyms, searchQueries, parentIngredient);
+  const fast = findFastPathMatch(name, baseName, category, synonyms, searchQueries, parentIngredient, modifier);
   if (fast) return fast;
 
   // 2. MiniSearch BM25 candidates
-  const candidates = getMiniSearchCandidates(name, baseName, category, synonyms, searchQueries, 10);
+  const candidates = getMiniSearchCandidates(name, baseName, category, synonyms, searchQueries, 10, modifier);
   if (candidates.length === 0) return null;
 
   // 3. Batch rerank for single item
@@ -627,6 +731,7 @@ export async function findCanonicalIngredient(
     id: 'single_item',
     name,
     baseName,
+    modifier,
     category,
     candidates,
   };
@@ -701,7 +806,20 @@ export function applyCanonicalMatchToIngredient(
   carbs: number;
   fat: number;
 } {
-  if (!match) {
+  const isDiet = isDietOrZeroIngredient(
+    ingredient.name,
+    ingredient.baseName,
+    ingredient.modifier,
+    ingredient.synonyms,
+    ingredient.searchQueries
+  );
+
+  let effectiveMatch = match;
+  if (effectiveMatch && isDiet && !isCompatibleDietMatch(effectiveMatch, true)) {
+    effectiveMatch = null;
+  }
+
+  if (!effectiveMatch) {
     // Remixes echo the parent's match fields back from the model — drop them so an
     // unmatched ingredient never carries a stale canonical reference next to
     // LLM-estimated macros.
@@ -717,7 +835,7 @@ export function applyCanonicalMatchToIngredient(
     };
   }
 
-  const weightGrams = calculateWeightGrams(ingredient.amount, ingredient.unit, match, ingredient.gramsPerUnit);
+  const weightGrams = calculateWeightGrams(ingredient.amount, ingredient.unit, effectiveMatch, ingredient.gramsPerUnit);
   const factor = weightGrams / 100;
 
   // Populate gramsPerUnit on ingredient if missing
@@ -725,13 +843,13 @@ export function applyCanonicalMatchToIngredient(
     ingredient.gramsPerUnit = Math.round((weightGrams / ingredient.amount) * 10) / 10;
   }
 
-  const cal = Math.round(match.nutrients_per_100g.calories * factor);
-  const prot = Math.round(match.nutrients_per_100g.protein * factor * 10) / 10;
-  const carb = Math.round(match.nutrients_per_100g.carbs * factor * 10) / 10;
-  const fat = Math.round(match.nutrients_per_100g.fat * factor * 10) / 10;
+  const cal = Math.round(effectiveMatch.nutrients_per_100g.calories * factor);
+  const prot = Math.round(effectiveMatch.nutrients_per_100g.protein * factor * 10) / 10;
+  const carb = Math.round(effectiveMatch.nutrients_per_100g.carbs * factor * 10) / 10;
+  const fat = Math.round(effectiveMatch.nutrients_per_100g.fat * factor * 10) / 10;
 
-  ingredient.canonicalId = match.id;
-  ingredient.matchedName = match.name_de;
+  ingredient.canonicalId = effectiveMatch.id;
+  ingredient.matchedName = effectiveMatch.name_de;
   ingredient.isVerified = true;
   ingredient.calories = cal;
   ingredient.protein = prot;
@@ -739,7 +857,7 @@ export function applyCanonicalMatchToIngredient(
   ingredient.fat = fat;
 
   if (!ingredient.category || ingredient.category === 'OTHER') {
-    ingredient.category = match.category;
+    ingredient.category = effectiveMatch.category;
   }
 
   return { matched: true, calories: cal, protein: prot, carbs: carb, fat };
@@ -762,7 +880,8 @@ export async function matchAndEnrichIngredient(ingredient: Ingredient, groupCate
     effectiveCategory,
     ingredient.synonyms,
     ingredient.searchQueries,
-    ingredient.parentIngredient
+    ingredient.parentIngredient,
+    ingredient.modifier
   );
 
   return applyCanonicalMatchToIngredient(ingredient, match);
@@ -802,7 +921,8 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
       effectiveCategory,
       ing.synonyms,
       ing.searchQueries,
-      ing.parentIngredient
+      ing.parentIngredient,
+      ing.modifier
     );
 
     if (fastMatch) {
@@ -814,13 +934,15 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
         effectiveCategory,
         ing.synonyms,
         ing.searchQueries,
-        10
+        10,
+        ing.modifier
       );
       if (candidates.length > 0) {
         unmatchedForBatch.push({
           id,
           name: ing.name,
           baseName: ing.baseName,
+          modifier: ing.modifier,
           category: effectiveCategory,
           candidates,
         });
@@ -875,3 +997,4 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
     ? Math.round((matchedCalories / totalCalories) * 100) / 100
     : 0;
 }
+

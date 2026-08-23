@@ -100,10 +100,10 @@ flowchart TD
 ```
 
 * **Datensatz:** BLS 4.0 (`backend/src/data/canonicalIngredientsData.json`, 7.140 Lebensmittel mit 100g-Referenzwerten und Stückgewichten wie `piece`, `clove`, `tablespoon`, `teaspoon`).
-* **Vorkompilierte Vektoren:** `canonicalEmbeddings.bin` (3072-dimensionale Google Gemini Embeddings aller 7.140 Lebensmittel für ultraschnellen Kosinus-Abgleich).
+* **Multi-Stage Diet & Zero Guard:** Spezieller Schutzmechanismus (`isDietOrZeroIngredient`, `isCompatibleDietMatch`) für moderne Fitness- und Diät-Produkte (*Zero Ketchup*, *Ahornsirup zero*, *Erythrit*, *Light Mayo*, *Flavour Drops*, *Proteinpulver*). Verhindert, dass zuckerfreie oder kalorienreduzierte Zutaten auf reguläre zucker- und fettrelevante Standard-Lebensmittel gematcht werden (z. B. *Zero Ketchup* auf regulären *Tomatenketchup* mit 98 kcal/100g). Stattdessen greift automatisch der präzise Gemini-KI-Fallback (`isVerified: false`, Übernahme der geschätzten Makros).
 * **Sparse Indexierung (MiniSearch BM25):** Vorkategorisierte Inverted Indexes nach Supermarktabteilung (`categoryMiniSearchMap`), Tokenisierung mit BM25-Relevanzgewichtung (`name_de: 3.0`, `search_aliases: 2.5`).
-* **Dense Semantic Validation:** Filtert ungelistete Marken- und Fantasie-Produkte (*Evo Whey*, *Mandelmilch*, *Protein-Pudding*) mit striktem Cosinus-Schwellenwert ($\ge 0.70$) sauber heraus und verhindert Fehlmatches auf fremde Zutaten.
-* **Match-Rate:** **89 % Verifizierungsquote** auf realen Social-Media-Rezepten bei 0 % False Positives.
+* **LLM Batch Reranking (Gemini Flash-Lite):** Führt alle ungelösten Zutaten eines Rezepts in einem einzigen schlanken Batch-Call zusammen und prüft strikte Anti-Halluzinations- und Diät-Regeln.
+* **Match-Rate:** Hohe Verifizierungsquote auf Standard-Zutaten bei 0 % Fehlmatches auf fremde oder unpassende Standard-Lebensmittel.
 
 ---
 

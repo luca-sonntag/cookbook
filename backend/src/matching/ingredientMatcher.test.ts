@@ -204,5 +204,180 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
       assert.equal(recipe.nutritionalValues?.calories, 166);
       assert.equal(recipe.nutritionCoverage, 1);
     });
+
+    test('preserves Gemini fallback calories for Zero/Diet products without matching sugar-dense BLS staples', async () => {
+      const recipe: Recipe = {
+        title: 'Fitness Burger mit Zero Ketchup',
+        description: 'Low-Calorie Recipe',
+        prepTime: 10,
+        cookTime: 10,
+        servings: 1,
+        ingredients: [
+          {
+            name: 'Zutaten',
+            items: [
+              {
+                name: 'Hähnchenbrustfilet',
+                baseName: 'chicken breast',
+                amount: 200,
+                unit: 'g',
+                category: 'MEAT_FISH',
+              },
+              {
+                name: 'Zero Ketchup',
+                modifier: 'zuckerfrei',
+                baseName: 'ketchup',
+                amount: 6,
+                unit: 'TL',
+                gramsPerUnit: 5,
+                category: 'SPICES_OILS',
+                calories: 3,
+                protein: 0.3,
+                carbs: 0.4,
+                fat: 0,
+              },
+              {
+                name: 'Erythrit',
+                baseName: 'sugar',
+                amount: 10,
+                unit: 'g',
+                category: 'PANTRY_BAKING',
+                calories: 0,
+                protein: 0,
+                carbs: 0,
+                fat: 0,
+              },
+            ],
+          },
+        ],
+        instructions: [{ step: 1, description: 'Anbraten und servieren' }],
+        equipment: ['Pfanne'],
+      };
+
+      await enrichRecipeWithCanonicalIngredients(recipe);
+
+      const items = recipe.ingredients[0].items;
+
+      // Hähnchenbrustfilet matches BLS
+      assert.equal(items[0].isVerified, true);
+      assert.ok(items[0].canonicalId);
+      assert.ok((items[0].calories ?? 0) > 150);
+
+      // Zero Ketchup must NOT match standard Tomatenketchup (98 kcal/100g)
+      assert.equal(items[1].isVerified, false);
+      assert.equal(items[1].canonicalId, undefined);
+      assert.equal(items[1].matchedName, undefined);
+      assert.equal(items[1].calories, 3); // Gemini estimate preserved!
+
+      // Erythrit must NOT match standard Zucker weiß (400 kcal/100g)
+      assert.equal(items[2].isVerified, false);
+      assert.equal(items[2].canonicalId, undefined);
+      assert.equal(items[2].calories, 0); // Gemini estimate preserved!
+
+      // Recipe total should reflect real low-calorie totals (~200-250 kcal), NOT inflated with 98 kcal/100g ketchup or 400 kcal/100g sugar
+      assert.ok((recipe.nutritionalValues?.calories ?? 0) < 260);
+    });
+  });
+
+  describe('Diet / Zero / Sweetener Guard', () => {
+    test('rejects regular sugar-rich staples for Zero Ketchup, Erythrit, Ahornsirup Zero and Light Mayo', async () => {
+      const zeroKetchup = await findCanonicalIngredient(
+        'Zero Ketchup',
+        'ketchup',
+        'SPICES_OILS',
+        [],
+        ['Zero Ketchup', 'Ketchup'],
+        undefined,
+        'zuckerfrei'
+      );
+      assert.equal(zeroKetchup, null);
+
+      const erythrit = await findCanonicalIngredient(
+        'Erythrit',
+        'sugar',
+        'PANTRY_BAKING',
+        [],
+        ['Erythrit', 'Zucker']
+      );
+      assert.equal(erythrit, null);
+
+      const zeroSyrup = await findCanonicalIngredient(
+        'Ahornsirup',
+        'maple syrup',
+        'SWEETS_SNACKS',
+        [],
+        ['Ahornsirup zero'],
+        undefined,
+        'zero'
+      );
+      assert.equal(zeroSyrup, null);
+
+      const lightMayo = await findCanonicalIngredient(
+        'Light Mayo',
+        'mayonnaise',
+        'SPICES_OILS',
+        [],
+        ['Light Mayo', 'Mayonnaise'],
+        undefined,
+        'leicht'
+      );
+      assert.equal(lightMayo, null);
+
+      const proteinPowder = await findCanonicalIngredient(
+        'Proteinpulver',
+        'protein powder',
+        'PANTRY_BAKING',
+        [],
+        ['Proteinpulver']
+      );
+      assert.equal(proteinPowder, null);
+    });
+
+    test('allows legitimate zero-calorie or sweetener entries in BLS (e.g. Cola Zero)', async () => {
+      const colaZero = await findCanonicalIngredient(
+        'Cola Zero',
+        'cola',
+        'BEVERAGES',
+        [],
+        ['Cola Zero', 'Colagetränk mit Süßungsmitteln']
+      );
+      assert.ok(colaZero);
+      assert.ok(colaZero.name_de.toLowerCase().includes('süßungsmittel') || colaZero.name_de.toLowerCase().includes('cola'));
+      assert.equal(colaZero.nutrients_per_100g.calories, 0);
+    });
+
+    test('allows normal non-diet staples to match BLS without interference', async () => {
+      const regularKetchup = await findCanonicalIngredient(
+        'Tomatenketchup',
+        'ketchup',
+        'SPICES_OILS',
+        [],
+        ['Tomatenketchup']
+      );
+      assert.ok(regularKetchup);
+      assert.equal(regularKetchup.name_de, 'Tomatenketchup');
+      assert.ok(regularKetchup.nutrients_per_100g.calories >= 90);
+
+      const regularSugar = await findCanonicalIngredient(
+        'Zucker',
+        'sugar',
+        'BAKING_COOKING',
+        [],
+        ['Zucker weiß']
+      );
+      assert.ok(regularSugar);
+      assert.ok(regularSugar.name_de.toLowerCase().includes('zucker'));
+
+      const regularMayo = await findCanonicalIngredient(
+        'Mayonnaise',
+        'mayonnaise',
+        'SPICES_OILS',
+        [],
+        ['Mayonnaise']
+      );
+      assert.ok(regularMayo);
+      assert.ok(regularMayo.name_de.toLowerCase().includes('mayonnaise'));
+    });
   });
 });
+
