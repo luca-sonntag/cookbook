@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { getIngredientIconUrl } from '../utils/ingredientIcon';
-import { getCategoryIcon } from '../i18n';
+import { getCategoryIconUrl } from '../i18n';
 
 export interface IngredientIconProps {
   canonicalId?: string | null;
@@ -32,29 +32,35 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const iconUrl = getIngredientIconUrl(canonicalId);
-  const categoryIcon = getCategoryIcon(category);
+  const categoryIconUrl = getCategoryIconUrl(category);
 
   // Clean flat container without heavy shadows or borders
   const containerClasses = `${SIZE_MAP[size]} flex items-center justify-center overflow-hidden flex-shrink-0 relative select-none bg-white dark:bg-white rounded-xl ${className}`;
 
   if (!iconUrl || hasError) {
     return (
-      <div
-        className={`${SIZE_MAP[size]} flex items-center justify-center overflow-hidden flex-shrink-0 select-none bg-black/[0.03] dark:bg-white/[0.06] rounded-xl ${className}`}
-        title={category || name}
-      >
-        <span className="leading-none text-lg sm:text-xl">{categoryIcon}</span>
+      <div className={containerClasses} title={category || name}>
+        <img
+          src={categoryIconUrl}
+          alt={category || name || 'Kategorie'}
+          loading="lazy"
+          className={`${ICON_SIZE_MAP[size]} object-contain`}
+        />
       </div>
     );
   }
 
   return (
     <div className={containerClasses} title={name}>
-      {/* Background fallback until image is fully loaded */}
+      {/* Category icon placeholder until specific image is fully loaded */}
       {!isLoaded && (
-        <span className="absolute inset-0 flex items-center justify-center opacity-60 text-base">
-          {categoryIcon}
-        </span>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <img
+            src={categoryIconUrl}
+            alt={category || name || 'Kategorie'}
+            className={`${ICON_SIZE_MAP[size]} object-contain opacity-40`}
+          />
+        </div>
       )}
       <img
         src={iconUrl}
@@ -71,3 +77,4 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
 };
 
 export default IngredientIcon;
+

@@ -192,7 +192,7 @@ export const categoryOrder: IngredientCategory[] = [
   IngredientCategory.OTHER
 ];
 
-// Icons for each category
+// Icons for each category (legacy emojis)
 export const categoryIcons: Record<IngredientCategory, string> = {
   [IngredientCategory.VEGETABLES]: '🥦',
   [IngredientCategory.FRUITS]: '🍎',
@@ -217,6 +217,46 @@ export const categoryIcons: Record<IngredientCategory, string> = {
   [IngredientCategory.FROZEN]: '❄️',
   [IngredientCategory.OTHER]: '🛍️',
 };
+
+// 3D Studio Category Icon Image Files (matching app aesthetic)
+export const categoryIconFiles: Record<IngredientCategory, string> = {
+  [IngredientCategory.VEGETABLES]: '/category-icons/vegetables.webp',
+  [IngredientCategory.FRUITS]: '/category-icons/fruits.webp',
+  [IngredientCategory.DAIRY_EGGS]: '/category-icons/dairy_eggs.webp',
+  [IngredientCategory.MEAT_POULTRY]: '/category-icons/meat_poultry.webp',
+  [IngredientCategory.SEAFOOD]: '/category-icons/seafood.webp',
+  [IngredientCategory.GRAINS_PASTA]: '/category-icons/grains_pasta.webp',
+  [IngredientCategory.OILS_CONDIMENTS]: '/category-icons/oils_condiments.webp',
+  [IngredientCategory.SPICES_HERBS]: '/category-icons/spices_herbs.webp',
+  [IngredientCategory.NUTS_SEEDS]: '/category-icons/nuts_seeds.webp',
+  [IngredientCategory.SWEETS_SNACKS]: '/category-icons/sweets_snacks.webp',
+  [IngredientCategory.BEVERAGES]: '/category-icons/beverages.webp',
+  [IngredientCategory.PANTRY_BAKING]: '/category-icons/pantry_baking.webp',
+  [IngredientCategory.PREPARED_DISHES]: '/category-icons/prepared_dishes.webp',
+
+  // Legacy
+  [IngredientCategory.PRODUCE]: '/category-icons/vegetables.webp',
+  [IngredientCategory.BAKERY]: '/category-icons/grains_pasta.webp',
+  [IngredientCategory.PANTRY]: '/category-icons/pantry.webp',
+  [IngredientCategory.BAKING]: '/category-icons/pantry_baking.webp',
+  [IngredientCategory.CONDIMENTS_OILS]: '/category-icons/oils_condiments.webp',
+  [IngredientCategory.FROZEN]: '/category-icons/frozen.webp',
+  [IngredientCategory.OTHER]: '/category-icons/other.webp',
+};
+
+export function getCategoryIconUrl(category?: string | null): string {
+  if (!category) return '/category-icons/other.webp';
+  const cleanCategory = category.trim().toUpperCase();
+  if (cleanCategory in IngredientCategory) {
+    return categoryIconFiles[cleanCategory as IngredientCategory] || '/category-icons/other.webp';
+  }
+  const lowerCategory = category.trim().toLowerCase();
+  const mappedKey = legacyCategoryMap[lowerCategory];
+  if (mappedKey && categoryIconFiles[mappedKey]) {
+    return categoryIconFiles[mappedKey];
+  }
+  return '/category-icons/other.webp';
+}
 
 export function getCategoryIcon(category: string): string {
   if (!category) return '🛍️';

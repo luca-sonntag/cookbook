@@ -119,6 +119,39 @@ ingredientImageRouter.get(['/api/ingredient-icons/:filename', '/api/dev/ingredie
   }
 });
 
+// Public Category Icons Endpoint: GET /api/category-icons/:filename
+ingredientImageRouter.get('/api/category-icons/:filename', (req: Request, res: Response) => {
+  try {
+    const rawParam = req.params.filename || '';
+    const cleanName = rawParam.replace(/\.webp$/i, '').toLowerCase().trim();
+    const cwd = process.cwd();
+    const baseDir = path.basename(cwd).toLowerCase() === 'backend'
+      ? path.resolve(cwd, 'public', 'category-icons')
+      : path.resolve(cwd, 'backend', 'public', 'category-icons');
+
+    const filePath = path.join(baseDir, `${cleanName}.webp`);
+    if (!fs.existsSync(filePath)) {
+      const fallbackPath = path.join(baseDir, 'other.webp');
+      if (fs.existsSync(fallbackPath)) {
+        res.setHeader('Content-Type', 'image/webp');
+        res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        return res.sendFile(fallbackPath);
+      }
+      return res.status(404).send('Category icon not found');
+    }
+
+    res.setHeader('Content-Type', 'image/webp');
+    res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.sendFile(filePath);
+  } catch (err: any) {
+    res.status(500).send('Error serving category icon');
+  }
+});
+
 // POST /api/dev/ingredients/:id/generate - Generate or re-generate an icon
 ingredientImageRouter.post('/api/dev/ingredients/:id/generate', async (req: Request, res: Response) => {
   try {
