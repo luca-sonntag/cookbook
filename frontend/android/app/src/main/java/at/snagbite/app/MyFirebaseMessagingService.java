@@ -101,16 +101,31 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setSmallIcon(R.drawable.ic_stat_icon)
                 .setContentTitle(title)
                 .setContentText(body)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent);
 
-        String iconUrl = data != null ? data.get("iconUrl") : null;
-        if (iconUrl != null && !iconUrl.isEmpty()) {
-            Bitmap iconBitmap = fetchBitmap(iconUrl);
-            if (iconBitmap != null) {
-                builder.setLargeIcon(iconBitmap);
+        // Preferred visual: the recipe's AI-generated cover, rendered as an expandable
+        // BigPictureStyle banner. Falls back to the gradient/emoji icon (BigTextStyle)
+        // when no cover was sent or the download failed.
+        String imageUrl = data != null ? data.get("imageUrl") : null;
+        Bitmap coverBitmap = (imageUrl != null && !imageUrl.isEmpty()) ? fetchBitmap(imageUrl) : null;
+
+        if (coverBitmap != null) {
+            builder.setLargeIcon(coverBitmap)
+                    .setStyle(new NotificationCompat.BigPictureStyle()
+                            .bigPicture(coverBitmap)
+                            .bigLargeIcon((Bitmap) null)
+                            .setSummaryText(body));
+        } else {
+            builder.setStyle(new NotificationCompat.BigTextStyle().bigText(body));
+
+            String iconUrl = data != null ? data.get("iconUrl") : null;
+            if (iconUrl != null && !iconUrl.isEmpty()) {
+                Bitmap iconBitmap = fetchBitmap(iconUrl);
+                if (iconBitmap != null) {
+                    builder.setLargeIcon(iconBitmap);
+                }
             }
         }
 

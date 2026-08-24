@@ -1,4 +1,5 @@
 import { config } from '../config.js';
+import type { SavedRecipe } from '../types.js';
 import {
   getLibrary,
   listCollections,
@@ -76,12 +77,18 @@ function resolveLanguage(user: NotificationUser): string {
   return lang.startsWith('en') ? 'en' : 'de';
 }
 
+/** Candidate plus the cookbook it was picked from (so we can resolve its cover). */
+interface CandidateChoice {
+  candidate: Candidate;
+  recipes: SavedRecipe[];
+}
+
 /** Assemble the per-user context and pick the best notification candidate. */
 async function chooseForUser(
   user: NotificationUser,
   now: Date,
   local: LocalParts,
-): Promise<Candidate | null> {
+): Promise<CandidateChoice | null> {
   const recipes = await getLibrary(user.id);
   const collectionsList = await listCollections(user.id).catch(() => []);
 
@@ -120,7 +127,22 @@ async function chooseForUser(
     daysSinceLastSave,
   };
 
-  return pickBestCandidate(ctx);
+  const candidate = pickBestCandidate(ctx);
+  return candidate ? { candidate, recipes } : null;
+}
+
+/**
+ * The AI-generated cover of the recipe a notification points at, when there is
+ * one. Used as the notification image; callers fall back to the generated
+ * gradient/emoji icon when this returns null.
+ */
+function resolveCoverImageUrl(candidate: Candidate, recipes: SavedRecipe[]): string | null {
+  if (!candidate.recipeId) return null;
+  const entry = recipes.find((r) => r.recipeId === candidate.recipeId);
+  const recipe = entry?.recipe;
+  if (!recipe?.isAiCover) return null;
+  const url = recipe.imageUrl?.trim();
+  return url && /^https?:\/\//i.test(url) ? url : null;
 }
 
 /** Deliver the chosen notification to every active device; prune dead tokens. */
@@ -189,8 +211,9 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
       if (tokens.length === 0) return `User ${user.id}: No registered push tokens found in DB.`;
     }
 
-    const candidate = await chooseForUser(user, now, local);
-    if (!candidate) return `User ${user.id}: No candidate notification type matched (needs saved recipes or history).`;
+    const choice = await chooseForUser(user, now, local);
+    if (!choice) return `User ${user.id}: No candidate notification type matched (needs saved recipes or history).`;
+    const { candidate, recipes } = choice;
 
     const copy = await generateNotificationCopy(candidate, resolveLanguage(user));
     if (!copy) return `User ${user.id}: AI copy generation returned null.`;
@@ -201,11 +224,16 @@ async function processUser(user: NotificationUser, now: Date, force = false): Pr
     const iconUrl = `${baseUrl}/api/push-icon?theme=${themeParam}&emoji=${emojiParam}`;
 
     const dataPayload = tapData(candidate);
+    // The gradient/emoji icon is always sent as the fallback the device renders
+    // when there is no AI cover (or fetching it fails).
     dataPayload.iconUrl = iconUrl;
+
+    const coverUrl = resolveCoverImageUrl(candidate, recipes);
 
     const message: FcmMessage = {
       title: copy.title,
       body: copy.body,
+      ...(coverUrl ? { imageUrl: coverUrl } : {}),
       data: dataPayload,
     };
     const delivered = await deliver(user.id, candidate, message);
