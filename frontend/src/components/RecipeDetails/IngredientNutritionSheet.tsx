@@ -82,6 +82,7 @@ export default function IngredientNutritionSheet({
                       </h3>
                       <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium mt-0.5">
                         {scaledAmount > 0 && `${scaledAmount} ${ingredient.unit || ''}`.trim()}
+                        {ingredient.brand && ` · ${ingredient.brand}`}
                         {ingredient.modifier && ` (${ingredient.modifier})`}
                         {scaleFactor !== 1 && ` · ×${scaleFactor}`}
                       </p>

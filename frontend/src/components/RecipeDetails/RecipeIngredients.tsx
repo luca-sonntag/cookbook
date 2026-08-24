@@ -146,6 +146,11 @@ export default function RecipeIngredients({
                           )}
                           {/* 1. Name oben */}
                           <div className="flex items-baseline flex-wrap gap-x-1.5 min-w-0 text-sm font-medium text-gray-900 dark:text-white leading-snug">
+                            {ing.brand && (
+                              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded-md leading-tight">
+                                {ing.brand}
+                              </span>
+                            )}
                             <span>{name}</span>
                             {showParentBadge && (
                               <span className="text-xs text-gray-400 dark:text-gray-400 font-normal">

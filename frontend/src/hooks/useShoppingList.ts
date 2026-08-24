@@ -62,6 +62,7 @@ export function useShoppingList() {
         baseName: ing.baseName,
         parentIngredient: ing.parentIngredient || getParentIngredient(ing) || undefined,
         modifier: ing.modifier,
+        brand: ing.brand,
         amount: ing.amount || 0,
         unit: normalizeUnit(ing.unit),
         recipeId,

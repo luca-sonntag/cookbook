@@ -77,7 +77,11 @@ const recipeSchema = {
               properties: {
                 name: {
                   type: FunctionDeclarationSchemaType.STRING,
-                  description: 'The clean name of the ingredient in the recipe language, stripped of quantities, numbers, units, and superficial adjectives/processing states (e.g. use "Frischkäse" instead of "Leichter Frischkäse", "Butter" instead of "Leichte Butter", "Parmesan" instead of "Parmesan, gerieben", "Hähnchenschenkel" instead of "Hähnchenschenkel, gewürfelt"). IMPORTANT: Compound nouns where the suffix or word defines the core food identity itself (e.g. "Paprikapulver", "Knoblauchpulver", "Backpulver", "Mandelmehl", "Olivenöl", "Tomatenmark", "Kochschinken", "Schlagsahne", "Frischkäse") MUST remain fully intact as compound words in "name". Only real culinary states or adjectives (e.g. "leicht", "mager", "gerieben", "gewürfelt", "ohne Knochen") belong in the "modifier" field.',
+                  description: 'The clean basic name of the ingredient in the recipe language, stripped of brand names, quantities, numbers, units, and superficial adjectives/processing states (e.g. use "Käse" instead of "Eat Lean Käse", "Salatcreme" instead of "Miracle Whip Balance", "Frischkäse" instead of "Philadelphia Frischkäse", "Butter" instead of "Leichte Butter", "Parmesan" instead of "Parmesan, gerieben", "Hähnchenschenkel" instead of "Hähnchenschenkel, gewürfelt"). IMPORTANT: Compound nouns where the suffix or word defines the core food identity itself (e.g. "Paprikapulver", "Knoblauchpulver", "Backpulver", "Mandelmehl", "Olivenöl", "Tomatenmark", "Kochschinken", "Schlagsahne", "Frischkäse") MUST remain fully intact as compound words in "name". Only real culinary states or adjectives (e.g. "leicht", "mager", "fettreduziert", "zuckerfrei", "gerieben", "gewürfelt", "ohne Knochen") belong in the "modifier" field.',
+                },
+                brand: {
+                  type: FunctionDeclarationSchemaType.STRING,
+                  description: 'Optional manufacturer or brand name mentioned in the recipe (e.g. "Eat Lean", "Miracle Whip", "Philadelphia", "Nutella", "Alpro", "Exquisa", "Oatly", "Buko"). Leave empty or null if no specific brand is named in the recipe. The generic base food name (e.g. "Käse", "Salatcreme", "Frischkäse") belongs in the "name" field.',
                 },
                 baseName: {
                   type: FunctionDeclarationSchemaType.STRING,
