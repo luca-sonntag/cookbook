@@ -6,6 +6,7 @@ import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import TimerConfirmSheet from './TimerConfirmSheet';
 import PremiumModal from './PremiumModal';
+import IngredientIcon from './IngredientIcon';
 
 interface RecipeInstructionTextProps {
   /**
@@ -47,7 +48,14 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
 
   // Flat list of ingredients
   const allIngredients = useMemo(() => {
-    return recipe.ingredients ? recipe.ingredients.flatMap(g => g.items) : [];
+    return recipe.ingredients
+      ? recipe.ingredients.flatMap(g =>
+          g.items.map(item => ({
+            ...item,
+            category: item.category || g.name,
+          }))
+        )
+      : [];
   }, [recipe.ingredients]);
 
   // Highlights ingredients, equipment, temperatures, and timers in instruction text
@@ -143,23 +151,31 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                   >
                     <Popover.Dialog className="outline-none border-none p-0 m-0">
                       {matchedIng ? (
-                        <div className="flex flex-col min-w-[140px] max-w-[260px]">
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
-                              {matchedIng.name}
-                            </span>
-                            {(matchedIng.amount > 0 || matchedIng.unit) && (
-                              <span className="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 px-2 py-0.5 rounded-lg shrink-0 whitespace-nowrap">
-                                {formatAmount(matchedIng.amount, matchedIng.unit)}
-                                {matchedIng.unit ? ` ${matchedIng.unit}` : ''}
+                        <div className="flex items-center gap-2.5 min-w-[160px] max-w-[280px]">
+                          <IngredientIcon
+                            canonicalId={matchedIng.canonicalId}
+                            category={matchedIng.category}
+                            name={matchedIng.name}
+                            size="sm"
+                          />
+                          <div className="flex-1 min-w-0 flex flex-col justify-center">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate">
+                                {matchedIng.name}
+                              </span>
+                              {(matchedIng.amount > 0 || matchedIng.unit) && (
+                                <span className="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 px-2 py-0.5 rounded-lg shrink-0 whitespace-nowrap">
+                                  {formatAmount(matchedIng.amount, matchedIng.unit)}
+                                  {matchedIng.unit ? ` ${matchedIng.unit}` : ''}
+                                </span>
+                              )}
+                            </div>
+                            {(matchedIng.modifier || matchedIng.notes) && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400 italic mt-0.5 leading-tight truncate">
+                                {[matchedIng.modifier, matchedIng.notes].filter(Boolean).join(' • ')}
                               </span>
                             )}
                           </div>
-                          {(matchedIng.modifier || matchedIng.notes) && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400 italic mt-1 leading-tight">
-                              {[matchedIng.modifier, matchedIng.notes].filter(Boolean).join(' • ')}
-                            </span>
-                          )}
                         </div>
                       ) : (
                         <span className="text-sm font-semibold text-gray-900 dark:text-white">{inlineIngMatch[2]}</span>
@@ -255,15 +271,28 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                   >
                     <Popover.Dialog className="outline-none border-none p-0 m-0">
                       {matched.ingredient ? (
-                        <div className="flex flex-col min-w-[140px] max-w-[260px]">
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
-                              {matched.ingredient.name}
-                            </span>
-                            {(matched.ingredient.amount > 0 || matched.ingredient.unit) && (
-                              <span className="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 px-2 py-0.5 rounded-lg shrink-0 whitespace-nowrap">
-                                {formatAmount(matched.ingredient.amount, matched.ingredient.unit)}
-                                {matched.ingredient.unit ? ` ${matched.ingredient.unit}` : ''}
+                        <div className="flex items-center gap-2.5 min-w-[160px] max-w-[280px]">
+                          <IngredientIcon
+                            canonicalId={matched.ingredient.canonicalId}
+                            category={matched.ingredient.category}
+                            name={matched.ingredient.name}
+                            size="sm"
+                          />
+                          <div className="flex-1 min-w-0 flex flex-col justify-center">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate">
+                                {matched.ingredient.name}
+                              </span>
+                              {(matched.ingredient.amount > 0 || matched.ingredient.unit) && (
+                                <span className="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 px-2 py-0.5 rounded-lg shrink-0 whitespace-nowrap">
+                                  {formatAmount(matched.ingredient.amount, matched.ingredient.unit)}
+                                  {matched.ingredient.unit ? ` ${matched.ingredient.unit}` : ''}
+                                </span>
+                              )}
+                            </div>
+                            {(matched.ingredient.modifier || matched.ingredient.notes) && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400 italic mt-0.5 leading-tight truncate">
+                                {[matched.ingredient.modifier, matched.ingredient.notes].filter(Boolean).join(' • ')}
                               </span>
                             )}
                           </div>
