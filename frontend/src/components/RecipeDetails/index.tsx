@@ -222,15 +222,6 @@ export default function RecipeDetails({
     return () => window.removeEventListener('app:navigate-to-timer-step', handleNavigate);
   }, [recipe.id, recipe.title]);
 
-  // Show ingredient nutrition state (persisted in localStorage)
-  const [showIngredientNutrition, setShowIngredientNutrition] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('recipe_show_ingredient_nutrition');
-      return saved !== null ? JSON.parse(saved) : false;
-    } catch {
-      return false;
-    }
-  });
 
   // Show total or per portion nutrition (persisted in localStorage)
   const [showTotalNutrition, setShowTotalNutrition] = useState<boolean>(() => {
@@ -308,30 +299,6 @@ export default function RecipeDetails({
     }
   };
 
-  const handleToggleIngredientNutrition = () => {
-    setShowIngredientNutrition(prev => {
-      const next = !prev;
-      try {
-        localStorage.setItem('recipe_show_ingredient_nutrition', JSON.stringify(next));
-      } catch (e) {
-        console.error('Error saving showIngredientNutrition to localStorage', e);
-      }
-      return next;
-    });
-  };
-
-  // Check if at least one ingredient has nutrition values estimated/defined
-  const hasIngredientNutrition = useMemo(() => {
-    if (!recipe.ingredients) return false;
-    return recipe.ingredients.some(group =>
-      group.items.some(ing =>
-        (ing.calories !== undefined && ing.calories !== null && ing.calories > 0) ||
-        (ing.protein !== undefined && ing.protein !== null && ing.protein > 0) ||
-        (ing.carbs !== undefined && ing.carbs !== null && ing.carbs > 0) ||
-        (ing.fat !== undefined && ing.fat !== null && ing.fat > 0)
-      )
-    );
-  }, [recipe.ingredients]);
 
   // Find the first uncompleted step to highlight it
   const activeStepNum = useMemo(() => {
@@ -626,9 +593,6 @@ export default function RecipeDetails({
           <RecipeIngredients
             recipe={recipe}
             sortedIngredients={sortedIngredients}
-            showIngredientNutrition={showIngredientNutrition}
-            onToggleIngredientNutrition={handleToggleIngredientNutrition}
-            hasIngredientNutrition={hasIngredientNutrition}
             isPremium={isPremium}
             scaleFactor={scaleFactor}
             formatAmount={formatAmount}

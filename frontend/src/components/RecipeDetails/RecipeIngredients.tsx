@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@heroui/react';
-import { Check, Flame, Salad, ChevronRight, Users, ShoppingCart, ArrowRight, ArrowLeftRight } from 'lucide-react';
+import { Check, Salad, ChevronRight, Users, ShoppingCart, ArrowRight, ArrowLeftRight } from 'lucide-react';
 import type { Ingredient, Recipe } from '../../types';
 import { useI18n } from '../../context/I18nContext';
 import { getCategoryTheme } from '../../i18n';
@@ -13,9 +13,6 @@ import PremiumModal from '../PremiumModal';
 interface RecipeIngredientsProps {
   recipe: Recipe;
   sortedIngredients: Array<{ group: { name: string; items: Ingredient[] }; originalIdx: number }>;
-  showIngredientNutrition: boolean;
-  onToggleIngredientNutrition: () => void;
-  hasIngredientNutrition: boolean;
   isPremium: boolean;
   scaleFactor: number;
   formatAmount: (amount: number | undefined, unit: string | undefined) => string;
@@ -31,9 +28,6 @@ interface RecipeIngredientsProps {
 export default function RecipeIngredients({
   recipe,
   sortedIngredients,
-  showIngredientNutrition,
-  onToggleIngredientNutrition,
-  hasIngredientNutrition,
   isPremium,
   scaleFactor,
   formatAmount,
@@ -73,25 +67,6 @@ export default function RecipeIngredients({
             </span>
           )}
         </div>
-        {hasIngredientNutrition && (
-          <button
-            type="button"
-            onClick={onToggleIngredientNutrition}
-            className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all select-none border-none active:scale-95 cursor-pointer ${
-              showIngredientNutrition
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
-                : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
-            }`}
-            title={
-              !isPremium
-                ? t('recipe.aiIngredientsEstimateTooltip')
-                : t('recipe.verifiedDatabaseTooltip')
-            }
-          >
-            <Flame className="w-3.5 h-3.5" />
-            <span>{t('recipe.showNutritionPerIngredient')}</span>
-          </button>
-        )}
       </div>
 
       {/* Main Cohesive Card Group (Portions + Ingredients List + Shopping Button) */}
@@ -142,7 +117,7 @@ export default function RecipeIngredients({
                     <li
                       key={uniqueId}
                       onClick={() => {
-                        if (showIngredientNutrition && ing.calories) {
+                        if (ing.calories !== undefined && ing.calories !== null) {
                           if (!isPremium) {
                             setIsPremiumModalOpen(true);
                           } else {
@@ -151,7 +126,7 @@ export default function RecipeIngredients({
                         }
                       }}
                       className={`flex items-center justify-between gap-2 py-1.5 transition-all ${
-                        showIngredientNutrition && ing.calories
+                        ing.calories !== undefined && ing.calories !== null
                           ? 'cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/[0.02] rounded-xl px-1 -mx-1 active:scale-[0.99]'
                           : ''
                       }`}
@@ -200,7 +175,7 @@ export default function RecipeIngredients({
                         </div>
                       </div>
 
-                      {showIngredientNutrition && (ing.calories !== undefined && ing.calories !== null) && (
+                      {(ing.calories !== undefined && ing.calories !== null) && (
                         <button
                           type="button"
                           onClick={(e) => {
