@@ -6,6 +6,18 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ## 📜 Chronologische Übersicht
 
+### 2026-08-24: Manuelles Umschalten der Zutat-Nährwerte (`showIngredientNutrition`) entfernt
+
+* **Ersetzter Code / Anti-Pattern:**
+  - `showIngredientNutrition`-Toggle-Button in [`RecipeIngredients.tsx`](file:///c:/Users/lucas/source/repos/cookbook/frontend/src/components/RecipeDetails/RecipeIngredients.tsx) und zugehöriger lokaler State (`localStorage.getItem('recipe_show_ingredient_nutrition')`) in [`RecipeDetails/index.tsx`](file:///c:/Users/lucas/source/repos/cookbook/frontend/src/components/RecipeDetails/index.tsx).
+  - Nährwertangaben je Zutat (Kcal-Chips) mussten manuell per Klick auf „Nährwerte" im Header aktiviert werden.
+* **Ersetzt durch:**
+  - **Permanente Anzeige:** Kcal-Chips werden bei vorhandenen Nährwertdaten immer direkt neben den Zutaten gerendert.
+  - Der überflüssige Toggle-Button im Zutaten-Header wurde ersatzlos entfernt.
+* **Betroffene Dateien:** `frontend/src/components/RecipeDetails/RecipeIngredients.tsx`, `frontend/src/components/RecipeDetails/index.tsx`.
+
+---
+
 ### 2026-08-23: Emojis als Fallback für Zutaten-Icons durch 3D-Studio-Kategorie-Icon-Set ersetzt
 
 * **Ersetzter Code / Anti-Pattern:**
