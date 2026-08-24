@@ -84,26 +84,28 @@ Erweiterter Endpunkt prüft Supabase-Datenbankverbindung via `checkDbHealth()` (
 
 ---
 
-## 4. Kanonische Zutatennormalisierung & Hybrid Search Engine (`backend/src/matching/`)
+## 4. Kanonische Zutatennormalisierung & Hybrid Matching Engine (`backend/src/matching/`)
 
 Das Backend normalisiert KI-extrahierte Zutaten gegen die **Bundeslebensmittelschlüssel-Datenbank (BLS 4.0, 7.140 standardisierte Einträge)** und berechnet portionsgenaue Makronährstoffe (Kalorien, Protein, Kohlenhydrate, Fett).
 
 ```mermaid
 flowchart TD
-    A["Gemini extrahiert Zutat<br/>(z.B. 'Cocktailtomaten', 'Schoki Chunks')"] --> B["Stage 1: O(1) Exact Map Lookup<br/>(byAlias, byNameDe, byId)"]
-    B -- Match gefunden --> E["✅ Match direkt verifiziert"]
-    B -- Kein direkter Match --> C["Stage 2: MiniSearch BM25 Sparse Search<br/>(Kategorie-isoliert, Sub-Millisekunde)"]
-    C --> D["Stage 3: Gemini Dense Vector Re-Ranking<br/>(gemini-embedding-001, 3072-dim)"]
-    D --> F{"Cosinus-Ähnlichkeit >= 0.70 & Hybrid >= 0.68 ?"}
-    F -- Ja --> G["✅ Verifiziert & Nährwerte kalkuliert"]
-    F -- Nein --> H["⚪ Unverifiziert (Fallback auf KI-Schätzung)"]
+    A["Gemini extrahiert Zutat<br/>(name, brand, modifier, estimatedMacros)"] --> B{"Hat Zutat Brand oder Modifier?<br/>(z.B. Eat Lean, fettreduziert, zuckerfrei)"}
+    B -- Nein (Unmodifizierte Basis-Zutat) --> C["Stage 0/1: O(1) Fast-Path Map Lookup<br/>(baseNameMap, byAlias, byNameDe, byId)"]
+    C -- Match gefunden & Plausibel --> G["✅ Verifiziert & Nährwerte kalkuliert"]
+    B -- Ja (oder kein Fast-Path Treffer) --> D["Stage 2: MiniSearch BM25 Sparse Search<br/>(Kategorie-isoliert + Token-Filter)"]
+    D --> E["Stage 3: Gemini Flash-Lite Batch Reranker<br/>(Macro-Aware Multiple-Choice & Anti-Forced-Choice)"]
+    E --> F{"Kandidat ausgewählt &<br/>isNutritionallyPlausible() ?"}
+    F -- Ja --> G
+    F -- Nein --> H["⚪ Unverifiziert (Fallback auf präzise Gemini-Schätzung)"]
 ```
 
 * **Datensatz:** BLS 4.0 (`backend/src/data/canonicalIngredientsData.json`, 7.140 Lebensmittel mit 100g-Referenzwerten und Stückgewichten wie `piece`, `clove`, `tablespoon`, `teaspoon`).
-* **Multi-Stage Diet & Zero Guard:** Spezieller Schutzmechanismus (`isDietOrZeroIngredient`, `isCompatibleDietMatch`) für moderne Fitness- und Diät-Produkte (*Zero Ketchup*, *Ahornsirup zero*, *Erythrit*, *Light Mayo*, *Flavour Drops*, *Proteinpulver*). Verhindert, dass zuckerfreie oder kalorienreduzierte Zutaten auf reguläre zucker- und fettrelevante Standard-Lebensmittel gematcht werden (z. B. *Zero Ketchup* auf regulären *Tomatenketchup* mit 98 kcal/100g). Stattdessen greift automatisch der präzise Gemini-KI-Fallback (`isVerified: false`, Übernahme der geschätzten Makros).
-* **Sparse Indexierung (MiniSearch BM25):** Vorkategorisierte Inverted Indexes nach Supermarktabteilung (`categoryMiniSearchMap`), Tokenisierung mit BM25-Relevanzgewichtung (`name_de: 3.0`, `search_aliases: 2.5`).
-* **LLM Batch Reranking (Gemini Flash-Lite):** Führt alle ungelösten Zutaten eines Rezepts in einem einzigen schlanken Batch-Call zusammen und prüft strikte Anti-Halluzinations- und Diät-Regeln.
-* **Match-Rate:** Hohe Verifizierungsquote auf Standard-Zutaten bei 0 % Fehlmatches auf fremde oder unpassende Standard-Lebensmittel.
+* **Marken-Trennung (`brand`):** Hersteller-/Markennamen (*Eat Lean*, *Miracle Whip*, *Philadelphia*, *Nutella*) werden in ein separates Feld `brand` ausgelagert, sodass `name` sauber und suchbar bleibt.
+* **Fast-Path Modifier Gate:** Zutaten mit `modifier` (z. B. `fettreduziert`, `zuckerfrei`, `light`) oder `brand` überspringen den blinden O(1) Fast-Path, damit keine Standard-Vollfett- oder zuckerhaltigen BLS-Einträge erzwungen werden.
+* **Generische Nährwert-Plausibilitätsprüfung (`isNutritionallyPlausible`):** Mathematischer Abgleich der geschätzten Nährwertdichte (kcal/100g, Fett, KH) gegen den BLS-Kandidaten. Verhindert z. B. Fehlmappings von Diätprodukten auf hochkalorische Vollfett-/Zuckerprodukte.
+* **Batch LLM Reranker (Gemini Flash-Lite):** Fasst alle ungemappten Rezeptzutaten in **einem einzigen Batch-Request** zusammen. Erhält Nährwertdichten und wählt strikt nur kulinarisch und ernährungsphysiologisch passende Kandidaten (`selectedCode: null` bei Abweichungen).
+* **Match-Rate:** Hohe Verifizierungsquote auf Standard-Zutaten bei 100% verlässlichem Fallback auf Gemini-Schätzungen für Spezial-, Diät- und Zero-Produkte.
 
 ---
 

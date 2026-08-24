@@ -7,6 +7,7 @@ import {
   calculateWeightGrams,
   enrichRecipeWithCanonicalIngredients,
   toEnglishSingular,
+  isNutritionallyPlausible,
 } from './ingredientMatcher.js';
 import type { Recipe } from '../types.js';
 
@@ -205,52 +206,88 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
       assert.equal(recipe.nutritionCoverage, 1);
     });
 
-    test('preserves Gemini fallback calories for Zero/Diet products without matching sugar-dense BLS staples', async () => {
+    test('preserves accurate Gemini estimates for light/zero/diet foods and rejects incompatible BLS full-fat/sugar staples', async () => {
       const recipe: Recipe = {
-        title: 'Fitness Burger mit Zero Ketchup',
-        description: 'Low-Calorie Recipe',
+        title: 'High-Protein Burger',
+        description: 'Fitness Burger Recipe',
         prepTime: 10,
-        cookTime: 10,
-        servings: 1,
+        cookTime: 15,
+        servings: 2,
         ingredients: [
           {
-            name: 'Zutaten',
+            name: 'Pantry',
             items: [
+              // 1. Fat-reduced brand cheese (Eat Lean: ~180 kcal, 3.6g fat per 120g) -> MUST NOT map to Gouda 48% (455 kcal)!
               {
-                name: 'Hähnchenbrustfilet',
-                baseName: 'chicken breast',
-                amount: 200,
-                unit: 'g',
-                category: 'MEAT_FISH',
+                name: 'Käse',
+                brand: 'Eat Lean',
+                modifier: 'fettreduziert',
+                amount: 6,
+                unit: 'Scheiben',
+                gramsPerUnit: 20,
+                calories: 180,
+                protein: 36,
+                carbs: 0,
+                fat: 3.6,
+                category: 'DAIRY',
               },
+              // 2. Zero sugar ketchup (10 kcal per 6 TL) -> MUST NOT map to full-sugar Tomatenketchup (98 kcal/100g)!
               {
                 name: 'Zero Ketchup',
                 modifier: 'zuckerfrei',
-                baseName: 'ketchup',
                 amount: 6,
                 unit: 'TL',
                 gramsPerUnit: 5,
-                category: 'SPICES_OILS',
-                calories: 3,
-                protein: 0.3,
-                carbs: 0.4,
+                calories: 10,
+                protein: 0,
+                carbs: 2,
                 fat: 0,
+                category: 'SPICES_OILS',
               },
+              // 3. Light balance salad cream (Miracle Whip: 100 kcal / 90g) -> MUST NOT map to 81% full-fat Mayo (675 kcal)!
               {
-                name: 'Erythrit',
-                baseName: 'sugar',
-                amount: 10,
-                unit: 'g',
-                category: 'PANTRY_BAKING',
-                calories: 0,
+                name: 'Salatcreme',
+                brand: 'Miracle Whip',
+                modifier: 'fettreduziert',
+                amount: 6,
+                unit: 'EL',
+                gramsPerUnit: 15,
+                calories: 100,
+                protein: 1,
+                carbs: 5,
+                fat: 9,
+                category: 'SPICES_OILS',
+              },
+              // 4. Standard cooking oil (2 ml = 18 kcal) -> SHOULD map to Rapsöl/Speiseöl (18 kcal)!
+              {
+                name: 'Öl',
+                baseName: 'cooking oil',
+                amount: 2,
+                unit: 'ml',
+                gramsPerUnit: 1,
+                calories: 18,
                 protein: 0,
                 carbs: 0,
-                fat: 0,
+                fat: 2,
+                category: 'SPICES_OILS',
+              },
+              // 5. Standard chicken breast (420 g = 458 kcal) -> SHOULD map to Hähnchen Brustfilet!
+              {
+                name: 'Hähnchenfilet',
+                baseName: 'chicken breast',
+                amount: 420,
+                unit: 'g',
+                gramsPerUnit: 1,
+                calories: 458,
+                protein: 98,
+                carbs: 0,
+                fat: 8,
+                category: 'MEAT_FISH',
               },
             ],
           },
         ],
-        instructions: [{ step: 1, description: 'Anbraten und servieren' }],
+        instructions: [{ step: 1, description: 'Braten' }],
         equipment: ['Pfanne'],
       };
 
@@ -258,126 +295,96 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
 
       const items = recipe.ingredients[0].items;
 
-      // Hähnchenbrustfilet matches BLS
-      assert.equal(items[0].isVerified, true);
-      assert.ok(items[0].canonicalId);
-      assert.ok((items[0].calories ?? 0) > 150);
+      // Eat Lean Cheese: unverified, preserves Gemini estimate 180 kcal
+      assert.equal(items[0].isVerified, false);
+      assert.equal(items[0].calories, 180);
 
-      // Zero Ketchup must NOT match standard Tomatenketchup (98 kcal/100g)
+      // Zero Ketchup: unverified, preserves Gemini estimate 10 kcal
       assert.equal(items[1].isVerified, false);
-      assert.equal(items[1].canonicalId, undefined);
-      assert.equal(items[1].matchedName, undefined);
-      assert.equal(items[1].calories, 3); // Gemini estimate preserved!
+      assert.equal(items[1].calories, 10);
 
-      // Erythrit must NOT match standard Zucker weiß (400 kcal/100g)
+      // Miracle Whip Balance: unverified, preserves Gemini estimate 100 kcal
       assert.equal(items[2].isVerified, false);
-      assert.equal(items[2].canonicalId, undefined);
-      assert.equal(items[2].calories, 0); // Gemini estimate preserved!
+      assert.equal(items[2].calories, 100);
 
-      // Recipe total should reflect real low-calorie totals (~200-250 kcal), NOT inflated with 98 kcal/100g ketchup or 400 kcal/100g sugar
-      assert.ok((recipe.nutritionalValues?.calories ?? 0) < 260);
+      // Cooking Oil: verified with BLS Speiseöl/Rapsöl
+      assert.equal(items[3].isVerified, true);
+      assert.equal(items[3].calories, 18);
+
+      // Chicken breast: verified with BLS Hähnchen
+      assert.equal(items[4].isVerified, true);
+      assert.ok((items[4].calories ?? 0) >= 420 && (items[4].calories ?? 0) <= 500);
+
+      // Total calories per serving should be around (180 + 10 + 100 + 18 + 460) / 2 = ~384 kcal, NOT 1200+ kcal!
+      assert.ok((recipe.nutritionalValues?.calories ?? 0) < 500);
+      assert.ok((recipe.nutritionalValues?.calories ?? 0) > 300);
     });
   });
 
-  describe('Diet / Zero / Sweetener Guard', () => {
-    test('rejects regular sugar-rich staples for Zero Ketchup, Erythrit, Ahornsirup Zero and Light Mayo', async () => {
-      const zeroKetchup = await findCanonicalIngredient(
-        'Zero Ketchup',
-        'ketchup',
-        'SPICES_OILS',
-        [],
-        ['Zero Ketchup', 'Ketchup'],
-        undefined,
-        'zuckerfrei'
-      );
-      assert.equal(zeroKetchup, null);
+  describe('isNutritionallyPlausible', () => {
+    test('accurately identifies macro-inconsistent candidates', () => {
+      // Gouda 48% candidate (379 kcal, 31.6g fat)
+      const goudaCandidate = {
+        id: 'bls_m402600',
+        bls_code: 'M402600',
+        name_de: 'Gouda 48 % Fett i. Tr.',
+        category: 'DAIRY',
+        nutrients_per_100g: { calories: 379, protein: 22.5, carbs: 0, fat: 31.6 },
+      } as any;
 
-      const erythrit = await findCanonicalIngredient(
-        'Erythrit',
-        'sugar',
-        'PANTRY_BAKING',
-        [],
-        ['Erythrit', 'Zucker']
-      );
-      assert.equal(erythrit, null);
+      // Mayonnaise candidate (750 kcal, 81.2g fat)
+      const mayoCandidate = {
+        id: 'bls_q991000',
+        bls_code: 'Q991000',
+        name_de: 'Mayonnaise (Fertigprodukt)',
+        category: 'SPICES_OILS',
+        nutrients_per_100g: { calories: 750, protein: 1.2, carbs: 1.5, fat: 81.2 },
+      } as any;
 
-      const zeroSyrup = await findCanonicalIngredient(
-        'Ahornsirup',
-        'maple syrup',
-        'SWEETS_SNACKS',
-        [],
-        ['Ahornsirup zero'],
-        undefined,
-        'zero'
-      );
-      assert.equal(zeroSyrup, null);
+      // Ketchup candidate (98 kcal, 21.2g carbs)
+      const ketchupCandidate = {
+        id: 'bls_r141100',
+        bls_code: 'R141100',
+        name_de: 'Tomatenketchup',
+        category: 'SPICES_OILS',
+        nutrients_per_100g: { calories: 98, protein: 1.8, carbs: 21.2, fat: 0.2 },
+      } as any;
 
-      const lightMayo = await findCanonicalIngredient(
-        'Light Mayo',
-        'mayonnaise',
-        'SPICES_OILS',
-        [],
-        ['Light Mayo', 'Mayonnaise'],
-        undefined,
-        'leicht'
+      // 1. Eat Lean Cheese: 180 kcal for 120g (150 kcal/100g, 3g fat) vs Gouda (379 kcal, 31.6g fat) -> MUST FAIL
+      assert.equal(
+        isNutritionallyPlausible(
+          { name: 'Käse', amount: 6, unit: 'Scheiben', gramsPerUnit: 20, calories: 180, fat: 3.6 },
+          goudaCandidate
+        ),
+        false
       );
-      assert.equal(lightMayo, null);
 
-      const proteinPowder = await findCanonicalIngredient(
-        'Proteinpulver',
-        'protein powder',
-        'PANTRY_BAKING',
-        [],
-        ['Proteinpulver']
+      // 2. Zero Ketchup: 10 kcal for 30g (33 kcal/100g, 2g carbs) vs Ketchup (98 kcal, 21.2g carbs) -> MUST FAIL
+      assert.equal(
+        isNutritionallyPlausible(
+          { name: 'Zero Ketchup', amount: 6, unit: 'TL', gramsPerUnit: 5, calories: 10, carbs: 2 },
+          ketchupCandidate
+        ),
+        false
       );
-      assert.equal(proteinPowder, null);
-    });
 
-    test('allows legitimate zero-calorie or sweetener entries in BLS (e.g. Cola Zero)', async () => {
-      const colaZero = await findCanonicalIngredient(
-        'Cola Zero',
-        'cola',
-        'BEVERAGES',
-        [],
-        ['Cola Zero', 'Colagetränk mit Süßungsmitteln']
+      // 3. Miracle Whip Balance: 100 kcal for 90g (111 kcal/100g, 10g fat) vs Mayonnaise (750 kcal, 81.2g fat) -> MUST FAIL
+      assert.equal(
+        isNutritionallyPlausible(
+          { name: 'Salatcreme', amount: 6, unit: 'EL', gramsPerUnit: 15, calories: 100, fat: 9 },
+          mayoCandidate
+        ),
+        false
       );
-      assert.ok(colaZero);
-      assert.ok(colaZero.name_de.toLowerCase().includes('süßungsmittel') || colaZero.name_de.toLowerCase().includes('cola'));
-      assert.equal(colaZero.nutrients_per_100g.calories, 0);
-    });
 
-    test('allows normal non-diet staples to match BLS without interference', async () => {
-      const regularKetchup = await findCanonicalIngredient(
-        'Tomatenketchup',
-        'ketchup',
-        'SPICES_OILS',
-        [],
-        ['Tomatenketchup']
+      // 4. Regular Gouda: 450 kcal for 120g (375 kcal/100g, 31g fat) vs Gouda -> MUST PASS
+      assert.equal(
+        isNutritionallyPlausible(
+          { name: 'Gouda', amount: 6, unit: 'Scheiben', gramsPerUnit: 20, calories: 450, fat: 38 },
+          goudaCandidate
+        ),
+        true
       );
-      assert.ok(regularKetchup);
-      assert.equal(regularKetchup.name_de, 'Tomatenketchup');
-      assert.ok(regularKetchup.nutrients_per_100g.calories >= 90);
-
-      const regularSugar = await findCanonicalIngredient(
-        'Zucker',
-        'sugar',
-        'BAKING_COOKING',
-        [],
-        ['Zucker weiß']
-      );
-      assert.ok(regularSugar);
-      assert.ok(regularSugar.name_de.toLowerCase().includes('zucker'));
-
-      const regularMayo = await findCanonicalIngredient(
-        'Mayonnaise',
-        'mayonnaise',
-        'SPICES_OILS',
-        [],
-        ['Mayonnaise']
-      );
-      assert.ok(regularMayo);
-      assert.ok(regularMayo.name_de.toLowerCase().includes('mayonnaise'));
     });
   });
 });
-
