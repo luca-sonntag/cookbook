@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@heroui/react';
 import { Copy, Check, Share2, UserPlus, X, Pencil, Trash2 } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
+import { useToast } from '../../context/ToastContext';
 import { useSocial, SocialError } from '../../context/SocialContext';
 import Avatar from './Avatar';
 
@@ -22,6 +23,7 @@ function getCulinaryRankKey(level: number): string {
 /** Friends section: your profile + code, add-by-code, incoming requests, list. */
 export default function FriendsView({ pendingInviteCode, onInviteConsumed }: FriendsViewProps) {
   const { t } = useI18n();
+  const toast = useToast();
   const {
     profile, friends, incomingRequests,
     refreshFriends, updateDisplayName, sendRequest, respondRequest, removeFriend,
@@ -62,6 +64,7 @@ export default function FriendsView({ pendingInviteCode, onInviteConsumed }: Fri
       try { await navigator.clipboard?.writeText(profile.friendCode); } catch { /* ignore */ }
     }
     setCopied(true);
+    toast.success(t('toast.inviteCodeCopied'));
     window.setTimeout(() => setCopied(false), 1500);
   };
 
@@ -95,6 +98,7 @@ export default function FriendsView({ pendingInviteCode, onInviteConsumed }: Fri
       const { Clipboard } = await import('@capacitor/clipboard');
       await Clipboard.write({ string: fullInviteText });
       setCopied(true);
+      toast.success(t('toast.inviteCodeCopied'));
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
       /* ignore */
@@ -109,6 +113,7 @@ export default function FriendsView({ pendingInviteCode, onInviteConsumed }: Fri
     try {
       const status = await sendRequest(code);
       setCodeInput('');
+      toast.success(status === 'accepted' ? t('toast.friendRequestAccepted') : t('toast.friendRequestSent'));
       setFeedback({
         ok: true,
         msg: status === 'accepted'
@@ -272,7 +277,10 @@ export default function FriendsView({ pendingInviteCode, onInviteConsumed }: Fri
                 {r.displayName}
               </span>
               <Button
-                onPress={() => respondRequest(r.friendshipId, true)}
+                onPress={async () => {
+                  await respondRequest(r.friendshipId, true);
+                  toast.success(t('toast.friendRequestAccepted'));
+                }}
                 className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 h-8 text-xs font-bold text-white border-none active:scale-95 transition-all"
               >
                 {t('app.social.friends.accept')}
