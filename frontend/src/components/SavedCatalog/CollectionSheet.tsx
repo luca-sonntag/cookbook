@@ -3,6 +3,7 @@ import { Button, Drawer } from '@heroui/react';
 import { Folder, Plus, Edit2, Trash2, Check, X } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useCollections } from '../../hooks/useCollections';
+import { useToast } from '../../context/ToastContext';
 import type { SavedRecipe, Collection } from '../../types';
 import { useAdOverlay } from '../../context/OverlayStackContext';
 
@@ -36,6 +37,7 @@ export default function CollectionSheet({
   onAssign
 }: CollectionSheetProps) {
   const { t, language } = useI18n();
+  const toast = useToast();
   useAdOverlay(isOpen);
   const {
     collections,
@@ -148,6 +150,7 @@ export default function CollectionSheet({
     if (mode === 'create') {
       const res = await createCollection(name, selectedEmoji || null);
       if (res.success) {
+        toast.success(t('toast.collectionCreated', { name }));
         handleBackToList();
         onUpdated?.();
       } else {
@@ -245,6 +248,7 @@ export default function CollectionSheet({
     });
     await Promise.all(promises);
 
+    toast.success(t('toast.collectionAssigned'));
     onUpdated?.();
     onClose();
   };

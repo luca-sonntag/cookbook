@@ -343,6 +343,17 @@ export default function SavedCatalog({
     prevBulkQueueLenRef.current = bulkShoppingQueue.length;
   }, [bulkShoppingQueue.length, bulkShoppingAdded, bulkShoppingTotal, bulkShoppingAddedItemsCount, onNavigateToShoppingList, t, toast, setIsSelectMode, setSelectedIds]);
 
+  const handleBulkFavoriteWithToast = async () => {
+    const count = selectedIds.size;
+    const wasAllFavorites = allSelectedAreFavorites;
+    await handleBulkToggleFavorite();
+    toast.success(
+      wasAllFavorites
+        ? t('toast.bulkFavoritesRemoved', { count })
+        : t('toast.bulkFavoritesAdded', { count })
+    );
+  };
+
   const handleBulkAddToCollectionClick = () => {
     if (!isPremium) {
       setIsPremiumModalOpen(true);
@@ -615,7 +626,7 @@ export default function SavedCatalog({
             setSelectedIds(new Set());
           }}
           onToggleSelectAll={handleToggleSelectAll}
-          onBulkFavorite={handleBulkToggleFavorite}
+          onBulkFavorite={handleBulkFavoriteWithToast}
           onBulkAdd={handleBulkAddToShoppingListClick}
           onBulkDelete={handleBulkDelete}
           onBulkAddToCollection={handleBulkAddToCollectionClick}
