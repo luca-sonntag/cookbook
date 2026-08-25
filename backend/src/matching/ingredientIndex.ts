@@ -1,11 +1,9 @@
 import MiniSearch from 'minisearch';
 import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from '../data/canonicalIngredients.js';
-import type { ParentIngredientInfo } from '../types.js';
 import type { CatalogueAccess } from './ingredientResolver.js';
 import {
   normalizeSearchTerm,
   normalizeCategory,
-  buildSearchQueries,
   getSimplicityScore,
 } from './matcherUtils.js';
 
@@ -13,13 +11,10 @@ interface IndexedIngredient extends CanonicalIngredient {
   search_aliases: string;
 }
 
-// 1. Exact lookup maps for O(1) matching
+// Exact lookup map for O(1) code resolution
 export const byId = new Map<string, CanonicalIngredient>();
-export const byAlias = new Map<string, CanonicalIngredient>();
-export const byNameEn = new Map<string, CanonicalIngredient>();
-export const byNameDe = new Map<string, CanonicalIngredient>();
 
-// 2. Category-scoped item lists for MiniSearch instances
+// Category-scoped item lists for MiniSearch instances
 export const itemsByCategory = new Map<string, IndexedIngredient[]>();
 const allIndexedItems: IndexedIngredient[] = [];
 
@@ -35,31 +30,7 @@ for (const item of CANONICAL_INGREDIENTS) {
   const cleanAliases: string[] = [];
   for (const alias of aliases) {
     const norm = normalizeSearchTerm(alias);
-    if (!norm) continue;
-    cleanAliases.push(norm);
-
-    const existing = byAlias.get(norm);
-    if (!existing || getSimplicityScore(item) > getSimplicityScore(existing)) {
-      byAlias.set(norm, item);
-    }
-  }
-
-  if (item.name_de) {
-    const normDe = normalizeSearchTerm(item.name_de);
-    const existing = byNameDe.get(normDe);
-    if (!existing || getSimplicityScore(item) > getSimplicityScore(existing)) {
-      byNameDe.set(normDe, item);
-    }
-  }
-
-  if (item.name_en) {
-    const rawEn =
-      item.bls_code === 'X654042' || item.id === 'bls_x654042' ? 'French fries' : item.name_en;
-    const normEn = normalizeSearchTerm(rawEn);
-    const existing = byNameEn.get(normEn);
-    if (!existing || getSimplicityScore(item) > getSimplicityScore(existing)) {
-      byNameEn.set(normEn, item);
-    }
+    if (norm) cleanAliases.push(norm);
   }
 
   const indexedItem: IndexedIngredient = {
@@ -144,59 +115,3 @@ export const catalogueAccess: CatalogueAccess = {
       .slice(0, limit);
   },
 };
-
-/**
- * Synchronous O(1) Fast-Path lookup for exact direct BLS alias / name matches.
- * Covers basic staples with authoritative alias or database name matches.
- */
-export function findFastPathMatch(
-  name: string,
-  baseName?: string,
-  category?: string,
-  synonyms?: string[],
-  searchQueries?: string[],
-  parentIngredient?: ParentIngredientInfo,
-  modifier?: string,
-  brand?: string
-): CanonicalIngredient | null {
-  const hasModifierOrBrand = Boolean(
-    (modifier && modifier.trim().length > 0) || (brand && brand.trim().length > 0)
-  );
-
-  if (hasModifierOrBrand) {
-    return null;
-  }
-
-  const isPowderQuery =
-    /\b(pulver|powder)\b/i.test(name) || /\b(pulver|powder)\b/i.test(baseName || '');
-
-  // 1. Parent ingredient priority (e.g. "Ei" for "Eigelb", "Zitrone" for "Zitronensaft")
-  if (parentIngredient?.name) {
-    const normParent = normalizeSearchTerm(parentIngredient.name);
-    const directParent =
-      byAlias.get(normParent) || byNameDe.get(normParent) || byId.get(normParent);
-    if (directParent) {
-      return directParent;
-    }
-  }
-
-  // 2. Build search query list
-  const queriesToTest = buildSearchQueries(name, baseName, synonyms, searchQueries);
-
-  // 3. Exact O(1) Fast-Path (authoritative direct alias match)
-  for (const q of queriesToTest) {
-    const direct = byAlias.get(q) || byNameDe.get(q) || byId.get(q) || byNameEn.get(q);
-    if (direct) {
-      if (
-        isPowderQuery &&
-        direct.category === 'FRUITS_VEGETABLES' &&
-        !direct.name_de.toLowerCase().includes('pulver')
-      ) {
-        continue;
-      }
-      return direct;
-    }
-  }
-
-  return null;
-}

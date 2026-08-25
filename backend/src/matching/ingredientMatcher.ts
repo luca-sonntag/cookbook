@@ -18,7 +18,7 @@ import {
   isNutritionallyPlausible,
   applyCanonicalMatchToIngredient,
 } from './nutritionCalculator.js';
-import { catalogueAccess, findFastPathMatch } from './ingredientIndex.js';
+import { catalogueAccess } from './ingredientIndex.js';
 
 // Re-exported so existing callers, routes and unit tests keep importing from ingredientMatcher.
 export {
@@ -31,7 +31,6 @@ export {
   isNutritionallyPlausible,
   applyCanonicalMatchToIngredient,
   catalogueAccess,
-  findFastPathMatch,
 };
 
 /**
@@ -42,7 +41,7 @@ export {
 const RECIPE_RESOLVE_CONCURRENCY = 3;
 
 /**
- * Stage 3: resolve one ingredient that no cheap stage could match.
+ * Resolves one ingredient via the learned mapping store (cache) or Gemini tool resolver.
  *
  * Checks the learned mapping store first, and only pays for the tool-using
  * resolver on a genuine miss. Whatever the resolver decides is written back to
@@ -88,7 +87,7 @@ export async function resolveAndRemember(
 }
 
 /**
- * Finds a matching canonical ingredient: Fast-Path -> learned mapping store -> resolver.
+ * Finds a matching canonical ingredient via the learned mapping store and Gemini resolver.
  * (Convenience method for standalone lookups / unit tests.)
  */
 export async function findCanonicalIngredient(
@@ -100,24 +99,8 @@ export async function findCanonicalIngredient(
   parentIngredient?: ParentIngredientInfo,
   modifier?: string,
   brand?: string,
-  ingredientRef?: Ingredient
+  _ingredientRef?: Ingredient
 ): Promise<CanonicalIngredient | null> {
-  // 1. Synchronous Fast-Path
-  const fast = findFastPathMatch(
-    name,
-    baseName,
-    category,
-    synonyms,
-    searchQueries,
-    parentIngredient,
-    modifier,
-    brand
-  );
-  if (fast && (!ingredientRef || isNutritionallyPlausible(ingredientRef, fast))) {
-    return fast;
-  }
-
-  // 2. Learned mapping store -> tool-using resolver
   const { match } = await resolveAndRemember({
     name,
     baseName,
@@ -164,8 +147,7 @@ export async function matchAndEnrichIngredient(
  * Enriches all ingredients in a recipe with canonical nutritional data and
  * computes the recipe-level nutritional values per serving.
  *
- * Executes Fast-Path instantly in 0 ms, and gathers all remaining unverified items
- * for parallel processing via the learned mapping store & tool-using resolver.
+ * All items are resolved via the learned mapping store & tool-using Gemini resolver.
  */
 export async function enrichRecipeWithCanonicalIngredients(
   recipe: Recipe
@@ -186,42 +168,22 @@ export async function enrichRecipeWithCanonicalIngredients(
 
   const matchedCanonicalMap = new Map<string, CanonicalIngredient | null>();
   const estimateMap = new Map<string, EstimatedNutrients>();
-  const unresolved: Array<{ id: string; input: ResolverInput }> = [];
 
-  // Phase 1: Fast-Path for all items
-  for (const { ing, groupName, id } of flatItems) {
-    const effectiveCategory = ing.category || groupName;
-    const fastMatch = findFastPathMatch(
-      ing.name,
-      ing.baseName,
-      effectiveCategory,
-      ing.synonyms,
-      ing.searchQueries,
-      ing.parentIngredient,
-      ing.modifier,
-      ing.brand
-    );
+  const unresolved: Array<{ id: string; input: ResolverInput }> = flatItems.map(({ ing, groupName, id }) => ({
+    id,
+    input: {
+      name: ing.name,
+      baseName: ing.baseName,
+      brand: ing.brand,
+      modifier: ing.modifier,
+      category: ing.category || groupName,
+      synonyms: ing.synonyms,
+      searchQueries: ing.searchQueries,
+      parentIngredient: ing.parentIngredient,
+    },
+  }));
 
-    if (fastMatch && isNutritionallyPlausible(ing, fastMatch)) {
-      matchedCanonicalMap.set(id, fastMatch);
-    } else {
-      unresolved.push({
-        id,
-        input: {
-          name: ing.name,
-          baseName: ing.baseName,
-          brand: ing.brand,
-          modifier: ing.modifier,
-          category: effectiveCategory,
-          synonyms: ing.synonyms,
-          searchQueries: ing.searchQueries,
-          parentIngredient: ing.parentIngredient,
-        },
-      });
-    }
-  }
-
-  // Phase 2: Store lookup, then the tool-using resolver for whatever is left.
+  // Resolve all items in parallel via learned store & Gemini tool resolver
   let totalPromptTokens = 0;
   let totalCandidateTokens = 0;
   let totalTokens = 0;
@@ -259,7 +221,7 @@ export async function enrichRecipeWithCanonicalIngredients(
   // Counters only steer store curation, so this must never block the extraction.
   void flushHitCounts();
 
-  // Phase 3: Apply nutritional calculation to all recipe ingredients
+  // Apply nutritional calculation to all recipe ingredients
   let totalCalories = 0;
   let totalProtein = 0;
   let totalCarbs = 0;

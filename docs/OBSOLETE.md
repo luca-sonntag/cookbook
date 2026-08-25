@@ -6,16 +6,14 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ## 📜 Chronologische Übersicht
 
-### 2026-08-26: Statisches `baseNameMap` Fast-Path-Matching durch gelernten Mapping-Store & Resolver ersetzt
+### 2026-08-26: Fast-Path komplett entfernt zugunsten des gelernten Mapping-Stores & Gemini-Resolvers
 
 * **Ersetzter Code / Anti-Pattern:**
-  - Statisches Hardcoded-Wörterbuch `BASE_NAME_TO_CANONICAL_ID` in `backend/src/matching/baseNameMap.ts` wurde in `findFastPathMatch()` (Stage 0) für O(1)-Matching auf Basis von englischen `baseName`-Strings verwendet.
-  - Führte zu doppelter Datenhaltung und umging den dynamisch gelernten Supabase-Store (`ingredient_mappings`) sowie die Multi-Turn Tool-Validierung.
+  - `findFastPathMatch()` und alle heuristischen O(1) Fast-Path Lookups (Alias-Maps, BaseName-Maps).
+  - Führte zu statischer Vorab-Zuordnung, die Kontext und Feinheiten (Marken, Zubereitungsformen, Modifikatoren) nicht dynamisch im Dialog prüfen konnte.
 * **Ersetzt durch:**
-  - **Dynamischer Mapping-Store (`mappingStore.ts`):** Statische Mappings wurden als Initial-Seed via `seedIngredientMappings.ts` in die `ingredient_mappings` Postgres-Tabelle migriert und werden prozessweit im In-Memory-Cache gecached.
-  - **Reiner O(1) Fast-Path:** `findFastPathMatch()` prüft nur noch direkte, autoritative BLS-Aliases und exakte Bezeichnungen aus dem BLS-Datensatz (`CANONICAL_INGREDIENTS`).
-  - **Multi-Turn Tool-Resolver (`ingredientResolver.ts`):** Löst alle nicht gecachten/unbekannten Zutaten dynamisch mit BLS-Suche und Gemini Flash-Lite auf und persistiert das Ergebnis im Store.
-* **Betroffene Dateien:** `backend/src/matching/ingredientMatcher.ts`, `docs/OBSOLETE.md`.
+  - **Einheitlicher Store & Resolver Pipeline (`resolveAndRemember`):** Jede Zutat läuft über den gelernten Supabase In-Memory/DB-Mapping-Store (`mappingStore.ts`). Bei Cache-Miss wird automatisch der Multi-Turn Gemini Tool-Resolver (`ingredientResolver.ts`) aufgerufen und das Ergebnis im Store persistiert.
+* **Betroffene Dateien:** `backend/src/matching/ingredientMatcher.ts`, `backend/src/matching/ingredientIndex.ts`, `docs/OBSOLETE.md`.
 
 ---
 
