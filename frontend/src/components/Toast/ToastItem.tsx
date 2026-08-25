@@ -85,11 +85,11 @@ export default function ToastItem({ toast, onDismiss }: ToastItemProps) {
 
       {/* Text Info */}
       <div className="flex-1 min-w-0 flex flex-col justify-center">
-        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight truncate">
+        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-snug break-words">
           {toast.title}
         </h4>
         {toast.description && (
-          <div className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-snug mt-0.5 truncate">
+          <div className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-snug mt-0.5 break-words">
             {toast.description}
           </div>
         )}
