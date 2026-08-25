@@ -6,6 +6,19 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ## 📜 Chronologische Übersicht
 
+### 2026-08-25: Lose Zutat-Icons (`.webp`) in Git durch komprimiertes Zip-Archiv mit Startup-Extraktion ersetzt
+
+* **Ersetzter Code / Anti-Pattern:**
+  - Tracking von über 700 einzelnen `.webp`-Binärdateien im Git-Repository unter `backend/public/ingredient-icons/*.webp`.
+  - Führte zu aufgeblähtem Git-Index, langsamen Tree-Diffs und unübersichtlichen Commit-Historien.
+* **Ersetzt durch:**
+  - **Einheitliches Zip-Archiv (`backend/public/ingredient-icons.zip`):** Alle generierten Zutat-Icons werden in einer einzigen ca. 13 MB Datei in Git gespeichert.
+  - **Startup Auto-Extraction (`ensureIngredientIconsExtracted` in `backend/src/ingredientIconPacker.ts`):** Entpackt das Archiv beim Serverstart (Railway/Docker/Lokal) automatisch via `adm-zip` in ~200ms, gesteuert über einen `.unpacked_stamp`-Prüfmechanismus.
+  - **Packaging-Workflow (`npm run icons:zip`):** Automatische Aktualisierung des Zip-Archivs bei Bedarf oder nach Batch-Generierungen (`generateBaseNameIngredientIcons.ts`).
+* **Betroffene Dateien:** `.gitignore`, `Dockerfile`, `backend/src/ingredientIconPacker.ts`, `backend/src/scripts/zipIngredientIcons.ts`, `backend/src/index.ts`, `backend/src/scripts/generateBaseNameIngredientIcons.ts`, `package.json`, `backend/package.json`.
+
+---
+
 ### 2026-08-24: Manuelles Umschalten der Zutat-Nährwerte (`showIngredientNutrition`) entfernt
 
 * **Ersetzter Code / Anti-Pattern:**

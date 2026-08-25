@@ -36,6 +36,18 @@ Exponiert administrative API-Routen unter `/api/admin/*`, die über die Middlewa
 ### Health-Check (`/health`)
 Erweiterter Endpunkt prüft Supabase-Datenbankverbindung via `checkDbHealth()` (HEAD-Request auf `jobs`-Tabelle). Antwortet `200 OK` bei gesunder DB, `503 Service Unavailable` bei Problemen. Liefert `uptime`, `nodeEnv` und `dbConnected`-Status.
 
+### Statische Assets & Zutat-Icons Distribution (`/api/ingredient-icons/*` & `/api/category-icons/*`)
+* **Icons-Katalog:** Das Backend liefert über 760 KI-generierte Zutat-Icons (`.webp`) und 20 Kategorie-Icons aus (`backend/src/ingredientImageRoutes.ts`).
+* **Optimierte Git- & Container-Auslieferung:**
+  * Um das Git-Repository nicht mit hunderten einzelnen Binärdateien aufzublähen, werden alle Zutat-Icons in einem einzigen komprimierten Archiv `backend/public/ingredient-icons.zip` (~13 MB) in Git versioniert.
+  * In `.gitignore` sind die entpackten `backend/public/ingredient-icons/*.webp` ignoriert.
+  * **Startup Auto-Extraction (`backend/src/ingredientIconPacker.ts`):** Beim Start des Backends (lokal und auf Railway) prüft `ensureIngredientIconsExtracted()` im `bootstrap()`, ob die Icons entpackt werden müssen (z. B. im frischen Docker-Container oder nach Repo-Clone) und extrahiert diese via `adm-zip` in ~200ms nach `backend/public/ingredient-icons/`. Ein Timestamp-Stamp (`.unpacked_stamp`) verhindert unnötige Extraktionen bei bestehendem Datenstand.
+  * **CLI-Befehle:**
+    * `npm run icons:zip`: Packt alle aktuellen `.webp`-Dateien aus `backend/public/ingredient-icons/` in `ingredient-icons.zip`.
+    * `npm run icons:unpack`: Entpackt das Zip-Archiv manuell (unterstützt `--force`).
+    * Der Batch-Generator (`generateBaseNameIngredientIcons.ts`) aktualisiert das Zip-Archiv nach erfolgreicher Generierung automatisch.
+
+
 ---
 
 ## 2. Rolling Timeframe Rate Limiting (Extraktionsbegrenzung)
