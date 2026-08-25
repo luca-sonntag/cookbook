@@ -22,7 +22,8 @@ import { generateRecipeCoverImage } from '../imageGenerator.js';
 import { enrichRecipeWithCanonicalIngredients } from '../matching/ingredientMatcher.js';
 import { recordCook } from '../gamification.js';
 import type { Recipe } from '../types.js';
-import { fetchAndSyncUser, MAX_PHOTOS_TOTAL_CHARS } from './authUtils.js';
+import { fetchAndSyncUser, isPremiumUser, MAX_PHOTOS_TOTAL_CHARS } from './authUtils.js';
+
 
 export const recipeRoutes = Router();
 
@@ -136,14 +137,7 @@ recipeRoutes.post('/recipes/:id/remix', async (req: Request, res: Response): Pro
     let isPremium = false;
     try {
       const user = await fetchAndSyncUser(req.userId!);
-      if (user) {
-        const meta = user.app_metadata || {};
-        isPremium =
-          meta.tier === 'premium' ||
-          meta.tier === 'alpha' ||
-          meta.custom_extraction_limit === -1 ||
-          meta.max_extractions_per_window === -1;
-      }
+      isPremium = isPremiumUser(user);
     } catch (err) {
       console.warn(`Failed to fetch user metadata for remix premium check:`, err);
     }
@@ -339,14 +333,7 @@ recipeRoutes.post('/recipes/:id/chat', async (req: Request, res: Response): Prom
     let user = null;
     try {
       user = await fetchAndSyncUser(req.userId!);
-      if (user) {
-        const meta = user.app_metadata || {};
-        isPremium =
-          meta.tier === 'premium' ||
-          meta.tier === 'alpha' ||
-          meta.custom_extraction_limit === -1 ||
-          meta.max_extractions_per_window === -1;
-      }
+      isPremium = isPremiumUser(user);
     } catch (err) {
       console.warn(`Failed to fetch user metadata for chat premium check:`, err);
     }
@@ -461,12 +448,7 @@ recipeRoutes.patch('/recipes/:id/flags', async (req: Request, res: Response): Pr
     }
 
     const user = await fetchAndSyncUser(req.userId!);
-    const isPremium =
-      user.app_metadata?.tier === 'premium' ||
-      user.app_metadata?.tier === 'alpha' ||
-      user.app_metadata?.custom_extraction_limit === -1 ||
-      user.app_metadata?.max_extractions_per_window === -1;
-    if (!isPremium) {
+    if (!isPremiumUser(user)) {
       throw new AppError('PREMIUM_REQUIRED', { params: { feature: 'tags' } });
     }
 

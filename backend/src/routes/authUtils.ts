@@ -89,10 +89,12 @@ export function isPremiumUser(
   const meta = (user?.app_metadata || {}) as Record<string, unknown>;
   return (
     meta.tier === 'premium' ||
+    meta.tier === 'alpha' ||
     meta.custom_extraction_limit === -1 ||
     meta.max_extractions_per_window === -1
   );
 }
+
 
 export async function resolveConcurrencyLimit(
   user: User | { app_metadata?: Record<string, unknown> } | null | undefined
