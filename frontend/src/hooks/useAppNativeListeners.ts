@@ -1,5 +1,4 @@
-import { useEffect, type MutableRefObject } from 'react';
-import type { SavedRecipe, Recipe, LimitStatus } from '../types';
+import { useEffect } from 'react';
 import {
   registerShareIntent,
   registerNotificationTap,
@@ -10,36 +9,12 @@ import {
 import { registerPushTapHandler, enablePushNotifications } from '../push';
 import { parseSharedUrl } from '../utils/shareUrl';
 import { EXTRACTION_COMPLETE_EVENT, OPEN_RECIPE_EVENT } from '../context/ExtractionJobsContext';
-import type { AppTab } from './useHashRouter';
+import type { UseAppNativeListenersProps } from '../types/app';
 
 // Module-level flag to ensure the Web Share Target is only processed once per page load.
 let isWebShareProcessed = false;
 
-interface UseAppNativeListenersProps {
-  user: { id: string; user_metadata?: { notifications_enabled?: boolean } } | null;
-  authLoading: boolean;
-  getAccessToken: () => Promise<string | null>;
-  activeView: AppTab;
-  subPath: string | null;
-  isCatalogList: boolean;
-  selectedJob: SavedRecipe | null;
-  catalogReturnRef: MutableRefObject<string | null>;
-  recipe: Recipe | null;
-  setRecipe: (recipe: Recipe | null) => void;
-  setUrl: (url: string) => void;
-  navigate: (tab: AppTab, subPath?: string | null) => void;
-  replace: (tab: AppTab, subPath?: string | null) => void;
-  dismissAllFinished: () => void;
-  pendingNavigation: { recipeId: string } | null;
-  history: SavedRecipe[];
-  fetchHistory: () => void;
-  handleExtractionSuccess: (recipeId: string) => void;
-  replayOnboarding: () => void;
-  limitStatus: LimitStatus | null;
-  triggerExtraction: (url: string) => void;
-  isPending: boolean;
-  isPremium: boolean;
-}
+
 
 export function useAppNativeListeners({
   user,

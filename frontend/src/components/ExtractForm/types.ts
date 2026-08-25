@@ -32,3 +32,41 @@ export interface ExtractFormProps {
   isUploadingPhotos: boolean;
   claimRewardedCredit?: () => Promise<boolean>;
 }
+
+export interface PhotoExtractGridProps {
+  photos: File[];
+  photoPreviews: string[];
+  cameraInputRef: React.RefObject<HTMLInputElement | null>;
+  galleryInputRef: React.RefObject<HTMLInputElement | null>;
+  onPhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemovePhoto: (index: number) => void;
+  onOpenPicker: (ref: React.RefObject<HTMLInputElement | null>) => void;
+}
+
+export interface UrlExtractInputProps {
+  url: string;
+  setUrl: (url: string) => void;
+  urlError: string;
+  validateUrl: (url: string) => boolean;
+  isPending: boolean;
+  canPaste: boolean;
+  onPaste: () => void;
+}
+
+export interface ExtractDemoRecipesProps {
+  onDemoClick: (url: string) => void;
+}
+
+export interface UseExtractFormProps {
+  url: string;
+  setUrl: (url: string) => void;
+  urlError: string;
+  setUrlError?: (error: string) => void;
+  validateUrl: (url: string) => boolean;
+  isPending: boolean;
+  photos: File[];
+  setPhotos: (photos: File[]) => void;
+  blockedByLimit: boolean;
+  atConcurrencyLimit: boolean;
+  setIsPremiumModalOpen: (open: boolean) => void;
+}

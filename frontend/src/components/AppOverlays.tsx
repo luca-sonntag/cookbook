@@ -3,15 +3,9 @@ import React, { lazy, Suspense, useState, useEffect } from 'react';
 const PremiumModal = lazy(() => import('./PremiumModal'));
 const WelcomeGuide = lazy(() => import('./WelcomeGuide'));
 const AlphaWelcome = lazy(() => import('./AlphaWelcome'));
+import type { AppOverlaysProps } from '../types/app';
 
-interface AppOverlaysProps {
-  isPremiumModalOpen: boolean;
-  setIsPremiumModalOpen: (open: boolean) => void;
-  showOnboarding: boolean;
-  onCompleteOnboarding: () => void;
-  showAlphaWelcome: boolean;
-  onCompleteAlphaWelcome: () => void;
-}
+
 
 export const AppOverlays: React.FC<AppOverlaysProps> = ({
   isPremiumModalOpen,

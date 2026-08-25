@@ -1,22 +1,9 @@
 import React from 'react';
 import { Sparkles, BookOpen, ShoppingCart, User, Trophy } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
-import type { AppTab } from '../hooks/useHashRouter';
+import type { AppBottomNavProps } from '../types/app';
 
-interface AppBottomNavProps {
-  activeView: AppTab;
-  isPending: boolean;
-  isPremium: boolean;
-  isCatalogSelectMode: boolean;
-  isCatalogSheetOpen: boolean;
-  isPremiumModalOpen: boolean;
-  uncheckedShoppingItemsCount: number;
-  incomingRequestsCount: number;
-  userLevel: number | null;
-  lastHistorySubPath: string | null;
-  onNavigate: (tab: AppTab, subPath?: string | null) => void;
-  onFetchHistory: () => void;
-}
+
 
 export const AppBottomNav: React.FC<AppBottomNavProps> = ({
   activeView,

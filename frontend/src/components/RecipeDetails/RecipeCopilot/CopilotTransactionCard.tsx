@@ -2,17 +2,9 @@ import React from 'react';
 import { Button } from '@heroui/react';
 import { ListChecks, X, RefreshCw, Plus, Trash2, Loader2, Sparkles } from 'lucide-react';
 import { useI18n } from '../../../context/I18nContext';
-import type { PendingChange } from './types';
+import type { CopilotTransactionCardProps } from './types';
 
-interface CopilotTransactionCardProps {
-  pendingChanges: PendingChange[];
-  choosingApply: boolean;
-  setChoosingApply: (choosing: boolean) => void;
-  isPending: boolean;
-  onRemoveChange: (id: string) => void;
-  onDiscardAll: () => void;
-  onApplyChanges: (replaceCurrent: boolean) => void;
-}
+
 
 export const CopilotTransactionCard: React.FC<CopilotTransactionCardProps> = ({
   pendingChanges,

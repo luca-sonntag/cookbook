@@ -2,17 +2,9 @@ import React from 'react';
 import { Button } from '@heroui/react';
 import { Sparkles, Bot, User, Loader2, RefreshCw } from 'lucide-react';
 import { useI18n } from '../../../context/I18nContext';
-import type { Recipe } from '../../../types';
-import type { CopilotMessage } from './types';
+import type { CopilotChatListProps } from './types';
 
-interface CopilotChatListProps {
-  history: CopilotMessage[];
-  isPending: boolean;
-  pendingAction: string | null;
-  error: string | null;
-  messagesEndRef: React.RefObject<HTMLDivElement | null>;
-  onLoadNewRecipe: (recipe: Recipe, jobId: string) => void;
-}
+
 
 export const CopilotChatList: React.FC<CopilotChatListProps> = ({
   history,

@@ -5,19 +5,12 @@ import { useTimerManager } from '../../../hooks/useTimerManager';
 import { useShoppingList } from '../../../hooks/useShoppingList';
 import { apiUrl } from '../../../api';
 import type { Recipe, Ingredient } from '../../../types';
-import type { Chip, PendingChange, CopilotMessage } from './types';
+import type { Chip, PendingChange, CopilotMessage, UseRecipeCopilotProps } from './types';
 
 const chatStorageKey = (recipeId: string) => `recipe_copilot_chat_${recipeId}`;
 const changesStorageKey = (recipeId: string) => `recipe_copilot_changes_${recipeId}`;
 const chipsStorageKey = (recipeId: string, lang: string) => `recipe_copilot_chips_${recipeId}_${lang}`;
 
-interface UseRecipeCopilotProps {
-  isOpen: boolean;
-  recipe: Recipe;
-  onClose: () => void;
-  onRemixSuccess: (newRecipe: Recipe, newJobId: string) => void;
-  onReplaceCurrent: (newRecipe: Recipe) => void;
-}
 
 export function useRecipeCopilot({
   isOpen,

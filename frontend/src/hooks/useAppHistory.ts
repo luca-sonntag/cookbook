@@ -5,17 +5,9 @@ import { deleteCachedImage } from '../utils/imageStore';
 import { useDialog } from '../context/DialogContext';
 import { useI18n } from '../context/I18nContext';
 import { isCatalogListRoute } from '../components/SavedCatalog/catalogRoutes';
-import type { AppTab } from './useHashRouter';
+import type { UseAppHistoryProps } from '../types/app';
 
-interface UseAppHistoryProps {
-  user: { id: string } | null;
-  authLoading: boolean;
-  getAccessToken: () => Promise<string | null>;
-  activeView: AppTab;
-  subPath: string | null;
-  navigate: (tab: AppTab, subPath?: string | null) => void;
-  replace: (tab: AppTab, subPath?: string | null) => void;
-}
+
 
 export function useAppHistory({
   user,

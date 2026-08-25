@@ -1,16 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { APP_OPEN_RESUME_MIN_BG_MS } from '../env';
 import { registerAppStateListener, clearRecipeReadyNotification } from '../native';
-import type { Recipe } from '../types';
+import type { UseAppAdsProps } from '../types/app';
 
-interface UseAppAdsProps {
-  user: { id: string } | null;
-  authLoading: boolean;
-  isPremium: boolean;
-  isPending: boolean;
-  recipe: Recipe | null;
-  showOnboarding: boolean;
-}
 
 export function useAppAds({
   user,

@@ -2,16 +2,8 @@ import React from 'react';
 import { Camera, ImagePlus, X } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { MAX_IMPORT_PHOTOS } from '../../hooks/useRecipeExtraction';
+import type { PhotoExtractGridProps } from './types';
 
-interface PhotoExtractGridProps {
-  photos: File[];
-  photoPreviews: string[];
-  cameraInputRef: React.RefObject<HTMLInputElement | null>;
-  galleryInputRef: React.RefObject<HTMLInputElement | null>;
-  onPhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemovePhoto: (index: number) => void;
-  onOpenPicker: (ref: React.RefObject<HTMLInputElement | null>) => void;
-}
 
 export const PhotoExtractGrid: React.FC<PhotoExtractGridProps> = ({
   photos,

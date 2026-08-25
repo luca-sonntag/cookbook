@@ -2,16 +2,8 @@ import React from 'react';
 import { TextField, Label, Input, FieldError } from '@heroui/react';
 import { Link2, Clipboard } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
+import type { UrlExtractInputProps } from './types';
 
-interface UrlExtractInputProps {
-  url: string;
-  setUrl: (url: string) => void;
-  urlError: string;
-  validateUrl: (url: string) => boolean;
-  isPending: boolean;
-  canPaste: boolean;
-  onPaste: () => void;
-}
 
 export const UrlExtractInput: React.FC<UrlExtractInputProps> = ({
   url,

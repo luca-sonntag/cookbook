@@ -4,20 +4,8 @@ import { Capacitor } from '@capacitor/core';
 import { useI18n } from '../../context/I18nContext';
 import { MAX_IMPORT_PHOTOS } from '../../hooks/useRecipeExtraction';
 import { isTrialBannerDismissed, TRIAL_BANNER_DISMISS_EVENT } from '../TrialBanner';
+import type { UseExtractFormProps } from './types';
 
-interface UseExtractFormProps {
-  url: string;
-  setUrl: (url: string) => void;
-  urlError: string;
-  setUrlError?: (error: string) => void;
-  validateUrl: (url: string) => boolean;
-  isPending: boolean;
-  photos: File[];
-  setPhotos: (photos: File[]) => void;
-  blockedByLimit: boolean;
-  atConcurrencyLimit: boolean;
-  setIsPremiumModalOpen: (open: boolean) => void;
-}
 
 export function useExtractForm({
   setUrl,

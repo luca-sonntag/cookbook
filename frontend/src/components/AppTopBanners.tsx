@@ -2,14 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useI18n } from '../context/I18nContext';
 import TimerBanner from './TimerBanner';
 import OtaUpdateBanner from './OtaUpdateBanner';
-import type { Recipe } from '../types';
-import type { AppTab } from '../hooks/useHashRouter';
+import type { AppTopBannersProps } from '../types/app';
 
-interface AppTopBannersProps {
-  activeView: AppTab;
-  isPending: boolean;
-  recipe: Recipe | null;
-}
+
 
 export const AppTopBanners: React.FC<AppTopBannersProps> = ({
   activeView,
