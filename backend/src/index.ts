@@ -9,6 +9,7 @@ import { appUpdatesRouter } from './appUpdates.js';
 import { ingredientImageRouter } from './ingredientImageRoutes.js';
 import { checkDbHealth } from './db.js';
 import { generateIconPNG } from './bannerGenerator.js';
+import { ensureIngredientIconsExtracted } from './ingredientIconPacker.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isWorker = config.ROLE === 'worker' || config.ROLE === 'both';
@@ -16,6 +17,9 @@ const isWeb = config.ROLE === 'web' || config.ROLE === 'both';
 
 async function bootstrap() {
   try {
+    // Ensure packaged ingredient icons are extracted if running from fresh container/clone
+    await ensureIngredientIconsExtracted();
+
     if (isWorker) {
       startQueue();
       console.log(`Worker started (ROLE=${config.ROLE}, concurrency=${config.WORKER_CONCURRENCY})`);

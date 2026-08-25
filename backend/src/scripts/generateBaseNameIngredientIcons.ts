@@ -7,11 +7,13 @@ import {
   getIngredientImagesDir,
   getGenerationCostsSummary,
 } from '../ingredientImageService.js';
+import { packIngredientIcons } from '../ingredientIconPacker.js';
 
 interface CliOptions {
   concurrency: number;
   missingOnly: boolean;
   dryRun: boolean;
+  autoZip: boolean;
   limit?: number;
   outDir: string;
 }
@@ -22,6 +24,7 @@ function parseArgs(): CliOptions {
     concurrency: 5,
     missingOnly: true, // Default to missing only to avoid wasteful re-generation
     dryRun: false,
+    autoZip: true,
     outDir: getIngredientImagesDir(),
   };
 
@@ -37,6 +40,10 @@ function parseArgs(): CliOptions {
       options.concurrency = Math.max(1, Math.min(20, parseInt(args[++i], 10) || 5));
     } else if ((arg === '--limit' || arg === '-l') && args[i + 1]) {
       options.limit = parseInt(args[++i], 10);
+    } else if (arg === '--no-zip') {
+      options.autoZip = false;
+    } else if (arg === '--zip') {
+      options.autoZip = true;
     } else if ((arg === '--out-dir' || arg === '-o') && args[i + 1]) {
       options.outDir = path.resolve(process.cwd(), args[++i]);
     }
@@ -156,6 +163,16 @@ async function main() {
   console.log(`❌ Fehlgeschlagen: ${failed}`);
   console.log(`💰 Gesamtkosten-Historie: $${costSummary.totalCostUsd.toFixed(4)} (~${costSummary.approxEur.toFixed(2)} €) für ${costSummary.totalGenerations} Bilder`);
   console.log(`📂 Gespeichert in: ${options.outDir}`);
+
+  if (succeeded > 0 && options.autoZip) {
+    console.log(`\n🗜️  Aktualisiere ingredient-icons.zip Archiv...`);
+    try {
+      const zipRes = packIngredientIcons({ verbose: true });
+      console.log(`📦 Zip-Archiv erfolgreich aktualisiert (${zipRes.fileCount} Dateien, ${zipRes.zipSizeMb} MB).`);
+    } catch (err: any) {
+      console.warn(`⚠️  Warnung beim Packen des Zip-Archivs: ${err.message}`);
+    }
+  }
 }
 
 main().catch((err) => {
