@@ -1,6 +1,5 @@
 import MiniSearch from 'minisearch';
 import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from '../data/canonicalIngredients.js';
-import { BASE_NAME_TO_CANONICAL_ID } from './baseNameMap.js';
 import { canonicalizeBaseName, buildMappingKeys, toEnglishSingular } from './baseNameCanonical.js';
 import {
   resolveIngredient,
@@ -367,34 +366,12 @@ export function findFastPathMatch(
 
   const isPowderQuery = /\b(pulver|powder)\b/i.test(name) || /\b(pulver|powder)\b/i.test(baseName || '');
 
-  // 0. Stage 0: Universal BaseName Fast-Path (authoritative direct English key match + safe singularizer)
-  if (baseName) {
-    const normBase = baseName.toLowerCase().trim();
-    const singular = toEnglishSingular(normBase);
-    const mappedId = BASE_NAME_TO_CANONICAL_ID[normBase] || BASE_NAME_TO_CANONICAL_ID[singular];
-    if (mappedId) {
-      const item = byId.get(mappedId.toLowerCase().trim()) || byId.get('bls_' + mappedId.toLowerCase().trim());
-      if (item) return item;
-    }
-  }
-
   // 1. Parent ingredient priority (e.g. "Ei" for "Eigelb", "Zitrone" for "Zitronensaft")
-  if (parentIngredient?.name || parentIngredient?.baseName) {
-    if (parentIngredient.baseName) {
-      const normParentBase = parentIngredient.baseName.toLowerCase().trim();
-      const singularParent = toEnglishSingular(normParentBase);
-      const mappedParentId = BASE_NAME_TO_CANONICAL_ID[normParentBase] || BASE_NAME_TO_CANONICAL_ID[singularParent];
-      if (mappedParentId) {
-        const item = byId.get(mappedParentId.toLowerCase().trim()) || byId.get('bls_' + mappedParentId.toLowerCase().trim());
-        if (item) return item;
-      }
-    }
-    if (parentIngredient.name) {
-      const normParent = normalizeSearchTerm(parentIngredient.name);
-      const directParent = byAlias.get(normParent) || byNameDe.get(normParent) || byId.get(normParent);
-      if (directParent) {
-        return directParent;
-      }
+  if (parentIngredient?.name) {
+    const normParent = normalizeSearchTerm(parentIngredient.name);
+    const directParent = byAlias.get(normParent) || byNameDe.get(normParent) || byId.get(normParent);
+    if (directParent) {
+      return directParent;
     }
   }
 
@@ -648,10 +625,10 @@ export async function findCanonicalIngredient(
   ingredientRef?: Ingredient
 ): Promise<CanonicalIngredient | null> {
   // 1. Synchronous Fast-Path
-  // const fast = findFastPathMatch(name, baseName, category, synonyms, searchQueries, parentIngredient, modifier, brand);
-  // if (fast && (!ingredientRef || isNutritionallyPlausible(ingredientRef, fast))) {
-  //   return fast;
-  // }
+  const fast = findFastPathMatch(name, baseName, category, synonyms, searchQueries, parentIngredient, modifier, brand);
+  if (fast && (!ingredientRef || isNutritionallyPlausible(ingredientRef, fast))) {
+    return fast;
+  }
 
   // 2. Learned mapping store -> tool-using resolver
   const { match } = await resolveAndRemember({
