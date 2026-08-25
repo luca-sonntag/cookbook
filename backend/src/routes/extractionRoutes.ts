@@ -28,8 +28,11 @@ import {
   isPremiumUser,
   resolveConcurrencyLimit,
 } from './authUtils.js';
+import { handleVideoProxy } from './videoProxy.js';
 
 export const extractionRoutes = Router();
+
+extractionRoutes.get('/extract-recipe/proxy-video', handleVideoProxy);
 
 const MAX_CLIENT_FRAMES = 24;
 const MAX_FRAMES_TOTAL_CHARS = 12 * 1024 * 1024;
