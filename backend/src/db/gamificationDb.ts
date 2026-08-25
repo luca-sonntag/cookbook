@@ -5,17 +5,24 @@ import type {
 } from '../types.js';
 import { DEFAULT_GAMIFICATION_CONFIG } from '../types.js';
 import { getClient, wrapError } from './client.js';
+import type {
+  UserStatsRow,
+  InsertCookEventArgs,
+  CookPhotoItem,
+  CookHistoryItem,
+  CookHistory,
+  LedgerRow,
+} from './types.js';
 
-interface UserStatsRow {
-  user_id: string;
-  xp: number | string;
-  level: number;
-  coins: number | string;
-  current_streak: number;
-  longest_streak: number;
-  last_cook_date: string | null;
-  total_cooks: number;
-}
+export type {
+  UserStatsRow,
+  InsertCookEventArgs,
+  CookPhotoItem,
+  CookHistoryItem,
+  CookHistory,
+  LedgerRow,
+};
+
 
 function rowToUserStats(row: UserStatsRow): UserStats {
   return {
@@ -133,19 +140,7 @@ export async function getLastCookEvent(
   return { recipeId: row.recipe_id, cookedAt: row.cooked_at };
 }
 
-export interface InsertCookEventArgs {
-  userId: string;
-  recipeId: string;
-  xp: number;
-  coins: number;
-  hasPhoto: boolean;
-  photoPath: string | null;
-  verified: boolean;
-  leaderboardEligible: boolean;
-  trustScore: number;
-  viaCookingMode: boolean;
-  timerElapsed: boolean;
-}
+
 
 export async function insertCookEvent(args: InsertCookEventArgs): Promise<string> {
   const { data, error } = await getClient()
@@ -170,32 +165,7 @@ export async function insertCookEvent(args: InsertCookEventArgs): Promise<string
   return (data as { id: string }).id;
 }
 
-export interface CookPhotoItem {
-  id: string;
-  recipeId: string | null;
-  photoUrl: string;
-  cookedAt: string;
-  recipeTitle?: string;
-}
 
-export interface CookHistoryItem {
-  id: string;
-  cookedAt: string;
-  xpAwarded: number;
-  coinsAwarded: number;
-  hasPhoto: boolean;
-  photoUrl: string | null;
-  verified: boolean;
-  viaCookingMode: boolean;
-  timerElapsed: boolean;
-}
-
-export interface CookHistory {
-  count: number;
-  firstCookedAt: string | null;
-  lastCookedAt: string | null;
-  items: CookHistoryItem[];
-}
 
 export async function getCookHistoryForRecipe(
   userId: string,
@@ -326,11 +296,7 @@ export async function getRecentCookPhotos(
   );
 }
 
-export interface LedgerRow {
-  deltaXp: number;
-  deltaCoins: number;
-  reason: string;
-}
+
 
 export async function insertLedgerRows(
   userId: string,

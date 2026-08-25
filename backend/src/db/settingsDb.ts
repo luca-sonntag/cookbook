@@ -1,12 +1,9 @@
 import { config } from '../config.js';
 import { getClient, wrapError } from './client.js';
+import type { GlobalSetting } from './types.js';
 
-export interface GlobalSetting {
-  key: string;
-  value: string;
-  description: string | null;
-  updated_at: string;
-}
+export type { GlobalSetting };
+
 
 const settingsCache: Record<string, { value: unknown; timestamp: number }> = {};
 

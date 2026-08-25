@@ -1,12 +1,9 @@
 import type { Profile, UserStats } from '../types.js';
 import { getClient, wrapError, PG_UNIQUE_VIOLATION } from './client.js';
+import type { ProfileRow, FriendshipRow, RawUserStatsRow } from './types.js';
 
-export interface ProfileRow {
-  user_id: string;
-  display_name: string;
-  avatar_url: string | null;
-  friend_code: string;
-}
+export type { ProfileRow, FriendshipRow, RawUserStatsRow };
+
 
 export function rowToProfile(row: ProfileRow): Profile {
   return {
@@ -103,14 +100,7 @@ export async function getProfilesByIds(ids: string[]): Promise<Map<string, Profi
   return map;
 }
 
-export interface FriendshipRow {
-  id: string;
-  requester_id: string;
-  addressee_id: string;
-  status: 'pending' | 'accepted';
-  created_at: string;
-  responded_at: string | null;
-}
+
 
 export async function getAcceptedFriends(
   userId: string
@@ -200,16 +190,7 @@ export async function deleteFriendship(id: string): Promise<void> {
   if (error) throw wrapError('Failed to delete friendship', error);
 }
 
-interface RawUserStatsRow {
-  user_id: string;
-  xp: number | string;
-  level: number;
-  coins: number | string;
-  current_streak: number;
-  longest_streak: number;
-  last_cook_date: string | null;
-  total_cooks: number;
-}
+
 
 function parseUserStatsRow(row: RawUserStatsRow): UserStats {
   return {

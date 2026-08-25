@@ -1,16 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { Collection } from '../types.js';
 import { getClient, wrapError } from './client.js';
+import type { CollectionRow } from './types.js';
 
-interface CollectionRow {
-  id: string;
-  user_id: string;
-  name: string;
-  emoji: string | null;
-  position: number;
-  created_at: string;
-  updated_at: string;
-}
 
 export async function listCollections(userId: string): Promise<Collection[]> {
   const { data, error } = await getClient()

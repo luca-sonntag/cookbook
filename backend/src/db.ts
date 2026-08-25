@@ -1,3 +1,4 @@
+export * from './db/types.js';
 export * from './db/client.js';
 export * from './db/settingsDb.js';
 export * from './db/jobsDb.js';

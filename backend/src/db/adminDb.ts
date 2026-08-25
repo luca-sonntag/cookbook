@@ -1,12 +1,25 @@
 import { randomUUID } from 'node:crypto';
 import { getClient, wrapError, isNoRowsError } from './client.js';
+import type {
+  FeedbackInput,
+  FeedbackRow,
+  AppBundleRow,
+  FailedJobDetails,
+  NotificationLogEntry,
+  NotificationLogRow,
+  NotificationUser,
+} from './types.js';
 
-export interface FeedbackInput {
-  type: 'bug' | 'idea';
-  message: string;
-  context?: unknown;
-  screenshotsBase64?: string[];
-}
+export type {
+  FeedbackInput,
+  FeedbackRow,
+  AppBundleRow,
+  FailedJobDetails,
+  NotificationLogEntry,
+  NotificationLogRow,
+  NotificationUser,
+};
+
 
 export async function createFeedback(
   userId: string,
@@ -55,15 +68,7 @@ export async function createFeedback(
   return { id };
 }
 
-export interface FeedbackRow {
-  id: string;
-  user_id: string;
-  type: string;
-  message: string;
-  context: unknown;
-  screenshot_urls: string[] | null;
-  created_at: string;
-}
+
 
 export async function getAllFeedback(): Promise<FeedbackRow[]> {
   const { data, error } = await getClient()
@@ -146,18 +151,7 @@ export async function getJobMetrics(
   return { total, completed, failed, pending, processing, mediaBytes, mediaMb, dailyStats };
 }
 
-export interface AppBundleRow {
-  id: string;
-  channel: 'production' | 'alpha' | 'internal';
-  version: string;
-  storage_path: string;
-  checksum: string;
-  min_version_code: number;
-  max_version_code: number | null;
-  active: boolean;
-  notes: string | null;
-  created_at: string;
-}
+
 
 export async function getActiveAppBundle(
   channel: string,
@@ -247,14 +241,7 @@ export async function getExtractionsPerUser(
     .sort((a, b) => b.count - a.count);
 }
 
-export interface FailedJobDetails {
-  id: string;
-  url: string;
-  error: string | null;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 export async function getFailedJobs(
   since: Date | null = null,
@@ -294,25 +281,7 @@ export async function getFailedJobs(
   }));
 }
 
-export interface NotificationLogEntry {
-  userId: string;
-  category: string;
-  type: string;
-  recipeId?: string | null;
-  title?: string | null;
-}
 
-export interface NotificationLogRow {
-  sentAt: string;
-  category: string;
-  type: string;
-  recipeId: string | null;
-}
-
-export interface NotificationUser {
-  id: string;
-  metadata: Record<string, unknown>;
-}
 
 export async function upsertPushToken(
   userId: string,
