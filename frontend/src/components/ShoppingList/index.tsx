@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Popover, Button } from '@heroui/react';
 import { Plus, Trash2, X, MoreHorizontal } from 'lucide-react';
-import type { AggregatedShoppingItem } from '../../types';
+import type { AggregatedShoppingItem, ShoppingListItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
+import { useToast } from '../../context/ToastContext';
 import { formatQuantity } from '../../utils/formatQuantity';
 
 // Import subcomponents
@@ -24,6 +25,7 @@ interface ActiveShoppingRecipe {
 }
 
 interface ShoppingListProps {
+  shoppingList?: ShoppingListItem[];
   aggregatedList: {
     unchecked: AggregatedShoppingItem[];
     checked: AggregatedShoppingItem[];
@@ -39,9 +41,12 @@ interface ShoppingListProps {
   deleteItemGroup: (name: string, modifier: string | undefined, unit: string) => void;
   clearAll: () => void;
   clearChecked: () => void;
+  restoreItems?: (items: ShoppingListItem[]) => void;
+  restoreList?: (items: ShoppingListItem[]) => void;
 }
 
 export default function ShoppingList({
+  shoppingList = [],
   aggregatedList,
   activeRecipes = [],
   history = [],
@@ -53,10 +58,13 @@ export default function ShoppingList({
   toggleItemGroup,
   deleteItemGroup,
   clearAll,
-  clearChecked
+  clearChecked,
+  restoreItems,
+  restoreList
 }: ShoppingListProps) {
   const dialog = useDialog();
   const { t } = useI18n();
+  const toast = useToast();
 
   // Local UI states
   const [showAddForm, setShowAddForm] = useState(false);
@@ -190,13 +198,32 @@ export default function ShoppingList({
       status: 'danger'
     });
     if (confirmed) {
+      const allItems = [...shoppingList];
       clearAll();
+      toast.info(t('toast.clearedAllItems'), {
+        action: restoreList && allItems.length > 0
+          ? {
+              label: t('toast.undo'),
+              onClick: () => restoreList(allItems),
+            }
+          : undefined,
+      });
     }
   };
 
   const handleClearChecked = () => {
     setIsMenuOpen(false);
+    const checkedItems = shoppingList.filter((item) => item.checked);
+    if (checkedItems.length === 0) return;
     clearChecked();
+    toast.info(t('toast.clearedCheckedItems', { count: checkedItems.length }), {
+      action: restoreItems
+        ? {
+            label: t('toast.undo'),
+            onClick: () => restoreItems(checkedItems),
+          }
+        : undefined,
+    });
   };
 
   const handleRemoveRecipe = async (recipeId: string, recipeTitle: string) => {

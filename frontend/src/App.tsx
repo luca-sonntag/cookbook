@@ -124,6 +124,7 @@ export default function App() {
   );
 
   const {
+    shoppingList,
     aggregatedList,
     activeRecipes,
     removeRecipeFromList,
@@ -135,6 +136,8 @@ export default function App() {
     deleteItemGroup,
     clearAll,
     clearChecked,
+    restoreItems,
+    restoreList,
   } = useShoppingList();
 
   const {
@@ -462,6 +465,7 @@ export default function App() {
           {visitedViews.has('shopping-list') && (
             <Suspense fallback={<ViewFallback />}>
               <ShoppingList
+                shoppingList={shoppingList}
                 aggregatedList={aggregatedList}
                 activeRecipes={activeRecipes}
                 history={history}
@@ -476,6 +480,8 @@ export default function App() {
                 deleteItemGroup={deleteItemGroup}
                 clearAll={clearAll}
                 clearChecked={clearChecked}
+                restoreItems={restoreItems}
+                restoreList={restoreList}
               />
             </Suspense>
           )}
