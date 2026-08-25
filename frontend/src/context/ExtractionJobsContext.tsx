@@ -280,7 +280,7 @@ export function ExtractionJobsProvider({ children }: { children: React.ReactNode
     } finally {
       inFlightRef.current.delete(id);
     }
-  }, [getAccessToken, finalizeCompletion, setJobsPersist, dismissJob]);
+  }, [getAccessToken, finalizeCompletion, setJobsPersist, dismissJob, t, toast]);
 
   // Single shared ticker polling every non-terminal tracked job.
   useEffect(() => {
