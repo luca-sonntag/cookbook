@@ -4,6 +4,12 @@ import { AppError, sendAppError } from '../errors.js';
 
 export const MAX_PROXY_VIDEO_BYTES = 25 * 1024 * 1024; // 25 MB
 
+const TIKTOK_MOBILE_UA =
+  'com.zhiliaoapp.musically/2022405040 (Linux; U; Android 12; en_US; Pixel 6; Build/SD1A.210817.036; Cronet/58.0.2991.0)';
+const DESKTOP_BROWSER_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36';
+const OKHTTP_UA = 'okhttp/4.9.3';
+
 /**
  * Validates whether a target URL is safe for external media fetching (SSRF guard).
  */
@@ -48,6 +54,34 @@ export function isSafeMediaUrl(targetUrl: URL): boolean {
 }
 
 /**
+ * Resolves platform-specific headers to ensure media CDNs accept the request.
+ */
+function getPlatformHeaders(parsedUrl: URL, isFallback = false): Record<string, string> {
+  const host = parsedUrl.hostname.toLowerCase();
+
+  if (host.includes('tiktok') || host.includes('byteoversea') || host.includes('ibytedtos')) {
+    return {
+      'User-Agent': isFallback ? OKHTTP_UA : TIKTOK_MOBILE_UA,
+      Referer: 'https://www.tiktok.com/',
+      Accept: '*/*',
+    };
+  }
+
+  if (host.includes('instagram') || host.includes('cdninstagram') || host.includes('fbcdn')) {
+    return {
+      'User-Agent': isFallback ? TIKTOK_MOBILE_UA : DESKTOP_BROWSER_UA,
+      Referer: 'https://www.instagram.com/',
+      Accept: '*/*',
+    };
+  }
+
+  return {
+    'User-Agent': isFallback ? OKHTTP_UA : DESKTOP_BROWSER_UA,
+    Accept: '*/*',
+  };
+}
+
+/**
  * Streaming proxy handler to allow web clients to fetch external CDN video/media streams
  * while bypassing browser CORS limitations, without persisting files to disk.
  */
@@ -78,28 +112,51 @@ export async function handleVideoProxy(req: Request, res: Response): Promise<voi
     });
 
     let upstreamResponse: globalThis.Response;
+    const initialHeaders = getPlatformHeaders(parsedUrl, false);
+
+    console.log(`[videoProxy] Fetching media stream for host: ${parsedUrl.hostname}...`);
+
     try {
-      upstreamResponse = await fetch(parsedUrl.toString(), {
+      upstreamResponse = await fetch(rawUrl, {
         signal: abortController.signal,
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          Accept: '*/*',
-        },
+        headers: initialHeaders,
       });
-    } catch (fetchErr: any) {
+
+      // If upstream failed with 403 or 404, retry once with fallback headers (e.g. okhttp / alternative UA)
+      if (
+        (!upstreamResponse.ok &&
+          (upstreamResponse.status === 403 || upstreamResponse.status === 404)) &&
+        !abortController.signal.aborted
+      ) {
+        console.warn(
+          `[videoProxy] Initial fetch returned ${upstreamResponse.status}, retrying with fallback headers...`,
+        );
+        const fallbackHeaders = getPlatformHeaders(parsedUrl, true);
+        const retryResponse = await fetch(rawUrl, {
+          signal: abortController.signal,
+          headers: fallbackHeaders,
+        });
+        if (retryResponse.ok) {
+          upstreamResponse = retryResponse;
+        }
+      }
+    } catch (fetchErr: unknown) {
       clearTimeout(timeoutId);
       if (abortController.signal.aborted) {
         return;
       }
+      const msg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
       throw new AppError('SCRAPE_FAILED', {
-        message: `Upstream media proxy request failed: ${fetchErr?.message || fetchErr}`,
+        message: `Upstream media proxy request failed: ${msg}`,
       });
     }
 
     clearTimeout(timeoutId);
 
     if (!upstreamResponse.ok) {
+      console.warn(
+        `[videoProxy] Upstream returned status ${upstreamResponse.status} for ${parsedUrl.hostname}`,
+      );
       res.status(upstreamResponse.status).json({
         success: false,
         error: `Upstream CDN returned status ${upstreamResponse.status}`,
@@ -141,11 +198,12 @@ export async function handleVideoProxy(req: Request, res: Response): Promise<voi
       }
     });
 
-    nodeStream.on('error', (streamErr: any) => {
+    nodeStream.on('error', (streamErr: unknown) => {
+      const errorMsg = streamErr instanceof Error ? streamErr.message : String(streamErr);
       if (!res.headersSent) {
-        res.status(500).json({ success: false, error: streamErr?.message || 'Streaming failed' });
+        res.status(500).json({ success: false, error: errorMsg });
       } else {
-        res.destroy(streamErr);
+        res.destroy(streamErr instanceof Error ? streamErr : new Error(errorMsg));
       }
     });
 
