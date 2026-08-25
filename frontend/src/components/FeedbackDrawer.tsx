@@ -3,7 +3,7 @@ import { Button, Drawer } from '@heroui/react';
 import { Bug, Lightbulb, MessageSquare, ImagePlus, X } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
-import { useDialog } from '../context/DialogContext';
+import { useToast } from '../context/ToastContext';
 import { useFeedback } from '../hooks/useFeedback';
 import { collectFeedbackContext, compressScreenshot } from '../utils/feedbackContext';
 import { useAdOverlay } from '../context/OverlayStackContext';
@@ -20,7 +20,7 @@ const MAX_SCREENSHOTS = 6;
 export const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({ isOpen, onClose }) => {
   const { t, language } = useI18n();
   const { user } = useAuth();
-  const dialog = useDialog();
+  const toast = useToast();
   const { submitFeedback } = useFeedback();
 
   useAdOverlay(isOpen);
@@ -90,13 +90,9 @@ export const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({ isOpen, onClose 
       });
 
       if (result.success) {
-        // Close the drawer first so the success dialog (rendered above it) is
-        // interactive — the drawer's focus trap would otherwise block it.
         onClose();
-        await dialog.alert({
-          title: t('feedback.successTitle') || 'Thank you!',
-          message: t('feedback.success') || 'Thanks for your feedback!',
-          status: 'success',
+        toast.success(t('toast.feedbackSuccessTitle'), {
+          description: t('toast.feedbackSuccessDesc'),
         });
       } else {
         setError(result.error || t('feedback.error') || 'Could not send feedback.');
