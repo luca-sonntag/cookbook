@@ -3,9 +3,10 @@ import { useI18n } from '../context/I18nContext';
 import TimerBanner from './TimerBanner';
 import OtaUpdateBanner from './OtaUpdateBanner';
 import type { Recipe } from '../types';
+import type { AppTab } from '../hooks/useHashRouter';
 
 interface AppTopBannersProps {
-  activeView: string;
+  activeView: AppTab;
   isPending: boolean;
   recipe: Recipe | null;
 }

@@ -1,9 +1,10 @@
 import React from 'react';
 import { Sparkles, BookOpen, ShoppingCart, User, Trophy } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
+import type { AppTab } from '../hooks/useHashRouter';
 
 interface AppBottomNavProps {
-  activeView: string;
+  activeView: AppTab;
   isPending: boolean;
   isPremium: boolean;
   isCatalogSelectMode: boolean;
@@ -13,7 +14,7 @@ interface AppBottomNavProps {
   incomingRequestsCount: number;
   userLevel: number | null;
   lastHistorySubPath: string | null;
-  onNavigate: (view: string, subPath?: string | null) => void;
+  onNavigate: (tab: AppTab, subPath?: string | null) => void;
   onFetchHistory: () => void;
 }
 

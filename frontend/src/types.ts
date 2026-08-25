@@ -287,4 +287,17 @@ export interface LeaderboardEntry {
   friendshipId?: string;
 }
 
+export interface LimitStatus {
+  limit: number;
+  used: number;
+  remaining: number;
+  windowDays: number;
+  tier: 'free' | 'alpha' | 'premium';
+  savedRecipes: number;
+  maxSavedRecipes: number;
+  cookbookFull: boolean;
+  maxConcurrent: number;
+  activeCount: number;
+}
+
 
