@@ -4,11 +4,20 @@
 >
 > **🔁 Commit-Strategie:** Während JEDER Session musst du kontinuierlich atomic commits machen. Nach jedem abgeschlossenen logischen Änderungsblock (Feature, Fix, Refactor, Datei-Addition) sofort `git add` der betroffenen Dateien und `git commit` mit einer [Conventional Commits](https://www.conventionalcommits.org/) Nachricht (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `test:`). Niemals `git add -A` — nur selektiv die Dateien staggen, die zum aktuellen logischen Change gehören. Siehe Skill `atomic-commits` für vollständige Regeln.
 >
+> **🧼 Clean Code & Modularisierung (TypeScript & React):** Halte dich ausnahmslos an die Richtlinien in [`docs/clean-code.md`](file:///c:/Users/lucas/source/repos/cookbook/docs/clean-code.md). Feste Dateigrößen-Grenzen: **Ziel 50–150 Zeilen, Soft Limit 200 Zeilen, Hard Limit 300 Zeilen**. Größere Konstrukte und Komponenten **MÜSSEN** zwingend in Subkomponenten aufgeteilt, State- und Effektlogik in Custom Hooks (`use<Feature>.ts`) ausgelagert und Hilfsfunktionen in Module separiert werden. Strikte Typensicherheit (0x `any`), Early Returns statt tiefer Verschachtelung und Einhaltung des UI Styleguides ([`docs/styleguide.md`](file:///c:/Users/lucas/source/repos/cookbook/docs/styleguide.md)).
+>
 > **🔀 Merge-Strategie:** Branches dürfen NIEMALS als Fast-Forward gemergt werden. Verwende IMMER einen expliziten Merge-Commit: `git merge --no-ff <branch> -m "Merge branch '<branch>' into <target>"`.
 >
 > **📝 Doku & OBSOLETE.md aktuell halten:** Nach JEDER relevanten Code-Änderung (neues Feature, Architekturänderung, neue Komponente, etc.) musst du prüfen, ob die Dokumentation angepasst werden muss. Wenn durch Refactorings oder neue Ansätze alter Code, Heuristiken oder Hilfsfunktionen obsolet werden, musst du diese im Dokument [`docs/OBSOLETE.md`](file:///c:/Users/lucas/source/repos/cookbook/docs/OBSOLETE.md) festhalten.
 >
 > **⚠️ Abwärtskompatibilität (Breaking Changes Guard):** Wenn eine geplante Änderung möglicherweise **nicht abwärtskompatibel** ist (z. B. Breaking API/Schema-Changes zwischen Frontend und Backend, Datenbank-Inkompatibilitäten oder kaputte Altdaten), darfst du diese NIEMALS eigenmächtig umsetzen. Du musst den Benutzer im `implementation_plan.md` explizit und auffällig (mit `[!WARNING]` / `[!CAUTION]`) darauf hinweisen, das Risiko genau erklären und erst nach ausdrücklicher Rückfrage und Bestätigung durch den Benutzer fortfahren bzw. den Plan anpassen.
+
+---
+
+## 🧼 Code-Standards & Design-System (Global)
+
+* 🧼 [**TypeScript & React Clean Code Guidelines**](file:///c:/Users/lucas/source/repos/cookbook/docs/clean-code.md): Verbindliche Regeln zu Dateigrößen (**max. 150–200 Zeilen, Hard Limit 300**), Modularisierung, Custom Hooks, Subkomponenten-Extraktion & 0x `any`.
+* 🎨 [**UI & Design Styleguide**](file:///c:/Users/lucas/source/repos/cookbook/docs/styleguide.md): Vorgaben zu Clean Flat Style, Farbpalette, Typografie, Radien & rahmenlosen Oberflächen (`border-none`).
 
 ---
 
