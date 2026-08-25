@@ -135,11 +135,12 @@ async function processJob(job: Job): Promise<void> {
       await updateJobProgress(jobId, 'processing', { percent: 90, stage: 'finalizing' });
 
       // Canonical ingredient normalization & nutritional calculation
-      await enrichRecipeWithCanonicalIngredients(recipe);
+      const { usage: resolverUsage } = await enrichRecipeWithCanonicalIngredients(recipe);
 
       const llmUsage: LlmUsage = {};
       if (geminiUsage) llmUsage.gemini = geminiUsage;
       if (fluxUsage) llmUsage.flux = fluxUsage;
+      if (resolverUsage) llmUsage.ingredientResolver = resolverUsage;
 
       await completeJob(jobId, recipe, Object.keys(llmUsage).length > 0 ? llmUsage : null);
       return;
@@ -213,11 +214,12 @@ async function processJob(job: Job): Promise<void> {
       await updateJobProgress(jobId, 'processing', { percent: 90, stage: 'finalizing' });
 
       // Canonical ingredient normalization & nutritional calculation
-      await enrichRecipeWithCanonicalIngredients(recipe);
+      const { usage: resolverUsage } = await enrichRecipeWithCanonicalIngredients(recipe);
 
       const llmUsage: LlmUsage = {};
       if (geminiUsage) llmUsage.gemini = geminiUsage;
       if (fluxUsage) llmUsage.flux = fluxUsage;
+      if (resolverUsage) llmUsage.ingredientResolver = resolverUsage;
 
       await completeJob(jobId, recipe, Object.keys(llmUsage).length > 0 ? llmUsage : null);
       return;
@@ -425,11 +427,12 @@ async function processJob(job: Job): Promise<void> {
     recipe.sourceUrl = url;
 
     // Canonical ingredient normalization & nutritional calculation
-    await enrichRecipeWithCanonicalIngredients(recipe);
+    const { usage: resolverUsage } = await enrichRecipeWithCanonicalIngredients(recipe);
 
     const llmUsage: LlmUsage = {};
     if (geminiUsage) llmUsage.gemini = geminiUsage;
     if (fluxUsage) llmUsage.flux = fluxUsage;
+    if (resolverUsage) llmUsage.ingredientResolver = resolverUsage;
 
     if (await isJobCancelled(jobId)) {
       console.log(`[Job ${jobId}] Job was cancelled by user, aborting completion.`);

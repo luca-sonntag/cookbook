@@ -234,11 +234,15 @@ recipeRoutes.post('/recipes/:id/chat/confirm', async (req: Request, res: Respons
       userPrefs
     );
 
-    await enrichRecipeWithCanonicalIngredients(remixedRecipe);
+    const { usage: resolverUsage } = await enrichRecipeWithCanonicalIngredients(remixedRecipe);
 
-    let remixLlmUsage: { gemini?: unknown; flux?: unknown } | undefined = remixUsage
+    let remixLlmUsage: { gemini?: unknown; flux?: unknown; ingredientResolver?: unknown } | undefined = remixUsage
       ? { gemini: remixUsage }
       : undefined;
+
+    if (resolverUsage) {
+      remixLlmUsage = { ...(remixLlmUsage || {}), ingredientResolver: resolverUsage };
+    }
 
     if (remixedRecipe.imagePrompt) {
       try {

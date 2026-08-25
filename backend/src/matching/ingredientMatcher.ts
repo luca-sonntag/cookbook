@@ -14,7 +14,7 @@ import {
   flushHitCounts,
   type EstimatedNutrients,
 } from './mappingStore.js';
-import type { Recipe, Ingredient, ParentIngredientInfo } from '../types.js';
+import type { Recipe, Ingredient, ParentIngredientInfo, GeminiUsageInfo } from '../types.js';
 
 // Re-exported so existing callers and tests keep importing it from the matcher.
 export { toEnglishSingular, canonicalizeBaseName, buildMappingKeys };
@@ -596,7 +596,7 @@ export const catalogueAccess: CatalogueAccess = {
  */
 export async function resolveAndRemember(
   input: ResolverInput
-): Promise<{ match: CanonicalIngredient | null; estimate: EstimatedNutrients | null }> {
+): Promise<{ match: CanonicalIngredient | null; estimate: EstimatedNutrients | null; usage?: GeminiUsageInfo }> {
   const keys = buildMappingKeys(input.baseName, input.name);
   const category = (input.category || '').toUpperCase().trim();
 
@@ -612,7 +612,7 @@ export async function resolveAndRemember(
   if (!resolved || resolved.budgetExhausted) {
     // Nothing trustworthy came back. Storing this would freeze a non-answer for
     // every future recipe, so leave the key unresolved and try again next time.
-    return { match: null, estimate: null };
+    return { match: null, estimate: null, usage: resolved?.usage };
   }
 
   const item = resolved.blsCode ? catalogueAccess.get(resolved.blsCode) : null;
@@ -629,7 +629,7 @@ export async function resolveAndRemember(
     });
   }
 
-  return { match: item, estimate: item ? null : resolved.estimatedNutrients };
+  return { match: item, estimate: item ? null : resolved.estimatedNutrients, usage: resolved.usage };
 }
 
 /**
@@ -648,10 +648,10 @@ export async function findCanonicalIngredient(
   ingredientRef?: Ingredient
 ): Promise<CanonicalIngredient | null> {
   // 1. Synchronous Fast-Path
-  const fast = findFastPathMatch(name, baseName, category, synonyms, searchQueries, parentIngredient, modifier, brand);
-  if (fast && (!ingredientRef || isNutritionallyPlausible(ingredientRef, fast))) {
-    return fast;
-  }
+  // const fast = findFastPathMatch(name, baseName, category, synonyms, searchQueries, parentIngredient, modifier, brand);
+  // if (fast && (!ingredientRef || isNutritionallyPlausible(ingredientRef, fast))) {
+  //   return fast;
+  // }
 
   // 2. Learned mapping store -> tool-using resolver
   const { match } = await resolveAndRemember({
@@ -829,8 +829,10 @@ export async function matchAndEnrichIngredient(ingredient: Ingredient, groupCate
  * Executes Fast-Path instantly in 0 ms, and gathers all remaining unverified items
  * into ONE single batch call to Gemini Flash-Lite for maximum speed and lowest cost.
  */
-export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Promise<void> {
-  if (!recipe || !recipe.ingredients) return;
+export async function enrichRecipeWithCanonicalIngredients(
+  recipe: Recipe
+): Promise<{ usage?: GeminiUsageInfo }> {
+  if (!recipe || !recipe.ingredients) return {};
 
   const flatItems: Array<{ ing: Ingredient; groupName?: string; id: string }> = [];
   let itemCounter = 0;
@@ -842,7 +844,7 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
     }
   }
 
-  if (flatItems.length === 0) return;
+  if (flatItems.length === 0) return {};
 
   const matchedCanonicalMap = new Map<string, CanonicalIngredient | null>();
   const estimateMap = new Map<string, EstimatedNutrients>();
@@ -884,6 +886,14 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
   // Phase 2: Store lookup, then the tool-using resolver for whatever is left.
   // Fanned out because each resolver call is several turns; the resolver's own
   // global semaphore keeps the total across concurrent recipes in check.
+  let totalPromptTokens = 0;
+  let totalCandidateTokens = 0;
+  let totalTokens = 0;
+  let totalCostUsd = 0;
+  let totalDurationMs = 0;
+  let modelUsed: string | undefined;
+  let resolverCallCount = 0;
+
   if (unresolved.length > 0) {
     const results = await mapWithConcurrency(unresolved, RECIPE_RESOLVE_CONCURRENCY, item =>
       resolveAndRemember(item.input)
@@ -891,9 +901,22 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
 
     for (let i = 0; i < unresolved.length; i++) {
       const { id } = unresolved[i];
-      const { match, estimate } = results[i];
+      const { match, estimate, usage } = results[i];
       matchedCanonicalMap.set(id, match);
       if (!match && estimate) estimateMap.set(id, estimate);
+      if (usage) {
+        resolverCallCount++;
+        modelUsed = usage.model ?? modelUsed;
+        totalDurationMs += usage.durationMs ?? 0;
+        if (usage.tokenUsage) {
+          totalPromptTokens += usage.tokenUsage.promptTokens;
+          totalCandidateTokens += usage.tokenUsage.candidateTokens;
+          totalTokens += usage.tokenUsage.totalTokens;
+        }
+        if (usage.costEstimate) {
+          totalCostUsd += usage.costEstimate.totalCostUsd;
+        }
+      }
     }
   }
 
@@ -936,4 +959,22 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
   recipe.nutritionCoverage = totalCalories > 0
     ? Math.round((matchedCalories / totalCalories) * 100) / 100
     : 0;
+
+  const resolverUsage: GeminiUsageInfo | undefined = resolverCallCount > 0 ? {
+    model: modelUsed,
+    durationMs: totalDurationMs,
+    tokenUsage: {
+      promptTokens: totalPromptTokens,
+      candidateTokens: totalCandidateTokens,
+      totalTokens,
+    },
+    costEstimate: {
+      inputCostUsd: 0,
+      outputCostUsd: 0,
+      totalCostUsd: parseFloat(totalCostUsd.toFixed(6)),
+      totalCostFormatted: `$${totalCostUsd.toFixed(4)}`,
+    },
+  } : undefined;
+
+  return { usage: resolverUsage };
 }

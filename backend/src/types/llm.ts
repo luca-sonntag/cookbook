@@ -32,5 +32,6 @@ export interface FluxUsageInfo {
 export interface LlmUsage {
   gemini?: GeminiUsageInfo;
   flux?: FluxUsageInfo;
+  ingredientResolver?: GeminiUsageInfo;
   [key: string]: unknown;
 }
