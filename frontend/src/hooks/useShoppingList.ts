@@ -172,6 +172,17 @@ export function useShoppingList() {
     saveList(prevList => prevList.filter(item => !item.checked));
   };
 
+  // Restore specific items back to the list (e.g. for Toast Undo)
+  const restoreItems = (itemsToRestore: ShoppingListItem[]) => {
+    if (!itemsToRestore || itemsToRestore.length === 0) return;
+    saveList(prevList => [...prevList, ...itemsToRestore]);
+  };
+
+  // Restore whole list state
+  const restoreList = (fullList: ShoppingListItem[]) => {
+    saveList(fullList);
+  };
+
   // Aggregate items: group by raw parent ingredient or lowercase base key / unit.
   const aggregatedList = useMemo(() => {
     const uncheckedMap = new Map<string, AggregatedShoppingItem>();
@@ -327,6 +338,8 @@ export function useShoppingList() {
     toggleItemGroup,
     deleteItemGroup,
     clearAll,
-    clearChecked
+    clearChecked,
+    restoreItems,
+    restoreList
   };
 }

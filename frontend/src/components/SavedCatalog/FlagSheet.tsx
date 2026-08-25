@@ -3,6 +3,7 @@ import { Button, Drawer } from '@heroui/react';
 import { Tag, X } from 'lucide-react';
 import type { SavedRecipe } from '../../types';
 import { useI18n } from '../../context/I18nContext';
+import { useToast } from '../../context/ToastContext';
 import { useAdOverlay } from '../../context/OverlayStackContext';
 
 interface FlagSheetProps {
@@ -21,6 +22,7 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
   onSave
 }) => {
   const { t, language } = useI18n();
+  const toast = useToast();
   useAdOverlay(isOpen);
   const [tags, setTags] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -65,6 +67,7 @@ export const FlagSheet: React.FC<FlagSheetProps> = ({
         finalTags.push(remaining);
       }
       await onSave(job, finalTags);
+      toast.success(t('toast.flagsSaved'));
       onClose();
     } catch (err) {
       console.error('Failed to save flags:', err);

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useI18n } from '../../../context/I18nContext';
 import { useAuth } from '../../../context/AuthContext';
+import { useToast } from '../../../context/ToastContext';
 import { useTimerManager } from '../../../hooks/useTimerManager';
 import { useShoppingList } from '../../../hooks/useShoppingList';
 import { apiUrl } from '../../../api';
@@ -20,6 +21,7 @@ export function useRecipeCopilot({
   onReplaceCurrent,
 }: UseRecipeCopilotProps) {
   const { t, language } = useI18n();
+  const toast = useToast();
   const { getAccessToken } = useAuth();
   const { addTimer } = useTimerManager();
   const { addCustomItem } = useShoppingList();
@@ -249,10 +251,12 @@ export function useRecipeCopilot({
             addCustomItem(name, 0, '');
           }
         });
+        toast.success(t('copilot.shoppingListToast', { ingredients: items.join(', ') }));
       } else if (data.toolCalled === 'set_cooking_timer' && data.toolArgs?.duration_minutes) {
         const mins = data.toolArgs.duration_minutes;
         const label = data.toolArgs.label || t('copilot.timerNoLabel');
         addTimer(mins * 60, label, recipe.id);
+        toast.info(t('copilot.timerToast', { label, duration: mins }));
       }
 
       if (data.pendingRemix) {
@@ -293,6 +297,7 @@ export function useRecipeCopilot({
 
   const handleLoadNewRecipe = (newRecipe: Recipe, newJobId: string) => {
     onRemixSuccess(newRecipe, newJobId);
+    toast.success(t('copilot.remixSuccessToast'));
     setTimeout(() => onClose(), 50);
   };
 

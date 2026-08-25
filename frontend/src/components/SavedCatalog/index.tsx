@@ -5,6 +5,7 @@ import RecipeDetails from '../RecipeDetails';
 import ShoppingConfirmSheet from '../RecipeDetails/ShoppingConfirmSheet';
 import { useMobileNavigationBack } from '../../hooks/useMobileNavigationBack';
 import { useI18n } from '../../context/I18nContext';
+import { useToast } from '../../context/ToastContext';
 import { useSavedCatalog, EMPTY_FILTERS } from '../../hooks/useSavedCatalog';
 import { useAuth } from '../../context/AuthContext';
 import { useCollections } from '../../hooks/useCollections';
@@ -76,6 +77,7 @@ export default function SavedCatalog({
   limitStatus
 }: SavedCatalogProps) {
   const { t } = useI18n();
+  const toast = useToast();
   const { isPremium } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
@@ -283,11 +285,14 @@ export default function SavedCatalog({
     }
   };
 
+  const [bulkShoppingAddedItemsCount, setBulkShoppingAddedItemsCount] = useState(0);
+
   const handleBulkAddToShoppingListClick = () => {
     const jobs = getBulkShoppingJobs();
     if (jobs.length === 0) return;
     setBulkShoppingTotal(jobs.length);
     setBulkShoppingAdded(0);
+    setBulkShoppingAddedItemsCount(0);
     setBulkShoppingQueue(jobs);
   };
 
@@ -297,6 +302,20 @@ export default function SavedCatalog({
     if (items.length > 0) {
       onAddIngredients(items, job.recipeId, job.recipe!.title);
       setBulkShoppingAdded(prev => prev + 1);
+      setBulkShoppingAddedItemsCount(prev => prev + items.length);
+
+      if (bulkShoppingTotal === 1) {
+        const title =
+          items.length === 1
+            ? t('toast.ingredientsAddedSingle', { name: items[0].name })
+            : t('toast.ingredientsAddedMany', { count: items.length });
+        toast.success(title, {
+          description: job.recipe!.title,
+          action: onNavigateToShoppingList
+            ? { label: t('toast.viewShoppingList'), onClick: onNavigateToShoppingList }
+            : undefined,
+        });
+      }
     }
     // NOTE: onClose() is called by ShoppingConfirmSheet after onConfirm(),
     // which triggers handleBulkShoppingClose → advances the queue.
@@ -311,11 +330,29 @@ export default function SavedCatalog({
   const prevBulkQueueLenRef = useRef(0);
   useEffect(() => {
     if (prevBulkQueueLenRef.current > 0 && bulkShoppingQueue.length === 0 && bulkShoppingAdded > 0) {
+      if (bulkShoppingTotal > 1 && bulkShoppingAddedItemsCount > 0) {
+        toast.success(t('toast.bulkIngredientsAdded', { count: bulkShoppingAddedItemsCount }), {
+          action: onNavigateToShoppingList
+            ? { label: t('toast.viewShoppingList'), onClick: onNavigateToShoppingList }
+            : undefined,
+        });
+      }
       setIsSelectMode(false);
       setSelectedIds(new Set());
     }
     prevBulkQueueLenRef.current = bulkShoppingQueue.length;
-  }, [bulkShoppingQueue.length, bulkShoppingAdded, setIsSelectMode, setSelectedIds]);
+  }, [bulkShoppingQueue.length, bulkShoppingAdded, bulkShoppingTotal, bulkShoppingAddedItemsCount, onNavigateToShoppingList, t, toast, setIsSelectMode, setSelectedIds]);
+
+  const handleBulkFavoriteWithToast = async () => {
+    const count = selectedIds.size;
+    const wasAllFavorites = allSelectedAreFavorites;
+    await handleBulkToggleFavorite();
+    toast.success(
+      wasAllFavorites
+        ? t('toast.bulkFavoritesRemoved', { count })
+        : t('toast.bulkFavoritesAdded', { count })
+    );
+  };
 
   const handleBulkAddToCollectionClick = () => {
     if (!isPremium) {
@@ -589,7 +626,7 @@ export default function SavedCatalog({
             setSelectedIds(new Set());
           }}
           onToggleSelectAll={handleToggleSelectAll}
-          onBulkFavorite={handleBulkToggleFavorite}
+          onBulkFavorite={handleBulkFavoriteWithToast}
           onBulkAdd={handleBulkAddToShoppingListClick}
           onBulkDelete={handleBulkDelete}
           onBulkAddToCollection={handleBulkAddToCollectionClick}

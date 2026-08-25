@@ -4,6 +4,7 @@ import { type ErrorParams, parseSerializedError } from '../errorCodes';
 import { apiUrl } from '../api';
 import { useAuth } from './AuthContext';
 import { useI18n } from '../context/I18nContext';
+import { useToast } from './ToastContext';
 import { sendRecipeReadyNotification } from '../native';
 import { handleClientFrameRequest } from '../utils/videoFrames';
 
@@ -110,6 +111,7 @@ function persist(jobs: ExtractionJobEntry[]): void {
 export function ExtractionJobsProvider({ children }: { children: React.ReactNode }) {
   const { getAccessToken } = useAuth();
   const { t } = useI18n();
+  const toast = useToast();
 
   const [jobs, setJobs] = useState<ExtractionJobEntry[]>(() => loadPersisted());
 
@@ -174,6 +176,20 @@ export function ExtractionJobsProvider({ children }: { children: React.ReactNode
     // (App's registerNotificationTap → app:navigate-to-timer-step handler).
     void sendRecipeReadyNotification(notifTitle, notifBody, job.recipeId ?? undefined);
 
+    toast.success(t('toast.recipeReadyTitle'), {
+      description: recipeTitle || undefined,
+      action: job.recipeId
+        ? {
+            label: t('toast.viewRecipe'),
+            onClick: () => {
+              window.dispatchEvent(
+                new CustomEvent(OPEN_RECIPE_EVENT, { detail: { recipeId: job.recipeId } })
+              );
+            },
+          }
+        : undefined,
+    });
+
     setJobsPersist(prev => prev.map(j =>
       j.id === job.id
         ? { ...j, status: 'completed', progress: null, recipeId: job.recipeId ?? null, title: recipeTitle ?? j.title ?? null }
@@ -191,7 +207,7 @@ export function ExtractionJobsProvider({ children }: { children: React.ReactNode
     dismissTimersRef.current.set(job.id, timer);
 
     window.dispatchEvent(new CustomEvent(EXTRACTION_COMPLETE_EVENT, { detail: { recipeId: job.recipeId } }));
-  }, [setJobsPersist, t]);
+  }, [setJobsPersist, t, toast]);
 
   const pollJob = useCallback(async (id: string) => {
     if (!id || typeof id !== 'string' || id === 'undefined') return;
@@ -231,6 +247,7 @@ export function ExtractionJobsProvider({ children }: { children: React.ReactNode
         if (finalizedRef.current.has(id)) return;
         finalizedRef.current.add(id);
         const envelope = job.error ? parseSerializedError(job.error) : null;
+        toast.danger(t('toast.recipeFailedTitle'));
         setJobsPersist(prev => prev.map(j =>
           j.id === id
             ? {
@@ -263,7 +280,7 @@ export function ExtractionJobsProvider({ children }: { children: React.ReactNode
     } finally {
       inFlightRef.current.delete(id);
     }
-  }, [getAccessToken, finalizeCompletion, setJobsPersist, dismissJob]);
+  }, [getAccessToken, finalizeCompletion, setJobsPersist, dismissJob, t, toast]);
 
   // Single shared ticker polling every non-terminal tracked job.
   useEffect(() => {

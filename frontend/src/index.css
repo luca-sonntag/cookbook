@@ -239,9 +239,42 @@ html.dark .glass-panel {
   animation: tab-slide-in-left 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Elastic top-slide animation for floating toasts */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-100%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-80%) scale(0.92);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-toast-out {
+  animation: toast-out 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-tab-in-right,
   .animate-tab-in-left,
+  .animate-toast-in,
+  .animate-toast-out,
   .animate-radar,
   .animate-bounce-arrow,
   .animate-scan,

@@ -5,6 +5,7 @@ import { useRecipeProgress } from '../../hooks/useRecipeProgress';
 import { useRecipeNutrition } from '../../hooks/useRecipeNutrition';
 import { categoryOrder, legacyCategoryMap } from '../../i18n';
 import { useI18n } from '../../context/I18nContext';
+import { useToast } from '../../context/ToastContext';
 import { useTimerManager } from '../../hooks/useTimerManager';
 import { useGamification } from '../../context/GamificationContext';
 import { useCookHistory } from '../../hooks/useCookHistory';
@@ -69,6 +70,7 @@ export default function RecipeDetails({
   onToggleFavorite
 }: RecipeDetailsProps) {
   const { t, translateCategory } = useI18n();
+  const toast = useToast();
 
   // Checklists state (persisted in localStorage)
   const {
@@ -388,6 +390,21 @@ export default function RecipeDetails({
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
 
+    const title =
+      itemsToAdd.length === 1
+        ? t('toast.ingredientsAddedSingle', { name: itemsToAdd[0].name })
+        : t('toast.ingredientsAddedMany', { count: itemsToAdd.length });
+
+    toast.success(title, {
+      description: recipe.title,
+      action: onNavigateToShoppingList
+        ? {
+            label: t('toast.viewShoppingList'),
+            onClick: () => onNavigateToShoppingList(),
+          }
+        : undefined,
+    });
+
     if (shouldNavigateAfterAdd) {
       onNavigateToShoppingList?.();
     }
@@ -493,6 +510,7 @@ export default function RecipeDetails({
 
     const markCopied = () => {
       setIsCopied(true);
+      toast.success(t('toast.recipeCopied'));
       setTimeout(() => setIsCopied(false), 2000);
     };
 

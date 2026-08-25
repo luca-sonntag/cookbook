@@ -15,6 +15,7 @@
 ### Zentralisierte Kontexte (`frontend/src/context/`)
 * **`AuthContext.tsx`:** Verwaltet Supabase Auth Session (`signIn`, `signUp`, `signInWithGoogle`, `signOut`, `getAccessToken`, `isPremium`).
 * **`DialogContext.tsx`:** Stellt globalen Dialog-Service (`useDialog()`) bereit, um native Browser-Dialoge durch moderne HeroUI-Dialoge zu ersetzen.
+* **`ToastContext.tsx`:** Globales Toast-Benachrichtigungssystem (`useToast()`), das rahmenlose Benachrichtigungen im Clean Flat Style elastisch von oben hineingleiten lässt (`top-toast` via `ToastContainer` & `ToastItem`), Safe Areas (`--safe-area-inset-top`) beachtet und Swipe-Up Gesten unterstützt.
 * **`I18nContext.tsx`:** Verwaltet Internationalisierung (Deutsch/Englisch) mit `localStorage`-Persistenz und Browsersprachen-Erkennung.
 * **`OverlayStackContext.tsx`:** Globaler Ref-Counted Overlay-Stack (`pushOverlay`, `popOverlay`, `isAnyOverlayOpen`) und Convenience-Hook `useAdOverlay(isOpen)`. Blendet das native AdMob-Banner synchron aus, sobald ein beliebiges Modal, Sheet oder Drawer geöffnet wird, und stellt es nach dem Schließen wieder her.
 
