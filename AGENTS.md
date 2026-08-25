@@ -47,7 +47,7 @@ Die detaillierte technische Dokumentation wurde modular in den Ordner [`docs/arc
 
 4. 🎨 [**Frontend-Layer (React 19 & HeroUI v3)**](file:///c:/Users/lucas/source/repos/cookbook/docs/architecture/frontend.md)
    * React 19, HeroUI v3, Tailwind CSS v4 PWA & Capacitor Android-App Shell
-   * Centralized Contexts (`AuthContext`, `DialogContext`, `I18nContext`, `OverlayStackContext`) & App-weite Hooks
+   * Centralized Contexts (`AuthContext`, `DialogContext`, `ToastContext`, `I18nContext`, `OverlayStackContext`) & App-weite Hooks
    * Error-Code Registry (`errorCodes.ts`) & Lokalisierung (DE/EN)
    * 3-Ebenen-Katalog (`CookbookHome`, List-Ebene mit Facetten-Filtern, Detail-Ansicht)
    * Client-seitiges Image Caching (IndexedDB `recipe-image-cache` + `/api/image` Proxy)
