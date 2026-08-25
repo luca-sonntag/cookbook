@@ -451,3 +451,51 @@ AS $function$
   ORDER BY xp DESC
   LIMIT limit_count;
 $function$;
+
+-- --- learned ingredient mapping store migration ---
+
+-- Every ingredient→BLS decision the system has ever made, reused across all users,
+-- recipes and ingredients. Filled by the AI resolver and correctable by hand, so a
+-- bad mapping is fixed with one UPDATE instead of a code change and a deploy.
+--
+-- `mapping_key` is the deterministic key from canonicalizeBaseName(): several keys
+-- may point at the same code ("bacon cubes" and "bacon" both resolve to W410400),
+-- which is what makes the store collapse spelling variants over time.
+--
+-- `bls_code` NULL together with resolution='no_match' is a real, cached answer:
+-- "this food is not in the BLS", so the estimate fallback is used without paying
+-- for the resolver again.
+CREATE TABLE IF NOT EXISTS public.ingredient_mappings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  mapping_key text NOT NULL,
+  category text NOT NULL DEFAULT '',
+  bls_code text,
+  resolution text NOT NULL CHECK (resolution IN ('matched', 'no_match')),
+  estimated_nutrients jsonb,
+  source text NOT NULL DEFAULT 'agent' CHECK (source IN ('static', 'agent', 'human')),
+  confidence numeric(3, 2),
+  model text,
+  reasoning text,
+  hit_count integer NOT NULL DEFAULT 0,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE (mapping_key, category)
+);
+
+CREATE INDEX IF NOT EXISTS ingredient_mappings_key_idx
+  ON public.ingredient_mappings (mapping_key);
+CREATE INDEX IF NOT EXISTS ingredient_mappings_source_created_idx
+  ON public.ingredient_mappings (source, created_at DESC);
+
+-- Admin-only via service role, no public policies.
+ALTER TABLE public.ingredient_mappings ENABLE ROW LEVEL SECURITY;
+
+-- Bump hit_count without a read-modify-write round trip from the backend.
+CREATE OR REPLACE FUNCTION public.bump_ingredient_mapping_hits(keys text[])
+RETURNS void
+LANGUAGE sql
+AS $$
+  UPDATE public.ingredient_mappings
+  SET hit_count = hit_count + 1
+  WHERE mapping_key = ANY(keys);
+$$;

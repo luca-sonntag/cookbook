@@ -8,6 +8,7 @@ import {
   enrichRecipeWithCanonicalIngredients,
   toEnglishSingular,
   isNutritionallyPlausible,
+  catalogueAccess,
 } from './ingredientMatcher.js';
 import type { Recipe } from '../types.js';
 
@@ -385,6 +386,50 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
         ),
         true
       );
+    });
+  });
+
+  describe('catalogueAccess (resolver tools)', () => {
+    test('search finds an entry by its German name', () => {
+      const hits = catalogueAccess.search('Parmesan');
+      assert.ok(hits.length > 0, 'expected at least one hit for "Parmesan"');
+      assert.ok(hits.some(h => h.name_de.includes('Parmesan')));
+    });
+
+    test('search returns empty for a food the BLS genuinely lacks', () => {
+      // "Sriracha" has no BLS entry. Returning nothing is what lets the resolver
+      // answer no_match honestly instead of settling for a wrong nearest hit.
+      assert.deepEqual(catalogueAccess.search('Sriracha'), []);
+    });
+
+    test('search honours the category filter', () => {
+      const hits = catalogueAccess.search('Paprika', 'SPICES_OILS');
+      assert.ok(hits.length > 0);
+      assert.ok(hits.every(h => h.category === 'SPICES_OILS'));
+    });
+
+    test('get resolves a code with and without the bls_ prefix', () => {
+      const withPrefix = catalogueAccess.get('bls_m111300');
+      const without = catalogueAccess.get('M111300');
+      assert.ok(withPrefix, 'prefixed code should resolve');
+      assert.ok(without, 'bare code should resolve');
+      assert.equal(withPrefix!.id, without!.id);
+    });
+
+    test('get rejects a code that does not exist', () => {
+      // This is the guard that stops an invented code from being stored globally.
+      assert.equal(catalogueAccess.get('Z999999'), null);
+      assert.equal(catalogueAccess.get(''), null);
+    });
+
+    test('listCategory returns staples before prepared variants', () => {
+      const items = catalogueAccess.listCategory('DAIRY', 20);
+      assert.ok(items.length > 0 && items.length <= 20);
+      assert.ok(items.every(i => i.category === 'DAIRY'));
+    });
+
+    test('listCategory returns nothing for an unknown category', () => {
+      assert.deepEqual(catalogueAccess.listCategory('NOT_A_CATEGORY'), []);
     });
   });
 });

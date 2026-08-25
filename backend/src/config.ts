@@ -17,7 +17,14 @@ export interface Config {
   SUPABASE_PUBLISHABLE_KEY: string;
   SUPABASE_SECRET_KEY: string;
   GEMINI_MODEL: string;
+  /** Model used by the tool-using ingredient resolver. */
   GEMINI_RERANKER_MODEL: string;
+  /** Kill switch for the tool-using resolver. When off, unmatched ingredients keep the LLM estimate. */
+  INGREDIENT_RESOLVER_ENABLED: boolean;
+  /** Max tool-calling turns the resolver may spend on one ingredient. */
+  INGREDIENT_RESOLVER_MAX_TURNS: number;
+  /** Resolver calls in flight across the whole process. Guards the provider rate limit. */
+  INGREDIENT_RESOLVER_CONCURRENCY: number;
   GEMINI_TEMPERATURE: number;
   RECIPE_LANGUAGE: string;
   PREFERRED_TEMPERATURE_UNIT: string;
@@ -96,7 +103,12 @@ export const config: Config = {
   SUPABASE_PUBLISHABLE_KEY: getEnv('SUPABASE_PUBLISHABLE_KEY'),
   SUPABASE_SECRET_KEY: getEnv('SUPABASE_SECRET_KEY'),
   GEMINI_MODEL: getEnv('GEMINI_MODEL', 'gemini-3.1-flash-lite'),
-  GEMINI_RERANKER_MODEL: getEnv('GEMINI_RERANKER_MODEL', 'gemini-2.0-flash-lite'),
+  // Defaults to the same generation as GEMINI_MODEL: a stale default here silently
+  // ran ingredient matching on a two-generation-old model whenever the env var was unset.
+  GEMINI_RERANKER_MODEL: getEnv('GEMINI_RERANKER_MODEL', 'gemini-3.1-flash-lite'),
+  INGREDIENT_RESOLVER_ENABLED: getEnv('INGREDIENT_RESOLVER_ENABLED', 'true') === 'true',
+  INGREDIENT_RESOLVER_MAX_TURNS: parseInt(getEnv('INGREDIENT_RESOLVER_MAX_TURNS', '5'), 10),
+  INGREDIENT_RESOLVER_CONCURRENCY: parseInt(getEnv('INGREDIENT_RESOLVER_CONCURRENCY', '6'), 10),
   GEMINI_TEMPERATURE: parseFloat(getEnv('GEMINI_TEMPERATURE', '0')),
   RECIPE_LANGUAGE: getEnv('RECIPE_LANGUAGE', 'German'),
   PREFERRED_TEMPERATURE_UNIT: getEnv('PREFERRED_TEMPERATURE_UNIT', 'Celsius'),

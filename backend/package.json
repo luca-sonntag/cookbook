@@ -20,7 +20,8 @@
     "generate:ingredient-image": "tsx src/scripts/generateIngredientImage.ts",
     "generate:basename-icons": "tsx src/scripts/generateBaseNameIngredientIcons.ts",
     "icons:zip": "tsx src/scripts/zipIngredientIcons.ts",
-    "icons:unpack": "tsx src/scripts/zipIngredientIcons.ts --unpack"
+    "icons:unpack": "tsx src/scripts/zipIngredientIcons.ts --unpack",
+    "seed:mappings": "tsx src/scripts/seedIngredientMappings.ts"
   },
   "dependencies": {
     "@cookbook/shared": "*",

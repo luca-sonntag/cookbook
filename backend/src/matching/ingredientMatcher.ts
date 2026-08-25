@@ -1,9 +1,30 @@
 import MiniSearch from 'minisearch';
-import { GoogleGenerativeAI, FunctionDeclarationSchemaType } from '@google/generative-ai';
-import { config } from '../config.js';
 import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from '../data/canonicalIngredients.js';
 import { BASE_NAME_TO_CANONICAL_ID } from './baseNameMap.js';
+import { canonicalizeBaseName, buildMappingKeys, toEnglishSingular } from './baseNameCanonical.js';
+import {
+  resolveIngredient,
+  mapWithConcurrency,
+  type CatalogueAccess,
+  type ResolverInput,
+} from './ingredientResolver.js';
+import {
+  lookupMapping,
+  storeMapping,
+  flushHitCounts,
+  type EstimatedNutrients,
+} from './mappingStore.js';
 import type { Recipe, Ingredient, ParentIngredientInfo } from '../types.js';
+
+// Re-exported so existing callers and tests keep importing it from the matcher.
+export { toEnglishSingular, canonicalizeBaseName, buildMappingKeys };
+
+/**
+ * Ingredients of one recipe resolved in parallel. Kept small on purpose: the
+ * resolver's process-wide semaphore is the real limit, and a large fan-out here
+ * would just queue up behind it.
+ */
+const RECIPE_RESOLVE_CONCURRENCY = 3;
 
 interface IndexedIngredient extends CanonicalIngredient {
   search_aliases: string;
@@ -123,15 +144,6 @@ for (const [cat, items] of itemsByCategory.entries()) {
 
 const globalMiniSearch = new MiniSearch<IndexedIngredient>(miniSearchOptions);
 globalMiniSearch.addAll(allIndexedItems);
-
-// Lazy Gemini client initialization
-let genAIInstance: GoogleGenerativeAI | null = null;
-function getGenAI(): GoogleGenerativeAI | null {
-  if (!genAIInstance && config.GEMINI_API_KEY) {
-    genAIInstance = new GoogleGenerativeAI(config.GEMINI_API_KEY);
-  }
-  return genAIInstance;
-}
 
 /**
  * Cleans punctuation, parentheses, brackets, quantities, and superfluous culinary adjectives.
@@ -269,41 +281,6 @@ function buildSearchQueries(
   return queries;
 }
 
-/**
- * Safely converts an English plural food noun to its singular form.
- * Preserves nouns ending in -ss, -us, -is, -se, -cous (e.g. cheese, hummus, asparagus, couscous).
- */
-export function toEnglishSingular(word: string): string {
-  if (!word || word.length <= 2) return word;
-  const lower = word.toLowerCase().trim();
-
-  // 1. Never strip singular words ending in -ss, -us, -is, -se, -cous
-  if (/(?:ss|us|is|cous|se)$/.test(lower)) {
-    return lower;
-  }
-
-  // 2. Berries & -ies (strawberries -> strawberry, raspberries -> raspberry)
-  if (lower.endsWith('ies')) {
-    return lower.slice(0, -3) + 'y';
-  }
-
-  // 3. -oes (potatoes -> potato, tomatoes -> tomato)
-  if (lower.endsWith('oes')) {
-    return lower.slice(0, -2);
-  }
-
-  // 4. -leaves (leaves -> leaf)
-  if (lower.endsWith('leaves')) {
-    return lower.slice(0, -3) + 'f';
-  }
-
-  // 5. Standard Plural -s (eggs -> egg, onions -> onion, carrots -> carrot, shrimps -> shrimp)
-  if (lower.endsWith('s') && !lower.endsWith('ss')) {
-    return lower.slice(0, -1);
-  }
-
-  return lower;
-}
 
 /**
  * Generic nutritional plausibility check comparing estimated ingredient macros
@@ -557,153 +534,107 @@ export function getMiniSearchCandidates(
   return filtered;
 }
 
-export interface UnmatchedBatchItem {
-  id: string;
-  name: string;
-  baseName?: string;
-  brand?: string;
-  modifier?: string;
-  category?: string;
-  ingredientRef?: Ingredient;
-  candidates: CanonicalIngredient[];
-}
-
 /**
- * Stage 3: Batch LLM Reranker with Gemini Flash-Lite.
- * Executes ONE single lightweight Multiple-Choice call for all unmatched items in the recipe.
+ * Catalogue access handed to the tool-using resolver.
+ *
+ * Deliberately thin: the resolver drives the search itself, so this exposes the
+ * MiniSearch index and the id maps as they are, without the candidate pre-filters
+ * the old single-shot reranker needed.
  */
-export async function rerankIngredientsBatchWithGemini(
-  unmatchedItems: UnmatchedBatchItem[]
-): Promise<Map<string, CanonicalIngredient | null>> {
-  const resultMap = new Map<string, CanonicalIngredient | null>();
-  if (!unmatchedItems || unmatchedItems.length === 0) {
-    return resultMap;
-  }
+export const catalogueAccess: CatalogueAccess = {
+  search(query: string, category?: string, limit = 12): CanonicalIngredient[] {
+    const clean = normalizeSearchTerm(query) || query.toLowerCase().trim();
+    if (!clean) return [];
 
-  const genAI = getGenAI();
-  if (!genAI) {
-    // Graceful fallback when no API key is available
-    for (const item of unmatchedItems) {
-      resultMap.set(item.id, item.candidates[0] || null);
+    const cleanCategory = category ? normalizeCategory(category) : null;
+    const engine =
+      cleanCategory && categoryMiniSearchMap.has(cleanCategory)
+        ? categoryMiniSearchMap.get(cleanCategory)!
+        : globalMiniSearch;
+
+    const results = engine.search(clean, {
+      boost: { name_de: 3.0, search_aliases: 2.5, name_en: 1.0 },
+      fuzzy: clean.length >= 5 ? 0.2 : false,
+      prefix: true,
+      combineWith: 'OR',
+    });
+
+    const items: CanonicalIngredient[] = [];
+    for (const result of results) {
+      const item = byId.get(result.id);
+      if (item) items.push(item);
+      if (items.length >= limit) break;
     }
-    return resultMap;
-  }
+    return items;
+  },
 
-  const modelName = config.GEMINI_RERANKER_MODEL;
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
-      responseMimeType: 'application/json',
-      responseSchema: {
-        type: FunctionDeclarationSchemaType.OBJECT,
-        properties: {
-          matches: {
-            type: FunctionDeclarationSchemaType.ARRAY,
-            items: {
-              type: FunctionDeclarationSchemaType.OBJECT,
-              properties: {
-                id: { type: FunctionDeclarationSchemaType.STRING },
-                selectedCode: {
-                  type: FunctionDeclarationSchemaType.STRING,
-                  description: 'The exact BLS code from the candidate list that is an accurate culinary AND nutritional food match, or empty/null if none of the candidates match accurately.',
-                },
-              },
-              required: ['id'],
-            },
-          },
-        },
-        required: ['matches'],
-      },
-      temperature: 0,
-    } as any,
-    systemInstruction: `You are an expert culinary nutrition scientist.
-Your task is to match recipe ingredients to their authoritative food database entries (BLS).
-For each ingredient in the input list:
-- Inspect the recipe ingredient name, brand, modifier, baseName, and estimated nutritional density (calories/fat/carbs/protein per 100g).
-- Review the provided BLS candidates with their German name, category, and nutritional profile per 100g.
-- If one candidate accurately represents the ingredient culinarily AND nutritionally (e.g. matching a specific vegetable, meat cut, dairy item, grain, or oil with compatible fat/sugar/calorie density), select its exact code.
-- CRITICAL ANTI-HALLUCINATION & ANTI-FORCED-CHOICE RULE: If NONE of the candidates accurately represent the ingredient (e.g. candidate is standard full-fat or sugar-heavy while the ingredient is fat-reduced, zero-sugar, or a specialized variant; or candidate is a different food type like matching snack chips to french fries), you MUST set selectedCode to null or empty string. NEVER pick a candidate just because it is listed. Accuracy is paramount.`,
-  });
+  get(blsCode: string): CanonicalIngredient | null {
+    const clean = (blsCode || '').toLowerCase().trim();
+    if (!clean) return null;
+    return byId.get(clean) || byId.get('bls_' + clean) || null;
+  },
 
-  const promptPayload = unmatchedItems.map(item => {
-    let estimatedDensity: { kcalPer100g?: number; fatPer100g?: number; carbsPer100g?: number; proteinPer100g?: number } | undefined;
-    if (item.ingredientRef && item.ingredientRef.amount > 0) {
-      const w = calculateWeightGrams(item.ingredientRef.amount, item.ingredientRef.unit, null, item.ingredientRef.gramsPerUnit);
-      if (w > 0) {
-        estimatedDensity = {
-          kcalPer100g: item.ingredientRef.calories !== undefined && item.ingredientRef.calories !== null ? Math.round((item.ingredientRef.calories / w) * 100) : undefined,
-          fatPer100g: item.ingredientRef.fat !== undefined && item.ingredientRef.fat !== null ? Math.round(((item.ingredientRef.fat / w) * 100) * 10) / 10 : undefined,
-          carbsPer100g: item.ingredientRef.carbs !== undefined && item.ingredientRef.carbs !== null ? Math.round(((item.ingredientRef.carbs / w) * 100) * 10) / 10 : undefined,
-          proteinPer100g: item.ingredientRef.protein !== undefined && item.ingredientRef.protein !== null ? Math.round(((item.ingredientRef.protein / w) * 100) * 10) / 10 : undefined,
-        };
-      }
-    }
+  listCategory(category: string, limit = 60): CanonicalIngredient[] {
+    const clean = normalizeCategory(category) || category.toUpperCase().trim();
+    const items = itemsByCategory.get(clean);
+    if (!items) return [];
+    // Simplest first: a caller scanning a category wants the staples, not the
+    // long tail of prepared variants.
+    return [...items]
+      .sort((a, b) => getSimplicityScore(b) - getSimplicityScore(a))
+      .slice(0, limit);
+  },
+};
 
-    return {
-      id: item.id,
-      ingredientName: item.name,
-      brand: item.brand || '',
-      modifier: item.modifier || '',
-      baseName: item.baseName || '',
-      category: item.category || '',
-      estimatedNutrientsPer100g: estimatedDensity,
-      candidates: item.candidates.map(c => ({
-        code: c.bls_code || c.id,
-        name_de: c.name_de,
-        name_en: c.name_en || '',
-        category: c.category,
-        caloriesPer100g: c.nutrients_per_100g.calories,
-        fatPer100g: c.nutrients_per_100g.fat,
-        carbsPer100g: c.nutrients_per_100g.carbs,
-        proteinPer100g: c.nutrients_per_100g.protein,
-      })),
-    };
-  });
+/**
+ * Stage 3: resolve one ingredient that no cheap stage could match.
+ *
+ * Checks the learned mapping store first, and only pays for the tool-using
+ * resolver on a genuine miss. Whatever the resolver decides is written back to
+ * the store, so the next recipe containing this food anywhere, for any user,
+ * takes the cheap path.
+ */
+export async function resolveAndRemember(
+  input: ResolverInput
+): Promise<{ match: CanonicalIngredient | null; estimate: EstimatedNutrients | null }> {
+  const keys = buildMappingKeys(input.baseName, input.name);
+  const category = (input.category || '').toUpperCase().trim();
 
-  try {
-    const promptText = `Match the following ${unmatchedItems.length} ingredients to their best BLS candidate:\n${JSON.stringify(promptPayload, null, 2)}`;
-    const res = await model.generateContent(promptText);
-    const rawText = res.response.text();
-    const parsed = JSON.parse(rawText);
-
-    if (parsed && Array.isArray(parsed.matches)) {
-      for (const match of parsed.matches) {
-        const item = unmatchedItems.find(u => u.id === match.id);
-        if (item && match.selectedCode) {
-          const cleanCode = String(match.selectedCode).toLowerCase().trim();
-          const canonical = byId.get(cleanCode) || byId.get('bls_' + cleanCode);
-          // Verify that the selected code was indeed in this item's candidate list
-          const isLegitCandidate = item.candidates.some(
-            c => (c.bls_code && c.bls_code.toLowerCase() === cleanCode) || c.id.toLowerCase() === cleanCode
-          );
-          if (canonical && isLegitCandidate) {
-            resultMap.set(match.id, canonical);
-            continue;
-          }
-        }
-        resultMap.set(match.id, null);
-      }
-    }
-  } catch (err: any) {
-    console.warn(`[ingredientMatcher] Gemini batch rerank failed (${modelName}):`, err.message);
-    for (const item of unmatchedItems) {
-      resultMap.set(item.id, null);
+  if (keys.length > 0) {
+    const known = await lookupMapping(keys, category);
+    if (known) {
+      const item = known.blsCode ? catalogueAccess.get(known.blsCode) : null;
+      return { match: item, estimate: known.estimatedNutrients };
     }
   }
 
-  // Ensure all items have an entry
-  for (const item of unmatchedItems) {
-    if (!resultMap.has(item.id)) {
-      resultMap.set(item.id, null);
-    }
+  const resolved = await resolveIngredient(input, catalogueAccess);
+  if (!resolved || resolved.budgetExhausted) {
+    // Nothing trustworthy came back. Storing this would freeze a non-answer for
+    // every future recipe, so leave the key unresolved and try again next time.
+    return { match: null, estimate: null };
   }
 
-  return resultMap;
+  const item = resolved.blsCode ? catalogueAccess.get(resolved.blsCode) : null;
+
+  if (keys.length > 0) {
+    await storeMapping(keys, category, {
+      blsCode: item ? item.bls_code || item.id : null,
+      resolution: item ? 'matched' : 'no_match',
+      estimatedNutrients: item ? null : resolved.estimatedNutrients,
+      source: 'agent',
+      confidence: resolved.confidence,
+      model: resolved.model,
+      reasoning: resolved.reasoning,
+    });
+  }
+
+  return { match: item, estimate: item ? null : resolved.estimatedNutrients };
 }
 
 /**
- * Finds a matching canonical ingredient using Stage 0 Fast-Path -> Stage 1 Alias -> Stage 2 MiniSearch + Gemini Rerank.
- * (Convenience method for standalone lookups / unit tests).
+ * Finds a matching canonical ingredient: Fast-Path -> learned mapping store -> resolver.
+ * (Convenience method for standalone lookups / unit tests.)
  */
 export async function findCanonicalIngredient(
   name: string,
@@ -722,24 +653,18 @@ export async function findCanonicalIngredient(
     return fast;
   }
 
-  // 2. MiniSearch BM25 candidates
-  const candidates = getMiniSearchCandidates(name, baseName, category, synonyms, searchQueries, 10, modifier, brand);
-  if (candidates.length === 0) return null;
-
-  // 3. Batch rerank for single item
-  const batchItem: UnmatchedBatchItem = {
-    id: 'single_item',
+  // 2. Learned mapping store -> tool-using resolver
+  const { match } = await resolveAndRemember({
     name,
     baseName,
     brand,
     modifier,
     category,
-    ingredientRef,
-    candidates,
-  };
-
-  const rerankResults = await rerankIngredientsBatchWithGemini([batchItem]);
-  return rerankResults.get('single_item') || null;
+    synonyms,
+    searchQueries,
+    parentIngredient,
+  });
+  return match;
 }
 
 /**
@@ -800,7 +725,8 @@ export function calculateWeightGrams(
  */
 export function applyCanonicalMatchToIngredient(
   ingredient: Ingredient,
-  match: CanonicalIngredient | null
+  match: CanonicalIngredient | null,
+  cachedEstimate?: EstimatedNutrients | null
 ): {
   matched: boolean;
   calories: number;
@@ -820,6 +746,19 @@ export function applyCanonicalMatchToIngredient(
     ingredient.isVerified = false;
     ingredient.canonicalId = undefined;
     ingredient.matchedName = undefined;
+
+    // A stored per-100 g estimate fills in only where the extraction produced no
+    // number at all. It never overwrites the model's own per-quantity values,
+    // which were computed with the recipe in view.
+    if (cachedEstimate && !((ingredient.calories ?? 0) > 0)) {
+      const grams = calculateWeightGrams(ingredient.amount, ingredient.unit, null, ingredient.gramsPerUnit);
+      const factor = grams / 100;
+      ingredient.calories = Math.round(cachedEstimate.calories * factor);
+      ingredient.protein = Math.round(cachedEstimate.protein * factor * 10) / 10;
+      ingredient.carbs = Math.round(cachedEstimate.carbs * factor * 10) / 10;
+      ingredient.fat = Math.round(cachedEstimate.fat * factor * 10) / 10;
+    }
+
     return {
       matched: false,
       calories: ingredient.calories ?? 0,
@@ -906,7 +845,8 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
   if (flatItems.length === 0) return;
 
   const matchedCanonicalMap = new Map<string, CanonicalIngredient | null>();
-  const unmatchedForBatch: UnmatchedBatchItem[] = [];
+  const estimateMap = new Map<string, EstimatedNutrients>();
+  const unresolved: Array<{ id: string; input: ResolverInput }> = [];
 
   // Phase 1: Fast-Path for all items
   for (const { ing, groupName, id } of flatItems) {
@@ -925,40 +865,40 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
     if (fastMatch && isNutritionallyPlausible(ing, fastMatch)) {
       matchedCanonicalMap.set(id, fastMatch);
     } else {
-      const candidates = getMiniSearchCandidates(
-        ing.name,
-        ing.baseName,
-        effectiveCategory,
-        ing.synonyms,
-        ing.searchQueries,
-        10,
-        ing.modifier,
-        ing.brand
-      );
-      if (candidates.length > 0) {
-        unmatchedForBatch.push({
-          id,
+      unresolved.push({
+        id,
+        input: {
           name: ing.name,
           baseName: ing.baseName,
           brand: ing.brand,
           modifier: ing.modifier,
           category: effectiveCategory,
-          ingredientRef: ing,
-          candidates,
-        });
-      } else {
-        matchedCanonicalMap.set(id, null);
-      }
+          synonyms: ing.synonyms,
+          searchQueries: ing.searchQueries,
+          parentIngredient: ing.parentIngredient,
+        },
+      });
     }
   }
 
-  // Phase 2: Single Batch Reranker Call for all remaining unmatched items
-  if (unmatchedForBatch.length > 0) {
-    const batchResults = await rerankIngredientsBatchWithGemini(unmatchedForBatch);
-    for (const [id, canonical] of batchResults.entries()) {
-      matchedCanonicalMap.set(id, canonical);
+  // Phase 2: Store lookup, then the tool-using resolver for whatever is left.
+  // Fanned out because each resolver call is several turns; the resolver's own
+  // global semaphore keeps the total across concurrent recipes in check.
+  if (unresolved.length > 0) {
+    const results = await mapWithConcurrency(unresolved, RECIPE_RESOLVE_CONCURRENCY, item =>
+      resolveAndRemember(item.input)
+    );
+
+    for (let i = 0; i < unresolved.length; i++) {
+      const { id } = unresolved[i];
+      const { match, estimate } = results[i];
+      matchedCanonicalMap.set(id, match);
+      if (!match && estimate) estimateMap.set(id, estimate);
     }
   }
+
+  // Counters only steer store curation, so this must never block the extraction.
+  void flushHitCounts();
 
   // Phase 3: Apply nutritional calculation to all recipe ingredients
   let totalCalories = 0;
@@ -969,7 +909,7 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
 
   for (const { ing, id } of flatItems) {
     const match = matchedCanonicalMap.get(id) || null;
-    const res = applyCanonicalMatchToIngredient(ing, match);
+    const res = applyCanonicalMatchToIngredient(ing, match, estimateMap.get(id) ?? null);
     totalCalories += res.calories;
     totalProtein += res.protein;
     totalCarbs += res.carbs;

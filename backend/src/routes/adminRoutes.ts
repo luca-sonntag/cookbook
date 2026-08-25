@@ -14,6 +14,8 @@ import { config } from '../config.js';
 import { requireAdmin } from '../auth.js';
 import { getLlmMetrics } from '../adminMetrics.js';
 import { notificationTick } from '../notifications/worker.js';
+import { catalogueAccess } from '../matching/ingredientMatcher.js';
+import { invalidateCache as invalidateMappingCache } from '../matching/mappingStore.js';
 import { AppError, sendAppError } from '../errors.js';
 
 export const adminRoutes = Router();
@@ -280,3 +282,99 @@ adminRoutes.get(
     }
   }
 );
+
+/**
+ * List learned ingredient mappings.
+ * GET /api/admin/ingredient-mappings?search=&source=&limit=
+ * Requires admin privileges.
+ */
+adminRoutes.get(
+  '/admin/ingredient-mappings',
+  requireAdmin,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+      const source = typeof req.query.source === 'string' ? req.query.source.trim() : '';
+      const limit = Math.min(parseInt(String(req.query.limit ?? '100'), 10) || 100, 500);
+
+      let query = getClient()
+        .from('ingredient_mappings')
+        .select('id, mapping_key, category, bls_code, resolution, source, confidence, model, reasoning, hit_count, created_at, updated_at')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (search) query = query.ilike('mapping_key', `%${search}%`);
+      if (source) query = query.eq('source', source);
+
+      const { data, error } = await query;
+      if (error) throw new Error(error.message);
+
+      res.json({ success: true, mappings: data ?? [] });
+    } catch (error: unknown) {
+      if (!(error instanceof AppError)) console.error('Error fetching ingredient mappings:', error);
+      sendAppError(res, error);
+    }
+  }
+);
+
+/**
+ * Correct or delete one learned ingredient mapping.
+ * PATCH /api/admin/ingredient-mappings/:id  { blsCode: string | null }
+ * DELETE /api/admin/ingredient-mappings/:id
+ * Requires admin privileges.
+ */
+adminRoutes.patch(
+  '/admin/ingredient-mappings/:id',
+  requireAdmin,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const rawCode = req.body?.blsCode;
+      const blsCode = typeof rawCode === 'string' && rawCode.trim() ? rawCode.trim().toLowerCase() : null;
+
+      if (blsCode) {
+        const item = catalogueAccess.get(blsCode);
+        if (!item) {
+          throw new AppError('INVALID_FIELD', { params: { field: 'blsCode' } });
+        }
+      }
+
+      const { error } = await getClient()
+        .from('ingredient_mappings')
+        .update({
+          bls_code: blsCode,
+          resolution: blsCode ? 'matched' : 'no_match',
+          source: 'human',
+          confidence: 1,
+          reasoning: `Corrected by ${req.userEmail ?? 'admin'}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+      if (error) throw new Error(error.message);
+
+      invalidateMappingCache();
+
+      res.json({ success: true });
+    } catch (error: unknown) {
+      if (!(error instanceof AppError)) console.error('Error updating ingredient mapping:', error);
+      sendAppError(res, error);
+    }
+  }
+);
+
+adminRoutes.delete(
+  '/admin/ingredient-mappings/:id',
+  requireAdmin,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { error } = await getClient().from('ingredient_mappings').delete().eq('id', req.params.id);
+      if (error) throw new Error(error.message);
+      invalidateMappingCache();
+      res.json({ success: true });
+    } catch (error: unknown) {
+      if (!(error instanceof AppError)) console.error('Error deleting ingredient mapping:', error);
+      sendAppError(res, error);
+    }
+  }
+);
+
