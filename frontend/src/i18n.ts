@@ -1179,6 +1179,14 @@ export const uiTranslations = {
       cancelDefault: 'Abbrechen',
       closeAria: 'Schließen',
     },
+    toast: {
+      ingredientsAddedSingle: '"{name}" zur Einkaufsliste hinzugefügt',
+      ingredientsAddedMany: '{count} Zutaten zur Einkaufsliste hinzugefügt',
+      customItemAdded: '"{name}" zur Einkaufsliste hinzugefügt',
+      bulkIngredientsAdded: '{count} Zutaten zur Einkaufsliste hinzugefügt',
+      viewShoppingList: 'Zur Liste',
+      recipeCopied: 'Rezept in Zwischenablage kopiert',
+    },
     remix: {
       title: 'Rezept Remix',
       subtitle: 'Lass die KI das Rezept für dich anpassen.',
@@ -2184,6 +2192,14 @@ export const uiTranslations = {
       confirmDefault: 'Confirm',
       cancelDefault: 'Cancel',
       closeAria: 'Close',
+    },
+    toast: {
+      ingredientsAddedSingle: 'Added "{name}" to shopping list',
+      ingredientsAddedMany: 'Added {count} ingredients to shopping list',
+      customItemAdded: 'Added "{name}" to shopping list',
+      bulkIngredientsAdded: 'Added {count} ingredients to shopping list',
+      viewShoppingList: 'View List',
+      recipeCopied: 'Recipe copied to clipboard',
     },
     remix: {
       title: 'Recipe Remix',

@@ -8,6 +8,7 @@ import { I18nProvider } from './context/I18nContext.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { TimerProvider } from './context/TimerContext.tsx'
 import { GamificationProvider } from './context/GamificationContext.tsx'
+import { ToastProvider } from './context/ToastContext.tsx'
 import { ExtractionJobsProvider } from './context/ExtractionJobsContext.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 import { SocialProvider } from './context/SocialContext.tsx'
@@ -29,19 +30,21 @@ createRoot(document.getElementById('root')!).render(
     <AuthProvider>
       <I18nProvider>
         <OverlayStackProvider>
-          <DialogProvider>
-            <TimerProvider>
-              <GamificationProvider>
-                <ExtractionJobsProvider>
-                  <SocialProvider>
-                    <ErrorBoundary>
-                      <App />
-                    </ErrorBoundary>
-                  </SocialProvider>
-                </ExtractionJobsProvider>
-              </GamificationProvider>
-            </TimerProvider>
-          </DialogProvider>
+          <ToastProvider>
+            <DialogProvider>
+              <TimerProvider>
+                <GamificationProvider>
+                  <ExtractionJobsProvider>
+                    <SocialProvider>
+                      <ErrorBoundary>
+                        <App />
+                      </ErrorBoundary>
+                    </SocialProvider>
+                  </ExtractionJobsProvider>
+                </GamificationProvider>
+              </TimerProvider>
+            </DialogProvider>
+          </ToastProvider>
         </OverlayStackProvider>
       </I18nProvider>
     </AuthProvider>
