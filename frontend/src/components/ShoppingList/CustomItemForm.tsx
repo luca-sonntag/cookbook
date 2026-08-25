@@ -3,6 +3,7 @@ import { Button, Drawer } from '@heroui/react';
 import { Plus, X, Check } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { uiTranslations } from '../../i18n';
+import { useToast } from '../../context/ToastContext';
 import { useAdOverlay } from '../../context/OverlayStackContext';
 
 interface CustomItemFormProps {
@@ -13,6 +14,7 @@ interface CustomItemFormProps {
 
 export default function CustomItemForm({ isOpen, addCustomItem, onClose }: CustomItemFormProps) {
   const { t, language } = useI18n();
+  const toast = useToast();
   useAdOverlay(isOpen);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,6 +34,8 @@ export default function CustomItemForm({ isOpen, addCustomItem, onClose }: Custo
 
     const numAmount = parseFloat(amount.replace(',', '.'));
     addCustomItem(trimmedName, isNaN(numAmount) ? 0 : numAmount, unit.trim());
+
+    toast.success(t('toast.customItemAdded', { name: trimmedName }));
 
     // Show temporary confirmation badge for multi-add feedback
     setLastAddedName(trimmedName);
