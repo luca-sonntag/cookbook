@@ -4,6 +4,7 @@ import { Check, Salad } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { getCategoryTheme } from '../../i18n';
 import type { Ingredient, Recipe } from '../../types';
+import IngredientIcon from '../IngredientIcon';
 
 interface ShoppingConfirmSheetProps {
   isOpen: boolean;
@@ -127,7 +128,7 @@ export default function ShoppingConfirmSheet({
                           {group.items.map((ing, idx) => {
                             const scaledAmount = formatAmount(ing.amount, ing.unit);
                             const amountStr = scaledAmount ? `${scaledAmount} ` : '';
-                            const unitStr = ing.unit ? `${ing.unit} ` : '';
+                            const unitStr = ing.unit ? `${ing.unit}` : '';
                             const name = ing.name;
                             const uniqueId = `${name}-${originalIdx}-${idx}`;
                             const isChecked = !!selectedIds[uniqueId];
@@ -136,22 +137,38 @@ export default function ShoppingConfirmSheet({
                               <div
                                 key={uniqueId}
                                 onClick={() => toggleItem(uniqueId)}
-                                className="flex items-center gap-3.5 py-2.5 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors active:scale-[0.99]"
+                                className="flex items-center gap-3 py-2 px-2.5 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors active:scale-[0.99]"
                               >
-                                <div className={`w-6 h-6 rounded-xl border-none flex items-center justify-center flex-shrink-0 transition-all ${isChecked ? 'bg-emerald-500 text-white' : 'bg-gray-200/80 dark:bg-gray-700/80'
-                                  }`}>
+                                <div className={`w-6 h-6 rounded-xl border-none flex items-center justify-center flex-shrink-0 transition-all ${
+                                  isChecked ? 'bg-emerald-500 text-white' : 'bg-gray-200/80 dark:bg-gray-700/80'
+                                }`}>
                                   {isChecked && <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />}
                                 </div>
-                                <div className={`flex-1 text-sm select-none transition-all flex flex-wrap items-center gap-1.5 ${isChecked ? 'text-gray-800 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'
-                                  }`}>
-                                  <span className="font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                                    {amountStr}{unitStr}
-                                  </span>
-                                  <span>{name}</span>
-                                  {ing.isStaple && (
-                                    <span className="inline-flex items-center ml-1.5 text-[9px] font-bold text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full uppercase tracking-wider select-none align-middle whitespace-nowrap no-underline">
-                                      {t('recipe.staplePillLabel')}
-                                    </span>
+
+                                <IngredientIcon
+                                  canonicalId={ing.canonicalId}
+                                  category={group.name || ing.category}
+                                  name={name}
+                                  size="md"
+                                  className={isChecked ? '' : 'opacity-40 grayscale'}
+                                />
+
+                                <div className="flex-1 min-w-0 flex flex-col justify-center select-none">
+                                  {/* 1. Name oben */}
+                                  <div className="flex items-baseline flex-wrap gap-x-1.5 min-w-0 text-sm font-medium text-gray-900 dark:text-white leading-snug">
+                                    <span className={isChecked ? '' : 'text-gray-400 dark:text-gray-500'}>{name}</span>
+                                    {ing.isStaple && (
+                                      <span className="inline-flex items-center text-[9px] font-bold text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full uppercase tracking-wider select-none align-middle whitespace-nowrap no-underline">
+                                        {t('recipe.staplePillLabel')}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* 2. Menge kleiner darunter */}
+                                  {(amountStr || unitStr) && (
+                                    <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 leading-normal mt-0.5">
+                                      {amountStr}{unitStr}
+                                    </div>
                                   )}
                                 </div>
                               </div>

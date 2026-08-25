@@ -16,11 +16,16 @@
     "purge-hosted-frames": "tsx src/scripts/purgeHostedFrames.ts",
     "recompute-nutrition": "tsx src/scripts/recomputeRecipeNutrition.ts",
     "seed:dev": "tsx src/scripts/seedDev.ts",
-    "eval:dry-run": "tsx src/scripts/runDryRunEvaluation.ts"
+    "eval:dry-run": "tsx src/scripts/runDryRunEvaluation.ts",
+    "generate:ingredient-image": "tsx src/scripts/generateIngredientImage.ts",
+    "generate:basename-icons": "tsx src/scripts/generateBaseNameIngredientIcons.ts",
+    "icons:zip": "tsx src/scripts/zipIngredientIcons.ts",
+    "icons:unpack": "tsx src/scripts/zipIngredientIcons.ts --unpack"
   },
   "dependencies": {
     "@google/generative-ai": "^0.11.0",
     "@supabase/supabase-js": "^2.108.2",
+    "adm-zip": "^0.6.0",
     "cheerio": "^1.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -36,6 +41,7 @@
     "youtube-dl-exec": "^3.1.8"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
     "@types/cheerio": "^0.22.35",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",

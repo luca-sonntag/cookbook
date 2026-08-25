@@ -62,6 +62,7 @@ export function useShoppingList() {
         baseName: ing.baseName,
         parentIngredient: ing.parentIngredient || getParentIngredient(ing) || undefined,
         modifier: ing.modifier,
+        brand: ing.brand,
         amount: ing.amount || 0,
         unit: normalizeUnit(ing.unit),
         recipeId,
@@ -69,7 +70,8 @@ export function useShoppingList() {
         checked: false,
         notes: ing.notes,
         createdAt: new Date().toISOString(),
-        category: ing.category
+        category: ing.category,
+        canonicalId: ing.canonicalId,
       }));
 
       return [...filteredList, ...newItems];
@@ -266,6 +268,7 @@ export function useShoppingList() {
           amount: item.amount,
           checked: item.checked,
           category: item.category,
+          canonicalId: item.canonicalId || undefined,
           itemIds: [item.id],
           sources: [{
             recipeId: item.recipeId,

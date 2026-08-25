@@ -6,6 +6,45 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ## 📜 Chronologische Übersicht
 
+### 2026-08-25: Lose Zutat-Icons (`.webp`) in Git durch komprimiertes Zip-Archiv mit Startup-Extraktion ersetzt
+
+* **Ersetzter Code / Anti-Pattern:**
+  - Tracking von über 700 einzelnen `.webp`-Binärdateien im Git-Repository unter `backend/public/ingredient-icons/*.webp`.
+  - Führte zu aufgeblähtem Git-Index, langsamen Tree-Diffs und unübersichtlichen Commit-Historien.
+* **Ersetzt durch:**
+  - **Einheitliches Zip-Archiv (`backend/public/ingredient-icons.zip`):** Alle generierten Zutat-Icons werden in einer einzigen ca. 13 MB Datei in Git gespeichert.
+  - **Startup Auto-Extraction (`ensureIngredientIconsExtracted` in `backend/src/ingredientIconPacker.ts`):** Entpackt das Archiv beim Serverstart (Railway/Docker/Lokal) automatisch via `adm-zip` in ~200ms, gesteuert über einen `.unpacked_stamp`-Prüfmechanismus.
+  - **Packaging-Workflow (`npm run icons:zip`):** Automatische Aktualisierung des Zip-Archivs bei Bedarf oder nach Batch-Generierungen (`generateBaseNameIngredientIcons.ts`).
+* **Betroffene Dateien:** `.gitignore`, `Dockerfile`, `backend/src/ingredientIconPacker.ts`, `backend/src/scripts/zipIngredientIcons.ts`, `backend/src/index.ts`, `backend/src/scripts/generateBaseNameIngredientIcons.ts`, `package.json`, `backend/package.json`.
+
+---
+
+### 2026-08-24: Manuelles Umschalten der Zutat-Nährwerte (`showIngredientNutrition`) entfernt
+
+* **Ersetzter Code / Anti-Pattern:**
+  - `showIngredientNutrition`-Toggle-Button in [`RecipeIngredients.tsx`](file:///c:/Users/lucas/source/repos/cookbook/frontend/src/components/RecipeDetails/RecipeIngredients.tsx) und zugehöriger lokaler State (`localStorage.getItem('recipe_show_ingredient_nutrition')`) in [`RecipeDetails/index.tsx`](file:///c:/Users/lucas/source/repos/cookbook/frontend/src/components/RecipeDetails/index.tsx).
+  - Nährwertangaben je Zutat (Kcal-Chips) mussten manuell per Klick auf „Nährwerte" im Header aktiviert werden.
+* **Ersetzt durch:**
+  - **Permanente Anzeige:** Kcal-Chips werden bei vorhandenen Nährwertdaten immer direkt neben den Zutaten gerendert.
+  - Der überflüssige Toggle-Button im Zutaten-Header wurde ersatzlos entfernt.
+* **Betroffene Dateien:** `frontend/src/components/RecipeDetails/RecipeIngredients.tsx`, `frontend/src/components/RecipeDetails/index.tsx`.
+
+---
+
+### 2026-08-23: Emojis als Fallback für Zutaten-Icons durch 3D-Studio-Kategorie-Icon-Set ersetzt
+
+* **Ersetzter Code / Anti-Pattern:**
+  - Fallback- und Lade-Zustand-Emojis (`categoryIcons` mit `🥦`, `🍎`, `🥛`, `🥩`, `🍝` etc.) in [`IngredientIcon.tsx`](file:///c:/Users/lucas/source/repos/cookbook/frontend/src/components/IngredientIcon.tsx), wenn kein spezifisches Canonical-Icon vorhanden war oder dieses noch geladen wurde.
+  - Führte zu optischer Diskrepanz (unterschiedliche Betriebssystem-Emoji-Renderings auf Android/iOS/Desktop, pixelige Darstellung, mangelnder Einklang mit dem modernen App-Design).
+* **Ersetzt durch:**
+  - **3D-Studio-Kategorie-Icon-Set (`frontend/public/category-icons/*.webp` & `backend/public/category-icons/*.webp`):** Einheitlich auf reinweißem Hintergrund gerenderte, isolierte 3D-Food-Icons für alle Supermarkt-Kategorien im exakt gleichen Stil wie die individuellen Zutat-Icons.
+  - **`getCategoryIconUrl()` in [`frontend/src/i18n.ts`](file:///c:/Users/lucas/source/repos/cookbook/frontend/src/i18n.ts):** Schnelles O(1)-Mapping für Standard- und Legacy-Kategorien zu lokalen WebP-Assets.
+  - **`IngredientIcon.tsx` Update:** Rendert das Kategorie-Icon im identischen Kachel-Stil (`bg-white rounded-xl`) als Fallback und als dezentes semi-transparentes Lade-Overlay.
+  - **Endpoint `GET /api/category-icons/:filename` in [`backend/src/ingredientImageRoutes.ts`](file:///c:/Users/lucas/source/repos/cookbook/backend/src/ingredientImageRoutes.ts):** Backend-seitige Bereitstellung mit Fallback auf `other.webp`.
+* **Betroffene Dateien:** `frontend/src/components/IngredientIcon.tsx`, `frontend/src/i18n.ts`, `frontend/public/category-icons/`, `backend/src/ingredientImageRoutes.ts`, `backend/public/category-icons/`.
+
+---
+
 ### 2026-08-22: Quota-Verbrauch bei abgebrochenen/unterbrochenen Extraktionen (`status = 'cancelled'`) entfernt
 
 * **Ersetzter Code / Anti-Pattern:**

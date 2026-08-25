@@ -21,6 +21,7 @@ import TimerConfirmSheet from './TimerConfirmSheet';
 import RecipeCopilot from './RecipeDetails/RecipeCopilot';
 import PremiumModal from './PremiumModal';
 import CookedModal from './CookedModal';
+import IngredientIcon from './IngredientIcon';
 
 // ─── Time parsing helper ──────────────────────────────────────────────────────
 function parseTimeToSeconds(timeStr: string): number {
@@ -127,7 +128,14 @@ export default function CookingMode({
 
   // Flat list of ingredients
   const allIngredients = useMemo(() => {
-    return recipe.ingredients ? recipe.ingredients.flatMap(g => g.items) : [];
+    return recipe.ingredients
+      ? recipe.ingredients.flatMap(g =>
+          g.items.map(item => ({
+            ...item,
+            category: item.category || g.name,
+          }))
+        )
+      : [];
   }, [recipe.ingredients]);
 
   // Find ingredients mentioned in a specific step description.
@@ -326,17 +334,46 @@ export default function CookingMode({
                 const amountStr = scaledAmount ? `${scaledAmount} ` : '';
                 const unitStr = ing.unit ? `${ing.unit} ` : '';
                 return (
-                  <li key={i} className="flex items-center gap-2.5 py-2 px-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0">{amountStr}{unitStr}</span>
-                    <span className="font-medium truncate">
-                      {ing.name}
-                      {ing.modifier && (
-                        <span className="text-xs text-gray-400 dark:text-gray-400 ml-1 font-normal">
-                          ({ing.modifier})
+                  <li
+                    key={i}
+                    className="flex items-center gap-3 p-2.5 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-black/5 dark:border-white/5"
+                  >
+                    <IngredientIcon
+                      canonicalId={ing.canonicalId}
+                      category={ing.category}
+                      name={ing.name}
+                      size="md"
+                    />
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      {ing.replacedOriginal && (
+                        <span className="text-[11px] leading-tight text-red-500/70 dark:text-red-400/70 line-through font-normal truncate block mb-0.5">
+                          {ing.replacedOriginal}
                         </span>
                       )}
-                    </span>
+                      {/* 1. Name oben */}
+                      <div className="flex items-baseline flex-wrap gap-x-1.5 min-w-0 text-sm font-medium text-gray-900 dark:text-white leading-snug">
+                        <span className="truncate">{ing.name}</span>
+                        {ing.modifier && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                            ({ing.modifier})
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 2. Menge darunter */}
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5">
+                        {(amountStr || unitStr) && (
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                            {`${amountStr}${unitStr}`.trim()}
+                          </span>
+                        )}
+                        {ing.notes && (
+                          <span className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                            {ing.notes}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </li>
                 );
               })}

@@ -6,8 +6,10 @@ import { config } from './config.js';
 import { startQueue, stopQueue } from './queue.js';
 import { apiRouter } from './routes.js';
 import { appUpdatesRouter } from './appUpdates.js';
+import { ingredientImageRouter } from './ingredientImageRoutes.js';
 import { checkDbHealth } from './db.js';
 import { generateIconPNG } from './bannerGenerator.js';
+import { ensureIngredientIconsExtracted } from './ingredientIconPacker.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isWorker = config.ROLE === 'worker' || config.ROLE === 'both';
@@ -15,6 +17,9 @@ const isWeb = config.ROLE === 'web' || config.ROLE === 'both';
 
 async function bootstrap() {
   try {
+    // Ensure packaged ingredient icons are extracted if running from fresh container/clone
+    await ensureIngredientIconsExtracted();
+
     if (isWorker) {
       startQueue();
       console.log(`Worker started (ROLE=${config.ROLE}, concurrency=${config.WORKER_CONCURRENCY})`);
@@ -97,7 +102,7 @@ async function bootstrap() {
       // NOTE: req.path is relative to the '/api' mount point here (e.g.
       // '/image', '/jobs/123'), since the limiter is mounted at '/api'.
       skip: (req) => {
-        if (req.path.startsWith('/image')) return true;
+        if (req.path.startsWith('/image') || req.path.startsWith('/ingredient-icons')) return true;
         // Job polling and cookbook reads are both high-frequency and cheap.
         if (req.method === 'GET' && /^\/(jobs|recipes)(\/|$)/.test(req.path)) return true;
         return false;
@@ -137,6 +142,9 @@ async function bootstrap() {
     // the app may check before a session exists). Covered by apiLimiter above.
     app.use('/api/app-updates', appUpdatesRouter);
 
+    // Development ingredient image viewer & generator
+    app.use(ingredientImageRouter);
+
     app.use('/api', apiRouter);
 
     app.get('/health', async (_req, res) => {
@@ -152,7 +160,13 @@ async function bootstrap() {
 
     // API-only server: the frontend ships as the native Capacitor app, not from here.
     app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/proxy')) {
+      if (
+        req.path.startsWith('/api') ||
+        req.path.startsWith('/health') ||
+        req.path.startsWith('/proxy') ||
+        req.path.startsWith('/dev') ||
+        req.path.startsWith('/ingredients-viewer')
+      ) {
         return next();
       }
       res.status(404).json({ error: 'API only server. Frontend is not deployed on this instance.' });

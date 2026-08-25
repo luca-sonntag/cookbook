@@ -30,6 +30,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/backend/package.json ./backend/package.json
 COPY --from=builder /app/backend/dist ./backend/dist
 
+# Copy public static assets (category icons, ingredient-icons.zip)
+COPY backend/public ./backend/public
+
 # Install runtime dependencies (ffmpeg/ffprobe for frame extraction, python3 for yt-dlp, ttf-dejavu for text-drawing fonts)
 RUN apk add --no-cache ffmpeg python3 ttf-dejavu
 

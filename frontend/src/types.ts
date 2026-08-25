@@ -15,6 +15,7 @@ export interface Ingredient {
   gramsPerUnit?: number | null;
   notes?: string;
   modifier?: string;
+  brand?: string;
   category?: string;
   calories?: number | null;
   protein?: number | null;
@@ -157,8 +158,10 @@ export interface ShoppingListItem {
   checked: boolean;
   notes?: string;
   modifier?: string;
+  brand?: string;
   createdAt: string;
   category?: string;
+  canonicalId?: string | null;
 }
 
 export interface AggregatedShoppingItem {
@@ -169,7 +172,9 @@ export interface AggregatedShoppingItem {
   amount: number;
   checked: boolean;
   category?: string;
+  canonicalId?: string | null;
   modifier?: string;
+  brand?: string;
   itemIds: string[];
   sources: { recipeId?: string; recipeTitle?: string; amount: number; unit: string }[];
   subItems?: {
@@ -177,6 +182,7 @@ export interface AggregatedShoppingItem {
     rawName?: string;
     baseName?: string;
     modifier?: string;
+    brand?: string;
     amount: number;
     unit: string;
     recipeTitle?: string;

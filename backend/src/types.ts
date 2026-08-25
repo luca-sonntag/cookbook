@@ -17,6 +17,7 @@ export interface Ingredient {
   gramsPerUnit?: number | null;
   notes?: string;
   modifier?: string;
+  brand?: string;
   category?: string;
   calories?: number | null;
   protein?: number | null;

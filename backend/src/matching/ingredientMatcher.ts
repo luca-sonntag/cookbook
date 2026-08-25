@@ -81,7 +81,8 @@ for (const item of CANONICAL_INGREDIENTS) {
   }
 
   if (item.name_en) {
-    const normEn = normalizeSearchTerm(item.name_en);
+    const rawEn = (item.bls_code === 'X654042' || item.id === 'bls_x654042') ? 'French fries' : item.name_en;
+    const normEn = normalizeSearchTerm(rawEn);
     const existing = byNameEn.get(normEn);
     if (!existing || getSimplicityScore(item) > getSimplicityScore(existing)) {
       byNameEn.set(normEn, item);
@@ -305,6 +306,64 @@ export function toEnglishSingular(word: string): string {
 }
 
 /**
+ * Generic nutritional plausibility check comparing estimated ingredient macros
+ * against canonical BLS entry values per 100g.
+ * 
+ * Protects against false matches where a light/zero/fat-reduced/custom product
+ * is mistakenly mapped to a high-fat, high-sugar, or high-calorie standard staple.
+ */
+export function isNutritionallyPlausible(
+  ingredient: Ingredient,
+  candidate: CanonicalIngredient | null | undefined
+): boolean {
+  if (!candidate) return false;
+  if (ingredient.calories === undefined || ingredient.calories === null) return true;
+  if (!ingredient.amount || ingredient.amount <= 0) return true;
+
+  const weightGrams = calculateWeightGrams(ingredient.amount, ingredient.unit, null, ingredient.gramsPerUnit);
+  if (weightGrams <= 0) return true;
+
+  const estKcalPer100g = (ingredient.calories / weightGrams) * 100;
+  const candKcalPer100g = candidate.nutrients_per_100g.calories;
+
+  // 1. Zero / Ultra-low calorie check (e.g. Zero Ketchup ~15 kcal vs standard Ketchup 98 kcal, Diet sodas ~0 vs 45)
+  if (estKcalPer100g <= 35 && candKcalPer100g >= 75) {
+    return false;
+  }
+
+  // 2. Light / Low-fat vs Full-fat check (e.g. Eat Lean Cheese ~160 kcal vs Gouda 380 kcal; Miracle Whip ~130 kcal vs Mayo 750 kcal)
+  if (estKcalPer100g <= 220 && candKcalPer100g >= 340) {
+    return false;
+  }
+
+  // 3. Significant Relative Calorie Divergence (> 2.5x gap for foods with substantial absolute differences)
+  if (estKcalPer100g > 0 && candKcalPer100g > 0) {
+    const ratio = candKcalPer100g / estKcalPer100g;
+    if (ratio >= 2.5 && (candKcalPer100g - estKcalPer100g) >= 50) {
+      return false;
+    }
+  }
+
+  // 4. Macro Fat check: low-fat specified (<= 5g/100g) vs high-fat candidate (>= 25g/100g)
+  if (ingredient.fat !== undefined && ingredient.fat !== null) {
+    const estFatPer100g = (ingredient.fat / weightGrams) * 100;
+    if (estFatPer100g <= 5 && candidate.nutrients_per_100g.fat >= 25) {
+      return false;
+    }
+  }
+
+  // 5. Macro Carbs check: low-carb / sugar-free specified (<= 3g/100g) vs high-carb candidate (>= 18g/100g)
+  if (ingredient.carbs !== undefined && ingredient.carbs !== null) {
+    const estCarbsPer100g = (ingredient.carbs / weightGrams) * 100;
+    if (estCarbsPer100g <= 3 && candidate.nutrients_per_100g.carbs >= 18) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Stage 0 & Stage 1: Synchronous O(1) Fast-Path lookup.
  * Covers 92%+ of all ingredients instantly in 0 ms.
  */
@@ -314,8 +373,21 @@ export function findFastPathMatch(
   category?: string,
   synonyms?: string[],
   searchQueries?: string[],
-  parentIngredient?: ParentIngredientInfo
+  parentIngredient?: ParentIngredientInfo,
+  modifier?: string,
+  brand?: string
 ): CanonicalIngredient | null {
+  // If an ingredient has a brand or a qualifying modifier (e.g. fettreduziert, zuckerfrei, leicht, etc.),
+  // do not do blind O(1) fast-path matching. Fast-Path is only for unmodified basic staples.
+  const hasModifierOrBrand = Boolean(
+    (modifier && modifier.trim().length > 0) ||
+    (brand && brand.trim().length > 0)
+  );
+
+  if (hasModifierOrBrand) {
+    return null;
+  }
+
   const isPowderQuery = /\b(pulver|powder)\b/i.test(name) || /\b(pulver|powder)\b/i.test(baseName || '');
 
   // 0. Stage 0: Universal BaseName Fast-Path (authoritative direct English key match + safe singularizer)
@@ -375,7 +447,9 @@ export function getMiniSearchCandidates(
   category?: string,
   synonyms?: string[],
   searchQueries?: string[],
-  limit = 10
+  limit = 10,
+  modifier?: string,
+  brand?: string
 ): CanonicalIngredient[] {
   const cleanCategory = normalizeCategory(category);
   const targetMiniSearch = cleanCategory && categoryMiniSearchMap.has(cleanCategory) ? categoryMiniSearchMap.get(cleanCategory)! : null;
@@ -383,7 +457,7 @@ export function getMiniSearchCandidates(
   const queriesToTest = buildSearchQueries(name, baseName, synonyms, searchQueries);
 
   const candidateMap = new Map<string, { item: CanonicalIngredient; score: number }>();
-  const lowerQuery = (name + ' ' + (baseName || '')).toLowerCase();
+  const lowerQuery = (name + ' ' + (baseName || '') + ' ' + (modifier || '') + ' ' + (brand || '')).toLowerCase();
 
   for (const q of queriesToTest) {
     if (q.length < 2) continue;
@@ -487,7 +561,10 @@ export interface UnmatchedBatchItem {
   id: string;
   name: string;
   baseName?: string;
+  brand?: string;
+  modifier?: string;
   category?: string;
+  ingredientRef?: Ingredient;
   candidates: CanonicalIngredient[];
 }
 
@@ -528,7 +605,7 @@ export async function rerankIngredientsBatchWithGemini(
                 id: { type: FunctionDeclarationSchemaType.STRING },
                 selectedCode: {
                   type: FunctionDeclarationSchemaType.STRING,
-                  description: 'The exact BLS code from the candidate list that is an accurate nutritional food match, or empty/null if none of the candidates match accurately.',
+                  description: 'The exact BLS code from the candidate list that is an accurate culinary AND nutritional food match, or empty/null if none of the candidates match accurately.',
                 },
               },
               required: ['id'],
@@ -542,24 +619,46 @@ export async function rerankIngredientsBatchWithGemini(
     systemInstruction: `You are an expert culinary nutrition scientist.
 Your task is to match recipe ingredients to their authoritative food database entries (BLS).
 For each ingredient in the input list:
-- Inspect the recipe ingredient name and baseName.
-- Review the provided BLS candidates.
-- If one candidate accurately represents the ingredient nutritionally and culinarily (e.g. matching a specific vegetable, cut of meat, dairy staple, grain or oil), select its exact code.
-- CRITICAL ANTI-HALLUCINATION RULE: If NONE of the candidates accurately represent the ingredient (e.g., matching a dry spice/powder to a whole fresh fruit or fish, matching an exotic unlisted item to a random food), you MUST set selectedCode to null or empty string. NEVER pick a candidate just because it's in the list. Accuracy is paramount.`,
+- Inspect the recipe ingredient name, brand, modifier, baseName, and estimated nutritional density (calories/fat/carbs/protein per 100g).
+- Review the provided BLS candidates with their German name, category, and nutritional profile per 100g.
+- If one candidate accurately represents the ingredient culinarily AND nutritionally (e.g. matching a specific vegetable, meat cut, dairy item, grain, or oil with compatible fat/sugar/calorie density), select its exact code.
+- CRITICAL ANTI-HALLUCINATION & ANTI-FORCED-CHOICE RULE: If NONE of the candidates accurately represent the ingredient (e.g. candidate is standard full-fat or sugar-heavy while the ingredient is fat-reduced, zero-sugar, or a specialized variant; or candidate is a different food type like matching snack chips to french fries), you MUST set selectedCode to null or empty string. NEVER pick a candidate just because it is listed. Accuracy is paramount.`,
   });
 
-  const promptPayload = unmatchedItems.map(item => ({
-    id: item.id,
-    ingredientName: item.name,
-    baseName: item.baseName || '',
-    category: item.category || '',
-    candidates: item.candidates.map(c => ({
-      code: c.bls_code || c.id,
-      name_de: c.name_de,
-      name_en: c.name_en || '',
-      category: c.category,
-    })),
-  }));
+  const promptPayload = unmatchedItems.map(item => {
+    let estimatedDensity: { kcalPer100g?: number; fatPer100g?: number; carbsPer100g?: number; proteinPer100g?: number } | undefined;
+    if (item.ingredientRef && item.ingredientRef.amount > 0) {
+      const w = calculateWeightGrams(item.ingredientRef.amount, item.ingredientRef.unit, null, item.ingredientRef.gramsPerUnit);
+      if (w > 0) {
+        estimatedDensity = {
+          kcalPer100g: item.ingredientRef.calories !== undefined && item.ingredientRef.calories !== null ? Math.round((item.ingredientRef.calories / w) * 100) : undefined,
+          fatPer100g: item.ingredientRef.fat !== undefined && item.ingredientRef.fat !== null ? Math.round(((item.ingredientRef.fat / w) * 100) * 10) / 10 : undefined,
+          carbsPer100g: item.ingredientRef.carbs !== undefined && item.ingredientRef.carbs !== null ? Math.round(((item.ingredientRef.carbs / w) * 100) * 10) / 10 : undefined,
+          proteinPer100g: item.ingredientRef.protein !== undefined && item.ingredientRef.protein !== null ? Math.round(((item.ingredientRef.protein / w) * 100) * 10) / 10 : undefined,
+        };
+      }
+    }
+
+    return {
+      id: item.id,
+      ingredientName: item.name,
+      brand: item.brand || '',
+      modifier: item.modifier || '',
+      baseName: item.baseName || '',
+      category: item.category || '',
+      estimatedNutrientsPer100g: estimatedDensity,
+      candidates: item.candidates.map(c => ({
+        code: c.bls_code || c.id,
+        name_de: c.name_de,
+        name_en: c.name_en || '',
+        category: c.category,
+        caloriesPer100g: c.nutrients_per_100g.calories,
+        fatPer100g: c.nutrients_per_100g.fat,
+        carbsPer100g: c.nutrients_per_100g.carbs,
+        proteinPer100g: c.nutrients_per_100g.protein,
+      })),
+    };
+  });
 
   try {
     const promptText = `Match the following ${unmatchedItems.length} ingredients to their best BLS candidate:\n${JSON.stringify(promptPayload, null, 2)}`;
@@ -612,14 +711,19 @@ export async function findCanonicalIngredient(
   category?: string,
   synonyms?: string[],
   searchQueries?: string[],
-  parentIngredient?: ParentIngredientInfo
+  parentIngredient?: ParentIngredientInfo,
+  modifier?: string,
+  brand?: string,
+  ingredientRef?: Ingredient
 ): Promise<CanonicalIngredient | null> {
   // 1. Synchronous Fast-Path
-  const fast = findFastPathMatch(name, baseName, category, synonyms, searchQueries, parentIngredient);
-  if (fast) return fast;
+  const fast = findFastPathMatch(name, baseName, category, synonyms, searchQueries, parentIngredient, modifier, brand);
+  if (fast && (!ingredientRef || isNutritionallyPlausible(ingredientRef, fast))) {
+    return fast;
+  }
 
   // 2. MiniSearch BM25 candidates
-  const candidates = getMiniSearchCandidates(name, baseName, category, synonyms, searchQueries, 10);
+  const candidates = getMiniSearchCandidates(name, baseName, category, synonyms, searchQueries, 10, modifier, brand);
   if (candidates.length === 0) return null;
 
   // 3. Batch rerank for single item
@@ -627,7 +731,10 @@ export async function findCanonicalIngredient(
     id: 'single_item',
     name,
     baseName,
+    brand,
+    modifier,
     category,
+    ingredientRef,
     candidates,
   };
 
@@ -701,7 +808,12 @@ export function applyCanonicalMatchToIngredient(
   carbs: number;
   fat: number;
 } {
-  if (!match) {
+  let effectiveMatch = match;
+  if (effectiveMatch && !isNutritionallyPlausible(ingredient, effectiveMatch)) {
+    effectiveMatch = null;
+  }
+
+  if (!effectiveMatch) {
     // Remixes echo the parent's match fields back from the model — drop them so an
     // unmatched ingredient never carries a stale canonical reference next to
     // LLM-estimated macros.
@@ -717,7 +829,7 @@ export function applyCanonicalMatchToIngredient(
     };
   }
 
-  const weightGrams = calculateWeightGrams(ingredient.amount, ingredient.unit, match, ingredient.gramsPerUnit);
+  const weightGrams = calculateWeightGrams(ingredient.amount, ingredient.unit, effectiveMatch, ingredient.gramsPerUnit);
   const factor = weightGrams / 100;
 
   // Populate gramsPerUnit on ingredient if missing
@@ -725,13 +837,13 @@ export function applyCanonicalMatchToIngredient(
     ingredient.gramsPerUnit = Math.round((weightGrams / ingredient.amount) * 10) / 10;
   }
 
-  const cal = Math.round(match.nutrients_per_100g.calories * factor);
-  const prot = Math.round(match.nutrients_per_100g.protein * factor * 10) / 10;
-  const carb = Math.round(match.nutrients_per_100g.carbs * factor * 10) / 10;
-  const fat = Math.round(match.nutrients_per_100g.fat * factor * 10) / 10;
+  const cal = Math.round(effectiveMatch.nutrients_per_100g.calories * factor);
+  const prot = Math.round(effectiveMatch.nutrients_per_100g.protein * factor * 10) / 10;
+  const carb = Math.round(effectiveMatch.nutrients_per_100g.carbs * factor * 10) / 10;
+  const fat = Math.round(effectiveMatch.nutrients_per_100g.fat * factor * 10) / 10;
 
-  ingredient.canonicalId = match.id;
-  ingredient.matchedName = match.name_de;
+  ingredient.canonicalId = effectiveMatch.id;
+  ingredient.matchedName = effectiveMatch.name_de;
   ingredient.isVerified = true;
   ingredient.calories = cal;
   ingredient.protein = prot;
@@ -739,7 +851,7 @@ export function applyCanonicalMatchToIngredient(
   ingredient.fat = fat;
 
   if (!ingredient.category || ingredient.category === 'OTHER') {
-    ingredient.category = match.category;
+    ingredient.category = effectiveMatch.category;
   }
 
   return { matched: true, calories: cal, protein: prot, carbs: carb, fat };
@@ -762,7 +874,10 @@ export async function matchAndEnrichIngredient(ingredient: Ingredient, groupCate
     effectiveCategory,
     ingredient.synonyms,
     ingredient.searchQueries,
-    ingredient.parentIngredient
+    ingredient.parentIngredient,
+    ingredient.modifier,
+    ingredient.brand,
+    ingredient
   );
 
   return applyCanonicalMatchToIngredient(ingredient, match);
@@ -802,10 +917,12 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
       effectiveCategory,
       ing.synonyms,
       ing.searchQueries,
-      ing.parentIngredient
+      ing.parentIngredient,
+      ing.modifier,
+      ing.brand
     );
 
-    if (fastMatch) {
+    if (fastMatch && isNutritionallyPlausible(ing, fastMatch)) {
       matchedCanonicalMap.set(id, fastMatch);
     } else {
       const candidates = getMiniSearchCandidates(
@@ -814,14 +931,19 @@ export async function enrichRecipeWithCanonicalIngredients(recipe: Recipe): Prom
         effectiveCategory,
         ing.synonyms,
         ing.searchQueries,
-        10
+        10,
+        ing.modifier,
+        ing.brand
       );
       if (candidates.length > 0) {
         unmatchedForBatch.push({
           id,
           name: ing.name,
           baseName: ing.baseName,
+          brand: ing.brand,
+          modifier: ing.modifier,
           category: effectiveCategory,
+          ingredientRef: ing,
           candidates,
         });
       } else {

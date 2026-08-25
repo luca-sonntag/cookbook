@@ -61,9 +61,6 @@ export const BASE_NAME_TO_CANONICAL_ID: Record<string, string> = {
   'brie': 'M601800',
   'gorgonzola': 'M5B1600',
   'halloumi': 'M524500',
-  'shredded cheese': 'M402600',
-  'cheese': 'M402600',
-  'sliced cheese': 'M402600',
   'processed cheese': 'M771300',
 
   // === PLANT-BASED ALTERNATIVES ===
@@ -269,6 +266,9 @@ export const BASE_NAME_TO_CANONICAL_ID: Record<string, string> = {
   'corn starch': 'C446000',
   'potato starch': 'K230000',
   'starch': 'C446000',
+  'potato chips': 'K280100',
+  'potato crisps': 'K280100',
+  'chips': 'K280100',
   'french fries': 'X654042',
   'hashbrown patty': 'X655022',
   'pretzel': 'D064000',
