@@ -18,7 +18,7 @@
   * `deploy.ps1` (Root): Orchestriert Backend-Deploy (Git Merge `develop` -> `master` + Tagging für Railway) und Play Store App-Release nacheinander oder parallel.
 
 ### AdMob Konfiguration & Native Android Setup
-* **`AndroidManifest.xml`:** Konfiguriert die Google Mobile Ads App-ID via `<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-..." />`.
+* **`AndroidManifest.xml`:** Konfiguriert die Google Mobile Ads App-ID via `<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-..." />` sowie `android:screenOrientation="portrait"` zur Fixierung des Portrait-Modus (Landscape & Display-Rotation deaktiviert).
 * **Umgebungsvariablen (`frontend/.env.production`):**
   * `VITE_ADMOB_BANNER_ID`: Live Ad-Unit-ID für Standard- & MREC-Banner (fällt bei fehlender Angabe auf Googles öffentliche Test-Ad-Unit zurück).
   * `VITE_ADMOB_REWARDED_ID`: Live Ad-Unit-ID für Rewarded Video Ads.
