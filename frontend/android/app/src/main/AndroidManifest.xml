@@ -35,8 +35,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="snagbite.app" android:pathPrefix="/invite" />
-                <data android:scheme="https" android:host="snagbite.app" android:pathPrefix="/history" />
-                <data android:scheme="https" android:host="snagbite.app" android:pathPrefix="/recipe" />
             </intent-filter>
 
             <!-- Custom URL Schemes: snagbite:// and at.snagbite.app:// for instant deep links -->
