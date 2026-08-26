@@ -19,6 +19,7 @@ import {
   applyCanonicalMatchToIngredient,
 } from './nutritionCalculator.js';
 import { catalogueAccess } from './ingredientIndex.js';
+import { openFoodFactsAccess } from './openFoodFactsIndex.js';
 
 // Re-exported so existing callers, routes and unit tests keep importing from ingredientMatcher.
 export {
@@ -31,6 +32,7 @@ export {
   isNutritionallyPlausible,
   applyCanonicalMatchToIngredient,
   catalogueAccess,
+  openFoodFactsAccess,
 };
 
 /**
@@ -41,12 +43,8 @@ export {
 const RECIPE_RESOLVE_CONCURRENCY = 3;
 
 /**
- * Resolves one ingredient via the learned mapping store (cache) or Gemini tool resolver.
- *
- * Checks the learned mapping store first, and only pays for the tool-using
- * resolver on a genuine miss. Whatever the resolver decides is written back to
- * the store, so the next recipe containing this food anywhere, for any user,
- * takes the cheap path.
+ * Resolves one ingredient via the learned mapping store (cache) or Gemini tool resolver
+ * backed by Open Food Facts DACH database.
  */
 export async function resolveAndRemember(
   input: ResolverInput
@@ -57,19 +55,19 @@ export async function resolveAndRemember(
   if (keys.length > 0) {
     const known = await lookupMapping(keys, category);
     if (known) {
-      const item = known.blsCode ? catalogueAccess.get(known.blsCode) : null;
+      const item = known.blsCode ? (openFoodFactsAccess.get(known.blsCode) || catalogueAccess.get(known.blsCode)) : null;
       return { match: item, estimate: known.estimatedNutrients };
     }
   }
 
-  const resolved = await resolveIngredient(input, catalogueAccess);
+  const resolved = await resolveIngredient(input, openFoodFactsAccess);
   if (!resolved || resolved.budgetExhausted) {
     // Nothing trustworthy came back. Storing this would freeze a non-answer for
     // every future recipe, so leave the key unresolved and try again next time.
     return { match: null, estimate: null, usage: resolved?.usage };
   }
 
-  const item = resolved.blsCode ? catalogueAccess.get(resolved.blsCode) : null;
+  const item = resolved.blsCode ? (openFoodFactsAccess.get(resolved.blsCode) || catalogueAccess.get(resolved.blsCode)) : null;
 
   if (keys.length > 0) {
     await storeMapping(keys, category, {

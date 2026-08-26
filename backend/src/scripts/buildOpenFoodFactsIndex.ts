@@ -3,10 +3,10 @@
  *
  * Streams the official Open Food Facts CSV dump directly (without uncompressing 50GB to disk),
  * filters for German / DACH products with valid macronutrients, and builds a lean,
- * high-performance SQLite database with FTS5 fulltext search (`backend/src/data/off_de.sqlite`).
+ * high-performance SQLite database with FTS5 fulltext search and Purity-Ranking (`backend/src/data/off_de.sqlite`).
  *
  * Usage:
- *   npx tsx src/scripts/buildOpenFoodFactsIndex.ts [--limit=N] [--max-mb=N]
+ *   npx tsx src/scripts/buildOpenFoodFactsIndex.ts
  */
 
 import { Readable } from 'node:stream';
@@ -53,7 +53,7 @@ function parseNum(val: string | undefined): number {
 
 async function main(): Promise<void> {
   console.log('='.repeat(75));
-  console.log('🚀 Open Food Facts Index Builder (DACH / German Lean Database)');
+  console.log('🚀 Open Food Facts Index Builder (DACH / German Lean Database + Purity Ranking)');
   console.log('='.repeat(75));
   console.log(`Source URL: ${DUMP_URL}`);
   console.log(`Target SQLite DB: ${DB_PATH}\n`);
@@ -74,7 +74,7 @@ async function main(): Promise<void> {
   db.exec('PRAGMA synchronous = OFF;');
   db.exec('PRAGMA cache_size = -64000;'); // 64MB cache
 
-  // Create products table
+  // Create products table with ingredients_count and nova_group for purity ranking
   db.exec(`
     CREATE TABLE products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,6 +90,7 @@ async function main(): Promise<void> {
       sugar REAL,
       fiber REAL,
       nova_group INTEGER,
+      ingredients_count INTEGER,
       unique_scans INTEGER DEFAULT 0
     );
   `);
@@ -98,11 +99,11 @@ async function main(): Promise<void> {
     INSERT OR IGNORE INTO products (
       code, name, generic_name, brand, category,
       calories, protein, carbs, fat, sugar, fiber,
-      nova_group, unique_scans
+      nova_group, ingredients_count, unique_scans
     ) VALUES (
       ?, ?, ?, ?, ?,
       ?, ?, ?, ?, ?, ?,
-      ?, ?
+      ?, ?, ?
     )
   `);
 
@@ -196,6 +197,16 @@ async function main(): Promise<void> {
     const novaGroup = parseInt(cols[colMap['nova_group'] ?? 59] || '0', 10) || null;
     const uniqueScans = parseInt(cols[colMap['unique_scans_n'] ?? 75] || '0', 10) || 0;
 
+    // Determine ingredients count for purity ranking
+    let ingredientsCount: number | null = null;
+    const ingTags = cols[colMap['ingredients_tags'] ?? 43];
+    if (ingTags) {
+      const count = ingTags.split(',').filter(Boolean).length;
+      if (count > 0) ingredientsCount = count;
+    } else if (novaGroup === 1) {
+      ingredientsCount = 1;
+    }
+
     // Discard completely empty nutrient profiles
     if (calories <= 0 && protein <= 0 && carbs <= 0 && fat <= 0) continue;
 
@@ -213,6 +224,7 @@ async function main(): Promise<void> {
         sugar > 0 ? Math.round(sugar * 10) / 10 : null,
         fiber > 0 ? Math.round(fiber * 10) / 10 : null,
         novaGroup,
+        ingredientsCount,
         uniqueScans
       );
       dachInserted++;
@@ -285,9 +297,9 @@ async function main(): Promise<void> {
   console.log(`   File: ${DB_PATH}`);
   console.log(`   Total Size on Disk: ${sizeMb} MB`);
 
-  // Verification queries
+  // Verification queries with Purity Boost
   console.log('\n' + '='.repeat(75));
-  console.log('🧪 Verifying Local FTS5 Search Queries:');
+  console.log('🧪 Verifying Local FTS5 Purity-Boost Search Queries:');
   console.log('='.repeat(75));
 
   const testQueries = [
@@ -295,6 +307,7 @@ async function main(): Promise<void> {
     'Zwiebeln',
     'Butter',
     'Hähnchenbrustfilet',
+    'Ei',
     'Eatlean',
     'Reispapier',
     'Sriracha',
@@ -302,8 +315,9 @@ async function main(): Promise<void> {
   ];
 
   const searchStmt = db.prepare(`
-    SELECT p.name, p.brand, p.category, p.calories, p.protein, p.carbs, p.fat, p.nova_group, p.unique_scans,
-           bm25(products_fts, 10.0, 5.0, 2.0, 1.0) AS rank
+    SELECT p.name, p.brand, p.category, p.calories, p.protein, p.carbs, p.fat,
+           p.nova_group, p.ingredients_count, p.unique_scans,
+           (bm25(products_fts, 10.0, 5.0, 2.0, 1.0) * (0.6 + COALESCE(p.nova_group, 2) * 0.25 + MIN(COALESCE(p.ingredients_count, 1), 10) * 0.05)) AS rank
     FROM products_fts f
     JOIN products p ON f.rowid = p.id
     WHERE products_fts MATCH ?
@@ -322,8 +336,11 @@ async function main(): Promise<void> {
       for (let i = 0; i < results.length; i++) {
         const r = results[i];
         const brand = r.brand ? ` [Marke: ${r.brand}]` : '';
+        const nova = r.nova_group ? ` | NOVA ${r.nova_group}` : '';
+        const count = r.ingredients_count ? ` | ${r.ingredients_count} Zutat(en)` : '';
         console.log(
-          `   [${i + 1}] ${r.name}${brand} | 100g: ${r.calories} kcal, ${r.protein}g P, ${r.carbs}g C, ${r.fat}g F`
+          `   [${i + 1}] ${r.name}${brand}${nova}${count}\n` +
+          `       100g: ${r.calories} kcal, ${r.protein}g P, ${r.carbs}g C, ${r.fat}g F`
         );
       }
     } catch (e: any) {
