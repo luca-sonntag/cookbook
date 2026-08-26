@@ -160,8 +160,15 @@ export async function resolveIngredient(
       systemInstruction: SYSTEM_INSTRUCTION,
     });
 
+    // Pre-search top candidates to fast-track matching in Turn 1
+    const searchTerm = input.baseName || input.name;
+    let initialCandidates = catalogue.search(searchTerm, input.category, 4);
+    if (initialCandidates.length === 0 && input.searchQueries?.length) {
+      initialCandidates = catalogue.search(input.searchQueries[0], input.category, 4);
+    }
+
     const chat = model.startChat();
-    let message: string | Part[] = buildPrompt(input);
+    let message: string | Part[] = buildPrompt(input, initialCandidates);
     let outcome: ResolverResult | null = null;
 
     for (let turn = 0; turn < MAX_TURNS; turn++) {

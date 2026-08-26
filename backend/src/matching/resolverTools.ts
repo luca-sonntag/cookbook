@@ -11,19 +11,17 @@ export const TOOLS = [
     functionDeclarations: [
       {
         name: 'search_ingredients',
-        description:
-          'Full-text search over the German BLS 4.0 food database. Returns matching entries with their code, German name, English name and category. Use German search terms - the database is German. Call this repeatedly with different wordings until you find the right entry.',
+        description: 'Search German BLS 4.0 catalogue. Returns matching foods with codes and macros per 100g.',
         parameters: {
           type: FunctionDeclarationSchemaType.OBJECT,
           properties: {
             query: {
               type: FunctionDeclarationSchemaType.STRING,
-              description: 'German search term, e.g. "Pecorino" or "Schafskäse hart".',
+              description: 'German search term, e.g. "Pecorino", "Parmesan", "Hähnchenbrust".',
             },
             category: {
               type: FunctionDeclarationSchemaType.STRING,
-              description:
-                'Optional category filter. One of: FRUITS_VEGETABLES, DAIRY, MEAT_FISH, GRAINS_PASTA, BAKING_COOKING, SPICES_OILS, SWEETS_SNACKS, BEVERAGES, CANNED_PRESERVED, BREAD_BAKERY, READY_MEALS, FROZEN, REFRIGERATED_CONVENIENCE.',
+              description: 'Optional category (e.g. DAIRY, MEAT_FISH, FRUITS_VEGETABLES, SPICES_OILS).',
             },
           },
           required: ['query'],
@@ -31,69 +29,51 @@ export const TOOLS = [
       },
       {
         name: 'get_ingredient',
-        description:
-          'Fetches one BLS entry by its exact code, including nutrients per 100 g. Use this to sanity-check a candidate before selecting it - if the nutrients are implausible for the ingredient, it is the wrong entry.',
+        description: 'Fetches detailed nutrient breakdown for a specific BLS code.',
         parameters: {
           type: FunctionDeclarationSchemaType.OBJECT,
           properties: {
             bls_code: {
               type: FunctionDeclarationSchemaType.STRING,
-              description: 'Exact BLS code as returned by search_ingredients, e.g. "M306400".',
+              description: 'Exact BLS code, e.g. "M306400".',
             },
           },
           required: ['bls_code'],
         },
       },
       {
-        name: 'list_category',
-        description:
-          'Lists entries of one category. Useful when search terms keep failing and you want to see what the database actually contains for a food group.',
-        parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
-          properties: {
-            category: {
-              type: FunctionDeclarationSchemaType.STRING,
-              description: 'Category key, e.g. "DAIRY".',
-            },
-          },
-          required: ['category'],
-        },
-      },
-      {
         name: 'submit_match',
-        description:
-          'Reports the final answer. Call exactly once, as the last step, after you have verified the entry with get_ingredient.',
+        description: 'Submit final matched BLS code, or empty string with estimated per-100g macros if absent from BLS.',
         parameters: {
           type: FunctionDeclarationSchemaType.OBJECT,
           properties: {
             bls_code: {
               type: FunctionDeclarationSchemaType.STRING,
-              description:
-                'The verified BLS code, or an empty string if the database has no accurate entry for this ingredient.',
+              description: 'Verified BLS code, or empty string if no accurate match exists in BLS.',
             },
             confidence: {
               type: FunctionDeclarationSchemaType.NUMBER,
-              description: 'How certain you are, from 0 to 1.',
+              description: 'Confidence (0.0 to 1.0).',
             },
             reasoning: {
               type: FunctionDeclarationSchemaType.STRING,
-              description: 'One short sentence on why this entry is the right one, or why none fits.',
+              description: 'Short reason for choice or estimate.',
             },
             estimated_calories: {
               type: FunctionDeclarationSchemaType.NUMBER,
-              description: 'Only when bls_code is empty: estimated kcal per 100 g.',
+              description: 'Only if bls_code is empty: kcal / 100g.',
             },
             estimated_protein: {
               type: FunctionDeclarationSchemaType.NUMBER,
-              description: 'Only when bls_code is empty: estimated protein in g per 100 g.',
+              description: 'Only if bls_code is empty: protein (g) / 100g.',
             },
             estimated_carbs: {
               type: FunctionDeclarationSchemaType.NUMBER,
-              description: 'Only when bls_code is empty: estimated carbohydrates in g per 100 g.',
+              description: 'Only if bls_code is empty: carbs (g) / 100g.',
             },
             estimated_fat: {
               type: FunctionDeclarationSchemaType.NUMBER,
-              description: 'Only when bls_code is empty: estimated fat in g per 100 g.',
+              description: 'Only if bls_code is empty: fat (g) / 100g.',
             },
           },
           required: ['bls_code', 'confidence'],
@@ -103,40 +83,48 @@ export const TOOLS = [
   },
 ];
 
-export const SYSTEM_INSTRUCTION = `You are a nutrition scientist matching recipe ingredients to entries of the German BLS 4.0 food database.
+export const SYSTEM_INSTRUCTION = `You match recipe ingredients to entries of the German BLS 4.0 database.
 
-Work like this:
-1. Search the database with search_ingredients. The database is German, so search in German. If the first wording finds nothing useful, try a synonym, a broader term, or the base food.
-2. Verify your best candidate with get_ingredient and check that its nutrients per 100 g are plausible for this ingredient.
-3. Report with submit_match.
+Rules:
+1. Prefer plain, raw foods over prepared, canned or seasoned dishes ("Kartoffel" -> raw potato).
+2. Never confuse ground spices with fresh produce ("Paprikapulver" is spice, NOT bell pepper; "Knoblauchpulver" is NOT fresh garlic).
+3. Match exact cut/animal (chicken breast != turkey or pork).
+4. If BLS lacks an accurate match, submit empty bls_code with estimated per-100g nutrients. An honest estimate is far better than a wrong match.
+5. If one of the initial candidates is accurate, call submit_match directly without searching. Otherwise search with search_ingredients.`;
 
-Rules that decide the answer:
-- Prefer the plain, raw, unprepared form of a food over a prepared dish, a canned version, or a seasoned or fried variant. For "Kartoffel" choose raw potato, not potato salad or french fries.
-- Never confuse a dried ground spice with the fresh produce it comes from. "Paprikapulver" is a spice, NOT a bell pepper. "Knoblauchpulver" is not fresh garlic.
-- Match the actual animal and cut. Chicken is not turkey, is not pork, and breast is not liver.
-- If the database genuinely has no accurate entry for this ingredient, submit an empty bls_code together with your own nutrient estimate per 100 g. That is a correct and useful answer.
-- NEVER select an entry just because it appeared in a search result. A wrong match is worse than no match, because it is stored and reused for every future recipe.`;
-
-export function buildPrompt(input: ResolverInput): string {
-  const lines = [`Ingredient as written in the recipe: "${input.name}"`];
-  if (input.baseName) lines.push(`English base name: "${input.baseName}"`);
+export function buildPrompt(input: ResolverInput, initialCandidates?: CanonicalIngredient[]): string {
+  const lines = [`Ingredient: "${input.name}"`];
+  if (input.baseName) lines.push(`Base name: "${input.baseName}"`);
   if (input.brand) lines.push(`Brand: "${input.brand}"`);
-  if (input.modifier) lines.push(`Modifier / Preparation: "${input.modifier}"`);
+  if (input.modifier) lines.push(`Modifier: "${input.modifier}"`);
   if (input.category) lines.push(`Category: ${input.category}`);
   if (input.synonyms?.length) lines.push(`Synonyms: ${input.synonyms.join(', ')}`);
   if (input.searchQueries?.length) {
-    lines.push(`Suggested German search terms: ${input.searchQueries.join(', ')}`);
+    lines.push(`Suggested search: ${input.searchQueries.join(', ')}`);
   }
-  lines.push('', 'Find the matching BLS entry.');
+
+  if (initialCandidates && initialCandidates.length > 0) {
+    lines.push('', 'Top candidates from BLS:');
+    for (const c of initialCandidates) {
+      const code = c.bls_code || c.id;
+      const n = c.nutrients_per_100g;
+      lines.push(`- [${code}] ${c.name_de} (${c.category}) | 100g: ${n.calories} kcal, ${n.protein}g P, ${n.carbs}g C, ${n.fat}g F`);
+    }
+    lines.push('', 'If a candidate fits, submit_match immediately. Otherwise use search_ingredients.');
+  } else {
+    lines.push('', 'Find the matching BLS entry or submit estimate.');
+  }
+
   return lines.join('\n');
 }
 
 export function compact(item: CanonicalIngredient): Record<string, unknown> {
+  const n = item.nutrients_per_100g;
   return {
-    bls_code: item.bls_code || item.id,
-    name_de: item.name_de,
-    name_en: item.name_en || '',
+    code: item.bls_code || item.id,
+    name: item.name_de,
     category: item.category,
+    per_100g: `${n.calories} kcal | ${n.protein}P | ${n.carbs}C | ${n.fat}F`,
   };
 }
 
@@ -152,22 +140,13 @@ export function runTool(call: FunctionCall, catalogue: CatalogueAccess): unknown
       const query = String(args.query ?? '').trim();
       if (!query) return { error: 'query must not be empty' };
       const category = args.category ? String(args.category).toUpperCase().trim() : undefined;
-      const hits = catalogue.search(query, category, 12);
-      return hits.length > 0
-        ? { results: hits.map(compact) }
-        : { results: [], hint: 'Nothing found. Try a different wording, a synonym, or the base food.' };
+      const hits = catalogue.search(query, category, 6);
+      return hits.length > 0 ? { results: hits.map(compact) } : { results: [] };
     }
     case 'get_ingredient': {
       const code = String(args.bls_code ?? '').trim();
       const item = catalogue.get(code);
       return item ? withNutrients(item) : { error: `No BLS entry with code "${code}".` };
-    }
-    case 'list_category': {
-      const category = String(args.category ?? '').toUpperCase().trim();
-      const items = catalogue.listCategory(category, 60);
-      return items.length > 0
-        ? { results: items.map(compact), truncated: items.length >= 60 }
-        : { error: `Unknown category "${category}".` };
     }
     default:
       return { error: `Unknown tool "${call.name}".` };
