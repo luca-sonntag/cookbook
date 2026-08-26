@@ -231,7 +231,7 @@ export default function IngredientNutritionSheet({
                       </span>
                       {ingredient.matchedName && (
                         <span className="text-[11px] text-emerald-700/80 dark:text-emerald-300/80 truncate block font-normal">
-                          BLS: {ingredient.matchedName}
+                          {ingredient.matchedName}
                         </span>
                       )}
                     </div>

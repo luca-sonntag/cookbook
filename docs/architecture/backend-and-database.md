@@ -98,34 +98,22 @@ Erweiterter Endpunkt prüft Supabase-Datenbankverbindung via `checkDbHealth()` (
 
 ## 4. Kanonische Zutatennormalisierung & Hybrid Matching Engine (`backend/src/matching/`)
 
-Das Backend normalisiert KI-extrahierte Zutaten gegen die **Bundeslebensmittelschlüssel-Datenbank (BLS 4.0, 7.140 standardisierte Einträge)** und berechnet portionsgenaue Makronährstoffe (Kalorien, Protein, Kohlenhydrate, Fett).
+Das Backend normalisiert KI-extrahierte Zutaten gegen die **Open Food Facts DACH Datenbank (437.000+ Einträge)** und einen **persistenten, selbstlernenden Mapping-Store** (`ingredient_mappings`), um portionsgenaue Makronährstoffe (Kalorien, Protein, Kohlenhydrate, Fett) in <1ms zu berechnen.
 
 ```mermaid
 flowchart TD
-    A["Gemini extrahiert Zutat<br/>(name, brand, modifier, estimatedMacros)"] --> B{"Hat Zutat Brand oder Modifier?<br/>(z.B. Eat Lean, fettreduziert, zuckerfrei)"}
-    B -- Nein (Unmodifizierte Basis-Zutat) --> C["Stage 0/1: O(1) Fast-Path Map Lookup<br/>(baseNameMap, byAlias, byNameDe, byId)"]
-    C -- Match gefunden & Plausibel --> G["✅ Verifiziert & Nährwerte kalkuliert"]
-    B -- Ja (oder kein Fast-Path Treffer) --> D["Stage 2: MiniSearch BM25 Sparse Search<br/>(Kategorie-isoliert + Token-Filter)"]
-    D --> E["Stage 3: Gemini Flash-Lite Batch Reranker<br/>(Macro-Aware Multiple-Choice & Anti-Forced-Choice)"]
-    E --> F{"Kandidat ausgewählt &<br/>isNutritionallyPlausible() ?"}
-    F -- Ja --> G
-    F -- Nein --> H["⚪ Unverifiziert (Fallback auf präzise Gemini-Schätzung)"]
+    A["Gemini extrahiert Zutat<br/>(name, baseName, brand, modifier)"] --> B{"Mapping-Store Cache Hit?<br/>(lookupMapping in Postgres/In-Memory)"}
+    B -- Ja (Bereits bekannt) --> G["⚡ Instant Match (<1ms, 0 Tokens)"]
+    B -- Nein (Unbekannte Zutat) --> C["Open Food Facts Local SQLite FTS5<br/>(BM25 Purity-Boost + Fast-Track Injection)"]
+    C --> D["Gemini Tool-Resolver<br/>(submit_match mit product_code oder Schätzung)"]
+    D --> E["Ergebnis speichern in ingredient_mappings<br/>(Dual-Tier: Barcode oder Makro-Schätzung)"]
+    E --> G["✅ Verifiziert & Nährwerte kalkuliert"]
 ```
 
-* **Datensatz:** BLS 4.0 (`backend/src/data/canonicalIngredientsData.json`, 7.140 Lebensmittel mit 100g-Referenzwerten und Stückgewichten wie `piece`, `clove`, `tablespoon`, `teaspoon`).
+* **Datensatz:** Open Food Facts DACH (`backend/src/data/off_de.sqlite`, 437.000+ Supermarkt-, Marken- und Grundnahrungsmittel mit 100g-Referenzwerten, Purity-Boost und BM25-Volltextindex).
+* **Selbstlernender Mapping-Store (`mappingStore.ts`):** Jede aufgelöste Zutat wird gecacht und in Postgres persistiert. Über 70% aller Zutaten werden instant ohne LLM-Kosten aufgelöst.
+* **Dual-Tier Auflösung:** Produkte mit Barcode erhalten `resolution = 'matched'`. Abstrakte Mischungen (*Allzweckgewürz*, *Cajun-Butter*) erhalten `resolution = 'no_match'` mit dauerhaft gespeicherter Makro-Schätzung.
 * **Marken-Trennung (`brand`):** Hersteller-/Markennamen (*Eat Lean*, *Miracle Whip*, *Philadelphia*, *Nutella*) werden in ein separates Feld `brand` ausgelagert, sodass `name` sauber und suchbar bleibt.
-* **Fast-Path Modifier Gate:** Zutaten mit `modifier` (z. B. `fettreduziert`, `zuckerfrei`, `light`) oder `brand` überspringen den blinden O(1) Fast-Path, damit keine Standard-Vollfett- oder zuckerhaltigen BLS-Einträge erzwungen werden.
-* **Generische Nährwert-Plausibilitätsprüfung (`isNutritionallyPlausible`):** Mathematischer Abgleich der geschätzten Nährwertdichte (kcal/100g, Fett, KH) gegen den BLS-Kandidaten. Verhindert z. B. Fehlmappings von Diätprodukten auf hochkalorische Vollfett-/Zuckerprodukte.
-* **Batch LLM Reranker (Gemini Flash-Lite):** Fasst alle ungemappten Rezeptzutaten in **einem einzigen Batch-Request** zusammen. Erhält Nährwertdichten und wählt strikt nur kulinarisch und ernährungsphysiologisch passende Kandidaten (`selectedCode: null` bei Abweichungen).
-* **Match-Rate:** Hohe Verifizierungsquote auf Standard-Zutaten bei 100% verlässlichem Fallback auf Gemini-Schätzungen für Spezial-, Diät- und Zero-Produkte.
-
----
-
-## 5. Smart AI Push-Benachrichtigungen & FCM Services
-
-* **Hybrid Selection & Copy Generation:** Abendliches Worker-Intervall (`backend/src/notifications/worker.ts`) wählt deterministisch den besten Kandidaten (`pickBestCandidate`) basierend auf Inaktivität, Lieblings-Kategorien oder Rezept-Sammlungen aus. Gemini formuliert anschließend kurze, persönliche Push-Texte (`generateNotificationCopy`) mit Emoji & Gradient-Theme.
-* **FCM High-Priority Data-Only Payloads & Icon Generator:** `sendToToken` in `backend/src/push/fcm.ts` versendet reine Data-Payloads mit `title`, `body`, `iconUrl` (`GET /api/push-icon`) und `jobId`. Der PNG-Generator (`bannerGenerator.ts`) isoliert das erste valide Emoji, unterstützt Noto/Twemoji-Hex-Varianten (inkl. `\uFE0F` & ZWJ-Sequenzen) und fällt bei fehlendem Emoji auf themenspezifische Standard-Food-Emojis zurück.
-* **Nativer Android FCM Empfänger:** `MyFirebaseMessagingService.java` übernimmt den Empfang auf Android (sowohl im Vordergrund, Hintergrund als auch bei beendeter App via `tools:node="replace"`). Er erzeugt eine native Android-Notifikation mit `setLargeIcon()` (256x256 quadratisches Farbverlauf-PNG), `BigTextStyle`, folgt HTTP➔HTTPS-Redirects manuell und verwendet ein 10s-Timeout. Klick-Payloads werden an Capacitor für direkte Rezept-Navigation weitergereicht.
-  5. **Fallback:** Bei ungelisteten exotischen Zutaten werden die Gemini-KI-Schätzwerte beibehalten und mit `isVerified: false` markiert.
+* **Generische Nährwert-Plausibilitätsprüfung (`isNutritionallyPlausible`):** Mathematischer Abgleich der geschätzten Nährwertdichte (kcal/100g, Fett, KH) gegen den Produkt-Kandidaten.
 * **Rezept-Aggregation (`enrichRecipeWithCanonicalIngredients`):** Läuft auf **jedem** Pfad, der ein Rezept persistiert — URL-Extraktion, Foto-Import und Remix-Jobs im Hintergrund-Worker (`backend/src/queue.ts`), Chat-Remix und `PATCH /api/jobs/:id` in `routes.ts`. Berechnet Nährwerte pro Zutat (`calories`, `protein`, `carbs`, `fat`, `isVerified`, `canonicalId`, `matchedName`) und leitet daraus `recipe.nutritionalValues` pro Portion ab.
-* **Nährwerte sind abgeleitet, nicht gespeicherter Zustand:** `nutritionalValues` wird bei jeder Anreicherung neu aus der Zutatensumme berechnet und nie vom Modell oder vom Client übernommen. Ein von der Quelle selbst genannter Wert liegt separat in `sourceNutritionalValues` (+ `hasExplicitNutritionalValues`) und wird in der UI daneben statt an dessen Stelle gezeigt. `nutritionCoverage` (0..1) gibt an, welcher Kalorienanteil aus BLS-Treffern statt aus Gemini-Schätzungen stammt; erst ab 90 % gilt ein Rezept als datenbankverifiziert. Bestandsdaten werden per `npm run recompute-nutrition` (im `backend/`-Workspace) angeglichen.
+* **Nährwerte sind abgeleitet, nicht gespeicherter Zustand:** `nutritionalValues` wird bei jeder Anreicherung neu aus der Zutatensumme berechnet und nie vom Modell oder vom Client übernommen. Ein von der Quelle selbst genannter Wert liegt separat in `sourceNutritionalValues` (+ `hasExplicitNutritionalValues`) und wird in der UI daneben statt an dessen Stelle gezeigt. `nutritionCoverage` (0..1) gibt an, welcher Kalorienanteil aus verifizierten Datenbank-Treffern statt aus Gemini-Schätzungen stammt; erst ab 90 % gilt ein Rezept als datenbankverifiziert. Bestandsdaten werden per `npm run recompute-nutrition` (im `backend/`-Workspace) angeglichen.
