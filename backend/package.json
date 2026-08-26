@@ -23,6 +23,7 @@
     "icons:unpack": "tsx src/scripts/zipIngredientIcons.ts --unpack",
     "icons:generate-missing": "tsx src/scripts/generateMissingIngredientIcons.ts",
     "icons:migrate-off": "tsx src/scripts/migrateIconsToOpenFoodFacts.ts",
+    "icons:rename-english": "tsx src/scripts/renameIconsToEnglishBaseNames.ts",
     "seed:mappings": "tsx src/scripts/seedIngredientMappings.ts",
     "mappings:backfill": "tsx src/scripts/backfillIngredientMappings.ts",
     "build:off": "tsx src/scripts/buildOpenFoodFactsIndex.ts"

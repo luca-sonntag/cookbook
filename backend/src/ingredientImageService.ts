@@ -382,27 +382,48 @@ export function findExistingIngredientImage(ingredientId: string, outDir?: strin
   const dir = outDir || getIngredientImagesDir();
   if (!fs.existsSync(dir)) return null;
 
-  const targetPrefix = ingredientId.toLowerCase().trim();
-  const canonicalFile = `${targetPrefix}.webp`;
-  if (fs.existsSync(path.join(dir, canonicalFile))) {
-    return canonicalFile;
+  const raw = ingredientId.toLowerCase().trim();
+  const slug = raw
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
+  if (!slug) return null;
+
+  // 1. Direct match on slug
+  if (fs.existsSync(path.join(dir, `${slug}.webp`))) {
+    return `${slug}.webp`;
   }
 
-  // If targetPrefix is a barcode or product code, resolve its slug via Open Food Facts
-  const product = openFoodFactsAccess.get(targetPrefix);
-  if (product) {
-    const rawName = product.name_de.split(/[,(]/)[0].trim();
-    const slug = rawName
-      .toLowerCase()
-      .replace(/ä/g, 'ae')
-      .replace(/ö/g, 'oe')
-      .replace(/ü/g, 'ue')
-      .replace(/ß/g, 'ss')
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
+  // 2. Singularized match (e.g. "eggs" -> "egg")
+  if (slug.endsWith('s') && !slug.endsWith('ss') && !slug.endsWith('ous')) {
+    const singular = slug.slice(0, -1);
+    if (fs.existsSync(path.join(dir, `${singular}.webp`))) {
+      return `${singular}.webp`;
+    }
+  }
 
-    if (slug && fs.existsSync(path.join(dir, `${slug}.webp`))) {
-      return `${slug}.webp`;
+  // 3. If identifier is a barcode or product code, resolve its English/German name via Open Food Facts
+  const product = openFoodFactsAccess.get(raw);
+  if (product) {
+    const candidateNames = [product.name_en, product.name_de].filter(Boolean);
+    for (const name of candidateNames) {
+      const pSlug = name
+        .split(/[,(]/)[0]
+        .toLowerCase()
+        .replace(/ä/g, 'ae')
+        .replace(/ö/g, 'oe')
+        .replace(/ü/g, 'ue')
+        .replace(/ß/g, 'ss')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
+      if (pSlug && fs.existsSync(path.join(dir, `${pSlug}.webp`))) {
+        return `${pSlug}.webp`;
+      }
     }
   }
 
@@ -410,7 +431,7 @@ export function findExistingIngredientImage(ingredientId: string, outDir?: strin
   const matched = files.find(
     (f) =>
       f.toLowerCase().endsWith('.webp') &&
-      (f.toLowerCase() === `${targetPrefix}.webp` || f.toLowerCase().startsWith(`${targetPrefix}_`))
+      (f.toLowerCase() === `${slug}.webp` || f.toLowerCase().startsWith(`${slug}_`))
   );
 
   return matched || null;
