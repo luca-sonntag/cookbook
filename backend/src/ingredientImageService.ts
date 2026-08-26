@@ -5,6 +5,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from './config.js';
 import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from './data/canonicalIngredients.js';
 import { BASE_NAME_TO_CANONICAL_ID } from './matching/baseNameMap.js';
+import { openFoodFactsAccess } from './matching/openFoodFactsIndex.js';
 
 const FAL_FLUX_ENDPOINT = 'https://fal.run/fal-ai/flux-1/schnell';
 const FLUX_COST_PER_IMAGE_USD = 0.0035; // fal.ai flux-1/schnell square_hd standard rate
@@ -387,15 +388,22 @@ export function findExistingIngredientImage(ingredientId: string, outDir?: strin
     return canonicalFile;
   }
 
-  // Check BLS prefix
-  if (fs.existsSync(path.join(dir, `bls_${targetPrefix}.webp`))) {
-    return `bls_${targetPrefix}.webp`;
-  }
+  // If targetPrefix is a barcode or product code, resolve its slug via Open Food Facts
+  const product = openFoodFactsAccess.get(targetPrefix);
+  if (product) {
+    const rawName = product.name_de.split(/[,(]/)[0].trim();
+    const slug = rawName
+      .toLowerCase()
+      .replace(/ä/g, 'ae')
+      .replace(/ö/g, 'oe')
+      .replace(/ü/g, 'ue')
+      .replace(/ß/g, 'ss')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
 
-  // Check BASE_NAME_TO_CANONICAL_ID map
-  const mappedCode = BASE_NAME_TO_CANONICAL_ID[targetPrefix];
-  if (mappedCode && fs.existsSync(path.join(dir, `bls_${mappedCode.toLowerCase()}.webp`))) {
-    return `bls_${mappedCode.toLowerCase()}.webp`;
+    if (slug && fs.existsSync(path.join(dir, `${slug}.webp`))) {
+      return `${slug}.webp`;
+    }
   }
 
   const files = fs.readdirSync(dir);

@@ -126,30 +126,26 @@ async function main() {
   }
 
   // Execute migration
-  console.log(`\n🚀 Führe Migration aus...`);
+  console.log(`\n🚀 Führe Migration aus (ausschließlich eindeutige Slugs)...`);
   let renamedCount = 0;
+  const processedSlugs = new Set<string>();
 
   for (const item of migrationPlan) {
-    const targetCodePath = path.join(iconsDir, item.newCodeFile);
     const targetSlugPath = path.join(iconsDir, item.newSlugFile);
 
-    // 1. Copy to OFF code filename
-    fs.copyFileSync(item.oldPath, targetCodePath);
-
-    // 2. Also copy to base slug filename if different
-    if (targetSlugPath !== targetCodePath && !fs.existsSync(targetSlugPath)) {
+    if (!processedSlugs.has(item.newSlugFile)) {
+      processedSlugs.add(item.newSlugFile);
       fs.copyFileSync(item.oldPath, targetSlugPath);
+      renamedCount++;
     }
 
-    // 3. Delete old BLS file unless --keep-bls is set
-    if (!options.keepBls) {
+    // Delete old BLS file unless --keep-bls is set
+    if (!options.keepBls && fs.existsSync(item.oldPath) && item.oldPath !== targetSlugPath) {
       fs.unlinkSync(item.oldPath);
     }
-
-    renamedCount++;
   }
 
-  console.log(`✨ ${renamedCount} Icons erfolgreich zu Open Food Facts migriert.`);
+  console.log(`✨ ${renamedCount} eindeutige Slug-Icons erfolgreich gespeichert.`);
 
   // Re-pack ingredient-icons.zip
   console.log(`\n🗜️  Packe ingredient-icons.zip neu...`);
