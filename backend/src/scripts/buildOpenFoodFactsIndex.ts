@@ -210,6 +210,12 @@ async function main(): Promise<void> {
     // Discard completely empty nutrient profiles
     if (calories <= 0 && protein <= 0 && carbs <= 0 && fat <= 0) continue;
 
+    // Discard physically impossible community entry typos (e.g. >900 kcal for non-fats, or sum of macros > 105g/100g)
+    if (calories > 900 && fat < 95) continue;
+    if (calories > 950) continue;
+    if (protein > 100 || carbs > 100 || fat > 100) continue;
+    if (protein + carbs + fat > 105) continue;
+
     try {
       insertStmt.run(
         code || null,
@@ -317,7 +323,7 @@ async function main(): Promise<void> {
   const searchStmt = db.prepare(`
     SELECT p.name, p.brand, p.category, p.calories, p.protein, p.carbs, p.fat,
            p.nova_group, p.ingredients_count, p.unique_scans,
-           (bm25(products_fts, 10.0, 5.0, 2.0, 1.0) * (0.6 + COALESCE(p.nova_group, 2) * 0.25 + MIN(COALESCE(p.ingredients_count, 1), 10) * 0.05)) AS rank
+           (bm25(products_fts, 10.0, 5.0, 2.0, 1.0) / (0.5 + COALESCE(p.nova_group, 2) * 0.4 + MIN(COALESCE(p.ingredients_count, 1), 10) * 0.05)) AS rank
     FROM products_fts f
     JOIN products p ON f.rowid = p.id
     WHERE products_fts MATCH ?

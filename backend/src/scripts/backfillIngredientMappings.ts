@@ -200,11 +200,11 @@ async function main(): Promise<void> {
           resolverCalls++;
           totalTokens += res.usage.tokenUsage?.totalTokens ?? 0;
           totalCostUsd += res.usage.costEstimate?.totalCostUsd ?? 0;
-          const target = res.match ? `BLS ${res.match.bls_code || res.match.id} (${res.match.name_de})` : 'NO_MATCH (Estimated)';
+          const target = res.match ? `OFF ${res.match.bls_code || res.match.id} (${res.match.name_de})` : 'NO_MATCH (Estimated)';
           console.log(`  🤖 [Gemini Resolver] "${nameDisplay}" -> ${target}`);
         } else {
           cacheHits++;
-          const target = res.match ? `BLS ${res.match.bls_code || res.match.id}` : 'Store cached';
+          const target = res.match ? `OFF ${res.match.bls_code || res.match.id}` : 'Store cached';
           if (options.verbose) console.log(`  ⚡ [Store Hit] "${nameDisplay}" -> ${target}`);
         }
 
@@ -226,7 +226,7 @@ async function main(): Promise<void> {
   console.log(`  Total ingredients:   ${totalIngredients}`);
   console.log(`  Store / Cache hits:  ${cacheHits}`);
   console.log(`  Gemini tool calls:   ${resolverCalls}`);
-  console.log(`  BLS matches:         ${matchedBlsCount}`);
+  console.log(`  OFF matches:         ${matchedBlsCount}`);
   console.log(`  Estimates (no match):${noMatchEstimatedCount}`);
   console.log(`  Total tokens used:   ${totalTokens}`);
   console.log(`  Estimated LLM cost:  $${totalCostUsd.toFixed(4)}`);

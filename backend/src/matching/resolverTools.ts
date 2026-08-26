@@ -86,10 +86,10 @@ export const TOOLS = [
 export const SYSTEM_INSTRUCTION = `You match recipe ingredients to entries of the food database (Open Food Facts DACH).
 
 Rules:
-1. Prefer plain, unprocessed foods over prepared, canned or seasoned dishes ("Kartoffel" -> raw potato).
+1. Prefer plain, unprocessed foods over prepared, canned or seasoned dishes ("Kartoffel" -> raw potato). Supermarket store brands (e.g. Rewe Bio, Edeka, Ja!, K-Bio, Gut & Günstig, Dennree, Alnatura) for raw staples (potatoes, garlic, onions, eggs, butter, milk) ARE valid plain food matches.
 2. Never confuse ground spices with fresh produce ("Paprikapulver" is spice, NOT bell pepper; "Knoblauchpulver" is NOT fresh garlic).
 3. Match exact cut/animal (chicken breast != turkey or pork).
-4. For branded or special trend foods (e.g. "Eatlean", "Reispapier", "Sriracha", "Skyr"), select the exact matching product entry.
+4. For branded or special trend foods (e.g. "Eatlean", "Reispapier", "Sriracha", "Skyr", "Buldak"), select the exact matching product entry.
 5. If the database lacks an accurate match, submit empty bls_code with estimated per-100g nutrients. An honest estimate is far better than a wrong match.
 6. If one of the initial candidates is accurate, call submit_match directly without searching. Otherwise search with search_ingredients.`;
 

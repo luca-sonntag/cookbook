@@ -15,7 +15,22 @@ import type { CatalogueAccess } from './ingredientResolver.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_PATH = path.resolve(__dirname, '../data/off_de.sqlite');
+
+function resolveDBPath(): string {
+  const candidates = [
+    path.resolve(__dirname, '../data/off_de.sqlite'),
+    path.resolve(__dirname, '../../src/data/off_de.sqlite'),
+    path.resolve(__dirname, '../../dist/data/off_de.sqlite'),
+    path.resolve(process.cwd(), 'backend/dist/data/off_de.sqlite'),
+    path.resolve(process.cwd(), 'backend/src/data/off_de.sqlite'),
+    path.resolve(process.cwd(), 'dist/data/off_de.sqlite'),
+    path.resolve(process.cwd(), 'src/data/off_de.sqlite'),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return candidates[0];
+}
 
 interface OFFRow {
   id: number;
@@ -99,13 +114,14 @@ let listCategoryStmt: any = null;
 
 function getDB(): DatabaseSync | null {
   if (dbInstance) return dbInstance;
-  if (!fs.existsSync(DB_PATH)) {
-    console.warn(`[OpenFoodFacts] Database not found at ${DB_PATH}. Run 'npm run build:off' to generate.`);
+  const dbPath = resolveDBPath();
+  if (!fs.existsSync(dbPath)) {
+    console.warn(`[OpenFoodFacts] Database not found at ${dbPath}. Run 'npm run build:off' to generate.`);
     return null;
   }
 
   try {
-    dbInstance = new DatabaseSync(DB_PATH, { readOnly: true });
+    dbInstance = new DatabaseSync(dbPath, { readOnly: true });
     searchStmt = dbInstance.prepare(`
       SELECT p.id, p.code, p.name, p.generic_name, p.brand, p.category,
              p.calories, p.protein, p.carbs, p.fat, p.sugar, p.fiber,
