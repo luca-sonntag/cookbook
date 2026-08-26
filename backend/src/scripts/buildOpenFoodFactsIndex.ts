@@ -51,6 +51,127 @@ function parseNum(val: string | undefined): number {
   return Number.isFinite(num) && num > 0 ? num : 0;
 }
 
+const TAXONOMY_MAP: Record<string, string> = {
+  // BEVERAGES
+  'en:plant-based-beverages': 'BEVERAGES',
+  'en:beverages': 'BEVERAGES',
+  'en:beverages-and-beverages-preparations': 'BEVERAGES',
+  'en:waters': 'BEVERAGES',
+  'en:carbonated-drinks': 'BEVERAGES',
+  'en:sodas': 'BEVERAGES',
+  'en:fruit-juices': 'BEVERAGES',
+  'en:fruit-based-beverages': 'BEVERAGES',
+  'en:teas': 'BEVERAGES',
+  'en:coffees': 'BEVERAGES',
+  'en:alcoholic-beverages': 'BEVERAGES',
+  'en:beers': 'BEVERAGES',
+  'en:wines': 'BEVERAGES',
+
+  // DAIRY & EGGS
+  'en:dairies': 'DAIRY',
+  'en:milks': 'DAIRY',
+  'en:cheeses': 'DAIRY',
+  'en:fermented-milk-products': 'DAIRY',
+  'en:yogurts': 'DAIRY',
+  'en:curds': 'DAIRY',
+  'en:creams': 'DAIRY',
+  'en:butters': 'DAIRY',
+  'en:dairy-substitutes': 'DAIRY',
+  'en:eggs': 'DAIRY',
+  'en:eggs-and-their-products': 'DAIRY',
+
+  // MEAT & FISH
+  'en:meats-and-their-products': 'MEAT_FISH',
+  'en:meats': 'MEAT_FISH',
+  'en:poultries': 'MEAT_FISH',
+  'en:prepared-meats': 'MEAT_FISH',
+  'en:seafood': 'MEAT_FISH',
+  'en:fishes-and-their-products': 'MEAT_FISH',
+  'en:fishes': 'MEAT_FISH',
+  'en:crustaceans': 'MEAT_FISH',
+  'en:meat-alternatives': 'MEAT_FISH',
+
+  // FRUITS & VEGETABLES
+  'en:fruits-and-vegetables-based-foods': 'FRUITS_VEGETABLES',
+  'en:vegetables-based-foods': 'FRUITS_VEGETABLES',
+  'en:fruits-based-foods': 'FRUITS_VEGETABLES',
+  'en:vegetables': 'FRUITS_VEGETABLES',
+  'en:fruits': 'FRUITS_VEGETABLES',
+  'en:fresh-vegetables': 'FRUITS_VEGETABLES',
+  'en:fresh-fruits': 'FRUITS_VEGETABLES',
+  'en:frozen-vegetables': 'FRUITS_VEGETABLES',
+  'en:frozen-fruits': 'FRUITS_VEGETABLES',
+  'en:canned-plant-based-foods': 'FRUITS_VEGETABLES',
+  'en:legumes-and-their-products': 'FRUITS_VEGETABLES',
+  'en:pulses': 'FRUITS_VEGETABLES',
+  'en:mushrooms': 'FRUITS_VEGETABLES',
+  'en:salads': 'FRUITS_VEGETABLES',
+
+  // GRAINS, PASTA & BAKING
+  'en:cereals-and-potatoes': 'GRAINS_PASTA',
+  'en:cereals-and-their-products': 'GRAINS_PASTA',
+  'en:pastas': 'GRAINS_PASTA',
+  'en:noodles': 'GRAINS_PASTA',
+  'en:breads': 'GRAINS_PASTA',
+  'en:flours': 'GRAINS_PASTA',
+  'en:breakfast-cereals': 'GRAINS_PASTA',
+  'en:cereal-grains': 'GRAINS_PASTA',
+  'en:rices': 'GRAINS_PASTA',
+  'en:tortillas': 'GRAINS_PASTA',
+  'en:baked-goods': 'GRAINS_PASTA',
+
+  // SPICES, OILS & CONDIMENTS
+  'en:condiments': 'SPICES_OILS',
+  'en:sauces': 'SPICES_OILS',
+  'en:spices': 'SPICES_OILS',
+  'en:culinary-plants': 'SPICES_OILS',
+  'en:fats': 'SPICES_OILS',
+  'en:vegetable-fats': 'SPICES_OILS',
+  'en:vegetable-oils': 'SPICES_OILS',
+  'en:pestos': 'SPICES_OILS',
+  'en:vinegars': 'SPICES_OILS',
+  'en:salts': 'SPICES_OILS',
+
+  // SWEETS & DESSERTS
+  'en:sweet-snacks': 'SWEETS',
+  'en:chocolates': 'SWEETS',
+  'en:confectioneries': 'SWEETS',
+  'en:biscuits-and-cakes': 'SWEETS',
+  'en:biscuits': 'SWEETS',
+  'en:cakes': 'SWEETS',
+  'en:desserts': 'SWEETS',
+  'en:dairy-desserts': 'SWEETS',
+  'en:frozen-desserts': 'SWEETS',
+  'en:ice-creams': 'SWEETS',
+  'en:sweet-spreads': 'SWEETS',
+  'en:cocoa-and-its-products': 'SWEETS',
+};
+
+function classifyCategory(rawTagsStr: string): string {
+  if (!rawTagsStr) return 'OTHER';
+  const tags = rawTagsStr.split(',').map(t => t.trim().toLowerCase());
+
+  // 1. Leaf-first check: scan tags from most specific (end) to general (start)
+  for (let i = tags.length - 1; i >= 0; i--) {
+    const match = TAXONOMY_MAP[tags[i]];
+    if (match) return match;
+  }
+
+  // 2. Keyword fallback on individual tags
+  for (let i = tags.length - 1; i >= 0; i--) {
+    const t = tags[i];
+    if (t.includes('cheese') || t.includes('dairy') || t.includes('milk') || t.includes('joghurt') || t.includes('quark')) return 'DAIRY';
+    if (t.includes('meat') || t.includes('poultry') || t.includes('chicken') || t.includes('beef') || t.includes('pork') || t.includes('fish') || t.includes('seafood')) return 'MEAT_FISH';
+    if (t.includes('vegetable') || t.includes('fruit') || t.includes('legume') || t.includes('pulse') || t.includes('tomato') || t.includes('onion') || t.includes('salad')) return 'FRUITS_VEGETABLES';
+    if (t.includes('cereal') || t.includes('pasta') || t.includes('noodle') || t.includes('bread') || t.includes('flour') || t.includes('rice') || t.includes('potato')) return 'GRAINS_PASTA';
+    if (t.includes('spice') || t.includes('sauce') || t.includes('oil') || t.includes('fat') || t.includes('pesto') || t.includes('condiment')) return 'SPICES_OILS';
+    if (t.includes('beverage') || t.includes('drink') || t.includes('juice') || t.includes('water') || t.includes('tea') || t.includes('coffee')) return 'BEVERAGES';
+    if (t.includes('sweet') || t.includes('snack') || t.includes('chocolate') || t.includes('dessert') || t.includes('candy') || t.includes('cake') || t.includes('biscuit')) return 'SWEETS';
+  }
+
+  return 'OTHER';
+}
+
 async function main(): Promise<void> {
   console.log('='.repeat(75));
   console.log('🚀 Open Food Facts Index Builder (DACH / German Lean Database + Purity Ranking)');
@@ -179,7 +300,7 @@ async function main(): Promise<void> {
     const name = cleanString(cols[colMap['product_name'] ?? 10]);
     const genericName = cleanString(cols[colMap['generic_name'] ?? 12]);
     const brand = cleanString(cols[colMap['brands'] ?? 18]);
-    const category = cleanString((cols[colMap['categories_tags'] ?? 22] || cols[colMap['categories_en'] ?? 23] || '').split(',')[0]);
+    const category = classifyCategory(cols[colMap['categories_tags'] ?? 22] || cols[colMap['categories_en'] ?? 23] || '');
 
     if (!name && !genericName) continue;
 

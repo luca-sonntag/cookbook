@@ -59,33 +59,6 @@ function cleanQueryForFTS(raw: string): string {
     .join(' ');
 }
 
-function mapOFFCategory(rawCategory: string | null): string {
-  if (!rawCategory) return 'OTHER';
-  const c = rawCategory.toLowerCase();
-  if (c.includes('dairy') || c.includes('milk') || c.includes('käse') || c.includes('cheese') || c.includes('joghurt') || c.includes('quark')) {
-    return 'DAIRY';
-  }
-  if (c.includes('meat') || c.includes('poultry') || c.includes('fleisch') || c.includes('hähnchen') || c.includes('rind') || c.includes('fish') || c.includes('fisch')) {
-    return 'MEAT_FISH';
-  }
-  if (c.includes('fruit') || c.includes('vegetable') || c.includes('obst') || c.includes('gemüse') || c.includes('salad') || c.includes('salat')) {
-    return 'FRUITS_VEGETABLES';
-  }
-  if (c.includes('cereal') || c.includes('grain') || c.includes('pasta') || c.includes('bread') || c.includes('brot') || c.includes('mehl') || c.includes('flocken')) {
-    return 'GRAINS_PASTA';
-  }
-  if (c.includes('spice') || c.includes('gewürz') || c.includes('oil') || c.includes('öl') || c.includes('sauce') || c.includes('soße') || c.includes('condiment')) {
-    return 'SPICES_OILS';
-  }
-  if (c.includes('beverage') || c.includes('drink') || c.includes('getränk') || c.includes('juice') || c.includes('saft')) {
-    return 'BEVERAGES';
-  }
-  if (c.includes('sweet') || c.includes('snack') || c.includes('schokolade') || c.includes('candy')) {
-    return 'SWEETS';
-  }
-  return 'OTHER';
-}
-
 function rowToCanonicalIngredient(row: OFFRow): CanonicalIngredient {
   const code = row.code || `off_${row.id}`;
   const brandSuffix = row.brand ? ` [${row.brand}]` : '';
@@ -96,7 +69,7 @@ function rowToCanonicalIngredient(row: OFFRow): CanonicalIngredient {
     bls_code: code,
     name_de: `${row.name}${brandSuffix}`,
     name_en: row.generic_name || row.name,
-    category: mapOFFCategory(row.category),
+    category: row.category || 'OTHER',
     nutrients_per_100g: {
       calories: row.calories,
       protein: row.protein,
