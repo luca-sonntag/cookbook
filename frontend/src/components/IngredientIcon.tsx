@@ -32,7 +32,7 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const iconUrl = getIngredientIconUrl(canonicalId);
-  const categoryIconUrl = getCategoryIconUrl(category);
+  const categoryIconUrl = getCategoryIconUrl(category, name);
 
   // Clean flat container without heavy shadows or borders
   const containerClasses = `${SIZE_MAP[size]} flex items-center justify-center overflow-hidden flex-shrink-0 relative select-none bg-white dark:bg-white rounded-xl ${className}`;
