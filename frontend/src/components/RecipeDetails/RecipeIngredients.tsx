@@ -133,6 +133,7 @@ export default function RecipeIngredients({
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <IngredientIcon
+                          baseName={ing.baseName}
                           canonicalId={ing.canonicalId}
                           category={group.name}
                           name={name}

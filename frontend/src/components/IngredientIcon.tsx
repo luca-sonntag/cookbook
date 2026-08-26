@@ -3,6 +3,7 @@ import { getIngredientIconUrl } from '../utils/ingredientIcon';
 import { getCategoryIconUrl } from '../i18n';
 
 export interface IngredientIconProps {
+  baseName?: string | null;
   canonicalId?: string | null;
   category?: string;
   name?: string;
@@ -23,6 +24,7 @@ const ICON_SIZE_MAP = {
 };
 
 export const IngredientIcon: React.FC<IngredientIconProps> = ({
+  baseName,
   canonicalId,
   category = '',
   name = '',
@@ -31,7 +33,7 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
 }) => {
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const iconUrl = getIngredientIconUrl(canonicalId);
+  const iconUrl = getIngredientIconUrl(baseName, canonicalId);
   const categoryIconUrl = getCategoryIconUrl(category);
 
   // Clean flat container without heavy shadows or borders

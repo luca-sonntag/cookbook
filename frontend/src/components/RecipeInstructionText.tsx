@@ -153,6 +153,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                       {matchedIng ? (
                         <div className="flex items-center gap-2.5 min-w-[160px] max-w-[280px]">
                           <IngredientIcon
+                            baseName={matchedIng.baseName}
                             canonicalId={matchedIng.canonicalId}
                             category={matchedIng.category}
                             name={matchedIng.name}
@@ -273,6 +274,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
                       {matched.ingredient ? (
                         <div className="flex items-center gap-2.5 min-w-[160px] max-w-[280px]">
                           <IngredientIcon
+                            baseName={matched.ingredient.baseName}
                             canonicalId={matched.ingredient.canonicalId}
                             category={matched.ingredient.category}
                             name={matched.ingredient.name}

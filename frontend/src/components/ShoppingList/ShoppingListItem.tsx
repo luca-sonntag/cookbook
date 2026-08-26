@@ -118,6 +118,7 @@ export default function ShoppingListItem({
             </span>
 
             <IngredientIcon
+              baseName={item.baseName}
               canonicalId={item.canonicalId}
               category={item.category}
               name={item.name}
@@ -176,6 +177,7 @@ export default function ShoppingListItem({
           )}
 
           <IngredientIcon
+            baseName={item.baseName}
             canonicalId={item.canonicalId}
             category={item.category}
             name={item.name}

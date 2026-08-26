@@ -146,6 +146,7 @@ export default function ShoppingConfirmSheet({
                                 </div>
 
                                 <IngredientIcon
+                                  baseName={ing.baseName}
                                   canonicalId={ing.canonicalId}
                                   category={group.name || ing.category}
                                   name={name}

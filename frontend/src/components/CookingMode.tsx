@@ -339,6 +339,7 @@ export default function CookingMode({
                     className="flex items-center gap-3 p-2.5 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-black/5 dark:border-white/5"
                   >
                     <IngredientIcon
+                      baseName={ing.baseName}
                       canonicalId={ing.canonicalId}
                       category={ing.category}
                       name={ing.name}

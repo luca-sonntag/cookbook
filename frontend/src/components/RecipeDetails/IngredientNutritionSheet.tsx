@@ -73,6 +73,7 @@ export default function IngredientNutritionSheet({
                 <div className="w-full flex items-start justify-between gap-3 pt-1">
                   <div className="flex items-center gap-3.5 flex-1 min-w-0">
                     <IngredientIcon
+                      baseName={ingredient.baseName}
                       canonicalId={ingredient.canonicalId}
                       category={category || ingredient.category}
                       name={ingredient.name}
