@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
-import { CANONICAL_INGREDIENTS } from './data/canonicalIngredients.js';
+import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from './data/canonicalIngredients.js';
+import { openFoodFactsAccess } from './matching/openFoodFactsIndex.js';
 import {
   findExistingIngredientImage,
   generateIngredientIcon,
@@ -21,39 +22,74 @@ ingredientImageRouter.get('/api/dev/ingredients', (req: Request, res: Response) 
     const search = ((req.query.search as string) || '').toLowerCase().trim();
     const category = ((req.query.category as string) || '').trim();
     const hasImageFilter = (req.query.hasImage as string) || 'all'; // 'all' | 'true' | 'false'
-    const limit = parseInt(req.query.limit as string, 10) || 500;
+    const limit = parseInt(req.query.limit as string, 10) || 1500;
     const offset = parseInt(req.query.offset as string, 10) || 0;
 
-    // Cache existing files map for fast O(1) lookup
+    // 1. Gather all icons existing on disk (primary inventory)
     const files = fs.existsSync(imageDir) ? fs.readdirSync(imageDir) : [];
-    const imageMap = new Map<string, string>();
-    for (const f of files) {
-      if (f.toLowerCase().endsWith('.webp')) {
-        const match = f.match(/^(bls_[a-z0-9]+)/i);
-        const id = match ? match[1].toLowerCase() : f.replace(/\.webp$/i, '').toLowerCase();
-        imageMap.set(id, f);
+    const iconFiles = files.filter(f => f.toLowerCase().endsWith('.webp') && !f.toLowerCase().startsWith('category_'));
+
+    const itemsMap = new Map<string, {
+      id: string;
+      product_code: string;
+      bls_code?: string;
+      name_de: string;
+      name_en: string;
+      category: string;
+      slug: string;
+      hasImage: boolean;
+      filename: string | null;
+      imageUrl: string | null;
+    }>();
+
+    // Index all actual files on disk first
+    for (const f of iconFiles) {
+      const slug = f.replace(/\.webp$/i, '').toLowerCase();
+      const formatted = slug.replace(/_/g, ' ');
+      itemsMap.set(slug, {
+        id: slug,
+        product_code: slug,
+        name_de: formatted,
+        name_en: formatted,
+        category: 'OTHER',
+        slug,
+        hasImage: true,
+        filename: f,
+        imageUrl: `/api/ingredient-icons/${f}?v=${encodeURIComponent(f)}`,
+      });
+    }
+
+    // Merge metadata from CANONICAL_INGREDIENTS
+    for (const item of CANONICAL_INGREDIENTS) {
+      const slug = getIngredientSlug(item);
+      const filename = findExistingIngredientImage(item.id) || (slug ? findExistingIngredientImage(slug) : null);
+      const hasImage = !!filename;
+      const key = slug || item.id.toLowerCase();
+
+      const existing = itemsMap.get(key);
+      if (existing) {
+        existing.name_de = item.name_de || existing.name_de;
+        existing.name_en = item.name_en || existing.name_en;
+        existing.category = item.category || existing.category;
+        existing.bls_code = item.bls_code;
+      } else {
+        itemsMap.set(key, {
+          id: item.id,
+          product_code: item.product_code || item.id,
+          bls_code: item.bls_code,
+          name_de: item.name_de,
+          name_en: item.name_en,
+          category: item.category,
+          slug,
+          hasImage,
+          filename,
+          imageUrl: hasImage ? `/api/ingredient-icons/${filename}?v=${encodeURIComponent(filename)}` : null,
+        });
       }
     }
 
-    let generatedCount = 0;
-    const allEnriched = CANONICAL_INGREDIENTS.map((item) => {
-      const filename = imageMap.get(item.id.toLowerCase()) || null;
-      const hasImage = !!filename;
-      if (hasImage) generatedCount++;
-
-      return {
-        id: item.id,
-        product_code: item.product_code || item.id,
-        bls_code: item.bls_code,
-        name_de: item.name_de,
-        name_en: item.name_en,
-        category: item.category,
-        slug: getIngredientSlug(item),
-        hasImage,
-        filename,
-        imageUrl: hasImage ? `/api/dev/ingredients/${item.id}/image?v=${encodeURIComponent(filename)}` : null,
-      };
-    });
+    const allEnriched = Array.from(itemsMap.values());
+    let generatedCount = allEnriched.filter(i => i.hasImage).length;
 
     // Apply filtering
     let filtered = allEnriched;
@@ -74,8 +110,7 @@ ingredientImageRouter.get('/api/dev/ingredients', (req: Request, res: Response) 
           item.name_de.toLowerCase().includes(search) ||
           item.name_en.toLowerCase().includes(search) ||
           item.id.toLowerCase().includes(search) ||
-          (item.product_code?.toLowerCase().includes(search) ?? false) ||
-          (item.bls_code?.toLowerCase().includes(search) ?? false)
+          item.slug.toLowerCase().includes(search)
       );
     }
 
@@ -85,7 +120,7 @@ ingredientImageRouter.get('/api/dev/ingredients', (req: Request, res: Response) 
 
     res.json({
       success: true,
-      totalTotal: CANONICAL_INGREDIENTS.length,
+      totalTotal: allEnriched.length,
       totalGenerated: generatedCount,
       totalFiltered,
       costs: costsSummary,
@@ -158,9 +193,30 @@ ingredientImageRouter.get('/api/category-icons/:filename', (req: Request, res: R
 ingredientImageRouter.post('/api/dev/ingredients/:id/generate', async (req: Request, res: Response) => {
   try {
     const id = req.params.id.toLowerCase().trim();
-    const item = CANONICAL_INGREDIENTS.find(
-      (ing) => ing.id.toLowerCase() === id || ing.product_code?.toLowerCase() === id || ing.bls_code?.toLowerCase() === id
-    );
+    let item: CanonicalIngredient | null = CANONICAL_INGREDIENTS.find(
+      (ing) => ing.id.toLowerCase() === id || ing.product_code?.toLowerCase() === id || ing.bls_code?.toLowerCase() === id || getIngredientSlug(ing) === id
+    ) ?? null;
+
+    if (!item) {
+      // Check Open Food Facts
+      const offItem = openFoodFactsAccess.get(id);
+      if (offItem) {
+        item = offItem;
+      } else {
+        // Construct canonical pseudo-item from baseName slug
+        const slugId = id.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        const nameEn = slugId.replace(/_/g, ' ');
+        item = {
+          id: slugId,
+          product_code: slugId,
+          name_de: (req.body?.name_de as string) || nameEn,
+          name_en: nameEn,
+          category: (req.body?.category as string) || 'OTHER',
+          nutrients_per_100g: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
+          aliases: [nameEn],
+        };
+      }
+    }
 
     if (!item) {
       return res.status(404).json({ success: false, error: `Ingredient ${id} not found` });
@@ -177,7 +233,7 @@ ingredientImageRouter.post('/api/dev/ingredients/:id/generate', async (req: Requ
         name_en: item.name_en,
         category: item.category,
         filename: result.filename,
-        imageUrl: `/api/dev/ingredients/${item.id}/image?v=${Date.now()}`,
+        imageUrl: `/api/ingredient-icons/${result.filename}?v=${Date.now()}`,
         hasImage: true,
       },
       costs: result.costs,
