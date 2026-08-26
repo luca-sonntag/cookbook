@@ -92,6 +92,7 @@ function rowToCanonicalIngredient(row: OFFRow): CanonicalIngredient {
 
   return {
     id: code,
+    product_code: code,
     bls_code: code,
     name_de: `${row.name}${brandSuffix}`,
     name_en: row.generic_name || row.name,

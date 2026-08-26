@@ -68,6 +68,7 @@ async function main(): Promise<void> {
     rows.set(key, {
       mapping_key: key,
       category: '',
+      product_code: blsCode,
       bls_code: blsCode,
       resolution: 'matched',
       source: 'static',

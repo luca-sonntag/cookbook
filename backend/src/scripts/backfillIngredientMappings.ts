@@ -200,11 +200,11 @@ async function main(): Promise<void> {
           resolverCalls++;
           totalTokens += res.usage.tokenUsage?.totalTokens ?? 0;
           totalCostUsd += res.usage.costEstimate?.totalCostUsd ?? 0;
-          const target = res.match ? `OFF ${res.match.bls_code || res.match.id} (${res.match.name_de})` : 'NO_MATCH (Estimated)';
+          const target = res.match ? `OFF ${res.match.product_code || res.match.bls_code || res.match.id} (${res.match.name_de})` : 'NO_MATCH (Estimated)';
           console.log(`  🤖 [Gemini Resolver] "${nameDisplay}" -> ${target}`);
         } else {
           cacheHits++;
-          const target = res.match ? `OFF ${res.match.bls_code || res.match.id}` : 'Store cached';
+          const target = res.match ? `OFF ${res.match.product_code || res.match.bls_code || res.match.id}` : 'Store cached';
           if (options.verbose) console.log(`  ⚡ [Store Hit] "${nameDisplay}" -> ${target}`);
         }
 

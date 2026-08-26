@@ -319,7 +319,7 @@ adminRoutes.get(
 
 /**
  * Correct or delete one learned ingredient mapping.
- * PATCH /api/admin/ingredient-mappings/:id  { blsCode: string | null }
+ * PATCH /api/admin/ingredient-mappings/:id  { productCode: string | null }
  * DELETE /api/admin/ingredient-mappings/:id
  * Requires admin privileges.
  */
@@ -329,21 +329,22 @@ adminRoutes.patch(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const rawCode = req.body?.blsCode;
-      const blsCode = typeof rawCode === 'string' && rawCode.trim() ? rawCode.trim().toLowerCase() : null;
+      const rawCode = req.body?.productCode ?? req.body?.blsCode;
+      const productCode = typeof rawCode === 'string' && rawCode.trim() ? rawCode.trim().toLowerCase() : null;
 
-      if (blsCode) {
-        const item = openFoodFactsAccess.get(blsCode);
+      if (productCode) {
+        const item = openFoodFactsAccess.get(productCode);
         if (!item) {
-          throw new AppError('INVALID_FIELD', { params: { field: 'blsCode' } });
+          throw new AppError('INVALID_FIELD', { params: { field: 'productCode' } });
         }
       }
 
       const { error } = await getClient()
         .from('ingredient_mappings')
         .update({
-          bls_code: blsCode,
-          resolution: blsCode ? 'matched' : 'no_match',
+          product_code: productCode,
+          bls_code: productCode,
+          resolution: productCode ? 'matched' : 'no_match',
           source: 'human',
           confidence: 1,
           reasoning: `Corrected by ${req.userEmail ?? 'admin'}`,

@@ -462,14 +462,14 @@ $function$;
 -- may point at the same code ("bacon cubes" and "bacon" both resolve to W410400),
 -- which is what makes the store collapse spelling variants over time.
 --
--- `bls_code` NULL together with resolution='no_match' is a real, cached answer:
--- "this food is not in the BLS", so the estimate fallback is used without paying
+-- `product_code` NULL together with resolution='no_match' is a real, cached answer:
+-- "this food has no exact barcode/product match", so the estimate fallback is used without paying
 -- for the resolver again.
 CREATE TABLE IF NOT EXISTS public.ingredient_mappings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   mapping_key text NOT NULL,
   category text NOT NULL DEFAULT '',
-  bls_code text,
+  product_code text,
   resolution text NOT NULL CHECK (resolution IN ('matched', 'no_match')),
   estimated_nutrients jsonb,
   source text NOT NULL DEFAULT 'agent' CHECK (source IN ('static', 'agent', 'human')),

@@ -43,9 +43,11 @@ export interface ResolverInput {
 }
 
 export interface ResolverResult {
-  /** BLS code when the catalogue has an accurate entry, null when it genuinely does not. */
-  blsCode: string | null;
-  /** Model's own estimate per 100 g, only meaningful when blsCode is null. */
+  /** Product/Barcode code when the catalogue has an accurate entry, null when it genuinely does not. */
+  productCode: string | null;
+  /** @deprecated Use productCode instead */
+  blsCode?: string | null;
+  /** Model's own estimate per 100 g, only meaningful when productCode is null. */
   estimatedNutrients: EstimatedNutrients | null;
   confidence: number | null;
   reasoning: string | null;
@@ -59,7 +61,7 @@ export interface ResolverResult {
 /** Catalogue access the resolver is given. Injected so this module stays testable. */
 export interface CatalogueAccess {
   search(query: string, category?: string, limit?: number): CanonicalIngredient[];
-  get(blsCode: string): CanonicalIngredient | null;
+  get(code: string): CanonicalIngredient | null;
   listCategory(category: string, limit?: number): CanonicalIngredient[];
 }
 
@@ -219,6 +221,7 @@ export async function resolveIngredient(
 
     if (!outcome) {
       outcome = {
+        productCode: null,
         blsCode: null,
         estimatedNutrients: null,
         confidence: null,
@@ -249,7 +252,7 @@ export async function resolveIngredient(
       requestType: 'resolve_ingredient',
       model: modelName,
       durationMs,
-      success: outcome.blsCode !== null || outcome.estimatedNutrients !== null,
+      success: outcome.productCode !== null || outcome.estimatedNutrients !== null,
       input: {
         name: input.name,
         baseName: input.baseName,
@@ -262,7 +265,8 @@ export async function resolveIngredient(
       },
       rawOutput: lastRawOutput,
       parsedOutput: {
-        blsCode: outcome.blsCode,
+        productCode: outcome.productCode,
+        blsCode: outcome.productCode,
         estimatedNutrients: outcome.estimatedNutrients,
         confidence: outcome.confidence,
         reasoning: outcome.reasoning,

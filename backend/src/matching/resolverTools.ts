@@ -1,27 +1,37 @@
-import {
-  FunctionDeclarationSchemaType,
-  type FunctionCall,
-} from '@google/generative-ai';
-import type { CanonicalIngredient } from '../data/canonicalIngredients.js';
-import type { EstimatedNutrients } from './mappingStore.js';
-import type { ResolverInput, ResolverResult, CatalogueAccess } from './ingredientResolver.js';
+/**
+ * Function-calling tool definitions and payload formats for the ingredient resolver.
+ */
 
-export const TOOLS = [
+import { FunctionDeclarationSchemaType, type FunctionDeclaration, type Tool } from '@google/generative-ai';
+import type { CanonicalIngredient } from '../data/canonicalIngredients.js';
+import type { ResolverInput, ResolverResult, CatalogueAccess } from './ingredientResolver.js';
+import type { EstimatedNutrients } from './mappingStore.js';
+
+export interface FunctionCall {
+  name: string;
+  args: Record<string, unknown>;
+}
+
+export const RESOLVER_TOOLS: Tool[] = [
   {
     functionDeclarations: [
       {
         name: 'search_ingredients',
-        description: 'Search food database (Open Food Facts DACH). Returns matching foods with codes and macros per 100g.',
+        description: 'Search food database (Open Food Facts DACH) by query and optional category.',
         parameters: {
           type: FunctionDeclarationSchemaType.OBJECT,
           properties: {
             query: {
               type: FunctionDeclarationSchemaType.STRING,
-              description: 'German or English search term, e.g. "Pecorino", "Parmesan", "Hähnchenbrust", "Reispapier".',
+              description: 'German or English search query (e.g. "Kichererbsen", "Eatlean", "Mozzarella").',
             },
             category: {
               type: FunctionDeclarationSchemaType.STRING,
-              description: 'Optional category (e.g. DAIRY, MEAT_FISH, FRUITS_VEGETABLES, SPICES_OILS, GRAINS_PASTA).',
+              description: 'Optional category (e.g. DAIRY, GRAINS_PASTA, MEAT_FISH, FRUITS_VEGETABLES).',
+            },
+            limit: {
+              type: FunctionDeclarationSchemaType.INTEGER,
+              description: 'Number of results to return (default: 4, max: 6).',
             },
           },
           required: ['query'],
@@ -29,16 +39,16 @@ export const TOOLS = [
       },
       {
         name: 'get_ingredient',
-        description: 'Fetches detailed nutrient breakdown for a specific food code / barcode.',
+        description: 'Fetch details for a food code / barcode from database.',
         parameters: {
           type: FunctionDeclarationSchemaType.OBJECT,
           properties: {
-            bls_code: {
+            product_code: {
               type: FunctionDeclarationSchemaType.STRING,
-              description: 'Exact food code / barcode, e.g. "5028482101690" or "off_123".',
+              description: 'Food code / barcode (e.g. "4006040178118", "9028457102666").',
             },
           },
-          required: ['bls_code'],
+          required: ['product_code'],
         },
       },
       {
@@ -47,7 +57,7 @@ export const TOOLS = [
         parameters: {
           type: FunctionDeclarationSchemaType.OBJECT,
           properties: {
-            bls_code: {
+            product_code: {
               type: FunctionDeclarationSchemaType.STRING,
               description: 'Verified food code / barcode, or empty string if no accurate match exists.',
             },
@@ -61,22 +71,22 @@ export const TOOLS = [
             },
             estimated_calories: {
               type: FunctionDeclarationSchemaType.NUMBER,
-              description: 'Only if bls_code is empty: kcal / 100g.',
+              description: 'Only if product_code is empty: kcal / 100g.',
             },
             estimated_protein: {
               type: FunctionDeclarationSchemaType.NUMBER,
-              description: 'Only if bls_code is empty: protein (g) / 100g.',
+              description: 'Only if product_code is empty: protein (g) / 100g.',
             },
             estimated_carbs: {
               type: FunctionDeclarationSchemaType.NUMBER,
-              description: 'Only if bls_code is empty: carbs (g) / 100g.',
+              description: 'Only if product_code is empty: carbs (g) / 100g.',
             },
             estimated_fat: {
               type: FunctionDeclarationSchemaType.NUMBER,
-              description: 'Only if bls_code is empty: fat (g) / 100g.',
+              description: 'Only if product_code is empty: fat (g) / 100g.',
             },
           },
-          required: ['bls_code', 'confidence'],
+          required: ['product_code', 'confidence'],
         },
       },
     ],
@@ -90,7 +100,7 @@ Rules:
 2. Never confuse ground spices with fresh produce ("Paprikapulver" is spice, NOT bell pepper; "Knoblauchpulver" is NOT fresh garlic).
 3. Match exact cut/animal (chicken breast != turkey or pork).
 4. For branded or special trend foods (e.g. "Eatlean", "Reispapier", "Sriracha", "Skyr", "Buldak"), select the exact matching product entry.
-5. If the database lacks an accurate match, submit empty bls_code with estimated per-100g nutrients. An honest estimate is far better than a wrong match.
+5. If the database lacks an accurate match, submit empty product_code with estimated per-100g nutrients. An honest estimate is far better than a wrong match.
 6. If one of the initial candidates is accurate, call submit_match directly without searching. Otherwise search with search_ingredients.`;
 
 export function buildPrompt(input: ResolverInput, initialCandidates?: CanonicalIngredient[]): string {
@@ -107,45 +117,49 @@ export function buildPrompt(input: ResolverInput, initialCandidates?: CanonicalI
   if (initialCandidates && initialCandidates.length > 0) {
     lines.push('', 'Top candidates from food database:');
     for (const c of initialCandidates) {
-      const code = c.bls_code || c.id;
+      const code = c.product_code || c.bls_code || c.id;
       const n = c.nutrients_per_100g;
-      lines.push(`- [${code}] ${c.name_de} (${c.category}) | 100g: ${n.calories} kcal, ${n.protein}g P, ${n.carbs}g C, ${n.fat}g F`);
+      const macros = `${n.calories}kcal, ${n.protein}g P, ${n.carbs}g C, ${n.fat}g F`;
+      lines.push(`- [${code}] ${c.name_de} (${macros})`);
     }
-    lines.push('', 'If a candidate fits, submit_match immediately. Otherwise use search_ingredients.');
-  } else {
-    lines.push('', 'Find the matching food entry or submit estimate.');
   }
 
   return lines.join('\n');
 }
 
-export function compact(item: CanonicalIngredient): Record<string, unknown> {
-  const n = item.nutrients_per_100g;
+function withNutrients(c: CanonicalIngredient) {
+  const n = c.nutrients_per_100g;
   return {
-    code: item.bls_code || item.id,
-    name: item.name_de,
-    category: item.category,
-    per_100g: `${n.calories} kcal | ${n.protein}P | ${n.carbs}C | ${n.fat}F`,
+    code: c.product_code || c.bls_code || c.id,
+    name: c.name_de,
+    category: c.category,
+    nutrients_per_100g: {
+      calories: n.calories,
+      protein: n.protein,
+      carbs: n.carbs,
+      fat: n.fat,
+    },
   };
 }
 
-export function withNutrients(item: CanonicalIngredient): Record<string, unknown> {
-  return { ...compact(item), nutrients_per_100g: item.nutrients_per_100g };
-}
-
-export function runTool(call: FunctionCall, catalogue: CatalogueAccess): unknown {
+export function executeTool(call: FunctionCall, catalogue: CatalogueAccess): Record<string, unknown> {
   const args = (call.args ?? {}) as Record<string, unknown>;
 
   switch (call.name) {
     case 'search_ingredients': {
       const query = String(args.query ?? '').trim();
-      if (!query) return { error: 'query must not be empty' };
-      const category = args.category ? String(args.category).toUpperCase().trim() : undefined;
-      const hits = catalogue.search(query, category, 6);
-      return hits.length > 0 ? { results: hits.map(compact) } : { results: [] };
+      if (!query) return { error: 'query parameter is required.' };
+      const category = args.category ? String(args.category).trim() : undefined;
+      const limit = Math.min(Math.max(1, Number(args.limit) || 4), 6);
+      const results = catalogue.search(query, category, limit);
+      return {
+        results: results.map(withNutrients),
+        total_found: results.length,
+      };
     }
     case 'get_ingredient': {
-      const code = String(args.bls_code ?? '').trim();
+      const code = String(args.product_code ?? args.bls_code ?? '').trim();
+      if (!code) return { error: 'product_code parameter is required.' };
       const item = catalogue.get(code);
       return item ? withNutrients(item) : { error: `No food entry with code "${code}".` };
     }
@@ -154,13 +168,16 @@ export function runTool(call: FunctionCall, catalogue: CatalogueAccess): unknown
   }
 }
 
+export const runTool = executeTool;
+export const TOOLS = RESOLVER_TOOLS;
+
 export function readSubmission(
   call: FunctionCall,
   catalogue: CatalogueAccess,
   model: string
 ): ResolverResult | { rejected: string } {
   const args = (call.args ?? {}) as Record<string, unknown>;
-  const rawCode = String(args.bls_code ?? '').trim();
+  const rawCode = String(args.product_code ?? args.bls_code ?? '').trim();
   const confidence = typeof args.confidence === 'number' ? args.confidence : null;
   const reasoning = args.reasoning ? String(args.reasoning) : null;
 
@@ -172,6 +189,7 @@ export function readSubmission(
       fat: Number(args.estimated_fat) || 0,
     };
     return {
+      productCode: null,
       blsCode: null,
       estimatedNutrients: estimate.calories > 0 ? estimate : null,
       confidence,
@@ -186,8 +204,10 @@ export function readSubmission(
     return { rejected: `No food entry with code "${rawCode}". Search again and submit a code that exists.` };
   }
 
+  const resolvedCode = item.product_code || item.bls_code || item.id;
   return {
-    blsCode: item.bls_code || item.id,
+    productCode: resolvedCode,
+    blsCode: resolvedCode,
     estimatedNutrients: null,
     confidence,
     reasoning,
