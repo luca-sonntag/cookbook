@@ -14,10 +14,11 @@ COPY shared/package*.json shared/
 # Install dependencies for the workspaces
 RUN YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm install
 
-# Copy shared workspace and build backend
+# Copy shared workspace and build shared & backend
 COPY shared/ shared/
 COPY backend/tsconfig.json backend/
 COPY backend/src/ backend/src/
+RUN npm run build -w shared
 RUN npm run build -w backend
 RUN npm prune --omit=dev --workspace=backend
 
