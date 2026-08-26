@@ -343,7 +343,6 @@ adminRoutes.patch(
         .from('ingredient_mappings')
         .update({
           product_code: productCode,
-          bls_code: productCode,
           resolution: productCode ? 'matched' : 'no_match',
           source: 'human',
           confidence: 1,

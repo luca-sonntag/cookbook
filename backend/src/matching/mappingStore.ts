@@ -207,7 +207,6 @@ export async function storeMapping(
     mapping_key: key,
     category: cat,
     product_code: code,
-    bls_code: code,
     resolution: mapping.resolution,
     estimated_nutrients: mapping.estimatedNutrients,
     source: mapping.source,

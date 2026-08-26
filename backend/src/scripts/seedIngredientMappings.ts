@@ -69,7 +69,6 @@ async function main(): Promise<void> {
       mapping_key: key,
       category: '',
       product_code: blsCode,
-      bls_code: blsCode,
       resolution: 'matched',
       source: 'static',
       confidence: 1,
