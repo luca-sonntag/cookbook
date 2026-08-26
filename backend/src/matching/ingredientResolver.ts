@@ -195,7 +195,7 @@ export async function resolveIngredient(
       const submission = calls.find(c => c.name === 'submit_match');
       if (submission) {
         lastRawOutput = JSON.stringify(submission.args);
-        const result = readSubmission(submission, catalogue, modelName);
+        const result = readSubmission(submission as any, catalogue, modelName);
         if (!('rejected' in result)) {
           outcome = result;
           break;
@@ -214,7 +214,7 @@ export async function resolveIngredient(
       message = calls.map(call => ({
         functionResponse: {
           name: call.name,
-          response: runTool(call, catalogue) as object,
+          response: runTool(call as any, catalogue) as object,
         },
       }));
     }

@@ -20,7 +20,7 @@ import { getClient } from '../db.js';
 interface SeedRow {
   mapping_key: string;
   category: string;
-  bls_code: string;
+  product_code: string;
   resolution: 'matched';
   source: 'static';
   confidence: number;
@@ -56,11 +56,11 @@ async function main(): Promise<void> {
     const key = canonicalizeBaseName(baseName);
     if (!key || key.length < 2) continue;
 
-    const blsCode = item.bls_code || item.id;
+    const productCode = item.product_code || item.id;
     const existing = rows.get(key);
     if (existing) {
-      if (existing.bls_code !== blsCode) {
-        conflicts.push(`${key}: ${existing.bls_code} (kept) vs ${blsCode} (from "${baseName}")`);
+      if (existing.product_code !== productCode) {
+        conflicts.push(`${key}: ${existing.product_code} (kept) vs ${productCode} (from "${baseName}")`);
       }
       continue;
     }
@@ -68,7 +68,7 @@ async function main(): Promise<void> {
     rows.set(key, {
       mapping_key: key,
       category: '',
-      product_code: blsCode,
+      product_code: productCode,
       resolution: 'matched',
       source: 'static',
       confidence: 1,

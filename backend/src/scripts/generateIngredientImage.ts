@@ -68,7 +68,7 @@ function findIngredient(options: CliOptions): CanonicalIngredient | null {
   if (options.id) {
     const targetId = options.id.toLowerCase().trim();
     const found = CANONICAL_INGREDIENTS.find(
-      (item) => item.id.toLowerCase() === targetId || item.bls_code.toLowerCase() === targetId
+      (item) => item.id.toLowerCase() === targetId || item.product_code?.toLowerCase() === targetId || item.bls_code?.toLowerCase() === targetId
     );
     if (found) return found;
   }

@@ -43,6 +43,7 @@ ingredientImageRouter.get('/api/dev/ingredients', (req: Request, res: Response) 
 
       return {
         id: item.id,
+        product_code: item.product_code || item.id,
         bls_code: item.bls_code,
         name_de: item.name_de,
         name_en: item.name_en,
@@ -73,7 +74,8 @@ ingredientImageRouter.get('/api/dev/ingredients', (req: Request, res: Response) 
           item.name_de.toLowerCase().includes(search) ||
           item.name_en.toLowerCase().includes(search) ||
           item.id.toLowerCase().includes(search) ||
-          item.bls_code.toLowerCase().includes(search)
+          (item.product_code?.toLowerCase().includes(search) ?? false) ||
+          (item.bls_code?.toLowerCase().includes(search) ?? false)
       );
     }
 
@@ -157,7 +159,7 @@ ingredientImageRouter.post('/api/dev/ingredients/:id/generate', async (req: Requ
   try {
     const id = req.params.id.toLowerCase().trim();
     const item = CANONICAL_INGREDIENTS.find(
-      (ing) => ing.id.toLowerCase() === id || ing.bls_code.toLowerCase() === id
+      (ing) => ing.id.toLowerCase() === id || ing.product_code?.toLowerCase() === id || ing.bls_code?.toLowerCase() === id
     );
 
     if (!item) {

@@ -390,7 +390,7 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
     test('get resolves a code/barcode correctly', () => {
       const hits = openFoodFactsAccess.search('Butter', undefined, 1);
       assert.ok(hits.length > 0);
-      const code = hits[0].bls_code;
+      const code = hits[0].product_code || hits[0].id;
       const direct = openFoodFactsAccess.get(code);
       assert.ok(direct !== null, 'code should resolve');
       assert.equal(direct!.id, code);

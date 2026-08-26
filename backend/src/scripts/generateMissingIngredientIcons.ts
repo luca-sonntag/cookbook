@@ -140,15 +140,18 @@ async function main() {
 
         const canonicalPseudoItem: CanonicalIngredient = {
           id: item.key,
-          bls_code: item.key,
+          product_code: item.product_code || item.key,
           name_de: item.reasoning || item.key,
           name_en: item.key,
           category: item.category,
-          calories: 0,
-          protein: 0,
-          fat: 0,
-          carbs: 0,
-          fiber: 0,
+          nutrients_per_100g: {
+            calories: 0,
+            protein: 0,
+            fat: 0,
+            carbs: 0,
+            fiber: 0,
+          },
+          aliases: [item.key],
         };
 
         const result = await generateIngredientIcon(canonicalPseudoItem, { outDir: options.outDir });

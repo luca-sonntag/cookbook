@@ -28,7 +28,7 @@ describe('Open Food Facts Local SQLite Catalogue', () => {
   test('get resolves a product by its code/barcode', () => {
     const hits = openFoodFactsAccess.search('Butter', undefined, 1);
     assert.ok(hits.length > 0);
-    const code = hits[0].bls_code;
+    const code = hits[0].product_code || hits[0].id;
     const direct = openFoodFactsAccess.get(code);
     assert.ok(direct !== null, 'Direct lookup by code should succeed');
     assert.strictEqual(direct?.id, code);
