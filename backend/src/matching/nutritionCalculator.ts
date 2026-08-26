@@ -2,6 +2,7 @@ import type { CanonicalIngredient } from '../data/canonicalIngredients.js';
 import type { EstimatedNutrients } from './mappingStore.js';
 import type { Ingredient } from '../types.js';
 import { normalizeUnit } from './matcherUtils.js';
+import { canonicalizeBaseName } from './baseNameCanonical.js';
 
 /**
  * Calculates the total weight in grams for a given amount, unit, and matched ingredient.
@@ -128,6 +129,10 @@ export function applyCanonicalMatchToIngredient(
   carbs: number;
   fat: number;
 } {
+  if (ingredient.baseName) {
+    ingredient.baseName = canonicalizeBaseName(ingredient.baseName);
+  }
+
   let effectiveMatch = match;
   if (effectiveMatch && !isNutritionallyPlausible(ingredient, effectiveMatch)) {
     effectiveMatch = null;

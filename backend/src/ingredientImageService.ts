@@ -6,6 +6,7 @@ import { config } from './config.js';
 import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from './data/canonicalIngredients.js';
 import { BASE_NAME_TO_CANONICAL_ID } from './matching/baseNameMap.js';
 import { openFoodFactsAccess } from './matching/openFoodFactsIndex.js';
+import { canonicalizeBaseName, toEnglishSingular } from './matching/baseNameCanonical.js';
 
 const FAL_FLUX_ENDPOINT = 'https://fal.run/fal-ai/flux-1/schnell';
 const FLUX_COST_PER_IMAGE_USD = 0.0035; // fal.ai flux-1/schnell square_hd standard rate
@@ -383,6 +384,7 @@ export function findExistingIngredientImage(ingredientId: string, outDir?: strin
   if (!fs.existsSync(dir)) return null;
 
   const raw = ingredientId.toLowerCase().trim();
+  const canonical = canonicalizeBaseName(raw).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
   const slug = raw
     .replace(/ä/g, 'ae')
     .replace(/ö/g, 'oe')
@@ -391,26 +393,33 @@ export function findExistingIngredientImage(ingredientId: string, outDir?: strin
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
 
-  if (!slug) return null;
+  if (!slug && !canonical) return null;
 
-  // 1. Direct match on slug
-  if (fs.existsSync(path.join(dir, `${slug}.webp`))) {
+  // 1. Direct match on slug (e.g. "strained_tomato.webp")
+  if (slug && fs.existsSync(path.join(dir, `${slug}.webp`))) {
     return `${slug}.webp`;
   }
 
-  // 2. Singularized match (e.g. "eggs" -> "egg")
-  if (slug.endsWith('s') && !slug.endsWith('ss') && !slug.endsWith('ous')) {
-    const singular = slug.slice(0, -1);
-    if (fs.existsSync(path.join(dir, `${singular}.webp`))) {
-      return `${singular}.webp`;
-    }
+  // 2. Canonicalized match (e.g. "strained_tomatoes" -> "strained_tomato.webp", "potatoes" -> "potato.webp", "scallions" -> "spring_onion.webp")
+  if (canonical && fs.existsSync(path.join(dir, `${canonical}.webp`))) {
+    return `${canonical}.webp`;
   }
 
-  // 3. If identifier is a barcode or product code, resolve its English/German name via Open Food Facts
+  // 3. Singularized match using English singular rules (e.g. "tomatoes" -> "tomato.webp")
+  const singular = toEnglishSingular(slug);
+  if (singular && singular !== slug && fs.existsSync(path.join(dir, `${singular}.webp`))) {
+    return `${singular}.webp`;
+  }
+
+  // 4. If identifier is a barcode or product code, resolve its English/German name via Open Food Facts
   const product = openFoodFactsAccess.get(raw);
   if (product) {
     const candidateNames = [product.name_en, product.name_de].filter(Boolean);
     for (const name of candidateNames) {
+      const pCanonical = canonicalizeBaseName(name).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+      if (pCanonical && fs.existsSync(path.join(dir, `${pCanonical}.webp`))) {
+        return `${pCanonical}.webp`;
+      }
       const pSlug = name
         .split(/[,(]/)[0]
         .toLowerCase()
