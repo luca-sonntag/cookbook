@@ -23,6 +23,11 @@ const ICON_SIZE_MAP = {
   lg: 'w-full h-full p-1',
 };
 
+const FADE_MASK_STYLE: React.CSSProperties = {
+  maskImage: 'radial-gradient(circle at center, black 60%, rgba(0, 0, 0, 0.5) 82%, transparent 100%)',
+  WebkitMaskImage: 'radial-gradient(circle at center, black 60%, rgba(0, 0, 0, 0.5) 82%, transparent 100%)',
+};
+
 export const IngredientIcon: React.FC<IngredientIconProps> = ({
   baseName,
   canonicalId,
@@ -36,12 +41,12 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
   const iconUrl = getIngredientIconUrl(baseName, canonicalId);
   const categoryIconUrl = getCategoryIconUrl(category);
 
-  // Clean flat circular container with 100% border radius (circle)
-  const containerClasses = `${SIZE_MAP[size]} flex items-center justify-center overflow-hidden shrink-0 relative select-none bg-white dark:bg-white rounded-full ${className}`;
+  // Clean flat circular container with soft radial fade towards transparent edges
+  const containerClasses = `${SIZE_MAP[size]} flex items-center justify-center overflow-hidden shrink-0 relative select-none rounded-full bg-white/80 dark:bg-white/80 ${className}`;
 
   if (!iconUrl || hasError) {
     return (
-      <div className={containerClasses} title={category || name}>
+      <div className={containerClasses} style={FADE_MASK_STYLE} title={category || name}>
         <img
           src={categoryIconUrl}
           alt={category || name || 'Kategorie'}
@@ -53,7 +58,7 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
   }
 
   return (
-    <div className={containerClasses} title={name}>
+    <div className={containerClasses} style={FADE_MASK_STYLE} title={name}>
       {/* Category icon placeholder until specific image is fully loaded */}
       {!isLoaded && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
