@@ -104,6 +104,13 @@ export default function RecipeDetails({
   const [isShoppingConfirmOpen, setIsShoppingConfirmOpen] = useState(false);
   const [shouldNavigateAfterAdd, setShouldNavigateAfterAdd] = useState(false);
 
+  // In development mode, log the complete recipe model to the browser console when opened
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('🍳 [DevMode] Full Recipe Model:', recipe);
+    }
+  }, [recipe]);
+
   const handleToggleStep = (stepNum: number) => {
     const instructions = recipe.instructions ?? [];
     const isCurrentlyChecked = !!checkedSteps[stepNum];
