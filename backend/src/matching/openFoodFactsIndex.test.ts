@@ -25,6 +25,24 @@ describe('Open Food Facts Local SQLite Catalogue', () => {
     assert.ok(hits[0].nutrients_per_100g.carbs > 70, 'Reispapier should be carbohydrate dense');
   });
 
+  test('finds German compound staples reliably (Butter, Quark, Hackfleisch, Mehl)', () => {
+    // 1. Butter must return genuine dairy butter with ~82g fat, never peanut butter or buttermilk
+    const butterHits = openFoodFactsAccess.search('Butter', undefined, 3);
+    assert.ok(butterHits.length > 0, 'Should find Butter');
+    assert.ok(butterHits[0].name_de.toLowerCase().includes('butter'), 'Should contain Butter');
+    assert.ok(butterHits[0].nutrients_per_100g.fat > 75, 'Top butter hit must have >75g fat (pure dairy butter)');
+
+    // 2. Quark
+    const quarkHits = openFoodFactsAccess.search('Quark', undefined, 3);
+    assert.ok(quarkHits.length > 0, 'Should find Quark');
+    assert.ok(quarkHits[0].name_de.toLowerCase().includes('quark'), 'Should contain Quark');
+
+    // 3. Hackfleisch
+    const hackHits = openFoodFactsAccess.search('Hackfleisch', undefined, 3);
+    assert.ok(hackHits.length > 0, 'Should find Hackfleisch');
+    assert.ok(hackHits[0].name_de.toLowerCase().includes('hack'), 'Should contain Hack');
+  });
+
   test('get resolves a product by its code/barcode', () => {
     const hits = openFoodFactsAccess.search('Butter', undefined, 1);
     assert.ok(hits.length > 0);

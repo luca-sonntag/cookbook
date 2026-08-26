@@ -83,6 +83,7 @@ function rowToCanonicalIngredient(row: OFFRow): CanonicalIngredient {
 
 let dbInstance: DatabaseSync | null = null;
 let searchStmt: any = null;
+let likeSearchStmt: any = null;
 let getByCodeStmt: any = null;
 let listCategoryStmt: any = null;
 
@@ -112,6 +113,24 @@ function getDB(): DatabaseSync | null {
       SELECT * FROM products WHERE code = ? LIMIT 1;
     `);
 
+    likeSearchStmt = dbInstance.prepare(`
+      SELECT p.id, p.code, p.name, p.generic_name, p.brand, p.category,
+             p.calories, p.protein, p.carbs, p.fat, p.sugar, p.fiber,
+             p.nova_group, p.ingredients_count, p.unique_scans
+      FROM products p
+      WHERE (p.name LIKE ? OR p.generic_name LIKE ?)
+      ORDER BY 
+        (CASE 
+          WHEN lower(p.name) = lower(?) THEN 1
+          WHEN lower(p.name) LIKE lower(?) THEN 2
+          ELSE 3
+        END) ASC,
+        COALESCE(p.nova_group, 2) ASC,
+        COALESCE(p.ingredients_count, 1) ASC,
+        p.unique_scans DESC
+      LIMIT ?;
+    `);
+
     listCategoryStmt = dbInstance.prepare(`
       SELECT * FROM products WHERE category LIKE ? ORDER BY unique_scans DESC LIMIT ?;
     `);
@@ -134,44 +153,86 @@ export const openFoodFactsAccess: CatalogueAccess = {
     const cleaned = cleanQueryForFTS(query);
     if (!cleaned) return [];
 
+    const results: CanonicalIngredient[] = [];
+    const seenCodes = new Set<string>();
+
+    const addHit = (row: OFFRow) => {
+      const code = row.code || `off_${row.id}`;
+      if (!seenCodes.has(code)) {
+        seenCodes.add(code);
+        results.push(rowToCanonicalIngredient(row));
+      }
+    };
+
     const words = cleaned.split(' ');
 
-    // 1. Try exact full word phrase
-    const exactQuery = words.map(w => `"${w}"`).join(' ');
-    try {
-      const hits = searchStmt.all(exactQuery, limit) as OFFRow[];
-      if (hits.length > 0) {
-        return hits.map(rowToCanonicalIngredient);
-      }
-    } catch {
-      // ignore FTS syntax errors
-    }
-
-    // 2. Try prefix query for longer words (length >= 4)
-    const ftsQuery = words.map(w => (w.length >= 4 ? `"${w}"*` : `"${w}"`)).join(' ');
-    try {
-      const hits = searchStmt.all(ftsQuery, limit) as OFFRow[];
-      if (hits.length > 0) {
-        return hits.map(rowToCanonicalIngredient);
-      }
-    } catch {
-      // ignore
-    }
-
-    // 3. Fallback: try individual words with OR
-    if (words.length > 1) {
+    // 1. For single-word staple queries, run compound & substring search first
+    // (This guarantees pure staples like Süßrahmbutter / Markenbutter / Magerquark / Weizenmehl beat Buttermilch / Peanut butter)
+    if (words.length === 1 && likeSearchStmt) {
       try {
-        const orQuery = words.map(w => (w.length >= 4 ? `"${w}"*` : `"${w}"`)).join(' OR ');
-        const hits = searchStmt.all(orQuery, limit) as OFFRow[];
-        if (hits.length > 0) {
-          return hits.map(rowToCanonicalIngredient);
-        }
+        const likeHits = likeSearchStmt.all(
+          `%${cleaned}%`,
+          `%${cleaned}%`,
+          cleaned,
+          `${cleaned}%`,
+          limit
+        ) as OFFRow[];
+        likeHits.forEach(addHit);
       } catch {
         // ignore
       }
     }
 
-    return [];
+    // 2. Exact full word phrase in FTS
+    if (results.length < limit) {
+      const exactQuery = words.map(w => `"${w}"`).join(' ');
+      try {
+        const hits = searchStmt.all(exactQuery, limit) as OFFRow[];
+        hits.forEach(addHit);
+      } catch {
+        // ignore FTS syntax errors
+      }
+    }
+
+    // 3. Substring & compound search for multi-word queries
+    if (results.length < limit && likeSearchStmt && words.length > 1) {
+      try {
+        const likeHits = likeSearchStmt.all(
+          `%${cleaned}%`,
+          `%${cleaned}%`,
+          cleaned,
+          `${cleaned}%`,
+          limit
+        ) as OFFRow[];
+        likeHits.forEach(addHit);
+      } catch {
+        // ignore
+      }
+    }
+
+    // 4. Try prefix query for longer words (length >= 4)
+    if (results.length < limit) {
+      const ftsQuery = words.map(w => (w.length >= 4 ? `"${w}"*` : `"${w}"`)).join(' ');
+      try {
+        const hits = searchStmt.all(ftsQuery, limit) as OFFRow[];
+        hits.forEach(addHit);
+      } catch {
+        // ignore
+      }
+    }
+
+    // 5. Fallback: try individual words with OR
+    if (results.length < limit && words.length > 1) {
+      try {
+        const orQuery = words.map(w => (w.length >= 4 ? `"${w}"*` : `"${w}"`)).join(' OR ');
+        const hits = searchStmt.all(orQuery, limit) as OFFRow[];
+        hits.forEach(addHit);
+      } catch {
+        // ignore
+      }
+    }
+
+    return results.slice(0, limit);
   },
 
   get(code: string): CanonicalIngredient | null {
