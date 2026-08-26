@@ -12,9 +12,9 @@ export interface IngredientIconProps {
 }
 
 const SIZE_MAP = {
-  sm: 'w-8 h-8 min-w-[32px] text-sm rounded-lg',
-  md: 'w-11 h-11 min-w-[44px] text-base rounded-xl',
-  lg: 'w-14 h-14 min-w-[56px] text-2xl rounded-2xl',
+  sm: 'w-8 h-8 min-w-[32px] text-sm rounded-full',
+  md: 'w-11 h-11 min-w-[44px] text-base rounded-full',
+  lg: 'w-14 h-14 min-w-[56px] text-2xl rounded-full',
 };
 
 const ICON_SIZE_MAP = {
@@ -36,8 +36,8 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
   const iconUrl = getIngredientIconUrl(baseName, canonicalId);
   const categoryIconUrl = getCategoryIconUrl(category);
 
-  // Clean flat container without heavy shadows or borders
-  const containerClasses = `${SIZE_MAP[size]} flex items-center justify-center overflow-hidden flex-shrink-0 relative select-none bg-white dark:bg-white rounded-xl ${className}`;
+  // Clean flat container with 100% border radius (circle)
+  const containerClasses = `${SIZE_MAP[size]} flex items-center justify-center overflow-hidden flex-shrink-0 relative select-none bg-white dark:bg-white rounded-full ${className}`;
 
   if (!iconUrl || hasError) {
     return (
