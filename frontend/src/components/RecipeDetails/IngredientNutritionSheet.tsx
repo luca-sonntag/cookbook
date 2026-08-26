@@ -221,25 +221,29 @@ export default function IngredientNutritionSheet({
                   </div>
                 </div>
 
-                {/* Verification Status Pill */}
+                {/* Verification Status Pill - Clean Flat Style */}
                 {ingredient.isVerified ? (
-                  <div className="bg-emerald-500/[0.07] dark:bg-emerald-400/[0.08] text-emerald-800 dark:text-emerald-300 rounded-2xl p-3 flex items-center gap-2.5 text-xs font-medium border border-emerald-500/10">
-                    <ShieldCheck className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <div className="bg-emerald-500/[0.08] dark:bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 rounded-2xl p-3.5 flex items-center gap-3 border-none shadow-[0_2px_6px_rgba(0,0,0,0.02)]">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/15 dark:bg-emerald-500/25 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
                     <div className="min-w-0 flex-1">
-                      <span className="font-semibold block text-emerald-900 dark:text-emerald-200">
+                      <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 tracking-tight block">
                         {t('recipe.ingredientNutritionVerifiedBadge')}
                       </span>
                       {ingredient.matchedName && (
-                        <span className="text-[11px] text-emerald-700/80 dark:text-emerald-300/80 truncate block font-normal">
+                        <span className="text-[11.5px] text-emerald-700/80 dark:text-emerald-300/80 truncate block font-normal mt-0.5">
                           {ingredient.matchedName}
                         </span>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-2xl p-3 flex items-center gap-2.5 text-xs font-medium">
-                    <Sparkles className="w-4 h-4 text-gray-400 shrink-0" />
-                    <span className="text-[11.5px] leading-tight">
+                  <div className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-2xl p-3.5 flex items-center gap-3 border-none shadow-[0_2px_6px_rgba(0,0,0,0.02)]">
+                    <div className="w-9 h-9 rounded-xl bg-gray-200/60 dark:bg-gray-700/60 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-4.5 h-4.5 text-gray-400 dark:text-gray-500" />
+                    </div>
+                    <span className="text-xs text-gray-600 dark:text-gray-300 font-medium leading-snug">
                       {t('recipe.ingredientNutritionEstimatedBadge')}
                     </span>
                   </div>
