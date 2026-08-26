@@ -9,12 +9,27 @@ describe('canonicalizeBaseName', () => {
     assert.equal(canonicalizeBaseName('Chicken   Breasts'), 'chicken breast');
   });
 
-  test('strips cut, size and handling words', () => {
+  test('strips cut, size, preparation and handling words', () => {
     assert.equal(canonicalizeBaseName('bacon cubes'), 'bacon');
     assert.equal(canonicalizeBaseName('large chopped onion'), 'onion');
     assert.equal(canonicalizeBaseName('fresh parsley'), 'parsley');
     assert.equal(canonicalizeBaseName('diced carrots'), 'carrot');
     assert.equal(canonicalizeBaseName('geriebener Gouda'), 'gouda');
+    assert.equal(canonicalizeBaseName('steamed apple'), 'apple');
+    assert.equal(canonicalizeBaseName('peeled apples'), 'apple');
+    assert.equal(canonicalizeBaseName('boiled potatoes'), 'potato');
+    assert.equal(canonicalizeBaseName('roasted cauliflower'), 'cauliflower');
+  });
+
+  test('collapses top kitchen staple synonyms deterministically', () => {
+    assert.equal(canonicalizeBaseName('oats'), 'rolled oat');
+    assert.equal(canonicalizeBaseName('oat flakes'), 'rolled oat');
+    assert.equal(canonicalizeBaseName('scallions'), 'spring onion');
+    assert.equal(canonicalizeBaseName('green onions'), 'spring onion');
+    assert.equal(canonicalizeBaseName('garbanzo beans'), 'chickpea');
+    assert.equal(canonicalizeBaseName('curd cheese'), 'quark');
+    assert.equal(canonicalizeBaseName('ground meat'), 'ground beef');
+    assert.equal(canonicalizeBaseName('sweet pepper'), 'bell pepper');
   });
 
   test('never strips words that change the food identity', () => {

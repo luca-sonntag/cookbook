@@ -21,19 +21,21 @@
  * food is meant. When in doubt, leave a word out of this list.
  */
 const NOISE_WORDS = new Set([
-  // English — cut & handling
+  // English — cut, preparation & handling
   'chopped', 'diced', 'sliced', 'minced', 'shredded', 'grated', 'crushed', 'cubed',
   'cube', 'cubes', 'halved', 'quartered', 'drained', 'rinsed', 'washed', 'trimmed',
-  'crumbled', 'torn', 'pitted', 'stemmed', 'cut',
+  'crumbled', 'torn', 'pitted', 'stemmed', 'cut', 'steamed', 'boiled', 'peeled',
+  'baked', 'roasted',
   // English — size & quality
   'fresh', 'large', 'small', 'medium', 'big', 'ripe', 'good', 'quality',
   'optional', 'plain',
-  // German — cut & handling
+  // German — cut, preparation & handling
   'gehackt', 'gehackte', 'gehackter', 'gehacktes', 'gehackten',
   'gewürfelt', 'gewürfelte', 'gewürfelter', 'gewürfeltes', 'gewürfelten',
   'geschnitten', 'geschnittene', 'geschnittener', 'geschnittenes', 'geschnittenen',
   'gerieben', 'geriebene', 'geriebener', 'geriebenes', 'geriebenen',
   'zerkleinert', 'abgetropft', 'gehobelt', 'gehobelte', 'entsteint',
+  'gedämpft', 'geduenstet', 'geschält', 'geschaelt', 'gebacken', 'geröstet', 'geroestet',
   // German — size & quality
   'frisch', 'frische', 'frischer', 'frisches', 'frischen',
   'groß', 'große', 'großer', 'großes', 'klein', 'kleine', 'kleiner', 'kleines',
@@ -57,6 +59,33 @@ const PROTECTED_WORDS = new Set([
 ]);
 
 for (const word of PROTECTED_WORDS) NOISE_WORDS.delete(word);
+
+/**
+ * Top kitchen staples synonym normalization map.
+ * Ensures model variances like "scallion", "oats", "curd", "minced meat"
+ * collapse deterministically to their standard canonical baseNames.
+ */
+const CANONICAL_SYNONYMS: Record<string, string> = {
+  'oat': 'rolled oat',
+  'oats': 'rolled oat',
+  'oat flake': 'rolled oat',
+  'oat flakes': 'rolled oat',
+  'scallion': 'spring onion',
+  'green onion': 'spring onion',
+  'salad onion': 'spring onion',
+  'garbanzo bean': 'chickpea',
+  'garbanzo': 'chickpea',
+  'curd cheese': 'quark',
+  'speisequark': 'quark',
+  'topfen': 'quark',
+  'huettenkaese': 'cottage cheese',
+  'huttankaese': 'cottage cheese',
+  'ground meat': 'ground beef',
+  'sweet pepper': 'bell pepper',
+  'heavy whipping cream': 'heavy cream',
+  'whipping cream': 'heavy cream',
+  'sour cream': 'sour cream',
+};
 
 /** Leading articles and quantifiers that carry no food identity. */
 const LEADING_FILLER = new Set(['a', 'an', 'the', 'of', 'some', 'ein', 'eine', 'der', 'die', 'das']);
@@ -137,7 +166,8 @@ export function canonicalizeBaseName(raw: string | undefined | null): string {
   const last = words.length - 1;
   words[last] = toEnglishSingular(words[last]);
 
-  return words.join(' ').trim();
+  const joined = words.join(' ').trim();
+  return CANONICAL_SYNONYMS[joined] || joined;
 }
 
 /**
