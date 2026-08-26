@@ -519,10 +519,15 @@ export async function generateIngredientIcon(
 
   const steps = options.steps || 4;
   const size = 'square_hd';
-  const rawJpegBuffer = await fetchFluxImageBuffer(prompt, size, steps);
-  const canonicalFilename = `${item.id.toLowerCase()}.webp`;
+  const cleanId = item.id
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  const canonicalFilename = `${cleanId}.webp`;
   const filePath = path.join(outDir, canonicalFilename);
 
+  const rawJpegBuffer = await fetchFluxImageBuffer(prompt, size, steps);
   const webpBuffer = await sharp(rawJpegBuffer)
     .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
     .webp({ quality: 90, effort: 6 })

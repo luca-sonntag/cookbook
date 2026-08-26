@@ -138,9 +138,10 @@ async function main() {
       try {
         console.log(`${prefix} 🎨 Generiere Icon für: ${item.key} (${item.reasoning})...`);
 
+        const slugId = item.key.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
         const canonicalPseudoItem: CanonicalIngredient = {
-          id: item.key,
-          product_code: item.product_code || item.key,
+          id: slugId,
+          product_code: item.product_code || slugId,
           name_de: item.reasoning || item.key,
           name_en: item.key,
           category: item.category,
