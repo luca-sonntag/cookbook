@@ -11,6 +11,8 @@
 > **📝 Doku & OBSOLETE.md aktuell halten:** Nach JEDER relevanten Code-Änderung (neues Feature, Architekturänderung, neue Komponente, etc.) musst du prüfen, ob die Dokumentation angepasst werden muss. Wenn durch Refactorings oder neue Ansätze alter Code, Heuristiken oder Hilfsfunktionen obsolet werden, musst du diese im Dokument [`docs/OBSOLETE.md`](file:///c:/Users/lucas/source/repos/cookbook/docs/OBSOLETE.md) festhalten.
 >
 > **⚠️ Abwärtskompatibilität (Breaking Changes Guard):** Wenn eine geplante Änderung möglicherweise **nicht abwärtskompatibel** ist (z. B. Breaking API/Schema-Changes zwischen Frontend und Backend, Datenbank-Inkompatibilitäten oder kaputte Altdaten), darfst du diese NIEMALS eigenmächtig umsetzen. Du musst den Benutzer im `implementation_plan.md` explizit und auffällig (mit `[!WARNING]` / `[!CAUTION]`) darauf hinweisen, das Risiko genau erklären und erst nach ausdrücklicher Rückfrage und Bestätigung durch den Benutzer fortfahren bzw. den Plan anpassen.
+>
+> **🚫 Keine sprach- oder inhalts-spezifischen String-Heuristiken (Anti-Fragility):** Schreibe NIEMALS sprachabhängige Keyword- oder Substring-Prüfungen (z. B. `if (name.includes('käse') || name.includes('hähnchen'))`) in UI-, Rendering-, Business- oder Normalisierungs-Logik, um Kategorien, Icons oder Eigenschaften zu erraten. Löse solche Anforderungen IMMER über sauberen Datenfluss (Prop-Passing aus Elternelementen wie `group.name`), strukturierte Enums, zentrale typisierte Taxonomie-Lookups oder Upstream-Datenanreicherung.
 
 ---
 

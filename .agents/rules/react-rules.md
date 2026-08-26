@@ -26,3 +26,7 @@ trigger: always_on
    - **Design-System:** Clean Flat Style aus [`docs/styleguide.md`](file:///c:/Users/lucas/source/repos/cookbook/docs/styleguide.md) einhalten (`border-none`, weiche Schatten, `rounded-2xl`/`3xl`).
    - **I18n:** Keine hardcodierten Strings im JSX – immer `useI18n()` / `i18n.ts` nutzen.
    - **Atomic Commits:** Nach jedem abgeschlossenen logischen Schritt atomar committen.
+
+5. **Anti-Fragility & Deterministischer Datenfluss:**
+   - **Keine Keyword-/String-Heuristiken:** Niemals `name.includes('...')` nutzen, um Daten, Icons, Farben oder Kategorien im UI oder Backend zu erraten.
+   - **Strikter Datenfluss:** Kontext immer sauber über Props (z. B. `category={group.name}`), Context oder typisierte Taxonomien (`IngredientCategory`, `legacyCategoryMap`) bereitstellen.

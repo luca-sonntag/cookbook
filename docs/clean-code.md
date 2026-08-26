@@ -149,6 +149,29 @@ export function RecipeCard({
 * **Keine unnötigen `useEffect`s:**
   * Berechne abgeleitete Daten (Derived State) **direkt im Render-Body** oder via `useMemo` – niemals per `useEffect` mit zusätzlichem `setState`!
 
+### 2.5 Deterministischer Datenfluss & Verbot von String-Heuristiken (Anti-Fragility)
+* **Keine Keyword-Listen / Substring-Prüfungen:** Schreibe **niemals** sprachspezifische Keyword-Prüfungen (z. B. `if (name.includes('käse') || name.includes('hähnchen'))`), um im UI oder Backend Attribute wie Kategorien, Icons oder Farben zu erraten.
+* **Warum?** Solche Heuristiken sind extrem fragil, brechen sofort bei Synonymen, Markennamen (*„Philadelphia“*), Tippfehlern oder Mehrsprachigkeit (DE/EN) und verbergen strukturelle Datenfluss-Lücken.
+* **Der saubere Weg:**
+  1. **Sauberer Datenfluss (Prop-Passing):** Reiche Kontextinformationen explizit aus Elternelementen durch (z. B. `<IngredientNutritionSheet category={group.name} />`).
+  2. **Typisierte Taxonomien:** Verwende zentrale Taxonomie-Lookups (z. B. `IngredientCategory` und `legacyCategoryMap`) für strukturierte Schlüssel.
+  3. **Upstream Anreicherung:** Wenn ein Attribut auf einem Child-Objekt fehlt, reichere es vorab im Datenmodell an, statt es lokal im View-Layer zu erraten.
+
+```tsx
+// ❌ SCHLECHT: Fragile sprachabhängige Substring-Heuristik im UI-Layer
+function getIcon(name: string) {
+  if (name.includes('käse') || name.includes('milch')) return '/icons/dairy.webp';
+  if (name.includes('hähnchen') || name.includes('fleisch')) return '/icons/meat.webp';
+  return '/icons/other.webp';
+}
+
+// ✅ GUT: Deterministischer Lookup über saubere Kategorie-Taxonomie
+function getCategoryIcon(category: string) {
+  const mapped = legacyCategoryMap[category.toLowerCase()] ?? category;
+  return categoryIconFiles[mapped] ?? '/category-icons/other.webp';
+}
+```
+
 ---
 
 ## 3. 🛡️ Strikte TypeScript-Regeln & Typensicherheit
