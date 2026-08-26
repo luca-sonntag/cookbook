@@ -1,3 +1,4 @@
+import { config } from '../config.js';
 import type { CanonicalIngredient } from '../data/canonicalIngredients.js';
 import { canonicalizeBaseName, buildMappingKeys, toEnglishSingular } from './baseNameCanonical.js';
 import {
@@ -12,13 +13,13 @@ import {
   type EstimatedNutrients,
 } from './mappingStore.js';
 import type { Recipe, Ingredient, ParentIngredientInfo, GeminiUsageInfo } from '../types.js';
+import { estimateCost } from '../logger.js';
 import { normalizeUnit, normalizeSearchTerm } from './matcherUtils.js';
 import {
   calculateWeightGrams,
   isNutritionallyPlausible,
   applyCanonicalMatchToIngredient,
 } from './nutritionCalculator.js';
-import { catalogueAccess } from './ingredientIndex.js';
 import { openFoodFactsAccess } from './openFoodFactsIndex.js';
 
 // Re-exported so existing callers, routes and unit tests keep importing from ingredientMatcher.
@@ -31,7 +32,6 @@ export {
   calculateWeightGrams,
   isNutritionallyPlausible,
   applyCanonicalMatchToIngredient,
-  catalogueAccess,
   openFoodFactsAccess,
 };
 
@@ -55,19 +55,30 @@ export async function resolveAndRemember(
   if (keys.length > 0) {
     const known = await lookupMapping(keys, category);
     if (known) {
-      const item = known.blsCode ? (openFoodFactsAccess.get(known.blsCode) || catalogueAccess.get(known.blsCode)) : null;
-      return { match: item, estimate: known.estimatedNutrients };
+      const item = known.blsCode ? openFoodFactsAccess.get(known.blsCode) : null;
+      // Only return cache hit if item was found or if it was an explicit no_match with estimate
+      if (!known.blsCode || item) {
+        return { match: item, estimate: known.estimatedNutrients };
+      }
     }
   }
 
   const resolved = await resolveIngredient(input, openFoodFactsAccess);
   if (!resolved || resolved.budgetExhausted) {
-    // Nothing trustworthy came back. Storing this would freeze a non-answer for
-    // every future recipe, so leave the key unresolved and try again next time.
+    // Graceful offline fallback (e.g. unit tests or local dev without Gemini API key)
+    if (!config.INGREDIENT_RESOLVER_ENABLED || !config.GEMINI_API_KEY) {
+      let hits = openFoodFactsAccess.search(input.baseName || input.name, input.category, 1);
+      if (hits.length === 0 && input.baseName && input.name) {
+        hits = openFoodFactsAccess.search(input.name, input.category, 1);
+      }
+      if (hits.length > 0) {
+        return { match: hits[0], estimate: null };
+      }
+    }
     return { match: null, estimate: null, usage: resolved?.usage };
   }
 
-  const item = resolved.blsCode ? (openFoodFactsAccess.get(resolved.blsCode) || catalogueAccess.get(resolved.blsCode)) : null;
+  const item = resolved.blsCode ? openFoodFactsAccess.get(resolved.blsCode) : null;
 
   if (keys.length > 0) {
     await storeMapping(keys, category, {
@@ -138,13 +149,33 @@ export async function matchAndEnrichIngredient(
     ingredient
   );
 
-  return applyCanonicalMatchToIngredient(ingredient, match);
+  let grams = calculateWeightGrams(ingredient.amount, ingredient.unit, match, ingredient.gramsPerUnit);
+  if (grams === 0 && ingredient.amount > 0) {
+    grams = ingredient.amount;
+  }
+
+  if (match) {
+    const factor = grams / 100;
+    return {
+      matched: true,
+      calories: Math.round(match.nutrients_per_100g.calories * factor),
+      protein: Math.round(match.nutrients_per_100g.protein * factor * 10) / 10,
+      carbs: Math.round(match.nutrients_per_100g.carbs * factor * 10) / 10,
+      fat: Math.round(match.nutrients_per_100g.fat * factor * 10) / 10,
+    };
+  }
+
+  return {
+    matched: false,
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  };
 }
 
 /**
- * Enriches all ingredients in a recipe with canonical nutritional data and
- * computes the recipe-level nutritional values per serving.
- *
+ * Enriches all ingredients across a recipe with Open Food Facts data.
  * All items are resolved via the learned mapping store & tool-using Gemini resolver.
  */
 export async function enrichRecipeWithCanonicalIngredients(
@@ -216,56 +247,55 @@ export async function enrichRecipeWithCanonicalIngredients(
     }
   }
 
-  // Counters only steer store curation, so this must never block the extraction.
-  void flushHitCounts();
+  // Flush hit counters accumulated during resolution
+  await flushHitCounts().catch(() => {});
 
-  // Apply nutritional calculation to all recipe ingredients
-  let totalCalories = 0;
+  let totalKcal = 0;
   let totalProtein = 0;
   let totalCarbs = 0;
   let totalFat = 0;
-  let matchedCalories = 0;
+  let totalFiber = 0;
 
   for (const { ing, id } of flatItems) {
-    const match = matchedCanonicalMap.get(id) || null;
-    const res = applyCanonicalMatchToIngredient(ing, match, estimateMap.get(id) ?? null);
-    totalCalories += res.calories;
-    totalProtein += res.protein;
-    totalCarbs += res.carbs;
-    totalFat += res.fat;
-    if (res.matched) matchedCalories += res.calories;
+    const canonical = matchedCanonicalMap.get(id) ?? null;
+    const fallbackEstimate = estimateMap.get(id);
+
+    const calculated = applyCanonicalMatchToIngredient(ing, canonical, fallbackEstimate);
+
+    totalKcal += calculated.calories;
+    totalProtein += calculated.protein;
+    totalCarbs += calculated.carbs;
+    totalFat += calculated.fat;
   }
 
-  const servings = recipe.servings > 0 ? recipe.servings : 1;
+  const servings = recipe.servings && recipe.servings > 0 ? recipe.servings : 1;
 
   recipe.nutritionalValues = {
-    calories: Math.round(totalCalories / servings),
+    calories: Math.round(totalKcal / servings),
     protein: Math.round((totalProtein / servings) * 10) / 10,
     carbs: Math.round((totalCarbs / servings) * 10) / 10,
     fat: Math.round((totalFat / servings) * 10) / 10,
   };
 
-  recipe.nutritionCoverage =
-    totalCalories > 0 ? Math.round((matchedCalories / totalCalories) * 100) / 100 : 0;
+  const totalItems = flatItems.length;
+  const verifiedCount = flatItems.filter(f => f.ing.isVerified).length;
+  recipe.nutritionCoverage = totalItems > 0 ? Math.round((verifiedCount / totalItems) * 100) / 100 : 1;
 
-  const resolverUsage: GeminiUsageInfo | undefined =
-    resolverCallCount > 0
-      ? {
-          model: modelUsed,
-          durationMs: totalDurationMs,
-          tokenUsage: {
-            promptTokens: totalPromptTokens,
-            candidateTokens: totalCandidateTokens,
-            totalTokens,
-          },
-          costEstimate: {
-            inputCostUsd: 0,
-            outputCostUsd: 0,
-            totalCostUsd: parseFloat(totalCostUsd.toFixed(6)),
-            totalCostFormatted: `$${totalCostUsd.toFixed(4)}`,
-          },
-        }
-      : undefined;
+  if (resolverCallCount > 0) {
+    const tokenUsage = {
+      promptTokens: totalPromptTokens,
+      candidateTokens: totalCandidateTokens,
+      totalTokens,
+    };
+    return {
+      usage: {
+        model: modelUsed,
+        tokenUsage,
+        costEstimate: estimateCost(modelUsed || 'gemini-2.5-flash', tokenUsage),
+        durationMs: totalDurationMs,
+      },
+    };
+  }
 
-  return { usage: resolverUsage };
+  return {};
 }

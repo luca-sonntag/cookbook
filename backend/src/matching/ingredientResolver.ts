@@ -161,8 +161,11 @@ export async function resolveIngredient(
     });
 
     // Pre-search top candidates to fast-track matching in Turn 1
-    const searchTerm = input.baseName || input.name;
+    const searchTerm = input.name || input.baseName || '';
     let initialCandidates = catalogue.search(searchTerm, input.category, 4);
+    if (initialCandidates.length === 0 && input.baseName && input.baseName !== searchTerm) {
+      initialCandidates = catalogue.search(input.baseName, input.category, 4);
+    }
     if (initialCandidates.length === 0 && input.searchQueries?.length) {
       initialCandidates = catalogue.search(input.searchQueries[0], input.category, 4);
     }

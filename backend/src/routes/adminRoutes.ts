@@ -14,7 +14,7 @@ import { config } from '../config.js';
 import { requireAdmin } from '../auth.js';
 import { getLlmMetrics } from '../adminMetrics.js';
 import { notificationTick } from '../notifications/worker.js';
-import { catalogueAccess } from '../matching/ingredientMatcher.js';
+import { openFoodFactsAccess } from '../matching/openFoodFactsIndex.js';
 import { invalidateCache as invalidateMappingCache } from '../matching/mappingStore.js';
 import { AppError, sendAppError } from '../errors.js';
 
@@ -333,7 +333,7 @@ adminRoutes.patch(
       const blsCode = typeof rawCode === 'string' && rawCode.trim() ? rawCode.trim().toLowerCase() : null;
 
       if (blsCode) {
-        const item = catalogueAccess.get(blsCode);
+        const item = openFoodFactsAccess.get(blsCode);
         if (!item) {
           throw new AppError('INVALID_FIELD', { params: { field: 'blsCode' } });
         }

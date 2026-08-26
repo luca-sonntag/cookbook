@@ -29,6 +29,7 @@ interface CliOptions {
   all: boolean;
   concurrency: number;
   verbose: boolean;
+  clear: boolean;
 }
 
 interface ItemToResolve {
@@ -39,10 +40,11 @@ interface ItemToResolve {
 
 function parseCliArgs(): CliOptions {
   const args = process.argv.slice(2);
-  const options: CliOptions = { source: 'dev', limit: 50, offset: 0, all: false, concurrency: 3, verbose: false };
+  const options: CliOptions = { source: 'dev', limit: 50, offset: 0, all: false, concurrency: 3, verbose: false, clear: false };
 
   for (const arg of args) {
     if (arg === '--all') options.all = true;
+    else if (arg === '--clear' || arg === '--reset') options.clear = true;
     else if (arg === '--prod' || arg === '--source=prod') options.source = 'prod';
     else if (arg === '--dev' || arg === '--source=dev') options.source = 'dev';
     else if (arg.startsWith('--limit=')) options.limit = Math.max(1, parseInt(arg.split('=')[1], 10) || 50);
@@ -134,7 +136,18 @@ async function main(): Promise<void> {
   console.log('='.repeat(60));
   console.log(`Ingredient Mappings Backfill [Read from: ${options.source.toUpperCase()} | Write to: DEV]`);
   console.log(`Limit: ${options.all ? 'ALL' : options.limit} | Offset: ${options.offset} | Concurrency: ${options.concurrency}`);
+  if (options.clear) console.log('Mode: CLEAR & REBUILD from scratch');
   console.log('='.repeat(60) + '\n');
+
+  if (options.clear) {
+    console.log('🗑️  Clearing all existing mappings in DEV database...');
+    const { error: delError } = await getClient().from('ingredient_mappings').delete().neq('mapping_key', '__dummy__');
+    if (delError) {
+      console.error('❌ Failed to clear mappings:', delError.message);
+    } else {
+      console.log('✅ Mapping table cleared.\n');
+    }
+  }
 
   const PAGE_SIZE = 100;
   let currentOffset = options.offset;

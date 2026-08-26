@@ -6,6 +6,19 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ## 📜 Chronologische Übersicht
 
+### 2026-08-26: BLS 4.0 (Bundeslebensmittelschlüssel) durch Open Food Facts (OFF) DACH SQLite-Index ersetzt
+
+* **Ersetzter Code / Anti-Pattern:**
+  - Statischer BLS 4.0 JSON-Katalog (`canonicalIngredientsData.json`, `canonicalIngredients.ts`) und zugehörige MiniSearch-Indizes (`ingredientIndex.ts`).
+  - Fehlende Trend-Lebensmittel, Marken- und Fitnessprodukte (z. B. *Eat Lean, Reispapier, Buldak, Sriracha, Proteinpudding*), die im BLS nicht existierten und geschätzt werden mussten.
+  - Abwärtskompatibilitäts-Brücken zu alten BLS-Codes in `ingredientMatcher.ts`.
+* **Ersetzt durch:**
+  - **Open Food Facts DACH SQLite-Katalog (`openFoodFactsIndex.ts`, `off_de.sqlite`):** 438.000+ deutsche Supermarkt-, Marken- und Grundnahrungsmittel mit blitzschnellem FTS5-Volltextindex (BM25 + Purity-Boost für unverarbeitete NOVA-1-Lebensmittel).
+  - **Neuer Mapping-Store Aufbau:** Die `ingredient_mappings`-Tabelle wird neu mit echten OFF-Produktcodes und präzisen Nährwerten aufgebaut.
+* **Betroffene Dateien:** `backend/src/matching/openFoodFactsIndex.ts`, `backend/src/matching/ingredientMatcher.ts`, `backend/src/matching/resolverTools.ts`, `backend/src/matching/ingredientResolver.ts`, `backend/src/scripts/buildOpenFoodFactsIndex.ts`, `docs/OBSOLETE.md`.
+
+---
+
 ### 2026-08-26: Fast-Path komplett entfernt zugunsten des gelernten Mapping-Stores & Gemini-Resolvers
 
 * **Ersetzter Code / Anti-Pattern:**
