@@ -4,6 +4,7 @@ import sharp from 'sharp';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from './config.js';
 import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from './data/canonicalIngredients.js';
+import { BASE_NAME_TO_CANONICAL_ID } from './matching/baseNameMap.js';
 
 const FAL_FLUX_ENDPOINT = 'https://fal.run/fal-ai/flux-1/schnell';
 const FLUX_COST_PER_IMAGE_USD = 0.0035; // fal.ai flux-1/schnell square_hd standard rate
@@ -380,10 +381,21 @@ export function findExistingIngredientImage(ingredientId: string, outDir?: strin
   const dir = outDir || getIngredientImagesDir();
   if (!fs.existsSync(dir)) return null;
 
-  const targetPrefix = `${ingredientId.toLowerCase()}`;
+  const targetPrefix = ingredientId.toLowerCase().trim();
   const canonicalFile = `${targetPrefix}.webp`;
   if (fs.existsSync(path.join(dir, canonicalFile))) {
     return canonicalFile;
+  }
+
+  // Check BLS prefix
+  if (fs.existsSync(path.join(dir, `bls_${targetPrefix}.webp`))) {
+    return `bls_${targetPrefix}.webp`;
+  }
+
+  // Check BASE_NAME_TO_CANONICAL_ID map
+  const mappedCode = BASE_NAME_TO_CANONICAL_ID[targetPrefix];
+  if (mappedCode && fs.existsSync(path.join(dir, `bls_${mappedCode.toLowerCase()}.webp`))) {
+    return `bls_${mappedCode.toLowerCase()}.webp`;
   }
 
   const files = fs.readdirSync(dir);
