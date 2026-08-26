@@ -14,7 +14,7 @@ describe('canonicalizeBaseName', () => {
     assert.equal(canonicalizeBaseName('large chopped onion'), 'onion');
     assert.equal(canonicalizeBaseName('fresh parsley'), 'parsley');
     assert.equal(canonicalizeBaseName('diced carrots'), 'carrot');
-    assert.equal(canonicalizeBaseName('geriebener Gouda'), 'gouda');
+    assert.equal(canonicalizeBaseName('shredded gouda'), 'gouda');
     assert.equal(canonicalizeBaseName('steamed apple'), 'apple');
     assert.equal(canonicalizeBaseName('peeled apples'), 'apple');
     assert.equal(canonicalizeBaseName('boiled potatoes'), 'potato');
@@ -74,17 +74,17 @@ describe('canonicalizeBaseName', () => {
 
 describe('buildMappingKeys', () => {
   test('yields the single canonical base name when present', () => {
-    assert.deepEqual(buildMappingKeys('bacon cubes', 'Speckwürfel'), ['bacon']);
-    assert.deepEqual(buildMappingKeys('cottage cheese', 'Körniger Frischkäse'), ['cottage cheese']);
+    assert.deepEqual(buildMappingKeys('bacon cubes', 'bacon'), ['bacon']);
+    assert.deepEqual(buildMappingKeys('cottage cheese', 'cottage cheese'), ['cottage cheese']);
   });
 
   test('deduplicates and drops unusably short keys', () => {
     assert.deepEqual(buildMappingKeys('Butter', 'butter'), ['butter']);
-    assert.deepEqual(buildMappingKeys('a', 'Ei'), ['ei']);
+    assert.deepEqual(buildMappingKeys('a', 'egg'), ['egg']);
   });
 
   test('tolerates a missing base name by falling back to raw name', () => {
-    assert.deepEqual(buildMappingKeys(undefined, 'Olivenöl'), ['olivenöl']);
+    assert.deepEqual(buildMappingKeys(undefined, 'olive oil'), ['olive oil']);
   });
 });
 

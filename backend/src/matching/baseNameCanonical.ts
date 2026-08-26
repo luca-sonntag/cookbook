@@ -29,17 +29,6 @@ const NOISE_WORDS = new Set([
   // English — size & quality
   'fresh', 'large', 'small', 'medium', 'big', 'ripe', 'good', 'quality',
   'optional', 'plain',
-  // German — cut, preparation & handling
-  'gehackt', 'gehackte', 'gehackter', 'gehacktes', 'gehackten',
-  'gewürfelt', 'gewürfelte', 'gewürfelter', 'gewürfeltes', 'gewürfelten',
-  'geschnitten', 'geschnittene', 'geschnittener', 'geschnittenes', 'geschnittenen',
-  'gerieben', 'geriebene', 'geriebener', 'geriebenes', 'geriebenen',
-  'zerkleinert', 'abgetropft', 'gehobelt', 'gehobelte', 'entsteint',
-  'gedämpft', 'geduenstet', 'geschält', 'geschaelt', 'gebacken', 'geröstet', 'geroestet',
-  // German — size & quality
-  'frisch', 'frische', 'frischer', 'frisches', 'frischen',
-  'groß', 'große', 'großer', 'großes', 'klein', 'kleine', 'kleiner', 'kleines',
-  'mittelgroß', 'reif', 'reife', 'reifer', 'reifes',
 ]);
 
 /**
@@ -48,21 +37,18 @@ const NOISE_WORDS = new Set([
  * They are filtered back out of the removal set at module load.
  */
 const PROTECTED_WORDS = new Set([
-  'powder', 'pulver', 'flour', 'mehl', 'oil', 'öl', 'juice', 'saft', 'sauce',
-  'soße', 'paste', 'mark', 'milk', 'milch', 'cheese', 'käse', 'butter', 'cream',
-  'sahne', 'flakes', 'flocken', 'seed', 'seeds', 'meal', 'syrup', 'sirup',
-  'extract', 'vinegar', 'essig', 'broth', 'stock', 'brühe', 'fond', 'water',
-  'wasser', 'zest', 'abrieb', 'peel', 'schale', 'ground', 'gemahlen', 'dried',
-  'getrocknet', 'smoked', 'geräuchert', 'raw', 'roh', 'cooked', 'gekocht',
-  'yolk', 'white', 'breast', 'thigh', 'leg', 'wing', 'mince', 'salt', 'salz',
-  'sugar', 'zucker', 'honey', 'honig', 'wine', 'wein', 'beer', 'bier',
+  'powder', 'flour', 'oil', 'juice', 'sauce', 'paste', 'milk', 'cheese', 'butter', 'cream',
+  'flakes', 'seed', 'seeds', 'meal', 'syrup', 'extract', 'vinegar', 'broth', 'stock',
+  'water', 'zest', 'peel', 'ground', 'dried', 'smoked', 'raw', 'cooked',
+  'yolk', 'white', 'breast', 'thigh', 'leg', 'wing', 'mince', 'salt',
+  'sugar', 'honey', 'wine', 'beer',
 ]);
 
 for (const word of PROTECTED_WORDS) NOISE_WORDS.delete(word);
 
 /**
- * Top kitchen staples synonym normalization map.
- * Ensures model variances like "scallion", "oats", "curd", "minced meat"
+ * Top kitchen staples synonym normalization map (100% English).
+ * Ensures model variances like "scallion", "oats", "curd"
  * collapse deterministically to their standard canonical baseNames.
  */
 const CANONICAL_SYNONYMS: Record<string, string> = {
@@ -76,10 +62,6 @@ const CANONICAL_SYNONYMS: Record<string, string> = {
   'garbanzo bean': 'chickpea',
   'garbanzo': 'chickpea',
   'curd cheese': 'quark',
-  'speisequark': 'quark',
-  'topfen': 'quark',
-  'huettenkaese': 'cottage cheese',
-  'huttankaese': 'cottage cheese',
   'ground meat': 'ground beef',
   'sweet pepper': 'bell pepper',
   'heavy whipping cream': 'heavy cream',
@@ -88,7 +70,7 @@ const CANONICAL_SYNONYMS: Record<string, string> = {
 };
 
 /** Leading articles and quantifiers that carry no food identity. */
-const LEADING_FILLER = new Set(['a', 'an', 'the', 'of', 'some', 'ein', 'eine', 'der', 'die', 'das']);
+const LEADING_FILLER = new Set(['a', 'an', 'the', 'of', 'some']);
 
 /**
  * Safely converts an English plural food noun to its singular form.
