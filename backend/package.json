@@ -22,7 +22,8 @@
     "icons:zip": "tsx src/scripts/zipIngredientIcons.ts",
     "icons:unpack": "tsx src/scripts/zipIngredientIcons.ts --unpack",
     "seed:mappings": "tsx src/scripts/seedIngredientMappings.ts",
-    "mappings:backfill": "tsx src/scripts/backfillIngredientMappings.ts"
+    "mappings:backfill": "tsx src/scripts/backfillIngredientMappings.ts",
+    "build:off": "tsx src/scripts/buildOpenFoodFactsIndex.ts"
   },
   "dependencies": {
     "@cookbook/shared": "*",
