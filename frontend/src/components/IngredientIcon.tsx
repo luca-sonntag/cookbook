@@ -12,9 +12,9 @@ export interface IngredientIconProps {
 }
 
 const SIZE_MAP = {
-  sm: 'w-8 h-8 min-w-[32px] text-sm rounded-full',
-  md: 'w-11 h-11 min-w-[44px] text-base rounded-full',
-  lg: 'w-14 h-14 min-w-[56px] text-2xl rounded-full',
+  sm: 'w-8 h-8 min-w-[32px] min-h-[32px] max-w-[32px] max-h-[32px] aspect-square rounded-full',
+  md: 'w-11 h-11 min-w-[44px] min-h-[44px] max-w-[44px] max-h-[44px] aspect-square rounded-full',
+  lg: 'w-14 h-14 min-w-[56px] min-h-[56px] max-w-[56px] max-h-[56px] aspect-square rounded-full',
 };
 
 const ICON_SIZE_MAP = {
@@ -36,8 +36,8 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
   const iconUrl = getIngredientIconUrl(baseName, canonicalId);
   const categoryIconUrl = getCategoryIconUrl(category);
 
-  // Clean flat container with 100% border radius (circle)
-  const containerClasses = `${SIZE_MAP[size]} flex items-center justify-center overflow-hidden flex-shrink-0 relative select-none bg-white dark:bg-white rounded-full ${className}`;
+  // Clean flat circular container with 100% border radius (circle)
+  const containerClasses = `${SIZE_MAP[size]} flex items-center justify-center overflow-hidden shrink-0 relative select-none bg-white dark:bg-white rounded-full ${className}`;
 
   if (!iconUrl || hasError) {
     return (
@@ -46,7 +46,7 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
           src={categoryIconUrl}
           alt={category || name || 'Kategorie'}
           loading="lazy"
-          className={`${ICON_SIZE_MAP[size]} object-contain`}
+          className={`${ICON_SIZE_MAP[size]} object-contain rounded-full`}
         />
       </div>
     );
@@ -60,7 +60,7 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
           <img
             src={categoryIconUrl}
             alt={category || name || 'Kategorie'}
-            className={`${ICON_SIZE_MAP[size]} object-contain opacity-40`}
+            className={`${ICON_SIZE_MAP[size]} object-contain rounded-full opacity-40`}
           />
         </div>
       )}
@@ -70,7 +70,7 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
         loading="lazy"
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
-        className={`${ICON_SIZE_MAP[size]} object-contain relative z-10 transition-opacity duration-200 ${
+        className={`${ICON_SIZE_MAP[size]} object-contain rounded-full relative z-10 transition-opacity duration-200 ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         }`}
       />
