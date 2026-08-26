@@ -141,22 +141,20 @@ export function canonicalizeBaseName(raw: string | undefined | null): string {
 }
 
 /**
- * All keys under which a resolved mapping should be stored, most canonical first.
+ * Canonical primary mapping key under which a resolved mapping is stored.
  *
- * Writing several keys per resolution is what makes the store collapse variants:
- * once "bacon cubes" has been resolved, both "bacon cubes" and "bacon" are keys
- * pointing at the same BLS code, so either spelling hits on the next recipe.
- * Recipe-language raw names are included because human recipe text repeats far
- * more reliably than model-invented English.
+ * Prioritizes the model's standardized English `baseName` (e.g. "cottage cheese", "rolled oat").
+ * If `baseName` is absent (legacy recipe text), falls back to canonicalized `rawName`.
+ * Ensures exactly 1 single-source-of-truth entry per food in ingredient_mappings.
  */
 export function buildMappingKeys(baseName?: string, rawName?: string): string[] {
-  const keys: string[] = [];
-  const push = (value: string) => {
-    if (value && value.length >= 2 && !keys.includes(value)) keys.push(value);
-  };
-
-  push(canonicalizeBaseName(baseName));
-  push(canonicalizeBaseName(rawName));
-
-  return keys;
+  const primary = canonicalizeBaseName(baseName);
+  if (primary && primary.length >= 2) {
+    return [primary];
+  }
+  const fallback = canonicalizeBaseName(rawName);
+  if (fallback && fallback.length >= 2) {
+    return [fallback];
+  }
+  return [];
 }

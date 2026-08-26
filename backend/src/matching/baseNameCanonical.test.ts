@@ -58,8 +58,9 @@ describe('canonicalizeBaseName', () => {
 });
 
 describe('buildMappingKeys', () => {
-  test('yields the canonical base name first, then the raw recipe name', () => {
-    assert.deepEqual(buildMappingKeys('bacon cubes', 'Speckwürfel'), ['bacon', 'speckwürfel']);
+  test('yields the single canonical base name when present', () => {
+    assert.deepEqual(buildMappingKeys('bacon cubes', 'Speckwürfel'), ['bacon']);
+    assert.deepEqual(buildMappingKeys('cottage cheese', 'Körniger Frischkäse'), ['cottage cheese']);
   });
 
   test('deduplicates and drops unusably short keys', () => {
@@ -67,7 +68,7 @@ describe('buildMappingKeys', () => {
     assert.deepEqual(buildMappingKeys('a', 'Ei'), ['ei']);
   });
 
-  test('tolerates a missing base name', () => {
+  test('tolerates a missing base name by falling back to raw name', () => {
     assert.deepEqual(buildMappingKeys(undefined, 'Olivenöl'), ['olivenöl']);
   });
 });
