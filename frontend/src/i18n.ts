@@ -298,89 +298,31 @@ export const categoryIconFiles: Record<IngredientCategory, string> = {
   [IngredientCategory.OTHER]: '/category-icons/other.webp',
 };
 
-export function getCategoryIconUrl(category?: string | null, name?: string | null): string {
-  if (category) {
-    const cleanCategory = category.trim().toUpperCase();
-    if (cleanCategory in IngredientCategory && cleanCategory !== 'OTHER') {
-      const url = categoryIconFiles[cleanCategory as IngredientCategory];
-      if (url) return url;
-    }
-    const lowerCategory = category.trim().toLowerCase();
-    const mappedKey = legacyCategoryMap[lowerCategory];
-    if (mappedKey && categoryIconFiles[mappedKey] && mappedKey !== IngredientCategory.OTHER) {
-      return categoryIconFiles[mappedKey];
-    }
+export function getCategoryIconUrl(category?: string | null): string {
+  if (!category) return '/category-icons/other.webp';
+  const cleanCategory = category.trim().toUpperCase();
+  if (cleanCategory in IngredientCategory) {
+    return categoryIconFiles[cleanCategory as IngredientCategory] || '/category-icons/other.webp';
   }
-
-  // Smart fallback based on ingredient name if category is missing or OTHER
-  if (name) {
-    const n = name.toLowerCase();
-    if (n.includes('käse') || n.includes('quark') || n.includes('milch') || n.includes('joghurt') || n.includes('sahne') || n.includes('butter') || n.includes('ei') || n.includes('eier') || n.includes('skyr') || n.includes('schmand') || n.includes('parmesan') || n.includes('mozzarella') || n.includes('feta') || n.includes('ricotta') || n.includes('frischkäse')) {
-      return categoryIconFiles[IngredientCategory.DAIRY_EGGS];
-    }
-    if (n.includes('hähnchen') || n.includes('huhn') || n.includes('rind') || n.includes('schwein') || n.includes('hack') || n.includes('fleisch') || n.includes('wurst') || n.includes('speck') || n.includes('bacon') || n.includes('schinken') || n.includes('pute') || n.includes('chicken') || n.includes('beef')) {
-      return categoryIconFiles[IngredientCategory.MEAT_POULTRY];
-    }
-    if (n.includes('lachs') || n.includes('thunfisch') || n.includes('garnele') || n.includes('shrimp') || n.includes('fisch') || n.includes('forelle') || n.includes('kabeljau') || n.includes('dorade') || n.includes('meeresfrüchte')) {
-      return categoryIconFiles[IngredientCategory.SEAFOOD];
-    }
-    if (n.includes('tomate') || n.includes('zwiebel') || n.includes('knoblauch') || n.includes('paprika') || n.includes('gurke') || n.includes('salat') || n.includes('pilz') || n.includes('champignon') || n.includes('karotte') || n.includes('möhre') || n.includes('zucchini') || n.includes('spinat') || n.includes('avocado') || n.includes('ingwer') || n.includes('brokkoli') || n.includes('aubergine') || n.includes('blumenkohl') || n.includes('lauch') || n.includes('sellerie')) {
-      return categoryIconFiles[IngredientCategory.VEGETABLES];
-    }
-    if (n.includes('apfel') || n.includes('banane') || n.includes('beere') || n.includes('erdbeere') || n.includes('himbeere') || n.includes('blaubeere') || n.includes('heidelbeere') || n.includes('zitrone') || n.includes('limette') || n.includes('orange') || n.includes('mango') || n.includes('ananas') || n.includes('pfirsich') || n.includes('birne') || n.includes('obst') || n.includes('frucht')) {
-      return categoryIconFiles[IngredientCategory.FRUITS];
-    }
-    if (n.includes('nudel') || n.includes('pasta') || n.includes('spaghetti') || n.includes('penne') || n.includes('reis') || n.includes('kartoffel') || n.includes('brot') || n.includes('toast') || n.includes('tortilla') || n.includes('wrap') || n.includes('haferflocken') || n.includes('flocken') || n.includes('couscous') || n.includes('bulgur') || n.includes('quinoa') || n.includes('mehl') || n.includes('grieß') || n.includes('tagliatelle') || n.includes('gnocchi')) {
-      return categoryIconFiles[IngredientCategory.GRAINS_PASTA];
-    }
-    if (n.includes('öl') || n.includes('essig') || n.includes('sauce') || n.includes('soße') || n.includes('senf') || n.includes('ketchup') || n.includes('mayo') || n.includes('pesto') || n.includes('paste') || n.includes('dressing')) {
-      return categoryIconFiles[IngredientCategory.OILS_CONDIMENTS];
-    }
-    if (n.includes('salz') || n.includes('pfeffer') || n.includes('oregano') || n.includes('basilikum') || n.includes('paprikapulver') || n.includes('curry') || n.includes('zimt') || n.includes('gewürz') || n.includes('kräuter') || n.includes('rosmarin') || n.includes('thymian') || n.includes('petersilie') || n.includes('dill') || n.includes('koriander')) {
-      return categoryIconFiles[IngredientCategory.SPICES_HERBS];
-    }
-    if (n.includes('mandel') || n.includes('nuss') || n.includes('walnuss') || n.includes('cashew') || n.includes('erdnuss') || n.includes('chiasamen') || n.includes('sesam') || n.includes('sonnenblumenkerne') || n.includes('kürbiskerne') || n.includes('pinienkerne') || n.includes('samen') || n.includes('kerne')) {
-      return categoryIconFiles[IngredientCategory.NUTS_SEEDS];
-    }
-    if (n.includes('schokolade') || n.includes('zucker') || n.includes('honig') || n.includes('sirup') || n.includes('erythrit') || n.includes('snack') || n.includes('keks') || n.includes('kakao') || n.includes('pudding')) {
-      return categoryIconFiles[IngredientCategory.SWEETS_SNACKS];
-    }
-    if (n.includes('wasser') || n.includes('saft') || n.includes('tee') || n.includes('kaffee') || n.includes('cola') || n.includes('limonade') || n.includes('drink') || n.includes('bier') || n.includes('wein')) {
-      return categoryIconFiles[IngredientCategory.BEVERAGES];
-    }
+  const lowerCategory = category.trim().toLowerCase();
+  const mappedKey = legacyCategoryMap[lowerCategory];
+  if (mappedKey && categoryIconFiles[mappedKey]) {
+    return categoryIconFiles[mappedKey];
   }
-
   return '/category-icons/other.webp';
 }
 
-export function getCategoryIcon(category: string, name?: string | null): string {
-  if (category) {
-    const cleanCategory = category.trim().toUpperCase();
-    if (cleanCategory in IngredientCategory && cleanCategory !== 'OTHER') {
-      return categoryIcons[cleanCategory as IngredientCategory];
-    }
-    const lowerCategory = category.trim().toLowerCase();
-    const mappedKey = legacyCategoryMap[lowerCategory];
-    if (mappedKey && mappedKey !== IngredientCategory.OTHER) {
-      return categoryIcons[mappedKey];
-    }
+export function getCategoryIcon(category: string): string {
+  if (!category) return '🛍️';
+  const cleanCategory = category.trim().toUpperCase();
+  if (cleanCategory in IngredientCategory) {
+    return categoryIcons[cleanCategory as IngredientCategory];
   }
-
-  if (name) {
-    const n = name.toLowerCase();
-    if (n.includes('käse') || n.includes('quark') || n.includes('milch') || n.includes('joghurt') || n.includes('ei') || n.includes('frischkäse')) return '🥛';
-    if (n.includes('hähnchen') || n.includes('rind') || n.includes('schwein') || n.includes('fleisch')) return '🥩';
-    if (n.includes('fisch') || n.includes('lachs') || n.includes('garnele')) return '🐟';
-    if (n.includes('tomate') || n.includes('zwiebel') || n.includes('knoblauch') || n.includes('gemüse')) return '🥦';
-    if (n.includes('apfel') || n.includes('banane') || n.includes('beere') || n.includes('obst')) return '🍎';
-    if (n.includes('nudel') || n.includes('pasta') || n.includes('reis') || n.includes('brot') || n.includes('kartoffel')) return '🍝';
-    if (n.includes('öl') || n.includes('sauce') || n.includes('essig')) return '🍶';
-    if (n.includes('salz') || n.includes('pfeffer') || n.includes('gewürz') || n.includes('kräuter')) return '🧂';
-    if (n.includes('nuss') || n.includes('mandel') || n.includes('sesam')) return '🥜';
-    if (n.includes('schokolade') || n.includes('zucker') || n.includes('snack')) return '🍫';
-    if (n.includes('wasser') || n.includes('saft') || n.includes('tee') || n.includes('kaffee')) return '🥤';
+  const lowerCategory = category.trim().toLowerCase();
+  const mappedKey = legacyCategoryMap[lowerCategory];
+  if (mappedKey) {
+    return categoryIcons[mappedKey];
   }
-
   return '🛍️'; // Default
 }
 

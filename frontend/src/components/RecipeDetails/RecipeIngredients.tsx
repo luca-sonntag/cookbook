@@ -38,7 +38,7 @@ export default function RecipeIngredients({
   onIncreaseServings,
 }: RecipeIngredientsProps) {
   const { t, translateCategory } = useI18n();
-  const [selectedNutritionIngredient, setSelectedNutritionIngredient] = useState<Ingredient | null>(null);
+  const [selectedNutrition, setSelectedNutrition] = useState<{ ingredient: Ingredient; category: string } | null>(null);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
   const ingredientCount = sortedIngredients.reduce(
@@ -121,7 +121,7 @@ export default function RecipeIngredients({
                           if (!isPremium) {
                             setIsPremiumModalOpen(true);
                           } else {
-                            setSelectedNutritionIngredient({ ...ing, category: ing.category || group.name });
+                            setSelectedNutrition({ ingredient: ing, category: group.name });
                           }
                         }
                       }}
@@ -188,7 +188,7 @@ export default function RecipeIngredients({
                             if (!isPremium) {
                               setIsPremiumModalOpen(true);
                             } else {
-                              setSelectedNutritionIngredient({ ...ing, category: ing.category || group.name });
+                              setSelectedNutrition({ ingredient: ing, category: group.name });
                             }
                           }}
                           className={`px-2 py-1 rounded-full inline-flex items-center gap-1 text-xs font-semibold shrink-0 border-none transition-all active:scale-95 cursor-pointer ${
@@ -288,9 +288,10 @@ export default function RecipeIngredients({
 
       {/* Ingredient Nutrition Detail Sheet (Premium only) */}
       <IngredientNutritionSheet
-        isOpen={Boolean(selectedNutritionIngredient)}
-        onClose={() => setSelectedNutritionIngredient(null)}
-        ingredient={selectedNutritionIngredient}
+        isOpen={Boolean(selectedNutrition)}
+        onClose={() => setSelectedNutrition(null)}
+        ingredient={selectedNutrition?.ingredient ?? null}
+        category={selectedNutrition?.category}
         scaleFactor={scaleFactor}
       />
 

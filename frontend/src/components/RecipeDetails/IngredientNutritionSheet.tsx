@@ -9,6 +9,7 @@ interface IngredientNutritionSheetProps {
   isOpen: boolean;
   onClose: () => void;
   ingredient: Ingredient | null;
+  category?: string;
   scaleFactor?: number;
 }
 
@@ -16,6 +17,7 @@ export default function IngredientNutritionSheet({
   isOpen,
   onClose,
   ingredient,
+  category,
   scaleFactor = 1,
 }: IngredientNutritionSheetProps) {
   const { t } = useI18n();
@@ -72,7 +74,7 @@ export default function IngredientNutritionSheet({
                   <div className="flex items-center gap-3.5 flex-1 min-w-0">
                     <IngredientIcon
                       canonicalId={ingredient.canonicalId}
-                      category={ingredient.category}
+                      category={category || ingredient.category}
                       name={ingredient.name}
                       size="lg"
                     />
