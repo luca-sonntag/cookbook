@@ -14,7 +14,8 @@ COPY shared/package*.json shared/
 # Install dependencies for the workspaces
 RUN YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm install
 
-# Build backend
+# Copy shared workspace and build backend
+COPY shared/ shared/
 COPY backend/tsconfig.json backend/
 COPY backend/src/ backend/src/
 RUN npm run build -w backend
@@ -27,6 +28,7 @@ WORKDIR /app
 
 # Copy production dependencies and built artifacts
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/shared ./shared
 COPY --from=builder /app/backend/package.json ./backend/package.json
 COPY --from=builder /app/backend/dist ./backend/dist
 
