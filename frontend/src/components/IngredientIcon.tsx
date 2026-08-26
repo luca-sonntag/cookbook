@@ -24,8 +24,8 @@ const ICON_SIZE_MAP = {
 };
 
 const FADE_MASK_STYLE: React.CSSProperties = {
-  maskImage: 'radial-gradient(circle at center, black 60%, rgba(0, 0, 0, 0.5) 82%, transparent 100%)',
-  WebkitMaskImage: 'radial-gradient(circle at center, black 60%, rgba(0, 0, 0, 0.5) 82%, transparent 100%)',
+  WebkitMaskImage: 'radial-gradient(circle at 50% 50%, rgba(0,0,0,1) 35%, rgba(0,0,0,0.6) 58%, rgba(0,0,0,0) 80%)',
+  maskImage: 'radial-gradient(circle at 50% 50%, rgba(0,0,0,1) 35%, rgba(0,0,0,0.6) 58%, rgba(0,0,0,0) 80%)',
 };
 
 export const IngredientIcon: React.FC<IngredientIconProps> = ({
@@ -41,31 +41,33 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
   const iconUrl = getIngredientIconUrl(baseName, canonicalId);
   const categoryIconUrl = getCategoryIconUrl(category);
 
-  // Clean flat circular container with soft radial fade towards transparent edges
-  const containerClasses = `${SIZE_MAP[size]} flex items-center justify-center overflow-hidden shrink-0 relative select-none rounded-full bg-white/80 dark:bg-white/80 ${className}`;
+  // Clean flat circular container (transparent background so the radial gradient blends into the surface)
+  const containerClasses = `${SIZE_MAP[size]} flex items-center justify-center overflow-hidden shrink-0 relative select-none rounded-full bg-transparent ${className}`;
 
   if (!iconUrl || hasError) {
     return (
-      <div className={containerClasses} style={FADE_MASK_STYLE} title={category || name}>
+      <div className={containerClasses} title={category || name}>
         <img
           src={categoryIconUrl}
           alt={category || name || 'Kategorie'}
           loading="lazy"
-          className={`${ICON_SIZE_MAP[size]} object-contain rounded-full`}
+          style={FADE_MASK_STYLE}
+          className={`${ICON_SIZE_MAP[size]} object-contain`}
         />
       </div>
     );
   }
 
   return (
-    <div className={containerClasses} style={FADE_MASK_STYLE} title={name}>
+    <div className={containerClasses} title={name}>
       {/* Category icon placeholder until specific image is fully loaded */}
       {!isLoaded && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <img
             src={categoryIconUrl}
             alt={category || name || 'Kategorie'}
-            className={`${ICON_SIZE_MAP[size]} object-contain rounded-full opacity-40`}
+            style={FADE_MASK_STYLE}
+            className={`${ICON_SIZE_MAP[size]} object-contain opacity-40`}
           />
         </div>
       )}
@@ -75,7 +77,8 @@ export const IngredientIcon: React.FC<IngredientIconProps> = ({
         loading="lazy"
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
-        className={`${ICON_SIZE_MAP[size]} object-contain rounded-full relative z-10 transition-opacity duration-200 ${
+        style={FADE_MASK_STYLE}
+        className={`${ICON_SIZE_MAP[size]} object-contain relative z-10 transition-opacity duration-200 ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         }`}
       />
