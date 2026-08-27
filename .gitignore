@@ -29,4 +29,5 @@ backend/public/ingredient-icons/*
 *.sqlite
 backend/src/data/*.sqlite
 backend/dist/data/*.sqlite
+supabase/.temp/
 
