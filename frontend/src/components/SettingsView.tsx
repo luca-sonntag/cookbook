@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Select, ListBox, Popover } from '@heroui/react';
-import { LogOut, Globe, Moon, Sun, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, ChevronRight, HelpCircle, MessageSquare, Shield, ScrollText, Building2, ExternalLink } from 'lucide-react';
+import { LogOut, Globe, Moon, Sun, Thermometer, Scale, Info, UserMinus, Sparkles, Crown, ChevronRight, HelpCircle, MessageSquare, Shield, ScrollText, Building2, ExternalLink, User } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useAuth } from '../context/AuthContext';
+import { PageHeader } from './PageHeader';
 import { useTheme } from '../hooks/useTheme';
 import { useDialog } from '../context/DialogContext';
 import PremiumModal from './PremiumModal';
@@ -104,12 +105,13 @@ export default function SettingsView() {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
-      {/* Title */}
-      <div className="sticky top-[var(--app-sticky-top)] z-30 -mx-4 px-4 pt-2 pb-3 bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
-          {t('app.nav.settings') || 'Settings'}
-        </h2>
-      </div>
+      {/* Header */}
+      <PageHeader
+        icon={<User className="w-6 h-6" />}
+        title={t('app.nav.settings') || 'Einstellungen'}
+        subtitle={t('app.settings.subtitle')}
+        className="px-2"
+      />
 
       {/* Save Status / Error Notification */}
       {saveMessage && (

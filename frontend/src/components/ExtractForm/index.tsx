@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Card, Button, Spinner } from '@heroui/react';
-import { BookOpen, Camera, Globe, Link2, Play } from 'lucide-react';
+import { BookOpen, Camera, Globe, Link2, Play, Sparkles } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import { useExtractionJobs } from '../../context/ExtractionJobsContext';
+import { PageHeader } from '../PageHeader';
 import PremiumModal from '../PremiumModal';
 import PremiumHint from '../PremiumHint';
 import PremiumUpgradeCard from '../PremiumUpgradeCard';
@@ -116,6 +117,14 @@ export const ExtractForm: React.FC<ExtractFormProps> = ({
 
   return (
     <div className={`flex flex-col gap-4 w-full ${isPending ? 'flex-1 justify-center my-auto min-h-0' : ''}`}>
+      {!isPending && (
+        <PageHeader
+          icon={<Sparkles className="w-6 h-6" />}
+          title={t('form.headerTitle') || t('app.title')}
+          subtitle={t('form.headerSubtitle')}
+        />
+      )}
+
       {/* Premium Upgrade Promotion */}
       {!isPending && !hideUpgradeCard && !blockedByLimit && (
         <PremiumUpgradeCard onUpgradeClick={() => setIsPremiumModalOpen(true)} />

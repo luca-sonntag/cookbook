@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@heroui/react';
+import { Trophy } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
+import { PageHeader } from '../PageHeader';
 import ProgressOverview from './ProgressOverview';
 import LeaderboardView from '../Social/LeaderboardView';
 import FriendsView from '../Social/FriendsView';
@@ -46,9 +48,11 @@ export default function ProgressView({ pendingInviteCode, onInviteConsumed, onSe
   return (
     <div className="flex flex-col gap-6 pb-12">
       {/* Header */}
-      <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-        {t('app.gamification.tabTitle')}
-      </h1>
+      <PageHeader
+        icon={<Trophy className="w-6 h-6" />}
+        title={t('app.gamification.tabTitle')}
+        subtitle={t('app.gamification.subtitle')}
+      />
 
       <div className="flex rounded-2xl bg-gray-100 p-1 dark:bg-gray-900 shadow-[0_2px_6px_rgba(0,0,0,0.03)]">
         {tabs.map((tab) => {

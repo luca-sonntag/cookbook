@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { Plus, Trash2, X, MoreHorizontal } from 'lucide-react';
+import { Plus, Trash2, X, MoreHorizontal, ShoppingCart } from 'lucide-react';
 import type { AggregatedShoppingItem, ShoppingListItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
 import { useToast } from '../../context/ToastContext';
 import { formatQuantity } from '../../utils/formatQuantity';
+import { PageHeader } from '../PageHeader';
 
 // Import subcomponents
 import CustomItemForm from './CustomItemForm';
@@ -269,64 +270,66 @@ export default function ShoppingList({
 
   return (
     <div className="flex flex-col gap-4 relative">
-      {/* Sticky overview toolbar: title, progress, and the overflow (clear) menu */}
-      {totalCount > 0 && (
-        <div className="sticky top-[var(--app-sticky-top)] z-30 -mx-4 px-4 pt-2 pb-3 bg-gray-50/85 dark:bg-gray-950/85 backdrop-blur-md border-b border-black/5 dark:border-white/5">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="flex items-baseline gap-2 min-w-0">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
-                {t('shopping.title')}
-              </h2>
-              <span className="text-sm font-semibold text-gray-400 dark:text-gray-500 tabular-nums flex-shrink-0">
-                {checkedCount} / {totalCount}
-              </span>
-            </div>
-
-            <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
-              <Popover.Trigger>
-                <Button
-                  isIconOnly
-                  variant="outline"
-                  aria-label={t('shopping.moreActions')}
-                  className="w-9 h-9 min-w-[36px] flex-shrink-0 flex items-center justify-center rounded-xl border-none bg-transparent shadow-none text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                >
-                  <MoreHorizontal className="w-5 h-5" />
-                </Button>
-              </Popover.Trigger>
-              <Popover.Content
-                placement="bottom end"
-                className="p-1.5 min-w-[190px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg"
-              >
-                <div className="flex flex-col w-full">
-                  {checkedCount > 0 && (
-                    <button
-                      onClick={handleClearChecked}
-                      className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
-                    >
-                      <X className="w-4 h-4 text-emerald-500" />
-                      <span>{t('shopping.clearChecked')}</span>
-                    </button>
-                  )}
-                  <button
-                    onClick={handleClearAll}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+      {/* Page Header */}
+      <div className="w-full flex flex-col gap-2">
+        <PageHeader
+          icon={<ShoppingCart className="w-6 h-6" />}
+          title={t('shopping.title')}
+          subtitle={
+            totalCount > 0
+              ? t('shopping.progressSubtitle', { checked: checkedCount, total: totalCount })
+              : t('shopping.subtitle')
+          }
+          action={
+            totalCount > 0 ? (
+              <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                <Popover.Trigger>
+                  <Button
+                    isIconOnly
+                    variant="outline"
+                    aria-label={t('shopping.moreActions')}
+                    className="w-9 h-9 min-w-[36px] flex-shrink-0 flex items-center justify-center rounded-xl border-none bg-black/5 dark:bg-white/5 shadow-none text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
                   >
-                    <Trash2 className="w-4 h-4" />
-                    <span>{t('shopping.clearAll')}</span>
-                  </button>
-                </div>
-              </Popover.Content>
-            </Popover>
-          </div>
+                    <MoreHorizontal className="w-5 h-5" />
+                  </Button>
+                </Popover.Trigger>
+                <Popover.Content
+                  placement="bottom end"
+                  className="p-1.5 min-w-[190px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg"
+                >
+                  <div className="flex flex-col w-full">
+                    {checkedCount > 0 && (
+                      <button
+                        onClick={handleClearChecked}
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                      >
+                        <X className="w-4 h-4 text-emerald-500" />
+                        <span>{t('shopping.clearChecked')}</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={handleClearAll}
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>{t('shopping.clearAll')}</span>
+                    </button>
+                  </div>
+                </Popover.Content>
+              </Popover>
+            ) : undefined
+          }
+        />
 
+        {totalCount > 0 && (
           <div className="h-1.5 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Bottom Sheet add-item form */}
       <CustomItemForm

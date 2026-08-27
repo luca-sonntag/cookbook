@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, ShoppingBag, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
+import { PageHeader } from '../PageHeader';
 import type { MealPlannerHeaderProps } from './types';
 
 function formatWeekRange(start: Date, end: Date): string {
@@ -23,39 +24,30 @@ export const MealPlannerHeader: React.FC<MealPlannerHeaderProps> = ({
 }) => {
   const { t } = useI18n();
 
+  const shopAction = plannedTotalCount > 0 ? (
+    <button
+      onClick={onShopWeek}
+      disabled={isAddingToShopping}
+      className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm shadow-emerald-600/20 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+      title={t('mealPlanner.shopWeekDescription')}
+    >
+      {isAddingToShopping ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        <ShoppingBag className="w-4 h-4" />
+      )}
+      <span className="hidden sm:inline">{t('mealPlanner.shopWeek')}</span>
+    </button>
+  ) : undefined;
+
   return (
     <div className="w-full space-y-4 pt-2 pb-1">
-      {/* Title & Shop Action */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <span className="p-2 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              <CalendarIcon className="w-6 h-6" />
-            </span>
-            {t('mealPlanner.title')}
-          </h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            {t('mealPlanner.subtitle')}
-          </p>
-        </div>
-
-        {/* Shop entire week button */}
-        {plannedTotalCount > 0 && (
-          <button
-            onClick={onShopWeek}
-            disabled={isAddingToShopping}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm shadow-emerald-600/20 active:scale-95 transition-all disabled:opacity-50"
-            title={t('mealPlanner.shopWeekDescription')}
-          >
-            {isAddingToShopping ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <ShoppingBag className="w-4 h-4" />
-            )}
-            <span className="hidden sm:inline">{t('mealPlanner.shopWeek')}</span>
-          </button>
-        )}
-      </div>
+      <PageHeader
+        icon={<CalendarIcon className="w-6 h-6" />}
+        title={t('mealPlanner.title')}
+        subtitle={t('mealPlanner.subtitle')}
+        action={shopAction}
+      />
 
       {/* Week Navigator */}
       <div className="flex items-center justify-between bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-md p-1.5 rounded-2xl">

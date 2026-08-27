@@ -295,7 +295,7 @@ export default function App() {
               : !isPremium && activeView !== 'settings'
                 ? 'pb-44'
                 : 'pb-24'
-        } ${!isViewingRecipe && activeView !== 'extract' ? 'pt-4' : ''}`}
+        } ${!isViewingRecipe ? 'pt-4' : ''}`}
       >
         {!(isPending && !isPremium) && !isViewingRecipe && (
           <TrialBanner onOpenPremium={() => setIsPremiumModalOpen(true)} />
