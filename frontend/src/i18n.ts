@@ -438,6 +438,7 @@ export const uiTranslations = {
       },
       gamification: {
         tabTitle: 'Fortschritt',
+        subtitle: 'Deine Koch-Erfolge, Level und Freunde',
         level: 'Level {level}',
         levelShort: 'Lvl {level}',
         xpToNext: 'Noch {xp} XP bis Lvl {level}',
@@ -593,6 +594,7 @@ export const uiTranslations = {
         },
       },
       settings: {
+        subtitle: 'App-Konfiguration, Profil und Design',
         language: 'Sprache',
         theme: 'Erscheinungsbild',
         tempUnit: 'Temperatureinheit',
@@ -1034,6 +1036,7 @@ export const uiTranslations = {
       dateYesterday: 'Gestern',
       // --- Cookbook home (level 1) & list level (level 2) ---
       myCookbookTitle: 'Mein Kochbuch',
+      subtitle: 'Deine Rezepte & Sammlungen',
       allRecipesTitle: 'Alle Rezepte',
       allRecipes: 'Alle {count} Rezepte ansehen',
       recipeCount: '{count} Rezepte',
@@ -1117,6 +1120,8 @@ export const uiTranslations = {
       btnAdd: 'Hinzufügen',
       btnCancelInline: 'Abbrechen',
       title: 'Einkaufsliste',
+      subtitle: 'Zutaten & Artikel für deinen Einkauf',
+      progressSubtitle: '{checked} von {total} Artikeln erledigt',
       clearChecked: 'Erledigte löschen',
       clearAll: 'Liste leeren',
       dialogClear: {
@@ -1511,6 +1516,7 @@ export const uiTranslations = {
       },
       gamification: {
         tabTitle: 'Progress',
+        subtitle: 'Your cooking achievements, level and friends',
         level: 'Level {level}',
         levelShort: 'Lvl {level}',
         xpToNext: '{xp} XP to Lvl {level}',
@@ -1666,6 +1672,7 @@ export const uiTranslations = {
         },
       },
       settings: {
+        subtitle: 'App configuration, profile and preferences',
         language: 'Language',
         theme: 'Appearance',
         tempUnit: 'Temperature Unit',
@@ -2105,6 +2112,7 @@ export const uiTranslations = {
       dateYesterday: 'Yesterday',
       // --- Cookbook home (level 1) & list level (level 2) ---
       myCookbookTitle: 'My Cookbook',
+      subtitle: 'Your saved recipes & collections',
       allRecipesTitle: 'All recipes',
       allRecipes: 'Browse all {count} recipes',
       recipeCount: '{count} recipes',
@@ -2188,6 +2196,8 @@ export const uiTranslations = {
       btnAdd: 'Add',
       btnCancelInline: 'Cancel',
       title: 'Shopping List',
+      subtitle: 'Ingredients & items for your shopping',
+      progressSubtitle: '{checked} of {total} items done',
       clearChecked: 'Clear Checked',
       clearAll: 'Clear List',
       dialogClear: {
