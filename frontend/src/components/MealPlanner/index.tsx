@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import type { MealPlannerViewProps } from './types';
 import { useMealPlanner } from './useMealPlanner';
 import { MealPlannerHeader } from './MealPlannerHeader';
 import { WeekDayPicker } from './WeekDayPicker';
 import { DayMealSlots } from './DayMealSlots';
 import { RecipePickerModal } from './RecipePickerModal';
+import { useSwipeGesture } from '../../hooks/useSwipeGesture';
 
 export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
   history,
@@ -35,8 +36,33 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
     addWeekToShoppingList,
   } = useMealPlanner(history, addRecipeIngredients);
 
+  const goToNextDay = useCallback(() => {
+    const days = weekDays;
+    const idx = days.findIndex(d => d.dateStr === selectedDate);
+    if (idx < days.length - 1) {
+      setSelectedDate(days[idx + 1].dateStr);
+    } else {
+      goToNextWeek();
+    }
+  }, [weekDays, selectedDate, setSelectedDate, goToNextWeek]);
+
+  const goToPrevDay = useCallback(() => {
+    const days = weekDays;
+    const idx = days.findIndex(d => d.dateStr === selectedDate);
+    if (idx > 0) {
+      setSelectedDate(days[idx - 1].dateStr);
+    } else {
+      goToPrevWeek();
+    }
+  }, [weekDays, selectedDate, setSelectedDate, goToPrevWeek]);
+
+  const swipeHandlers = useSwipeGesture({
+    onSwipeLeft: goToNextDay,
+    onSwipeRight: goToPrevDay,
+  });
+
   return (
-    <div className="w-full flex flex-col gap-4">
+    <div className="w-full flex flex-col gap-4 overflow-hidden">
       {/* Header with week navigation & shopping button */}
       <MealPlannerHeader
         weekStart={currentWeekStart}
@@ -68,16 +94,23 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
           ))}
         </div>
       ) : (
-        <DayMealSlots
-          selectedDateStr={selectedDate}
-          entries={activeDayEntries}
-          onAddRecipeToSlot={(slotType) => setPickerSlot({ date: selectedDate, mealType: slotType })}
-          onUpdateServings={updateServings}
-          onToggleCooked={toggleCooked}
-          onDeleteEntry={deletePlan}
-          onSelectRecipe={onSelectRecipe}
-          onOpenCookMode={onOpenCookMode}
-        />
+        <div
+          key={selectedDate}
+          className="animate-fade-in"
+          style={{ animationDuration: '200ms' }}
+          {...swipeHandlers}
+        >
+          <DayMealSlots
+            selectedDateStr={selectedDate}
+            entries={activeDayEntries}
+            onAddRecipeToSlot={(slotType) => setPickerSlot({ date: selectedDate, mealType: slotType })}
+            onUpdateServings={updateServings}
+            onToggleCooked={toggleCooked}
+            onDeleteEntry={deletePlan}
+            onSelectRecipe={onSelectRecipe}
+            onOpenCookMode={onOpenCookMode}
+          />
+        </div>
       )}
 
       {/* Recipe Picker Modal */}
