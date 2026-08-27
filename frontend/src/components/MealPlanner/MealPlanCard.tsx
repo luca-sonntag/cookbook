@@ -4,6 +4,7 @@ import type { MealPlanCardProps } from './types';
 import CachedImage from '../CachedImage';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
+import { hapticLight, hapticMedium, hapticHeavy } from '../../utils/haptics';
 
 export const MealPlanCard: React.FC<MealPlanCardProps> = ({
   entry,
@@ -27,6 +28,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
       status: 'danger',
     });
     if (confirmed) {
+      hapticHeavy();
       onDeleteEntry(entry.id);
     }
   };
@@ -34,12 +36,14 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
   const handleServingsDecrease = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (entry.servings > 1) {
+      hapticLight();
       onUpdateServings(entry.id, entry.servings - 1);
     }
   };
 
   const handleServingsIncrease = (e: React.MouseEvent) => {
     e.stopPropagation();
+    hapticLight();
     onUpdateServings(entry.id, entry.servings + 1);
   };
 
@@ -51,7 +55,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
       }`}
     >
       {/* Recipe Thumbnail */}
-      <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-700">
+      <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-700">
         <CachedImage
           src={recipe?.imageUrl}
           alt={recipe?.title || 'Recipe'}
@@ -100,7 +104,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
               onClick={handleServingsDecrease}
               disabled={entry.servings <= 1}
               aria-label="Decrease servings"
-              className="p-0.5 rounded hover:bg-white dark:hover:bg-gray-600 disabled:opacity-30 active:scale-90"
+              className="p-2 rounded hover:bg-white dark:hover:bg-gray-600 disabled:opacity-30 active:scale-90"
             >
               <Minus className="w-2.5 h-2.5" />
             </button>
@@ -108,7 +112,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
             <button
               onClick={handleServingsIncrease}
               aria-label="Increase servings"
-              className="p-0.5 rounded hover:bg-white dark:hover:bg-gray-600 active:scale-90"
+              className="p-2 rounded hover:bg-white dark:hover:bg-gray-600 active:scale-90"
             >
               <Plus className="w-2.5 h-2.5" />
             </button>
@@ -118,9 +122,12 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
             {/* Toggle Cooked */}
             <button
-              onClick={() => onToggleCooked(entry)}
+              onClick={() => {
+                hapticMedium();
+                onToggleCooked(entry);
+              }}
               title={entry.isCooked ? t('mealPlanner.markAsUncooked') : t('mealPlanner.markAsCooked')}
-              className={`p-1.5 rounded-xl transition-all active:scale-90 ${
+              className={`p-2.5 rounded-xl transition-all active:scale-90 ${
                 entry.isCooked
                   ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30'
                   : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
@@ -134,7 +141,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
               <button
                 onClick={() => onOpenCookMode(entry.recipeId)}
                 title={t('mealPlanner.cookNow')}
-                className="p-1.5 rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 active:scale-90 transition-all"
+                className="p-2.5 rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 active:scale-90 transition-all"
               >
                 <Play className="w-4 h-4 fill-current" />
               </button>
@@ -144,7 +151,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
             <button
               onClick={handleDelete}
               aria-label={t('mealPlanner.deleteConfirmBtn')}
-              className="p-1.5 rounded-xl text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 active:scale-90 transition-all"
+              className="p-2.5 rounded-xl text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 active:scale-90 transition-all"
             >
               <Trash2 className="w-4 h-4" />
             </button>

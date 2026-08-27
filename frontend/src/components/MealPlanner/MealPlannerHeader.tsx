@@ -54,7 +54,7 @@ export const MealPlannerHeader: React.FC<MealPlannerHeaderProps> = ({
         <button
           onClick={onPrevWeek}
           aria-label={t('mealPlanner.prevWeek')}
-          className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 active:scale-90 transition-all shadow-sm shadow-black/[0.03]"
+          className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 active:scale-90 transition-all shadow-sm shadow-black/[0.03]"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -76,7 +76,7 @@ export const MealPlannerHeader: React.FC<MealPlannerHeaderProps> = ({
         <button
           onClick={onNextWeek}
           aria-label={t('mealPlanner.nextWeek')}
-          className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 active:scale-90 transition-all shadow-sm shadow-black/[0.03]"
+          className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 active:scale-90 transition-all shadow-sm shadow-black/[0.03]"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
