@@ -66,61 +66,62 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
         </div>
       ) : (
         SLOTS.map((slot) => {
-        const slotEntries = entries.filter((e) => e.mealType === slot.type);
-        const slotTitle = t(slot.titleKey);
+          const slotEntries = entries.filter((e) => e.mealType === slot.type);
+          const slotTitle = t(slot.titleKey);
 
-        return (
-          <div key={slot.type} className="space-y-2">
-            {/* Slot Header */}
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800">
-                  {slot.icon}
-                </span>
-                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">
-                  {slotTitle}
-                </h3>
+          return (
+            <div key={slot.type} className="space-y-2">
+              {/* Slot Header */}
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800">
+                    {slot.icon}
+                  </span>
+                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">
+                    {slotTitle}
+                  </h3>
+                </div>
+
+                {slotEntries.length > 0 && (
+                  <button
+                    onClick={() => onAddRecipeToSlot(slot.type)}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 active:scale-95 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{t('mealPlanner.emptySlot', { meal: slotTitle })}</span>
+                  </button>
+                )}
               </div>
 
-              {slotEntries.length > 0 && (
+              {/* Slot Content */}
+              {slotEntries.length > 0 ? (
+                <div className="space-y-2">
+                  {slotEntries.map((entry) => (
+                    <MealPlanCard
+                      key={entry.id}
+                      entry={entry}
+                      onUpdateServings={onUpdateServings}
+                      onToggleCooked={onToggleCooked}
+                      onDeleteEntry={onDeleteEntry}
+                      onSelectRecipe={onSelectRecipe}
+                      onOpenCookMode={onOpenCookMode}
+                    />
+                  ))}
+                </div>
+              ) : (
+                /* Empty Slot Add Button */
                 <button
                   onClick={() => onAddRecipeToSlot(slot.type)}
-                  className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 active:scale-95 transition-all"
+                  className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-emerald-200/60 dark:border-emerald-800/40 hover:border-emerald-400 dark:hover:border-emerald-500/60 text-emerald-600/70 dark:text-emerald-400/60 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center justify-center gap-2 text-xs font-semibold active:scale-[0.99] transition-all bg-emerald-50/30 dark:bg-emerald-950/10 hover:bg-emerald-50/60 hover:shadow-sm"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   <span>{t('mealPlanner.emptySlot', { meal: slotTitle })}</span>
                 </button>
               )}
             </div>
-
-            {/* Slot Content */}
-            {slotEntries.length > 0 ? (
-              <div className="space-y-2">
-                {slotEntries.map((entry) => (
-                  <MealPlanCard
-                    key={entry.id}
-                    entry={entry}
-                    onUpdateServings={onUpdateServings}
-                    onToggleCooked={onToggleCooked}
-                    onDeleteEntry={onDeleteEntry}
-                    onSelectRecipe={onSelectRecipe}
-                    onOpenCookMode={onOpenCookMode}
-                  />
-                ))}
-              </div>
-            ) : (
-              /* Empty Slot Add Button */
-              <button
-                onClick={() => onAddRecipeToSlot(slot.type)}
-                className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-emerald-200/60 dark:border-emerald-800/40 hover:border-emerald-400 dark:hover:border-emerald-500/60 text-emerald-600/70 dark:text-emerald-400/60 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center justify-center gap-2 text-xs font-semibold active:scale-[0.99] transition-all bg-emerald-50/30 dark:bg-emerald-950/10 hover:bg-emerald-50/60 hover:shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{t('mealPlanner.emptySlot', { meal: slotTitle })}</span>
-              </button>
-            )}
-          </div>
-        );
-      })}
+          );
+        })
+      )}
     </div>
   );
 };
