@@ -67,7 +67,18 @@ Der Rezept-Katalog ist als **Kochbuch mit drei Ebenen** aufgebaut:
 
 ---
 
-## 5. 🛒 Smarte Einkaufsliste & Zutat-Taxonomie (`useShoppingList.ts` & `ingredientTaxonomy.ts`)
+## 5. 📅 Wochenplaner (`MealPlanner/` & `useMealPlanner.ts`)
+
+* **Übersicht (`/#/meal-planner`):** 6. Nav-Tab in der `AppBottomNav` mit interaktivem 7-Tage-Slider (Mo–So), Wochen-Navigation (Vor/Zurück/Heute) und Tages-Slot-Aufteilung (`Frühstück`, `Mittagessen`, `Abendessen`, `Snack`).
+* **Deep Integration:**
+  * **Rezeptansicht (`AddToMealPlanSheet.tsx`):** Direkter "Planen"-Button im `RecipeActionDock` mit Tages-Schnellauswahl, Mahlzeiten-Typ und dynamischem Portions-Stepper.
+  * **Einkaufslisten-Batch-Sync:** Button "Woche einkaufen" skaliert alle Zutaten der geplanten Gerichte anhand der eingestellten Portionen und aggregiert sie in die smarte Einkaufsliste.
+  * **Interaktive Karten (`MealPlanCard.tsx`):** Schnelle Portionsanpassung per Stepper, Direktstart in den Kochmodus (`CookingMode`) und Gekocht-Status-Toggle.
+* **Modularisierung:** Strikte Aufteilung in `useMealPlanner.ts`, `MealPlannerHeader.tsx`, `WeekDayPicker.tsx`, `DayMealSlots.tsx`, `MealPlanCard.tsx`, `RecipePickerModal.tsx` und `AddToMealPlanSheet.tsx` (< 150 Zeilen pro Komponente).
+
+---
+
+## 6. 🛒 Smarte Einkaufsliste & Zutat-Taxonomie (`useShoppingList.ts` & `ingredientTaxonomy.ts`)
 
 * **Generische Rohstoff-Konsolidierung & Universelle BaseKeys (`ingredientTaxonomy.ts`):**
   * Rezepte behalten ihre präzisen Zubereitungszutaten (z. B. *2 Eigelb*, *6 Stück Eier verquirlt*, *1 TL Zitronenabrieb*, *3 Knoblauchzehen*).

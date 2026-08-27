@@ -52,6 +52,7 @@ Die detaillierte technische Dokumentation wurde modular in den Ordner [`docs/arc
    * Centralized Contexts (`AuthContext`, `DialogContext`, `ToastContext`, `I18nContext`, `OverlayStackContext`) & App-weite Hooks
    * Error-Code Registry (`errorCodes.ts`) & Lokalisierung (DE/EN)
    * 3-Ebenen-Katalog (`CookbookHome`, List-Ebene mit Facetten-Filtern, Detail-Ansicht)
+   * Wochenplaner (`MealPlanner/`, `/#/meal-planner`, Mo–So Mahlzeiten-Slots, Batch-Zutaten-Übernahme in Einkaufsliste)
    * Client-seitiges Image Caching (IndexedDB `recipe-image-cache` + `/api/image` Proxy)
    * In-App Koch-Timer (`TimerContext`, `TimerBanner`, `TimerConfirmSheet`) & Share Target Integration
    * In-App Bug-Reports & Feedback (`FeedbackDrawer.tsx` & Console Ring Buffer)

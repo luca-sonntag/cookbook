@@ -117,3 +117,17 @@ flowchart TD
 * **Generische Nährwert-Plausibilitätsprüfung (`isNutritionallyPlausible`):** Mathematischer Abgleich der geschätzten Nährwertdichte (kcal/100g, Fett, KH) gegen den Produkt-Kandidaten.
 * **Rezept-Aggregation (`enrichRecipeWithCanonicalIngredients`):** Läuft auf **jedem** Pfad, der ein Rezept persistiert — URL-Extraktion, Foto-Import und Remix-Jobs im Hintergrund-Worker (`backend/src/queue.ts`), Chat-Remix und `PATCH /api/jobs/:id` in `routes.ts`. Berechnet Nährwerte pro Zutat (`calories`, `protein`, `carbs`, `fat`, `isVerified`, `canonicalId`, `matchedName`) und leitet daraus `recipe.nutritionalValues` pro Portion ab.
 * **Nährwerte sind abgeleitet, nicht gespeicherter Zustand:** `nutritionalValues` wird bei jeder Anreicherung neu aus der Zutatensumme berechnet und nie vom Modell oder vom Client übernommen. Ein von der Quelle selbst genannter Wert liegt separat in `sourceNutritionalValues` (+ `hasExplicitNutritionalValues`) und wird in der UI daneben statt an dessen Stelle gezeigt. `nutritionCoverage` (0..1) gibt an, welcher Kalorienanteil aus verifizierten Datenbank-Treffern statt aus Gemini-Schätzungen stammt; erst ab 90 % gilt ein Rezept als datenbankverifiziert. Bestandsdaten werden per `npm run recompute-nutrition` (im `backend/`-Workspace) angeglichen.
+
+---
+
+## 5. 📅 Wochenplaner-Engine (`meal_plans` & `mealPlanRoutes.ts`)
+
+* **Datenmodell (`backend/db/migrations/004_meal_plans.sql`):**
+  * Tabelle `meal_plans` mit `id` (UUID), `user_id` (UUID), `recipe_id` (FK `recipes.id`), `plan_date` (DATE), `meal_type` (`breakfast`, `lunch`, `dinner`, `snack`), `servings` (NUMERIC), `is_cooked` (BOOLEAN) und `notes` (TEXT).
+  * Fast-Lookup Composite-Index: `idx_meal_plans_user_date (user_id, plan_date)`.
+  * RLS Policy: `"Users manage own meal plans"` (`auth.uid() = user_id`).
+* **REST-Endpunkte (`backend/src/routes/mealPlanRoutes.ts`):**
+  * `GET /api/meal-plan?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`: Liefert alle geplanten Einträge des Benutzers für den Zeitraum, gejoint mit Recipe-Metadaten (Titel, Bild, Zubereitungszeit, Nährwerte, Zutaten).
+  * `POST /api/meal-plan`: Erstellt einen neuen Plan-Eintrag mit Validierung von `planDate` (Regex `^\d{4}-\d{2}-\d{2}$`) und `mealType`.
+  * `PATCH /api/meal-plan/:id`: Aktualisiert Portionsanzahl, Datum, Mahlzeitentyp, Notiz oder `isCooked`-Status.
+  * `DELETE /api/meal-plan/:id`: Löscht einen Plan-Eintrag isoliert für den anfragenden Benutzer.
