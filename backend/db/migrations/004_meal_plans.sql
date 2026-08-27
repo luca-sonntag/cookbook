@@ -13,7 +13,7 @@ create table if not exists public.meal_plans (
   updated_at timestamptz not null default now()
 );
 
--- Ensure all required columns exist even if an older prototype table was present:
+-- Ensure all required columns exist and remove legacy NOT NULL constraints from older prototype tables:
 do $$
 begin
   if not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'meal_plans' and column_name = 'recipe_id') then
@@ -30,6 +30,23 @@ begin
   end if;
   if not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'meal_plans' and column_name = 'notes') then
     alter table public.meal_plans add column notes text;
+  end if;
+
+  -- Remove NOT NULL constraints on legacy columns if present from earlier prototypes
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'meal_plans' and column_name = 'num_dishes') then
+    alter table public.meal_plans alter column num_dishes drop not null;
+  end if;
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'meal_plans' and column_name = 'goal') then
+    alter table public.meal_plans alter column goal drop not null;
+  end if;
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'meal_plans' and column_name = 'rationale') then
+    alter table public.meal_plans alter column rationale drop not null;
+  end if;
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'meal_plans' and column_name = 'title') then
+    alter table public.meal_plans alter column title drop not null;
+  end if;
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'meal_plans' and column_name = 'start_date') then
+    alter table public.meal_plans alter column start_date drop not null;
   end if;
 end $$;
 
