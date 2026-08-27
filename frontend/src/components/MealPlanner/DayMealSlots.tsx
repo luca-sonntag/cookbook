@@ -47,7 +47,25 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
 
   return (
     <div className="space-y-4 pt-2 pb-24">
-      {SLOTS.map((slot) => {
+      {entries.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <span className="text-4xl mb-3">🍽️</span>
+          <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">
+            {t('mealPlanner.emptyDayTitle')}
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+            {t('mealPlanner.emptyDaySubtitle')}
+          </p>
+          <button
+            onClick={() => onAddRecipeToSlot('dinner')}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/25 active:scale-95 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            {t('mealPlanner.addFirstMeal')}
+          </button>
+        </div>
+      ) : (
+        SLOTS.map((slot) => {
         const slotEntries = entries.filter((e) => e.mealType === slot.type);
         const slotTitle = t(slot.titleKey);
 
@@ -94,7 +112,7 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
               /* Empty Slot Add Button */
               <button
                 onClick={() => onAddRecipeToSlot(slot.type)}
-                className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800/80 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 text-gray-400 dark:text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center gap-2 text-xs font-semibold active:scale-[0.99] transition-all bg-white/40 dark:bg-gray-800/20"
+                className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-emerald-200/60 dark:border-emerald-800/40 hover:border-emerald-400 dark:hover:border-emerald-500/60 text-emerald-600/70 dark:text-emerald-400/60 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center justify-center gap-2 text-xs font-semibold active:scale-[0.99] transition-all bg-emerald-50/30 dark:bg-emerald-950/10 hover:bg-emerald-50/60 hover:shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>{t('mealPlanner.emptySlot', { meal: slotTitle })}</span>
