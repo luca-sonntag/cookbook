@@ -17,6 +17,7 @@ import AppOverlays from './components/AppOverlays';
 // Lazy-loaded heavy views
 const RecipeDetails = lazy(() => import('./components/RecipeDetails'));
 const SavedCatalog = lazy(() => import('./components/SavedCatalog/index'));
+const MealPlannerView = lazy(() => import('./components/MealPlanner'));
 const ShoppingList = lazy(() => import('./components/ShoppingList'));
 const SettingsView = lazy(() => import('./components/SettingsView'));
 const ProgressView = lazy(() => import('./components/ProgressView'));
@@ -452,6 +453,24 @@ export default function App() {
                 catalogSubPath={subPath}
                 onNavigateCatalog={navigateCatalog}
                 limitStatus={limitStatus}
+              />
+            </Suspense>
+          )}
+        </div>
+
+        {/* MEAL PLANNER TAB */}
+        <div
+          hidden={activeView !== 'meal-planner'}
+          aria-hidden={activeView !== 'meal-planner' || undefined}
+        >
+          {visitedViews.has('meal-planner') && (
+            <Suspense fallback={<ViewFallback />}>
+              <MealPlannerView
+                history={history}
+                onSelectRecipe={(recipeId) => {
+                  navigate('history', recipeId);
+                }}
+                addRecipeIngredients={addRecipeIngredients}
               />
             </Suspense>
           )}
