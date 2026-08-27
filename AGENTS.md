@@ -20,6 +20,7 @@
 
 * 🧼 [**TypeScript & React Clean Code Guidelines**](file:///c:/Users/lucas/source/repos/cookbook/docs/clean-code.md): Verbindliche Regeln zu Dateigrößen (**max. 150–200 Zeilen, Hard Limit 300**), Modularisierung, Custom Hooks, Subkomponenten-Extraktion & 0x `any`.
 * 🎨 [**UI & Design Styleguide**](file:///c:/Users/lucas/source/repos/cookbook/docs/styleguide.md): Vorgaben zu Clean Flat Style, Farbpalette, Typografie, Radien & rahmenlosen Oberflächen (`border-none`).
+* 📱 [**Mobile UX & Native App Feeling Guidelines**](file:///c:/Users/lucas/source/repos/cookbook/docs/mobile-ux-rules.md): Verbindliche Richtlinien für Touch-Targets (≥ 44×44px), Haptics, Gesten, Empty States, Transitions & selektierte Zustände.
 
 ---
 
