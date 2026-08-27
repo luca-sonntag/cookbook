@@ -4,6 +4,11 @@ import type { RecipePickerModalProps } from './types';
 import CachedImage from '../CachedImage';
 import { useI18n } from '../../context/I18nContext';
 
+function formatDateHuman(iso: string): string {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
 export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
   isOpen,
   mealType,
@@ -30,7 +35,10 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
   const mealTitle = mealType ? t(`mealPlanner.meals.${mealType}`) : '';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+    <div 
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up"
         onClick={(e) => e.stopPropagation()}
@@ -39,7 +47,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
         <div className="flex items-center justify-between p-4 border-b border-black/[0.06] dark:border-white/[0.08]">
           <div>
             <h3 className="text-base font-bold text-gray-900 dark:text-white">
-              {mealTitle} – {dateStr}
+              {mealTitle} – {formatDateHuman(dateStr)}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {t('mealPlanner.addRecipePrompt')}
