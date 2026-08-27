@@ -25,7 +25,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`w-full flex items-center justify-between pt-2 pb-1 ${className}`}>
+    <div className={`w-full flex items-center justify-between ${className}`}>
       <div className="min-w-0 flex-1">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
           {icon && (
@@ -36,7 +36,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           <span className="truncate">{title}</span>
         </h1>
         {subtitle && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
             {subtitle}
           </p>
         )}

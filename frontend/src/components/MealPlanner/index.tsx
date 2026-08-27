@@ -36,7 +36,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
   } = useMealPlanner(history, addRecipeIngredients);
 
   return (
-    <div className="w-full max-w-lg mx-auto px-4 pt-4 pb-28 space-y-4">
+    <div className="w-full flex flex-col gap-4">
       {/* Header with week navigation & shopping button */}
       <MealPlannerHeader
         weekStart={currentWeekStart}

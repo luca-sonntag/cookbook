@@ -110,7 +110,6 @@ export default function SettingsView() {
         icon={<User className="w-6 h-6" />}
         title={t('app.nav.settings') || 'Einstellungen'}
         subtitle={t('app.settings.subtitle')}
-        className="px-2"
       />
 
       {/* Save Status / Error Notification */}

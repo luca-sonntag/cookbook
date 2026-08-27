@@ -41,7 +41,7 @@ export const MealPlannerHeader: React.FC<MealPlannerHeaderProps> = ({
   ) : undefined;
 
   return (
-    <div className="w-full space-y-4 pt-2 pb-1">
+    <div className="w-full flex flex-col gap-4">
       <PageHeader
         icon={<CalendarIcon className="w-6 h-6" />}
         title={t('mealPlanner.title')}
