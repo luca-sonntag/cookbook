@@ -4,3 +4,4 @@ export * from './collections.js';
 export * from './gamification.js';
 export * from './social.js';
 export * from './admin.js';
+export * from './mealPlans.js';

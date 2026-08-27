@@ -6,6 +6,7 @@ import { collectionRoutes } from './routes/collectionRoutes.js';
 import { socialRoutes } from './routes/socialRoutes.js';
 import { userRoutes } from './routes/userRoutes.js';
 import { adminRoutes } from './routes/adminRoutes.js';
+import { mealPlanRoutes } from './routes/mealPlanRoutes.js';
 
 export const apiRouter = Router();
 
@@ -19,6 +20,7 @@ apiRouter.use(collectionRoutes);
 apiRouter.use(socialRoutes);
 apiRouter.use(userRoutes);
 apiRouter.use(adminRoutes);
+apiRouter.use(mealPlanRoutes);
 
 // Re-export helpers for backwards compatibility
 export * from './routes/authUtils.js';

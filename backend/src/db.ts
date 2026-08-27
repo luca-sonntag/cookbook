@@ -7,3 +7,4 @@ export * from './db/collectionsDb.js';
 export * from './db/gamificationDb.js';
 export * from './db/socialDb.js';
 export * from './db/adminDb.js';
+export * from './db/mealPlansDb.js';
