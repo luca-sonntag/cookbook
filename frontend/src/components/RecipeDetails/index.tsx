@@ -25,6 +25,7 @@ import RecipeCopilot from './RecipeCopilot';
 import { useAuth } from '../../context/AuthContext';
 import PremiumModal from '../PremiumModal';
 import ShoppingConfirmSheet from './ShoppingConfirmSheet';
+import AddToMealPlanSheet from '../MealPlanner/AddToMealPlanSheet';
 
 
 import { stripInlineIngredientTags } from '../../utils/ingredientMatch';
@@ -102,6 +103,7 @@ export default function RecipeDetails({
   const cookRefreshKey = snapshot?.stats?.totalCooks ?? 0;
   const { history: cookHistory } = useCookHistory(recipe.id, cookRefreshKey);
   const [isShoppingConfirmOpen, setIsShoppingConfirmOpen] = useState(false);
+  const [isAddToPlanOpen, setIsAddToPlanOpen] = useState(false);
   const [shouldNavigateAfterAdd, setShouldNavigateAfterAdd] = useState(false);
 
   // In development mode, log the complete recipe model to the browser console when opened
@@ -683,6 +685,7 @@ export default function RecipeDetails({
               setIsPremiumModalOpen(true);
             }
           }}
+          onPlanClick={() => setIsAddToPlanOpen(true)}
         />
       )}
 
@@ -731,7 +734,16 @@ export default function RecipeDetails({
         onConfirm={handleConfirmShoppingListSelection}
       />
 
-
+      {/* Add To Meal Plan Drawer */}
+      {recipe.id && (
+        <AddToMealPlanSheet
+          isOpen={isAddToPlanOpen}
+          onClose={() => setIsAddToPlanOpen(false)}
+          recipeId={recipe.id}
+          recipe={recipe}
+          initialServings={servings}
+        />
+      )}
 
       {/* Cooked Modal (triggered when completing all steps) */}
       {recipe.id && (

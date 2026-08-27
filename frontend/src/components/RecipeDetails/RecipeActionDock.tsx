@@ -1,4 +1,4 @@
-import { ShoppingCart, ShoppingBag, Play, MessageCircle } from 'lucide-react';
+import { ShoppingCart, ShoppingBag, Play, MessageCircle, Calendar } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import FloatingActionBar from '../FloatingActionBar';
@@ -14,6 +14,7 @@ interface RecipeActionDockProps {
   recipeId?: string;
   recipeTitle?: string;
   onRemixClick?: () => void;
+  onPlanClick?: () => void;
 }
 
 export default function RecipeActionDock({
@@ -23,7 +24,8 @@ export default function RecipeActionDock({
   onStartCooking,
   recipeId,
   recipeTitle,
-  onRemixClick
+  onRemixClick,
+  onPlanClick,
 }: RecipeActionDockProps) {
   const { t } = useI18n();
   const { isPremium } = useAuth();
@@ -32,15 +34,16 @@ export default function RecipeActionDock({
 
   const showStart = totalStepsCount > 0;
   const showRemix = !!recipeId && !!onRemixClick;
+  const showPlan = !!recipeId && !!onPlanClick;
   const showShopping = !!onAddToCart;
   const showCooked = !!recipeId;
 
   const itemBase =
-    'relative flex flex-col items-center justify-center gap-1 min-w-[4.25rem] px-2.5 py-2 rounded-2xl ' +
+    'relative flex flex-col items-center justify-center gap-1 min-w-[3.75rem] px-2 py-2 rounded-2xl ' +
     'transition-all active:scale-95 cursor-pointer outline-none border-none group';
   const itemPrimary =
     `${itemBase} text-white bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 ` +
-    'shadow-sm shadow-emerald-600/25 mr-1.5';
+    'shadow-sm shadow-emerald-600/25 mr-1';
   const itemNeutral =
     `${itemBase} text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 ` +
     'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]';
@@ -61,6 +64,21 @@ export default function RecipeActionDock({
             {t('recipe.dockCook')}
           </span>
           {!isPremium && <PremiumCrownBadge />}
+        </button>
+      )}
+
+      {/* Plan Button */}
+      {showPlan && (
+        <button
+          onClick={onPlanClick}
+          className={itemNeutral}
+          title={t('recipe.dockPlan')}
+          aria-label={t('recipe.dockPlan')}
+        >
+          <Calendar className="w-5 h-5" />
+          <span className={itemLabel}>
+            {t('recipe.dockPlan')}
+          </span>
         </button>
       )}
 
@@ -112,4 +130,4 @@ export default function RecipeActionDock({
       )}
     </FloatingActionBar>
   );
-}
+}
