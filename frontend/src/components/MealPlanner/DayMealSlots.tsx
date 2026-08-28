@@ -63,9 +63,9 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
             {slotEntries.length > 0 ? (
               <>
                 {/* Slot Header */}
-                <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="p-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                <div className="flex items-center justify-between px-3 py-1">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center">
                       {slot.icon}
                     </span>
                     <div className="flex items-center gap-1.5">
@@ -86,9 +86,9 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                       onAddRecipeToSlot(slot.type);
                     }}
                     aria-label={t('mealPlanner.emptySlot', { meal: slotTitle })}
-                    className="w-7 h-7 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 active:scale-90 transition-transform duration-150 cursor-pointer border-none shadow-2xs"
+                    className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 active:scale-90 transition-transform duration-150 cursor-pointer border-none shadow-2xs"
                   >
-                    <Plus className="w-3.5 h-3.5 stroke-[2.25]" />
+                    <Plus className="w-4 h-4 stroke-[2.25]" />
                   </button>
                 </div>
 
@@ -115,9 +115,9 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                   hapticLight();
                   onAddRecipeToSlot(slot.type);
                 }}
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white/80 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-850 border-none shadow-2xs ring-1 ring-black/[0.03] dark:ring-white/[0.04] flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-200 active:scale-[0.98] transition-all duration-150 group cursor-pointer"
+                className="w-full px-3 py-2.5 rounded-2xl bg-white/80 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-850 border-none shadow-2xs ring-1 ring-black/[0.03] dark:ring-white/[0.04] flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-200 active:scale-[0.98] transition-all duration-150 group cursor-pointer"
               >
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <span className="p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 transition-colors">
                     {slot.icon}
                   </span>
@@ -125,8 +125,8 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                     {slotTitle}
                   </span>
                 </div>
-                <div className="w-7 h-7 rounded-xl bg-gray-100 dark:bg-gray-800 shadow-2xs flex items-center justify-center text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 shadow-2xs flex items-center justify-center text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
                 </div>
               </button>
             )}
