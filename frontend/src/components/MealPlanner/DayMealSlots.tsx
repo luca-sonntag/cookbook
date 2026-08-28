@@ -17,22 +17,22 @@ const SLOTS: SlotTheme[] = [
   {
     type: 'breakfast',
     titleKey: 'mealPlanner.meals.breakfast',
-    icon: <Coffee className="w-3.5 h-3.5" />,
+    icon: <Coffee className="w-4 h-4" />,
   },
   {
     type: 'lunch',
     titleKey: 'mealPlanner.meals.lunch',
-    icon: <Utensils className="w-3.5 h-3.5" />,
+    icon: <Utensils className="w-4 h-4" />,
   },
   {
     type: 'dinner',
     titleKey: 'mealPlanner.meals.dinner',
-    icon: <Moon className="w-3.5 h-3.5" />,
+    icon: <Moon className="w-4 h-4" />,
   },
   {
     type: 'snack',
     titleKey: 'mealPlanner.meals.snack',
-    icon: <Apple className="w-3.5 h-3.5" />,
+    icon: <Apple className="w-4 h-4" />,
   },
 ];
 
@@ -69,7 +69,7 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                       {slot.icon}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <h3 className="text-xs font-bold text-gray-800 dark:text-gray-200">
+                      <h3 className="text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200">
                         {slotTitle}
                       </h3>
                       {slotEntries.length > 1 && (
@@ -86,7 +86,7 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                       onAddRecipeToSlot(slot.type);
                     }}
                     aria-label={t('mealPlanner.emptySlot', { meal: slotTitle })}
-                    className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 active:scale-90 transition-transform duration-150 cursor-pointer border-none shadow-2xs"
+                    className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 active:scale-90 transition-transform duration-150 cursor-pointer border-none shadow-2xs"
                   >
                     <Plus className="w-4 h-4 stroke-[2.25]" />
                   </button>
@@ -115,17 +115,17 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                   hapticLight();
                   onAddRecipeToSlot(slot.type);
                 }}
-                className="w-full px-3 py-2.5 rounded-2xl bg-white/80 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-850 border-none shadow-2xs ring-1 ring-black/[0.03] dark:ring-white/[0.04] flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-200 active:scale-[0.98] transition-all duration-150 group cursor-pointer"
+                className="w-full px-3.5 py-3 rounded-2xl bg-white/80 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-850 border-none shadow-2xs ring-1 ring-black/[0.03] dark:ring-white/[0.04] flex items-center justify-between text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 active:scale-[0.98] transition-all duration-150 group cursor-pointer min-h-[48px]"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <span className="p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 transition-colors">
                     {slot.icon}
                   </span>
-                  <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                  <span className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200">
                     {slotTitle}
                   </span>
                 </div>
-                <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 shadow-2xs flex items-center justify-center text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                <div className="w-8.5 h-8.5 rounded-xl bg-gray-100 dark:bg-gray-800 shadow-2xs flex items-center justify-center text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
                   <Plus className="w-4 h-4 stroke-[2.5]" />
                 </div>
               </button>
