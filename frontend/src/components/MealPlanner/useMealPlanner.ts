@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useI18n } from '../../context/I18nContext';
 import { apiUrl } from '../../api';
+import { hapticLight } from '../../utils/haptics';
 
 export function getMonday(date: Date): Date {
   const d = new Date(date);
@@ -78,14 +79,25 @@ export function useMealPlanner(
 
   // Navigation handlers
   const goToPrevWeek = useCallback(() => {
-    setCurrentWeekStart((prev) => addDays(prev, -7));
+    hapticLight();
+    setCurrentWeekStart((prev) => {
+      const next = addDays(prev, -7);
+      setSelectedDate(formatDateIso(next));
+      return next;
+    });
   }, []);
 
   const goToNextWeek = useCallback(() => {
-    setCurrentWeekStart((prev) => addDays(prev, 7));
+    hapticLight();
+    setCurrentWeekStart((prev) => {
+      const next = addDays(prev, 7);
+      setSelectedDate(formatDateIso(next));
+      return next;
+    });
   }, []);
 
   const goToToday = useCallback(() => {
+    hapticLight();
     const today = new Date();
     setCurrentWeekStart(getMonday(today));
     setSelectedDate(formatDateIso(today));
