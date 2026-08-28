@@ -237,6 +237,24 @@ Write-Host "=================================================================" -
 Write-Host ""
 
 if ($needsDeploy) {
+    Write-Host "[SYNC] Syncing Capacitor plugins and dependencies..." -ForegroundColor Yellow
+    Push-Location $frontendDir
+    try { & npx.cmd cap sync android } finally { Pop-Location }
+
+    # Re-apply live URL to assets after sync
+    if (-not $ServerOnly -and (Test-Path $assetsConfigFile)) {
+        try {
+            $rawJson = Get-Content $assetsConfigFile -Raw
+            $config = $rawJson | ConvertFrom-Json
+            if (-not $config.server) {
+                $config | Add-Member -NotePropertyName "server" -NotePropertyValue (New-Object PSObject) -Force
+            }
+            $config.server | Add-Member -NotePropertyName "url" -NotePropertyValue $liveUrl -Force
+            $config.server | Add-Member -NotePropertyName "cleartext" -NotePropertyValue $true -Force
+            Set-Content -Path $assetsConfigFile -Value ($config | ConvertTo-Json -Depth 10) -Encoding utf8
+        } catch {}
+    }
+
     Write-Host "[BUILD] Building debug APK with live URL ($liveUrl)..." -ForegroundColor Yellow
     Push-Location $androidDir
     try {
