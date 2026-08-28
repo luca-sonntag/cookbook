@@ -19,6 +19,20 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ---
 
+### 2026-08-28: Vollständige Bereinigung aller verbliebenen BLS-Dateien, Codes und Referenzen
+
+* **Ersetzter Code / Anti-Pattern:**
+  - `backend/src/data/bls_4_0_daten_2025_de.csv` (10 MB alte BLS-CSV-Datei).
+  - Veralteter BLS MiniSearch Index `backend/src/matching/ingredientIndex.ts`.
+  - Veraltetes BLS-Generierungsskript `backend/src/scripts/buildBLSIngredients.ts`.
+  - Einmalige Migrationsskripte: `dumpBaseNameMappings.ts`, `renameIconsToEnglishBaseNames.ts`, `migrateIconsToOpenFoodFacts.ts`, `purgeGermanIcons.ts`, `pocOpenFoodFacts.ts`.
+  - Veraltete `bls_code` / `blsCode`-Properties in TypeScript-Typen (`CanonicalIngredient`, `IngredientMapping`, `ResolverResult`), Resolver-Tools, Matcher und Admin-Routen.
+* **Ersetzt durch:**
+  - Ausschließliche Verwendung von `product_code` / Open Food Facts Barcodes & IDs im gesamten Backend, in Resolver-Tools, DB-Queries und Frontend-Dokumentationen.
+* **Betroffene Dateien:** `backend/src/data/canonicalIngredients.ts`, `backend/src/matching/openFoodFactsIndex.ts`, `backend/src/matching/mappingStore.ts`, `backend/src/matching/resolverTools.ts`, `backend/src/matching/ingredientResolver.ts`, `backend/src/matching/ingredientMatcher.ts`, `backend/src/routes/adminRoutes.ts`, `backend/src/scripts/backfillIngredientMappings.ts`, `frontend/src/hooks/useRecipeNutrition.ts`, `docs/OBSOLETE.md`.
+
+---
+
 ### 2026-08-28: Bereinigung von Legacy-Kategorien & Löschung redundanter Kategorie-Icon-Dateien
 
 * **Ersetzter Code / Anti-Pattern:**
