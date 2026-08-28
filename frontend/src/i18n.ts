@@ -1453,6 +1453,15 @@ export const uiTranslations = {
       insightMealsSingle: '1 Mahlzeit',
       insightTime: '⏱️ {time} min Zubereitung',
       insightCalories: '🔥 {kcal} kcal',
+      insightCookedProgress: '{cooked} von {total} gekocht',
+      allCookedDone: 'Alles gekocht 🎉',
+      quickAddBreakfast: '+ Frühstück',
+      quickAddLunch: '+ Mittagessen',
+      quickAddDinner: '+ Abendessen',
+      quickAddSnack: '+ Snack',
+      quickAddRandom: '🎲 Zufalls-Rezept',
+      actionsMenu: 'Weitere Aktionen',
+      deleteAction: 'Löschen',
     },
     ota: {
       banner: {
@@ -2545,6 +2554,15 @@ export const uiTranslations = {
       insightMealsSingle: '1 meal',
       insightTime: '⏱️ {time} min prep',
       insightCalories: '🔥 {kcal} kcal',
+      insightCookedProgress: '{cooked} of {total} cooked',
+      allCookedDone: 'All cooked 🎉',
+      quickAddBreakfast: '+ Breakfast',
+      quickAddLunch: '+ Lunch',
+      quickAddDinner: '+ Dinner',
+      quickAddSnack: '+ Snack',
+      quickAddRandom: '🎲 Random recipe',
+      actionsMenu: 'More actions',
+      deleteAction: 'Delete',
     },
     ota: {
       banner: {
