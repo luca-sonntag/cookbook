@@ -57,33 +57,33 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="flex items-center justify-between mt-2.5 pt-0.5 gap-2 select-none"
+      className="flex items-center justify-between mt-2 pt-0.5 gap-1.5 select-none"
     >
-      {/* Servings Stepper (Generous & Tactile) */}
-      <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-850 p-1 rounded-2xl border-none shadow-2xs shrink-0">
+      {/* Servings Stepper */}
+      <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-850 p-0.5 rounded-xl border-none shadow-2xs shrink-0">
         <button
           onClick={handleServingsDecrease}
           disabled={entry.servings <= 1}
           aria-label={t('mealPlanner.changeServings')}
-          className="w-8.5 h-8.5 rounded-xl bg-white dark:bg-gray-750 shadow-2xs flex items-center justify-center text-gray-700 dark:text-gray-200 disabled:opacity-30 active:scale-[0.88] transition-transform duration-150 cursor-pointer border-none"
+          className="w-8 h-8 rounded-lg bg-white dark:bg-gray-750 shadow-2xs flex items-center justify-center text-gray-700 dark:text-gray-200 disabled:opacity-30 active:scale-[0.88] transition-transform duration-150 cursor-pointer border-none"
         >
-          <Minus className="w-4 h-4 stroke-[2.5]" />
+          <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
-        <div className="flex items-center gap-1 px-1.5 min-w-[32px] justify-center text-gray-800 dark:text-gray-200">
-          <Users className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+        <div className="flex items-center gap-0.5 px-1 min-w-[26px] justify-center text-gray-800 dark:text-gray-200">
+          <Users className="w-3 h-3 text-gray-400 dark:text-gray-500" />
           <span className="text-xs font-black">{entry.servings}</span>
         </div>
         <button
           onClick={handleServingsIncrease}
           aria-label={t('mealPlanner.changeServings')}
-          className="w-8.5 h-8.5 rounded-xl bg-white dark:bg-gray-750 shadow-2xs flex items-center justify-center text-gray-700 dark:text-gray-200 active:scale-[0.88] transition-transform duration-150 cursor-pointer border-none"
+          className="w-8 h-8 rounded-lg bg-white dark:bg-gray-750 shadow-2xs flex items-center justify-center text-gray-700 dark:text-gray-200 active:scale-[0.88] transition-transform duration-150 cursor-pointer border-none"
         >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
       </div>
 
-      {/* Action Cluster (Generous Touch Targets) */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      {/* Action Cluster */}
+      <div className="flex items-center gap-1 shrink-0">
         {/* Cook Mode (Play) */}
         {onOpenCookMode && (
           <button
@@ -93,9 +93,9 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
             }}
             title={t('mealPlanner.cookNow')}
             aria-label={t('mealPlanner.cookNow')}
-            className="w-9.5 h-9.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs shadow-emerald-600/30 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none"
+            className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs shadow-emerald-600/30 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none"
           >
-            <Play className="w-4 h-4 fill-current ml-0.5" />
+            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
           </button>
         )}
 
@@ -107,16 +107,16 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
           }}
           title={entry.isCooked ? t('mealPlanner.markAsUncooked') : t('mealPlanner.markAsCooked')}
           aria-label={entry.isCooked ? t('mealPlanner.markAsUncooked') : t('mealPlanner.markAsCooked')}
-          className={`w-9.5 h-9.5 rounded-2xl transition-all duration-150 active:scale-[0.90] flex items-center justify-center cursor-pointer border-none shadow-2xs ${
+          className={`w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl transition-all duration-150 active:scale-[0.90] flex items-center justify-center cursor-pointer border-none shadow-2xs ${
             entry.isCooked
               ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30'
               : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-gray-750'
           }`}
         >
-          <CheckCircle2 className="w-4.5 h-4.5 stroke-[2.25]" />
+          <CheckCircle2 className="w-4 h-4 stroke-[2.25]" />
         </button>
 
-        {/* Move to Tomorrow (Visible on larger screens where space permits) */}
+        {/* Move to Tomorrow (Shown dynamically when container has >=215px) */}
         {onMoveToTomorrow && (
           <button
             onClick={() => {
@@ -125,9 +125,9 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
             }}
             title={t('mealPlanner.moveToTomorrow')}
             aria-label={t('mealPlanner.moveToTomorrow')}
-            className="hidden sm:flex w-9.5 h-9.5 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 dark:hover:bg-gray-750 active:scale-[0.90] transition-all duration-150 items-center justify-center cursor-pointer border-none shadow-2xs"
+            className="hidden @[215px]:flex w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 dark:hover:bg-gray-750 active:scale-[0.90] transition-all duration-150 items-center justify-center cursor-pointer border-none shadow-2xs"
           >
-            <CalendarClock className="w-4 h-4" />
+            <CalendarClock className="w-3.5 h-3.5" />
           </button>
         )}
 
@@ -136,9 +136,9 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
           onClick={handleDelete}
           title={t('mealPlanner.deleteAction')}
           aria-label={t('mealPlanner.deleteConfirmBtn')}
-          className="w-9.5 h-9.5 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 dark:hover:bg-gray-750 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none shadow-2xs"
+          className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 dark:hover:bg-gray-750 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none shadow-2xs"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

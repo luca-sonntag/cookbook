@@ -42,7 +42,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
       </div>
 
       {/* Recipe Content */}
-      <div className="flex-1 min-w-0 pr-0.5">
+      <div className="flex-1 min-w-0 pr-0.5 @container">
         <div className="flex items-center gap-1.5">
           <h4
             className={`text-xs sm:text-sm font-extrabold line-clamp-1 leading-snug transition-colors ${
