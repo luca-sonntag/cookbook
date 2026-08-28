@@ -50,14 +50,14 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
   return (
     <div
       onClick={() => onSelectRecipe(entry.recipeId)}
-      className={`group relative flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${
+      className={`group relative flex items-center gap-3 p-3 rounded-2xl md:rounded-3xl border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] transition-all cursor-pointer ${
         entry.isCooked
-          ? 'bg-emerald-50/50 dark:bg-emerald-950/25 border-emerald-500/20 shadow-none'
-          : 'bg-white dark:bg-gray-800/90 border-black/[0.04] dark:border-white/[0.06] shadow-sm shadow-black/[0.03] hover:shadow-md'
+          ? 'bg-emerald-50/50 dark:bg-emerald-950/25'
+          : 'bg-white dark:bg-gray-900 hover:shadow-md'
       }`}
     >
       {/* Recipe Thumbnail */}
-      <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-700">
+      <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-800">
         <CachedImage
           src={recipe?.imageUrl}
           alt={recipe?.title || 'Recipe'}
@@ -97,11 +97,11 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
         </div>
 
         {/* Actions bar: Servings Stepper & Quick Actions */}
-        <div className="flex items-center justify-between mt-2 pt-1 border-t border-black/[0.04] dark:border-white/[0.06]">
+        <div className="flex items-center justify-between mt-2 pt-0.5">
           {/* Servings Stepper */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700/80 px-2 py-0.5 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-200"
+            className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-200 border-none"
           >
             <Users className="w-3 h-3 text-gray-400" />
             <button

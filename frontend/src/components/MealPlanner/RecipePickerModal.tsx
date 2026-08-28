@@ -40,11 +40,11 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up"
+        className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-3xl border-none shadow-[0_-4px_30px_rgba(0,0,0,0.12)] max-h-[85vh] flex flex-col overflow-hidden animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-black/[0.06] dark:border-white/[0.08]">
+        <div className="flex items-center justify-between p-4 pb-2">
           <div>
             <h3 className="text-base font-bold text-gray-900 dark:text-white">
               {mealTitle} – {formatDateHuman(dateStr)}
@@ -55,14 +55,14 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 active:scale-90 transition-all"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 active:scale-90 transition-all border-none cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Search Input */}
-        <div className="p-3 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="px-4 py-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -70,13 +70,13 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rezept suchen..."
-              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 border-none focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all"
             />
           </div>
         </div>
 
         {/* Recipes List */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2 divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+        <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
           {filteredHistory.length > 0 ? (
             filteredHistory.map((saved) => (
               <button

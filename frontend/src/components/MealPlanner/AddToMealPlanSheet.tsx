@@ -160,10 +160,10 @@ export const AddToMealPlanSheet: React.FC<AddToMealPlanSheetProps> = ({
                         key={opt.type}
                         type="button"
                         onClick={() => setSelectedMeal(opt.type)}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                        className={`flex items-center gap-2 p-2.5 rounded-2xl border-none text-xs font-semibold transition-all cursor-pointer ${
                           selectedMeal === opt.type
-                            ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300'
-                            : 'border-transparent bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
+                            ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold shadow-sm shadow-emerald-600/10'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                       >
                         {opt.icon}

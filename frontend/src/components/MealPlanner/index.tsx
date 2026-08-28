@@ -74,7 +74,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
       />
 
       {/* Unified Calendar Widget Card */}
-      <div className="w-full flex flex-col gap-1.5 p-2 rounded-3xl bg-gray-100/75 dark:bg-gray-800/70 border border-black/[0.04] dark:border-white/[0.06] shadow-sm shadow-black/[0.02]">
+      <div className="w-full flex flex-col gap-1.5 p-2 rounded-3xl bg-gray-100/75 dark:bg-gray-800/70 border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)]">
         <WeekNavigator
           weekStart={currentWeekStart}
           weekEnd={weekEnd}
