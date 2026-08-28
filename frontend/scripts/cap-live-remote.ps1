@@ -1,16 +1,16 @@
 <#
 .SYNOPSIS
     Starts Capacitor Live-Reload for physical mobile devices over local Wi-Fi (no USB cable needed).
-    Automatically starts local backend and frontend if they are not already running.
+    Automatically checks installed APK on phone via ADB and redeploys if IP changed.
 
 .DESCRIPTION
     This script:
-    1. Automatically detects the active LAN IPv4 address (WLAN / Ethernet) on Windows.
-    2. Checks and automatically launches local backend (port 3000) if not running.
-    3. Configures android/app/src/main/assets/capacitor.config.json with server.url = http://<LAN_IP>:<PORT>
-    4. Backs up the original configuration and safely restores it upon exit (Ctrl+C).
-    5. Starts Vite dev server (port 5173) if not already running.
-    6. Stops any background processes it spawned and restores all config on exit.
+    1. Automatically detects active LAN IPv4 address (WLAN / Ethernet) on Windows.
+    2. Auto-launches local backend (port 3000) if not running.
+    3. Checks via ADB if the app on the phone is configured for the current PC IP.
+       If the IP changed or app is not installed, it automatically builds & deploys.
+    4. Configures capacitor.config.json with server.url = http://<LAN_IP>:<PORT>.
+    5. Starts Vite dev server (port 5173) and restores all configs cleanly on exit.
 
 .PARAMETER Ip
     Custom IP address override (e.g. 192.168.1.100). If omitted, LAN IPv4 is auto-detected.
@@ -19,25 +19,27 @@
     Vite dev server port (default: 5173).
 
 .PARAMETER Mode
-    Vite build mode: 'devlocal' (default, local frontend + local backend via proxy) or 'development' (Railway cloud dev backend).
+    Vite build mode: 'devlocal' (default) or 'development' (Railway cloud dev backend).
 
 .PARAMETER Connect
     Optional phone IP (or IP:port) to connect via Wireless ADB (e.g. 192.168.1.50:5555).
 
 .PARAMETER Build
-    Builds the debug APK (assembleDebug) with the live-reload configuration before starting.
+    Force builds the debug APK (assembleDebug) with the live-reload configuration.
 
 .PARAMETER Launch
-    Attempts to deploy and launch the app on a connected ADB device.
+    Force deploys and launches the app on a connected ADB device.
+
+.PARAMETER NoDeploy
+    Disables automatic ADB APK deployment even if device IP mismatch is detected.
 
 .PARAMETER ServerOnly
     Runs only the live-reload server without syncing or modifying Android files.
 
 .EXAMPLE
     .\cap-live-remote.ps1
+    .\cap-live-remote.ps1 -Connect 192.168.1.45:5555
     .\cap-live-remote.ps1 -Mode development
-    .\cap-live-remote.ps1 -Connect 192.168.1.45:5555 -Launch
-    .\cap-live-remote.ps1 -Build
 #>
 
 param(
@@ -47,6 +49,7 @@ param(
     [string]$Connect = '',
     [switch]$Build,
     [switch]$Launch,
+    [switch]$NoDeploy,
     [switch]$ServerOnly,
     [switch]$Help
 )
@@ -64,9 +67,10 @@ $backendDir = Join-Path $repoRoot 'backend'
 $androidDir = Join-Path $frontendDir 'android'
 $assetsConfigFile = Join-Path $androidDir 'app\src\main\assets\capacitor.config.json'
 $backupConfigFile = Join-Path $androidDir 'app\src\main\assets\capacitor.config.json.live-backup'
+$debugApkPath = Join-Path $androidDir 'app\build\outputs\apk\debug\app-debug.apk'
 
 # -----------------------------------------------------------------------------
-# 1. Helpers: IP Detection & Port Check
+# 1. Helper Functions
 # -----------------------------------------------------------------------------
 function Get-LocalLanIp {
     try {
@@ -82,7 +86,8 @@ function Get-LocalLanIp {
     try {
         $candidates = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
                       Where-Object {
-                          $_.IPAddress -notlike "127.*" -and $_.IPAddress -notlike "169.254.*" -and
+                          $_.IPAddress -notlike "127.*" -and
+                          $_.IPAddress -notlike "169.254.*" -and
                           $_.InterfaceAlias -notmatch "vEthernet|WSL|Virtual|Docker|Loopback|Hyper-V"
                       }
         if ($candidates) {
@@ -106,6 +111,27 @@ function Test-PortOpen {
         return $true
     } catch { return $false }
     finally { $tcp.Close() }
+}
+
+function Get-DeviceInstalledLiveUrl {
+    param([string]$PackageName = 'at.snagbite.app')
+    try {
+        $devicesOutput = & adb devices 2>$null | Out-String
+        if ($devicesOutput -notmatch '(\S+)\s+device\b') { return $null }
+        $pmOutput = & adb shell "pm path $PackageName" 2>$null | Out-String
+        if ($pmOutput -match 'package:(.+?\.apk)') {
+            $apkPathOnDevice = $Matches[1].Trim()
+            $jsonStr = & adb shell "unzip -p $apkPathOnDevice assets/capacitor.config.json" 2>$null | Out-String
+            if (-not [string]::IsNullOrWhiteSpace($jsonStr)) {
+                $parsed = $jsonStr | ConvertFrom-Json -ErrorAction SilentlyContinue
+                if ($parsed -and $parsed.server -and $parsed.server.url) {
+                    return $parsed.server.url
+                }
+                return "[NO_LIVE_URL]"
+            }
+        }
+        return "[NOT_INSTALLED]"
+    } catch { return $null }
 }
 
 # -----------------------------------------------------------------------------
@@ -155,8 +181,6 @@ if ($Mode -eq 'devlocal') {
 } else {
     Write-Host "  [API] Backend   : " -NoNewline; Write-Host "Railway Cloud Dev (development mode)" -ForegroundColor Cyan
 }
-Write-Host "=================================================================" -ForegroundColor Cyan
-Write-Host ""
 
 # -----------------------------------------------------------------------------
 # 4. Optional Wireless ADB Connection
@@ -185,52 +209,61 @@ if (-not $ServerOnly -and (Test-Path $assetsConfigFile)) {
         $updatedJson = $config | ConvertTo-Json -Depth 10
         Set-Content -Path $assetsConfigFile -Value $updatedJson -Encoding utf8
         $didModifyConfig = $true
-        Write-Host "[OK] Injected live server URL into Android assets (capacitor.config.json)." -ForegroundColor Green
     } catch {
         Write-Warning "Failed to inject server URL into capacitor.config.json: $_"
     }
 }
 
 # -----------------------------------------------------------------------------
-# 6. Optional: Build Debug APK or Launch on ADB
+# 6. ADB Inspection & Auto-Deployment Check
 # -----------------------------------------------------------------------------
-if ($Build) {
-    Write-Host "[BUILD] Building debug APK with live-reload server configuration..." -ForegroundColor Yellow
+$needsDeploy = $Build -or $Launch
+$installedDeviceUrl = Get-DeviceInstalledLiveUrl
+
+if ($installedDeviceUrl) {
+    if ($installedDeviceUrl -eq $liveUrl) {
+        Write-Host "  [PHONE] App Config: " -NoNewline; Write-Host "$installedDeviceUrl (Up to date - no reinstall needed!)" -ForegroundColor Green
+    } elseif ($installedDeviceUrl -eq '[NOT_INSTALLED]') {
+        Write-Host "  [PHONE] App Config: " -NoNewline; Write-Host "Not installed on phone. Auto-deploying..." -ForegroundColor Yellow
+        if (-not $NoDeploy) { $needsDeploy = $true }
+    } else {
+        Write-Host "  [PHONE] App Config: " -NoNewline; Write-Host "$installedDeviceUrl (Target is $liveUrl - Auto-updating APK...)" -ForegroundColor Yellow
+        if (-not $NoDeploy) { $needsDeploy = $true }
+    }
+} else {
+    Write-Host "  [PHONE] ADB Device: " -NoNewline; Write-Host "No ADB device connected (Wireless ADB available via -Connect <IP:Port>)" -ForegroundColor DarkGray
+}
+Write-Host "=================================================================" -ForegroundColor Cyan
+Write-Host ""
+
+if ($needsDeploy) {
+    Write-Host "[BUILD] Building debug APK with live URL ($liveUrl)..." -ForegroundColor Yellow
     Push-Location $androidDir
     try {
         & .\gradlew.bat assembleDebug
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "[OK] Debug APK built: $androidDir\app\build\outputs\apk\debug\app-debug.apk" -ForegroundColor Green
+        if ($LASTEXITCODE -eq 0 -and (Test-Path $debugApkPath)) {
+            Write-Host "[OK] Debug APK built successfully." -ForegroundColor Green
+            # If device is connected, install and launch
+            $devicesOutput = & adb devices 2>$null | Out-String
+            if ($devicesOutput -match '(\S+)\s+device\b') {
+                Write-Host "[ADB] Installing updated APK on connected device..." -ForegroundColor Yellow
+                & adb install -r $debugApkPath | Out-Null
+                Write-Host "[ADB] Launching Snagbite..." -ForegroundColor Green
+                & adb shell am start -n at.snagbite.app/.MainActivity | Out-Null
+            }
         } else {
-            Write-Error "Gradle assembleDebug failed."
+            Write-Warning "Gradle assembleDebug failed."
         }
     } finally { Pop-Location }
-}
-
-if ($Launch) {
-    try {
-        $adbDevices = & adb devices | Out-String
-        if ($adbDevices -match '(\S+)\s+device\b') {
-            Write-Host "[ADB] Launching app on connected Android device..." -ForegroundColor Yellow
-            Push-Location $frontendDir
-            try { & npx.cmd cap run android --no-sync } finally { Pop-Location }
-        } else {
-            Write-Host "[INFO] No ADB device connected. Open Snagbite manually on your phone." -ForegroundColor DarkGray
-        }
-    } catch {
-        Write-Host "[INFO] ADB launch skipped. Open Snagbite manually on your phone." -ForegroundColor DarkGray
-    }
 }
 
 # -----------------------------------------------------------------------------
 # 7. Start Frontend Dev Server & Wait with Safe Rollback
 # -----------------------------------------------------------------------------
-Write-Host ""
 Write-Host "Mobile Phone Instructions:" -ForegroundColor White
 Write-Host "  1. Make sure your phone is connected to the SAME Wi-Fi network." -ForegroundColor Gray
 Write-Host "  2. Test in mobile browser: " -NoNewline; Write-Host $liveUrl -ForegroundColor Cyan
-Write-Host "  3. Open the installed Snagbite Debug App on your phone." -ForegroundColor Gray
-Write-Host "  4. Changes in code will live-reload instantly without any USB cable!" -ForegroundColor Gray
+Write-Host "  3. Open the Snagbite App on your phone to start live-coding!" -ForegroundColor Gray
 Write-Host ""
 Write-Host "[!] Press Ctrl+C to stop live-reload and restore original Android config." -ForegroundColor DarkYellow
 Write-Host ""
