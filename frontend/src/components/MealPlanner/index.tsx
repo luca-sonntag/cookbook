@@ -4,6 +4,7 @@ import { useMealPlanner } from './useMealPlanner';
 import { MealPlannerHeader } from './MealPlannerHeader';
 import { WeekNavigator } from './WeekNavigator';
 import { WeekDayPicker } from './WeekDayPicker';
+import { DailyInsightPill } from './DailyInsightPill';
 import { DayMealSlots } from './DayMealSlots';
 import { RecipePickerModal } from './RecipePickerModal';
 import { useSwipeGesture } from '../../hooks/useSwipeGesture';
@@ -34,6 +35,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
     addPlan,
     updateServings,
     toggleCooked,
+    moveToTomorrow,
     deletePlan,
     addWeekToShoppingList,
   } = useMealPlanner(history, addRecipeIngredients);
@@ -64,7 +66,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
   });
 
   return (
-    <div className="w-full flex flex-col gap-4 overflow-hidden">
+    <div className="w-full flex flex-col gap-3 overflow-hidden">
       {/* Header with page title & shopping action */}
       <MealPlannerHeader
         plannedTotalCount={mealPlans.length}
@@ -90,6 +92,9 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
         />
       </div>
 
+      {/* Daily Macro/Time Insight Pill */}
+      <DailyInsightPill entries={activeDayEntries} />
+
       {/* Loading state skeleton vs Day Slots */}
       {isLoading && mealPlans.length === 0 ? (
         <div className="space-y-3 pt-4">
@@ -114,6 +119,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
             onUpdateServings={updateServings}
             onToggleCooked={toggleCooked}
             onDeleteEntry={deletePlan}
+            onMoveToTomorrow={moveToTomorrow}
             onSelectRecipe={onSelectRecipe}
             onOpenCookMode={onOpenCookMode}
           />
