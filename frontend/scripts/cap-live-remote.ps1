@@ -134,6 +134,29 @@ function Get-DeviceInstalledLiveUrl {
     } catch { return $null }
 }
 
+function Set-CapacitorLiveConfig {
+    param([string]$Url)
+    if (-not (Test-Path $assetsConfigFile)) { return }
+    try {
+        if (-not (Test-Path $backupConfigFile)) {
+            Copy-Item -Path $assetsConfigFile -Destination $backupConfigFile -Force
+        }
+        $rawJson = Get-Content $assetsConfigFile -Raw
+        $config = $rawJson | ConvertFrom-Json
+        if (-not $config.server) {
+            $config | Add-Member -NotePropertyName "server" -NotePropertyValue (New-Object PSObject) -Force
+        }
+        $config.server | Add-Member -NotePropertyName "url" -NotePropertyValue $Url -Force
+        $config.server | Add-Member -NotePropertyName "cleartext" -NotePropertyValue $true -Force
+
+        $updatedJson = $config | ConvertTo-Json -Depth 10
+        Set-Content -Path $assetsConfigFile -Value $updatedJson -Encoding utf8
+        $script:didModifyConfig = $true
+    } catch {
+        Write-Warning "Failed to inject server URL into capacitor.config.json: $_"
+    }
+}
+
 # -----------------------------------------------------------------------------
 # 2. Resolve Target IP & Dev Server URL
 # -----------------------------------------------------------------------------
@@ -193,25 +216,8 @@ if (-not [string]::IsNullOrWhiteSpace($Connect)) {
 # -----------------------------------------------------------------------------
 # 5. Configure Live-Reload URL in Android Assets
 # -----------------------------------------------------------------------------
-if (-not $ServerOnly -and (Test-Path $assetsConfigFile)) {
-    try {
-        if (-not (Test-Path $backupConfigFile)) {
-            Copy-Item -Path $assetsConfigFile -Destination $backupConfigFile -Force
-        }
-        $rawJson = Get-Content $assetsConfigFile -Raw
-        $config = $rawJson | ConvertFrom-Json
-        if (-not $config.server) {
-            $config | Add-Member -NotePropertyName "server" -NotePropertyValue (New-Object PSObject) -Force
-        }
-        $config.server | Add-Member -NotePropertyName "url" -NotePropertyValue $liveUrl -Force
-        $config.server | Add-Member -NotePropertyName "cleartext" -NotePropertyValue $true -Force
-
-        $updatedJson = $config | ConvertTo-Json -Depth 10
-        Set-Content -Path $assetsConfigFile -Value $updatedJson -Encoding utf8
-        $didModifyConfig = $true
-    } catch {
-        Write-Warning "Failed to inject server URL into capacitor.config.json: $_"
-    }
+if (-not $ServerOnly) {
+    Set-CapacitorLiveConfig -Url $liveUrl
 }
 
 # -----------------------------------------------------------------------------
@@ -242,17 +248,8 @@ if ($needsDeploy) {
     try { & npx.cmd cap sync android } finally { Pop-Location }
 
     # Re-apply live URL to assets after sync
-    if (-not $ServerOnly -and (Test-Path $assetsConfigFile)) {
-        try {
-            $rawJson = Get-Content $assetsConfigFile -Raw
-            $config = $rawJson | ConvertFrom-Json
-            if (-not $config.server) {
-                $config | Add-Member -NotePropertyName "server" -NotePropertyValue (New-Object PSObject) -Force
-            }
-            $config.server | Add-Member -NotePropertyName "url" -NotePropertyValue $liveUrl -Force
-            $config.server | Add-Member -NotePropertyName "cleartext" -NotePropertyValue $true -Force
-            Set-Content -Path $assetsConfigFile -Value ($config | ConvertTo-Json -Depth 10) -Encoding utf8
-        } catch {}
+    if (-not $ServerOnly) {
+        Set-CapacitorLiveConfig -Url $liveUrl
     }
 
     Write-Host "[BUILD] Building debug APK with live URL ($liveUrl)..." -ForegroundColor Yellow
