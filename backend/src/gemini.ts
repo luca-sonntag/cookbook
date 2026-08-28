@@ -89,14 +89,7 @@ const recipeSchema = {
                 },
                 synonyms: {
                   type: FunctionDeclarationSchemaType.ARRAY,
-                  description: '2-4 alternative culinary names, regional German/Austrian/Swiss terms or common synonyms in singular or plural form (e.g. for "Frühlingszwiebel": ["Bundzwiebel", "Lauchzwiebel", "Jungzwiebel", "scallion", "green onion"]; for "Sahne": ["Rahm", "Vollrahm", "Schlagobers", "Schlagsahne", "heavy cream"]; for "Quark": ["Topfen", "Speisequark", "curd"]; for "Hackfleisch": ["Gehacktes", "Faschiertes", "minced meat"]; for "Hähnchenbrust": ["Pouletbrust", "Hühnerbrust"]; for "Paniermehl": ["Semmelbrösel", "Panierbrot", "breadcrumbs"]).',
-                  items: {
-                    type: FunctionDeclarationSchemaType.STRING,
-                  },
-                },
-                searchQueries: {
-                  type: FunctionDeclarationSchemaType.ARRAY,
-                  description: '2-3 prioritized German search phrases from specific product name to generic base food for matching with the German food database (BLS). IMPORTANT: Never strip distinguishing food suffixes (e.g. for "Paprikapulver": ["Paprikapulver edelsüß", "Paprikapulver"], NEVER ["Paprika"]; for "Chilipulver": ["Chilipulver", "Cayennepfeffer"]; for "Magerquark": ["Magerquark", "Speisequark mager", "Quark"]; for "Salz": ["Speisesalz", "Salz"]; for "Pfeffer": ["Schwarzer Pfeffer", "Pfeffer"]; for "Backkakao": ["Kakaopulver", "Backkakao"]; for "Dinkelmehl": ["Dinkelmehl", "Mehl"]; for "geriebener Gouda": ["Gouda gerieben", "Gouda"]; for "Hähnchenbrustfilet": ["Hähnchenbrustfilet", "Hähnchen Brustfilet", "Hühnerbrust"]; for "Haferflocken": ["Haferflocken", "Hafer Flocken"]).',
+                  description: '1 to 3 alternative English culinary baseName synonyms or regional English equivalents (e.g. for "strained tomato": ["passata", "tomato puree", "sieved tomato"]; for "spring onion": ["scallion", "green onion", "salad onion"]; for "eggplant": ["aubergine"]; for "zucchini": ["courgette"]; for "chickpea": ["garbanzo bean", "garbanzo"]; for "rolled oat": ["oat flake", "oats"]; for "cream cheese": ["double cream cheese", "soft cheese"]; for "quark": ["curd", "curd cheese"]; for "arugula": ["rocket"]; for "bell pepper": ["sweet pepper", "capsicum"]; for "cilantro": ["coriander"]). MUST strictly follow the exact same English singular lowercase formatting rules as baseName. Leave empty if there are no common alternative English culinary names.',
                   items: {
                     type: FunctionDeclarationSchemaType.STRING,
                   },

@@ -58,42 +58,42 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
 
   describe('findCanonicalIngredient', () => {
     test('matches German staples to Open Food Facts database', async () => {
-      const garlic = await findCanonicalIngredient('Knoblauchzehen', 'garlic', 'FRUITS_VEGETABLES', [], ['Knoblauch']);
+      const garlic = await findCanonicalIngredient('Knoblauchzehen', 'garlic', 'FRUITS_VEGETABLES');
       assert.ok(garlic);
       assert.ok(garlic.name_de.toLowerCase().includes('knoblauch') || garlic.name_en.toLowerCase().includes('garlic'));
 
-      const chicken = await findCanonicalIngredient('Hähnchenbrustfilet', 'chicken breast', 'MEAT_FISH', [], ['Hähnchenbrustfilet', 'Hähnchen Brustfilet']);
+      const chicken = await findCanonicalIngredient('Hähnchenbrustfilet', 'chicken breast', 'MEAT_FISH');
       assert.ok(chicken);
       assert.ok(chicken.name_de.toLowerCase().includes('hähnchen') || chicken.name_de.toLowerCase().includes('chicken') || chicken.name_de.toLowerCase().includes('poulet'));
 
-      const onion = await findCanonicalIngredient('rote Zwiebel', 'onion', 'FRUITS_VEGETABLES', [], ['Zwiebel']);
+      const onion = await findCanonicalIngredient('rote Zwiebel', 'onion', 'FRUITS_VEGETABLES');
       assert.ok(onion);
       assert.ok(onion.name_de.toLowerCase().includes('zwiebel') || onion.name_en.toLowerCase().includes('onion'));
 
-      const oats = await findCanonicalIngredient('Haferflocken', 'rolled oats', 'GRAINS_PASTA', [], ['Haferflocken']);
+      const oats = await findCanonicalIngredient('Haferflocken', 'rolled oats', 'GRAINS_PASTA');
       assert.ok(oats);
       assert.ok(oats.name_de.toLowerCase().includes('hafer') || oats.name_de.toLowerCase().includes('oats'));
 
-      const egg = await findCanonicalIngredient('Eier', 'egg', 'DAIRY', [], ['Hühnerei', 'Ei']);
+      const egg = await findCanonicalIngredient('Eier', 'egg', 'DAIRY');
       assert.ok(egg);
       assert.ok(egg.name_de.toLowerCase().includes('ei') || egg.name_en.toLowerCase().includes('egg'));
     });
 
     test('prefers lean variant when mager/lean is requested', async () => {
-      const leanQuark = await findCanonicalIngredient('Magerquark', 'quark', 'DAIRY', ['Speisequark mager'], ['Magerquark', 'Speisequark mager']);
+      const leanQuark = await findCanonicalIngredient('Magerquark', 'quark', 'DAIRY', ['curd', 'curd cheese']);
       assert.ok(leanQuark);
       assert.ok(leanQuark.name_de.toLowerCase().includes('mager') || leanQuark.name_de.toLowerCase().includes('quark'));
       assert.ok(leanQuark.nutrients_per_100g.fat <= 1.0);
     });
 
     test('matches cheeses like Gouda or Mozzarella', async () => {
-      const gouda = await findCanonicalIngredient('Gouda gerieben', 'gouda', 'DAIRY', [], ['Gouda']);
+      const gouda = await findCanonicalIngredient('Gouda gerieben', 'gouda', 'DAIRY');
       assert.ok(gouda);
       assert.ok(gouda.name_de.toLowerCase().includes('gouda') || gouda.name_de.toLowerCase().includes('käse'));
     });
 
     test('matches meat staples like Rinderhackfleisch', async () => {
-      const beef = await findCanonicalIngredient('Rinderhackfleisch', 'ground beef', 'MEAT_FISH', [], ['Rinderhackfleisch', 'Rinderhack']);
+      const beef = await findCanonicalIngredient('Rinderhackfleisch', 'ground beef', 'MEAT_FISH');
       assert.ok(beef);
       assert.ok(beef.name_de.toLowerCase().includes('rind') || beef.name_de.toLowerCase().includes('hack') || beef.name_de.toLowerCase().includes('beef'));
     });
@@ -106,7 +106,7 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
 
   describe('calculateWeightGrams', () => {
     test('calculates grams from piece/clove standard weights', async () => {
-      const garlic = await findCanonicalIngredient('Knoblauch', 'garlic', 'FRUITS_VEGETABLES', [], ['Knoblauch']);
+      const garlic = await findCanonicalIngredient('Knoblauch', 'garlic', 'FRUITS_VEGETABLES');
       assert.ok(garlic);
       const weight = calculateWeightGrams(2, 'clove', garlic);
       assert.equal(weight, 6); // 2 cloves * 3g = 6g
@@ -123,7 +123,7 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
     });
 
     test('calculates grams from volume with density or standard tables', async () => {
-      const oil = await findCanonicalIngredient('Olivenöl', 'olive oil', 'SPICES_OILS', [], ['Olivenöl']);
+      const oil = await findCanonicalIngredient('Olivenöl', 'olive oil', 'SPICES_OILS');
       assert.ok(oil);
       const weight = calculateWeightGrams(2, 'tablespoon', oil, 12);
       assert.equal(weight, 24); // 2 * 12g = 24g
@@ -142,8 +142,8 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
           {
             name: 'Zutaten',
             items: [
-              { name: 'Magerquark', baseName: 'quark', amount: 200, unit: 'g', category: 'DAIRY', searchQueries: ['Magerquark', 'Speisequark mager'] },
-              { name: 'Haferflocken', baseName: 'rolled oats', amount: 100, unit: 'g', category: 'GRAINS_PASTA', searchQueries: ['Haferflocken'] },
+              { name: 'Magerquark', baseName: 'quark', amount: 200, unit: 'g', category: 'DAIRY', synonyms: ['curd', 'curd cheese'] },
+              { name: 'Haferflocken', baseName: 'rolled oats', amount: 100, unit: 'g', category: 'GRAINS_PASTA', synonyms: ['oat flake', 'oats'] },
               { name: 'Geheimpulver999XYZ', amount: 10, unit: 'g', calories: 40, protein: 5, carbs: 2, fat: 1 },
             ],
           },

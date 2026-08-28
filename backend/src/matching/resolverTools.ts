@@ -110,9 +110,6 @@ export function buildPrompt(input: ResolverInput, initialCandidates?: CanonicalI
   if (input.modifier) lines.push(`Modifier: "${input.modifier}"`);
   if (input.category) lines.push(`Category: ${input.category}`);
   if (input.synonyms?.length) lines.push(`Synonyms: ${input.synonyms.join(', ')}`);
-  if (input.searchQueries?.length) {
-    lines.push(`Suggested search: ${input.searchQueries.join(', ')}`);
-  }
 
   if (initialCandidates && initialCandidates.length > 0) {
     lines.push('', 'Top candidates from food database:');

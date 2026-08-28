@@ -106,7 +106,6 @@ export async function findCanonicalIngredient(
   baseName?: string,
   category?: string,
   synonyms?: string[],
-  searchQueries?: string[],
   parentIngredient?: ParentIngredientInfo,
   modifier?: string,
   brand?: string,
@@ -119,7 +118,6 @@ export async function findCanonicalIngredient(
     modifier,
     category,
     synonyms,
-    searchQueries,
     parentIngredient,
   });
   return match;
@@ -144,7 +142,6 @@ export async function matchAndEnrichIngredient(
     ingredient.baseName,
     effectiveCategory,
     ingredient.synonyms,
-    ingredient.searchQueries,
     ingredient.parentIngredient,
     ingredient.modifier,
     ingredient.brand,

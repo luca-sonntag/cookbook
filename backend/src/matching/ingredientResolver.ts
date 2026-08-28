@@ -38,7 +38,6 @@ export interface ResolverInput {
   modifier?: string;
   category?: string;
   synonyms?: string[];
-  searchQueries?: string[];
   parentIngredient?: ParentIngredientInfo;
 }
 
@@ -168,8 +167,8 @@ export async function resolveIngredient(
     if (initialCandidates.length === 0 && input.baseName && input.baseName !== searchTerm) {
       initialCandidates = catalogue.search(input.baseName, input.category, 4);
     }
-    if (initialCandidates.length === 0 && input.searchQueries?.length) {
-      initialCandidates = catalogue.search(input.searchQueries[0], input.category, 4);
+    if (initialCandidates.length === 0 && input.synonyms?.length) {
+      initialCandidates = catalogue.search(input.synonyms[0], input.category, 4);
     }
 
     const chat = model.startChat();
@@ -260,7 +259,6 @@ export async function resolveIngredient(
         modifier: input.modifier,
         category: input.category,
         synonyms: input.synonyms,
-        searchQueries: input.searchQueries,
         turns: turnsExecuted,
       },
       rawOutput: lastRawOutput,
@@ -299,7 +297,6 @@ export async function resolveIngredient(
         modifier: input.modifier,
         category: input.category,
         synonyms: input.synonyms,
-        searchQueries: input.searchQueries,
         turns: turnsExecuted,
       },
       tokenUsage,

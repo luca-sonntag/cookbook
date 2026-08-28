@@ -116,13 +116,12 @@ export function normalizeCategory(cat?: string, validCategories?: Set<string>): 
 }
 
 /**
- * Builds candidate search queries from raw name, baseName, synonyms and searchQueries.
+ * Builds candidate search queries from raw name, baseName and synonyms.
  */
 export function buildSearchQueries(
   name: string,
   baseName?: string,
-  synonyms?: string[],
-  searchQueries?: string[]
+  synonyms?: string[]
 ): string[] {
   const queries: string[] = [];
   const seen = new Set<string>();
@@ -138,10 +137,6 @@ export function buildSearchQueries(
 
   add(name);
   add(baseName);
-
-  if (searchQueries && Array.isArray(searchQueries)) {
-    for (const sq of searchQueries) add(sq);
-  }
 
   if (synonyms && Array.isArray(synonyms)) {
     for (const syn of synonyms) add(syn);

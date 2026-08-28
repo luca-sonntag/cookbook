@@ -19,6 +19,18 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ---
 
+### 2026-08-28: Redundantes `searchQueries`-Feld aus Gemini-Zutaten-Schema entfernt
+
+* **Ersetzter Code / Anti-Pattern:**
+  - `searchQueries: string[]` in `shared/src/types/recipes.ts`, `backend/src/gemini.ts`, `ingredientMatcher.ts` und `ingredientResolver.ts`.
+  - Gemini generierte für jede Zutat 2–3 redundante Suchbegriffe (z. B. `["Frischkäse", "Cream Cheese"]`), was ~15–25 Output-Token pro Zutat kostete.
+* **Ersetzt durch:**
+  - **Dynamische Suchbegriff-Generierung ([`matcherUtils.ts`](file:///c:/Users/lucas/source/repos/cookbook/backend/src/matching/matcherUtils.ts)):** Suchbegriffe für den Open Food Facts Matcher werden vollautomatisch aus `brand`, `name`, `modifier`, `baseName` und `synonyms` zusammengesetzt.
+  - **Strikte englische Singular-Synonyme (`synonyms: string[]`):** Gemini liefert 1–3 alternative englische `baseName`-Synonyme (z. B. `passata`, `scallion`, `courgette`) für den selbstlernenden Synonym-Graphen und Icon-Lookups.
+* **Betroffene Dateien:** `shared/src/types/recipes.ts`, `backend/src/gemini.ts`, `backend/src/matching/ingredientMatcher.ts`, `backend/src/matching/ingredientResolver.ts`, `backend/src/matching/matcherUtils.ts`, `backend/src/matching/resolverTools.ts`.
+
+---
+
 ### 2026-08-26: Fast-Path komplett entfernt zugunsten des gelernten Mapping-Stores & Gemini-Resolvers
 
 * **Ersetzter Code / Anti-Pattern:**
