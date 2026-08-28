@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Utensils, Moon, Cookie, Plus } from 'lucide-react';
+import { Coffee, Utensils, Moon, Apple, Plus } from 'lucide-react';
 import type { DayMealSlotsProps } from './types';
 import type { MealType } from '../../types';
 import { MealPlanCard } from './MealPlanCard';
@@ -11,43 +11,28 @@ interface SlotTheme {
   type: MealType;
   titleKey: string;
   icon: React.ReactNode;
-  iconBg: string;
-  cardBg: string;
-  textColor: string;
 }
 
 const SLOTS: SlotTheme[] = [
   {
     type: 'breakfast',
     titleKey: 'mealPlanner.meals.breakfast',
-    icon: <Sun className="w-4 h-4 text-amber-500" />,
-    iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-    cardBg: 'hover:bg-amber-500/5 dark:hover:bg-amber-500/10',
-    textColor: 'text-amber-700 dark:text-amber-300',
+    icon: <Coffee className="w-3.5 h-3.5" />,
   },
   {
     type: 'lunch',
     titleKey: 'mealPlanner.meals.lunch',
-    icon: <Utensils className="w-4 h-4 text-emerald-500" />,
-    iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    cardBg: 'hover:bg-emerald-500/5 dark:hover:bg-emerald-500/10',
-    textColor: 'text-emerald-700 dark:text-emerald-300',
+    icon: <Utensils className="w-3.5 h-3.5" />,
   },
   {
     type: 'dinner',
     titleKey: 'mealPlanner.meals.dinner',
-    icon: <Moon className="w-4 h-4 text-indigo-500" />,
-    iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
-    cardBg: 'hover:bg-indigo-500/5 dark:hover:bg-indigo-500/10',
-    textColor: 'text-indigo-700 dark:text-indigo-300',
+    icon: <Moon className="w-3.5 h-3.5" />,
   },
   {
     type: 'snack',
     titleKey: 'mealPlanner.meals.snack',
-    icon: <Cookie className="w-4 h-4 text-rose-500" />,
-    iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
-    cardBg: 'hover:bg-rose-500/5 dark:hover:bg-rose-500/10',
-    textColor: 'text-rose-700 dark:text-rose-300',
+    icon: <Apple className="w-3.5 h-3.5" />,
   },
 ];
 
@@ -68,27 +53,27 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
   }
 
   return (
-    <div className="space-y-3.5 pt-1 pb-24">
+    <div className="space-y-3 pt-1 pb-24">
       {SLOTS.map((slot) => {
         const slotEntries = entries.filter((e) => e.mealType === slot.type);
         const slotTitle = t(slot.titleKey);
 
         return (
-          <div key={slot.type} className="space-y-2">
+          <div key={slot.type} className="space-y-1.5">
             {slotEntries.length > 0 ? (
               <>
-                {/* Slot Header when entries exist */}
-                <div className="flex items-center justify-between px-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className={`p-1.5 rounded-xl ${slot.iconBg} flex items-center justify-center shadow-2xs`}>
+                {/* Slot Header */}
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="p-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center">
                       {slot.icon}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <h3 className="text-xs font-extrabold text-gray-800 dark:text-gray-200">
+                      <h3 className="text-xs font-bold text-gray-700 dark:text-gray-200">
                         {slotTitle}
                       </h3>
                       {slotEntries.length > 1 && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-gray-200/80 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                           {slotEntries.length}
                         </span>
                       )}
@@ -101,9 +86,9 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                       onAddRecipeToSlot(slot.type);
                     }}
                     aria-label={t('mealPlanner.emptySlot', { meal: slotTitle })}
-                    className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-emerald-600 active:scale-90 transition-transform duration-150 cursor-pointer border-none"
+                    className="w-7 h-7 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 active:scale-90 transition-transform duration-150 cursor-pointer border-none"
                   >
-                    <Plus className="w-4 h-4 stroke-[2.25]" />
+                    <Plus className="w-3.5 h-3.5 stroke-[2]" />
                   </button>
                 </div>
 
@@ -124,24 +109,24 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                 </div>
               </>
             ) : (
-              /* Compact Tactile Quick-Add Slot Card */
+              /* Minimalist Quick-Add Slot Card */
               <button
                 onClick={() => {
                   hapticLight();
                   onAddRecipeToSlot(slot.type);
                 }}
-                className={`w-full px-3.5 py-2.5 rounded-2xl bg-white/70 dark:bg-gray-800/40 ${slot.cardBg} border-none shadow-2xs flex items-center justify-between text-xs font-bold text-gray-600 dark:text-gray-300 active:scale-[0.98] transition-all duration-150 group cursor-pointer`}
+                className="w-full px-3.5 py-2.5 rounded-2xl bg-white/70 dark:bg-gray-800/40 hover:bg-white dark:hover:bg-gray-800/70 border-none shadow-2xs flex items-center justify-between text-xs font-semibold text-gray-600 dark:text-gray-300 active:scale-[0.98] transition-all duration-150 group cursor-pointer"
               >
-                <div className="flex items-center gap-2.5">
-                  <span className={`p-1.5 rounded-xl bg-white dark:bg-gray-700 ${slot.textColor} transition-colors shadow-2xs`}>
+                <div className="flex items-center gap-2">
+                  <span className="p-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 transition-colors">
                     {slot.icon}
                   </span>
-                  <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
                     {slotTitle}
                   </span>
                 </div>
-                <div className="w-7 h-7 rounded-xl bg-white dark:bg-gray-700 shadow-2xs flex items-center justify-center text-gray-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <div className="w-6 h-6 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 transition-colors">
+                  <Plus className="w-3.5 h-3.5 stroke-[2]" />
                 </div>
               </button>
             )}
