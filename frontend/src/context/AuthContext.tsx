@@ -357,7 +357,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('signInWithGoogle: Calling SocialLogin.login');
         const { result } = await SocialLogin.login({
           provider: 'google',
-          options: {},
+          options: {
+            style: 'bottom',
+            filterByAuthorizedAccounts: false,
+          },
         });
         console.log('signInWithGoogle: SocialLogin.login completed', result);
         // Online-mode Google response carries the OpenID Connect ID token.
