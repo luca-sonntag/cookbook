@@ -21,23 +21,23 @@ export const WeekNavigator: React.FC<WeekNavigatorProps> = ({
   const { t } = useI18n();
 
   return (
-    <div className="flex items-center justify-between px-1 pt-0.5 pb-1">
+    <div className="flex items-center justify-between px-1 pt-1 pb-1">
       <button
         onClick={onPrevWeek}
         aria-label={t('mealPlanner.prevWeek')}
-        className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/60 active:scale-90 transition-all cursor-pointer border-none"
+        className="w-10 h-10 flex items-center justify-center rounded-2xl text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/60 active:scale-90 transition-all cursor-pointer border-none"
       >
-        <ChevronLeft className="w-4 h-4" />
+        <ChevronLeft className="w-5 h-5" />
       </button>
 
       <div className="flex items-center gap-2">
-        <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+        <span className="text-sm font-bold text-gray-900 dark:text-white">
           {formatWeekRange(weekStart, weekEnd)}
         </span>
         {!isCurrentWeek && (
           <button
             onClick={onToday}
-            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 active:scale-95 transition-all cursor-pointer border-none"
+            className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 active:scale-95 transition-all cursor-pointer border-none"
           >
             {t('mealPlanner.today')}
           </button>
@@ -47,9 +47,9 @@ export const WeekNavigator: React.FC<WeekNavigatorProps> = ({
       <button
         onClick={onNextWeek}
         aria-label={t('mealPlanner.nextWeek')}
-        className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/60 active:scale-90 transition-all cursor-pointer border-none"
+        className="w-10 h-10 flex items-center justify-center rounded-2xl text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/60 active:scale-90 transition-all cursor-pointer border-none"
       >
-        <ChevronRight className="w-4 h-4" />
+        <ChevronRight className="w-5 h-5" />
       </button>
     </div>
   );

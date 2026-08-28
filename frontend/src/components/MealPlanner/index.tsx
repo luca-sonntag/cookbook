@@ -90,10 +90,9 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
         />
+        {/* Daily Macro/Time Insight integrated into widget */}
+        <DailyInsightPill entries={activeDayEntries} />
       </div>
-
-      {/* Daily Macro/Time Insight Pill */}
-      <DailyInsightPill entries={activeDayEntries} />
 
       {/* Loading state skeleton vs Day Slots */}
       {isLoading && mealPlans.length === 0 ? (
