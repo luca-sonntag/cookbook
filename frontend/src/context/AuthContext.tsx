@@ -40,7 +40,8 @@ function ensureSocialLoginInitialized() {
 // user dismissal) is expected and swallowed: the caller falls back to the
 // normal AuthForm with no visible error.
 async function attemptSilentGoogleSignIn(): Promise<{ success: boolean; error?: string }> {
-  if (Capacitor.getPlatform() !== 'android') return { success: false };
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') return { success: false };
+  if (!Capacitor.isPluginAvailable('SocialLogin')) return { success: false };
   if (!GOOGLE_WEB_CLIENT_ID) return { success: false };
   if (localStorage.getItem(AUTO_SIGNIN_DISABLED_KEY)) return { success: false };
   // No silent sign-in before the user has seen the legal notice and consented
@@ -346,7 +347,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthError(null);
     // Native (Capacitor): use the OS account-picker dialog to get a Google ID
     // token, then exchange it for a Supabase session — no browser redirect.
-    if (Capacitor.isNativePlatform()) {
+    if (Capacitor.isNativePlatform() && Capacitor.isPluginAvailable('SocialLogin')) {
       if (!GOOGLE_WEB_CLIENT_ID) {
         return { error: 'Google sign-in is not configured (missing VITE_GOOGLE_WEB_CLIENT_ID).' };
       }
@@ -409,7 +410,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(AUTO_SIGNIN_DISABLED_KEY, '1');
     // Ensure onboarding is marked as completed locally so the welcome guide is never shown on sign-out
     localStorage.setItem(ONBOARDING_KEY, 'true');
-    if (Capacitor.getPlatform() === 'android') {
+    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android' && Capacitor.isPluginAvailable('SocialLogin')) {
       // Best effort: clears Credential Manager's cached state. Harmlessly
       // rejects if the user never signed in via Google.
       await SocialLogin.logout({ provider: 'google' }).catch(() => {});
