@@ -11,7 +11,7 @@ describe('Open Food Facts Local SQLite Catalogue', () => {
     assert.ok(hits[0].nutrients_per_100g.calories < 120, 'Raw potato should be ~75 kcal, not chips');
   });
 
-  test('finds branded trend items that were missing in BLS', () => {
+  test('finds branded trend items accurately', () => {
     const hits = openFoodFactsAccess.search('Eatlean', undefined, 3);
     assert.ok(hits.length > 0, 'Should find Eatlean');
     assert.ok(hits[0].name_de.toLowerCase().includes('eatlean'), 'Should contain brand Eatlean');

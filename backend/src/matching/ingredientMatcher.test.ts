@@ -12,7 +12,7 @@ import {
 } from './ingredientMatcher.js';
 import type { Recipe } from '../types.js';
 
-describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
+describe('Ingredient Matcher & Normalizer (Open Food Facts + Hybrid Search)', () => {
   describe('toEnglishSingular', () => {
     test('safely converts regular and irregular plurals without breaking words ending in s/ss/us/se', () => {
       // Plural to singular conversions
@@ -199,7 +199,7 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
       assert.ok((recipe.nutritionalValues?.carbs ?? 0) > 20);
     });
 
-    test('preserves accurate Gemini estimates for light/zero/diet foods and rejects incompatible BLS full-fat/sugar staples', async () => {
+    test('preserves accurate Gemini estimates for light/zero/diet foods and rejects incompatible full-fat/sugar staples', async () => {
       const recipe: Recipe = {
         title: 'High-Protein Burger',
         description: 'Fitness Burger Recipe',
@@ -313,8 +313,8 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
     test('accurately identifies macro-inconsistent candidates', () => {
       // Gouda 48% candidate (379 kcal, 31.6g fat)
       const goudaCandidate = {
-        id: 'bls_m402600',
-        bls_code: 'M402600',
+        id: '4000405001234',
+        product_code: '4000405001234',
         name_de: 'Gouda 48 % Fett i. Tr.',
         category: 'DAIRY',
         nutrients_per_100g: { calories: 379, protein: 22.5, carbs: 0, fat: 31.6 },
@@ -322,8 +322,8 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
 
       // Mayonnaise candidate (750 kcal, 81.2g fat)
       const mayoCandidate = {
-        id: 'bls_q991000',
-        bls_code: 'Q991000',
+        id: '4000405005678',
+        product_code: '4000405005678',
         name_de: 'Mayonnaise (Fertigprodukt)',
         category: 'SPICES_OILS',
         nutrients_per_100g: { calories: 750, protein: 1.2, carbs: 1.5, fat: 81.2 },
@@ -331,8 +331,8 @@ describe('Ingredient Matcher & Normalizer (BLS 4.0 + Hybrid Search)', () => {
 
       // Ketchup candidate (98 kcal, 21.2g carbs)
       const ketchupCandidate = {
-        id: 'bls_r141100',
-        bls_code: 'R141100',
+        id: '4000405009999',
+        product_code: '4000405009999',
         name_de: 'Tomatenketchup',
         category: 'SPICES_OILS',
         nutrients_per_100g: { calories: 98, protein: 1.8, carbs: 21.2, fat: 0.2 },

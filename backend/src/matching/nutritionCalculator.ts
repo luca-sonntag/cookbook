@@ -26,7 +26,7 @@ export function calculateWeightGrams(
     return amount * gramsPerUnit;
   }
 
-  // 3. Specific standard unit weights from canonical BLS item (e.g. piece, slice, clove, tablespoon)
+  // 3. Specific standard unit weights from canonical item (e.g. piece, slice, clove, tablespoon)
   if (item?.standard_units) {
     const std = item.standard_units as Record<string, number | undefined>;
     if (std[normUnit] !== undefined && std[normUnit]! > 0) {
@@ -59,7 +59,7 @@ export function calculateWeightGrams(
 
 /**
  * Generic nutritional plausibility check comparing estimated ingredient macros
- * against canonical BLS entry values per 100g.
+ * against canonical food entry values per 100g.
  *
  * Protects against false matches where a light/zero/fat-reduced/custom product
  * is mistakenly mapped to a high-fat, high-sugar, or high-calorie standard staple.

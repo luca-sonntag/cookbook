@@ -55,7 +55,7 @@ export async function resolveAndRemember(
   if (keys.length > 0) {
     const known = await lookupMapping(keys, category);
     if (known) {
-      const code = known.productCode ?? known.blsCode;
+      const code = known.productCode;
       const item = code ? openFoodFactsAccess.get(code) : null;
       // Only return cache hit if item was found or if it was an explicit no_match with estimate
       if (!code || item) {
@@ -79,12 +79,12 @@ export async function resolveAndRemember(
     return { match: null, estimate: null, usage: resolved?.usage };
   }
 
-  const resolvedCode = resolved.productCode ?? resolved.blsCode;
+  const resolvedCode = resolved.productCode;
   const item = resolvedCode ? openFoodFactsAccess.get(resolvedCode) : null;
 
   if (keys.length > 0) {
     await storeMapping(keys, category, {
-      productCode: item ? item.product_code || item.bls_code || item.id : null,
+      productCode: item ? item.product_code || item.id : null,
       resolution: item ? 'matched' : 'no_match',
       estimatedNutrients: item ? null : resolved.estimatedNutrients,
       source: 'agent',

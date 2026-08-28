@@ -25,8 +25,6 @@ export interface IngredientMapping {
   mappingKey: string;
   category: string;
   productCode: string | null;
-  /** @deprecated Use productCode instead */
-  blsCode?: string | null;
   resolution: MappingResolution;
   estimatedNutrients: EstimatedNutrients | null;
   source: MappingSource;
@@ -39,7 +37,6 @@ interface MappingRow {
   mapping_key: string;
   category: string | null;
   product_code?: string | null;
-  bls_code?: string | null;
   resolution: string;
   estimated_nutrients: unknown;
   source: string;
@@ -66,12 +63,11 @@ function cacheId(key: string, category: string): string {
 function rowToMapping(row: MappingRow): IngredientMapping {
   const confidence =
     row.confidence === null || row.confidence === undefined ? null : Number(row.confidence);
-  const code = row.product_code ?? row.bls_code ?? null;
+  const code = row.product_code ?? null;
   return {
     mappingKey: row.mapping_key,
     category: row.category ?? '',
     productCode: code,
-    blsCode: code,
     resolution: row.resolution === 'no_match' ? 'no_match' : 'matched',
     estimatedNutrients: (row.estimated_nutrients as EstimatedNutrients | null) ?? null,
     source: (['static', 'agent', 'human'].includes(row.source) ? row.source : 'agent') as MappingSource,
@@ -202,7 +198,7 @@ export async function storeMapping(
   }
 
   const now = new Date().toISOString();
-  const code = mapping.productCode ?? mapping.blsCode ?? null;
+  const code = mapping.productCode ?? null;
   const rows = usable.map(key => ({
     mapping_key: key,
     category: cat,
@@ -231,7 +227,6 @@ export async function storeMapping(
       mappingKey: row.mapping_key,
       category: row.category,
       productCode: row.product_code,
-      blsCode: row.product_code,
       resolution: row.resolution as MappingResolution,
       estimatedNutrients: (row.estimated_nutrients as EstimatedNutrients | null) ?? null,
       source: row.source as MappingSource,

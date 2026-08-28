@@ -251,7 +251,7 @@ ingredientImageRouter.post('/api/dev/ingredients/:id/generate', async (req: Requ
   try {
     const id = req.params.id.toLowerCase().trim();
     let item: CanonicalIngredient | null = CANONICAL_INGREDIENTS.find(
-      (ing) => ing.id.toLowerCase() === id || ing.product_code?.toLowerCase() === id || ing.bls_code?.toLowerCase() === id || getIngredientSlug(ing) === id
+      (ing) => ing.id.toLowerCase() === id || ing.product_code?.toLowerCase() === id || getIngredientSlug(ing) === id
     ) ?? null;
 
     if (!item) {

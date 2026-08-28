@@ -299,7 +299,7 @@ adminRoutes.get(
 
       let query = getClient()
         .from('ingredient_mappings')
-        .select('id, mapping_key, category, bls_code, resolution, source, confidence, model, reasoning, hit_count, created_at, updated_at')
+        .select('id, mapping_key, category, product_code, resolution, source, confidence, model, reasoning, hit_count, created_at, updated_at')
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -329,7 +329,7 @@ adminRoutes.patch(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const rawCode = req.body?.productCode ?? req.body?.blsCode;
+      const rawCode = req.body?.productCode;
       const productCode = typeof rawCode === 'string' && rawCode.trim() ? rawCode.trim().toLowerCase() : null;
 
       if (productCode) {

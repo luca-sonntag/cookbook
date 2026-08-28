@@ -5,7 +5,6 @@
  * pre-filtered candidates. That fixed window is why the matcher accumulated a
  * long list of hand-written guard clauses: when the right entry was not among the
  * ten, the model had no way to ask for it and would settle for the least wrong
- * one. Here the model searches the BLS catalogue itself and keeps searching until
  * it is satisfied, or reports honestly that the food is not in the database.
  *
  * Every result is written to the mapping store by the caller, so a given food is
@@ -45,8 +44,6 @@ export interface ResolverInput {
 export interface ResolverResult {
   /** Product/Barcode code when the catalogue has an accurate entry, null when it genuinely does not. */
   productCode: string | null;
-  /** @deprecated Use productCode instead */
-  blsCode?: string | null;
   /** Model's own estimate per 100 g, only meaningful when productCode is null. */
   estimatedNutrients: EstimatedNutrients | null;
   confidence: number | null;
@@ -129,7 +126,7 @@ export async function mapWithConcurrency<T, R>(
 // ── Resolver ─────────────────────────────────────────────────────────────────
 
 /**
- * Resolves one ingredient against the BLS catalogue and logs usage/costs.
+ * Resolves one ingredient against the Open Food Facts catalogue and logs usage/costs.
  *
  * Bounded by turn count and wall clock: a resolver that keeps searching must not
  * be able to hold up an extraction. On exhaustion the caller gets
@@ -222,7 +219,6 @@ export async function resolveIngredient(
     if (!outcome) {
       outcome = {
         productCode: null,
-        blsCode: null,
         estimatedNutrients: null,
         confidence: null,
         reasoning: turnsExecuted >= MAX_TURNS
@@ -265,7 +261,6 @@ export async function resolveIngredient(
       rawOutput: lastRawOutput,
       parsedOutput: {
         productCode: outcome.productCode,
-        blsCode: outcome.productCode,
         estimatedNutrients: outcome.estimatedNutrients,
         confidence: outcome.confidence,
         reasoning: outcome.reasoning,

@@ -11,7 +11,6 @@ export interface CanonicalNutrients {
 export interface CanonicalIngredient {
   id: string;
   product_code?: string;
-  bls_code?: string;
   name_en: string;
   name_de: string;
   category: string;

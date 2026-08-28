@@ -65,7 +65,7 @@ export function normalizeUnit(unit: string): string {
 }
 
 /**
- * Normalizes supermarket category names to match canonical BLS categories.
+ * Normalizes supermarket category names to match canonical categories.
  */
 export function normalizeCategory(cat?: string, validCategories?: Set<string>): string | null {
   if (!cat) return null;

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { Recipe, NutritionalValues } from '../types';
 
-/** Below this share of BLS-backed calories the figure is an estimate, not a verified value. */
+/** Below this share of verified Open Food Facts-backed calories the figure is an estimate, not a verified value. */
 const VERIFIED_COVERAGE_THRESHOLD = 0.9;
 
 /**
@@ -79,7 +79,7 @@ export function useRecipeNutrition(recipe: Recipe) {
 
     // No usable ingredient data. Recipes extracted before nutrition became derived
     // carry their figure in `nutritionalValues`; a stated source figure is the next
-    // best thing. Both are shown as estimates, since neither can be traced to BLS.
+    // best thing. Both are shown as estimates, since neither can be traced to Open Food Facts.
     const legacy = recipe.nutritionalValues;
     const baseSource = hasSource ? source! : legacy;
     const hasFallback = !!(

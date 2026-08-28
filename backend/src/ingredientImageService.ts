@@ -4,7 +4,6 @@ import sharp from 'sharp';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from './config.js';
 import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from './data/canonicalIngredients.js';
-import { BASE_NAME_TO_CANONICAL_ID } from './matching/baseNameMap.js';
 import { openFoodFactsAccess } from './matching/openFoodFactsIndex.js';
 import { canonicalizeBaseName, toEnglishSingular } from './matching/baseNameCanonical.js';
 

@@ -454,13 +454,12 @@ $function$;
 
 -- --- learned ingredient mapping store migration ---
 
--- Every ingredient→BLS decision the system has ever made, reused across all users,
+-- Every ingredient→Open Food Facts decision the system has ever made, reused across all users,
 -- recipes and ingredients. Filled by the AI resolver and correctable by hand, so a
 -- bad mapping is fixed with one UPDATE instead of a code change and a deploy.
 --
 -- `mapping_key` is the deterministic key from canonicalizeBaseName(): several keys
--- may point at the same code ("bacon cubes" and "bacon" both resolve to W410400),
--- which is what makes the store collapse spelling variants over time.
+-- may point at the same code, which is what makes the store collapse spelling variants over time.
 --
 -- `product_code` NULL together with resolution='no_match' is a real, cached answer:
 -- "this food has no exact barcode/product match", so the estimate fallback is used without paying

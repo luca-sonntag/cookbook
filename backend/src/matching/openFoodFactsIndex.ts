@@ -66,7 +66,6 @@ function rowToCanonicalIngredient(row: OFFRow): CanonicalIngredient {
   return {
     id: code,
     product_code: code,
-    bls_code: code,
     name_de: `${row.name}${brandSuffix}`,
     name_en: row.generic_name || row.name,
     category: row.category || 'OTHER',
@@ -143,7 +142,7 @@ function getDB(): DatabaseSync | null {
 }
 
 /**
- * Open Food Facts Catalogue Access (replaces BLS catalogueAccess in resolver)
+ * Open Food Facts Catalogue Access interface for resolver tools.
  */
 export const openFoodFactsAccess: CatalogueAccess = {
   search(query: string, _category?: string, limit = 6): CanonicalIngredient[] {

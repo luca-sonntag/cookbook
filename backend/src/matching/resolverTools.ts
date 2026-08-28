@@ -115,7 +115,7 @@ export function buildPrompt(input: ResolverInput, initialCandidates?: CanonicalI
   if (initialCandidates && initialCandidates.length > 0) {
     lines.push('', 'Top candidates from food database:');
     for (const c of initialCandidates) {
-      const code = c.product_code || c.bls_code || c.id;
+      const code = c.product_code || c.id;
       const n = c.nutrients_per_100g;
       const macros = `${n.calories}kcal, ${n.protein}g P, ${n.carbs}g C, ${n.fat}g F`;
       lines.push(`- [${code}] ${c.name_de} (${macros})`);
@@ -128,7 +128,7 @@ export function buildPrompt(input: ResolverInput, initialCandidates?: CanonicalI
 function withNutrients(c: CanonicalIngredient) {
   const n = c.nutrients_per_100g;
   return {
-    code: c.product_code || c.bls_code || c.id,
+    code: c.product_code || c.id,
     name: c.name_de,
     category: c.category,
     nutrients_per_100g: {
@@ -156,7 +156,7 @@ export function executeTool(call: FunctionCall, catalogue: CatalogueAccess): Rec
       };
     }
     case 'get_ingredient': {
-      const code = String(args.product_code ?? args.bls_code ?? '').trim();
+      const code = String(args.product_code ?? '').trim();
       if (!code) return { error: 'product_code parameter is required.' };
       const item = catalogue.get(code);
       return item ? withNutrients(item) : { error: `No food entry with code "${code}".` };
@@ -175,7 +175,7 @@ export function readSubmission(
   model: string
 ): ResolverResult | { rejected: string } {
   const args = (call.args ?? {}) as Record<string, unknown>;
-  const rawCode = String(args.product_code ?? args.bls_code ?? '').trim();
+  const rawCode = String(args.product_code ?? '').trim();
   const confidence = typeof args.confidence === 'number' ? args.confidence : null;
   const reasoning = args.reasoning ? String(args.reasoning) : null;
 
@@ -188,7 +188,6 @@ export function readSubmission(
     };
     return {
       productCode: null,
-      blsCode: null,
       estimatedNutrients: estimate.calories > 0 ? estimate : null,
       confidence,
       reasoning,
@@ -202,10 +201,9 @@ export function readSubmission(
     return { rejected: `No food entry with code "${rawCode}". Search again and submit a code that exists.` };
   }
 
-  const resolvedCode = item.product_code || item.bls_code || item.id;
+  const resolvedCode = item.product_code || item.id;
   return {
     productCode: resolvedCode,
-    blsCode: resolvedCode,
     estimatedNutrients: null,
     confidence,
     reasoning,
