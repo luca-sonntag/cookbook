@@ -3,7 +3,7 @@ import path from 'path';
 import sharp from 'sharp';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from './config.js';
-import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from './data/canonicalIngredients.js';
+import type { CanonicalIngredient } from './data/canonicalIngredients.js';
 import { openFoodFactsAccess } from './matching/openFoodFactsIndex.js';
 import { canonicalizeBaseName, toEnglishSingular } from './matching/baseNameCanonical.js';
 

@@ -23,13 +23,16 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 * **Ersetzter Code / Anti-Pattern:**
   - `backend/src/data/bls_4_0_daten_2025_de.csv` (10 MB alte BLS-CSV-Datei).
+  - `backend/src/data/canonicalIngredientsData.json` (~5 MB alter statischer BLS-JSON-Katalog).
+  - `backend/src/matching/baseNameMap.ts` (altes BLS BaseName Dictionary).
   - Veralteter BLS MiniSearch Index `backend/src/matching/ingredientIndex.ts`.
   - Veraltetes BLS-Generierungsskript `backend/src/scripts/buildBLSIngredients.ts`.
-  - Einmalige Migrationsskripte: `dumpBaseNameMappings.ts`, `renameIconsToEnglishBaseNames.ts`, `migrateIconsToOpenFoodFacts.ts`, `purgeGermanIcons.ts`, `pocOpenFoodFacts.ts`.
+  - Veraltete BLS-Skripte: `generateBaseNameIngredientIcons.ts`, `seedIngredientMappings.ts`, `dumpBaseNameMappings.ts`, `renameIconsToEnglishBaseNames.ts`, `migrateIconsToOpenFoodFacts.ts`, `purgeGermanIcons.ts`, `pocOpenFoodFacts.ts`.
   - Veraltete `bls_code` / `blsCode`-Properties in TypeScript-Typen (`CanonicalIngredient`, `IngredientMapping`, `ResolverResult`), Resolver-Tools, Matcher und Admin-Routen.
 * **Ersetzt durch:**
-  - Ausschließliche Verwendung von `product_code` / Open Food Facts Barcodes & IDs im gesamten Backend, in Resolver-Tools, DB-Queries und Frontend-Dokumentationen.
-* **Betroffene Dateien:** `backend/src/data/canonicalIngredients.ts`, `backend/src/matching/openFoodFactsIndex.ts`, `backend/src/matching/mappingStore.ts`, `backend/src/matching/resolverTools.ts`, `backend/src/matching/ingredientResolver.ts`, `backend/src/matching/ingredientMatcher.ts`, `backend/src/routes/adminRoutes.ts`, `backend/src/scripts/backfillIngredientMappings.ts`, `frontend/src/hooks/useRecipeNutrition.ts`, `docs/OBSOLETE.md`.
+  - Ausschließliche Verwendung von `product_code` / Open Food Facts Barcodes & IDs (`off_de.sqlite` via `openFoodFactsIndex.ts`) im gesamten Backend, in Resolver-Tools, DB-Queries und Frontend-Dokumentationen.
+  - In [`canonicalIngredients.ts`](file:///c:/Users/lucas/source/repos/cookbook/backend/src/data/canonicalIngredients.ts) verbleiben schlanke TypeScript-Interfaces (`CanonicalIngredient`, `CanonicalNutrients`) als universelles Datenformat.
+* **Betroffene Dateien:** `backend/src/data/canonicalIngredientsData.json` (gelöscht), `backend/src/data/canonicalIngredients.ts`, `backend/src/matching/baseNameMap.ts` (gelöscht), `backend/src/matching/openFoodFactsIndex.ts`, `backend/src/matching/mappingStore.ts`, `backend/src/matching/resolverTools.ts`, `backend/src/matching/ingredientResolver.ts`, `backend/src/matching/ingredientMatcher.ts`, `backend/src/routes/adminRoutes.ts`, `backend/src/scripts/backfillIngredientMappings.ts`, `backend/src/scripts/generateIngredientImage.ts`, `frontend/src/hooks/useRecipeNutrition.ts`, `docs/OBSOLETE.md`.
 
 ---
 

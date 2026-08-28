@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
-import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from './data/canonicalIngredients.js';
+import type { CanonicalIngredient } from './data/canonicalIngredients.js';
 import { openFoodFactsAccess } from './matching/openFoodFactsIndex.js';
 import { getClient } from './db.js';
 import { packIngredientIcons } from './ingredientIconPacker.js';
@@ -250,29 +250,21 @@ ingredientImageRouter.get('/api/category-icons/:filename', (req: Request, res: R
 ingredientImageRouter.post('/api/dev/ingredients/:id/generate', async (req: Request, res: Response) => {
   try {
     const id = req.params.id.toLowerCase().trim();
-    let item: CanonicalIngredient | null = CANONICAL_INGREDIENTS.find(
-      (ing) => ing.id.toLowerCase() === id || ing.product_code?.toLowerCase() === id || getIngredientSlug(ing) === id
-    ) ?? null;
+    let item: CanonicalIngredient | null = openFoodFactsAccess.get(id);
 
     if (!item) {
-      // Check Open Food Facts
-      const offItem = openFoodFactsAccess.get(id);
-      if (offItem) {
-        item = offItem;
-      } else {
-        // Construct canonical pseudo-item from baseName slug
-        const slugId = id.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-        const nameEn = slugId.replace(/_/g, ' ');
-        item = {
-          id: slugId,
-          product_code: slugId,
-          name_de: (req.body?.name_de as string) || nameEn,
-          name_en: nameEn,
-          category: (req.body?.category as string) || 'OTHER',
-          nutrients_per_100g: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
-          aliases: [nameEn],
-        };
-      }
+      // Construct canonical pseudo-item from baseName slug
+      const slugId = id.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+      const nameEn = slugId.replace(/_/g, ' ');
+      item = {
+        id: slugId,
+        product_code: slugId,
+        name_de: (req.body?.name_de as string) || nameEn,
+        name_en: nameEn,
+        category: (req.body?.category as string) || 'OTHER',
+        nutrients_per_100g: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
+        aliases: [nameEn],
+      };
     }
 
     if (!item) {

@@ -1,5 +1,6 @@
 import path from 'path';
-import { CANONICAL_INGREDIENTS, type CanonicalIngredient } from '../data/canonicalIngredients.js';
+import type { CanonicalIngredient } from '../data/canonicalIngredients.js';
+import { openFoodFactsAccess } from '../matching/openFoodFactsIndex.js';
 import {
   generateIngredientIcon,
   findExistingIngredientImage,
@@ -23,37 +24,33 @@ interface CliOptions {
 function parseArgs(): CliOptions {
   const args = process.argv.slice(2);
   const options: CliOptions = {
+    concurrency: 3,
+    missingOnly: false,
     outDir: getIngredientImagesDir(),
     steps: 4,
-    concurrency: 5,
-    missingOnly: false,
     dryRun: false,
   };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg === '--dry-run') {
-      options.dryRun = true;
-    } else if (arg === '--missing' || arg === '--missing-only') {
+    if (arg === '--missing') {
       options.missingOnly = true;
-    } else if (arg === '--batch' && args[i + 1]) {
+    } else if (arg === '--dry-run') {
+      options.dryRun = true;
+    } else if (arg === '--batch') {
       options.batch = parseInt(args[++i], 10) || 10;
-    } else if ((arg === '--concurrency' || arg === '-c') && args[i + 1]) {
-      options.concurrency = Math.max(1, Math.min(20, parseInt(args[++i], 10) || 5));
-    } else if ((arg === '--category' || arg === '-cat') && args[i + 1]) {
-      options.category = args[++i].toUpperCase();
-    } else if (arg === '--id' && args[i + 1]) {
-      options.id = args[++i];
-    } else if ((arg === '--search' || arg === '--query' || arg === '-q') && args[i + 1]) {
-      options.search = args[++i];
-    } else if ((arg === '--out-dir' || arg === '--out' || arg === '-o') && args[i + 1]) {
+    } else if (arg === '--category' && args[i + 1]) {
+      options.category = args[++i].toUpperCase().trim();
+    } else if (arg === '--concurrency' && args[i + 1]) {
+      options.concurrency = parseInt(args[++i], 10) || 3;
+    } else if (arg === '--out-dir' && args[i + 1]) {
       options.outDir = path.resolve(process.cwd(), args[++i]);
     } else if (arg === '--steps' && args[i + 1]) {
       options.steps = parseInt(args[++i], 10) || 4;
     } else if (arg === '--prompt' && args[i + 1]) {
       options.promptOverride = args[++i];
     } else if (!arg.startsWith('-') && !options.id) {
-      if (arg.startsWith('bls_')) {
+      if (arg.startsWith('off_') || /^\d+$/.test(arg)) {
         options.id = arg;
       } else {
         options.search = arg;
@@ -67,21 +64,26 @@ function parseArgs(): CliOptions {
 function findIngredient(options: CliOptions): CanonicalIngredient | null {
   if (options.id) {
     const targetId = options.id.toLowerCase().trim();
-    const found = CANONICAL_INGREDIENTS.find(
-      (item) => item.id.toLowerCase() === targetId || item.product_code?.toLowerCase() === targetId
-    );
+    const found = openFoodFactsAccess.get(targetId);
     if (found) return found;
+
+    // Fallback pseudo-item
+    const slugId = targetId.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    const nameEn = slugId.replace(/_/g, ' ');
+    return {
+      id: slugId,
+      product_code: slugId,
+      name_de: nameEn,
+      name_en: nameEn,
+      category: options.category || 'OTHER',
+      nutrients_per_100g: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
+      aliases: [nameEn],
+    };
   }
 
   if (options.search) {
-    const q = options.search.toLowerCase().trim();
-    const found = CANONICAL_INGREDIENTS.find(
-      (item) =>
-        item.name_de.toLowerCase().includes(q) ||
-        item.name_en.toLowerCase().includes(q) ||
-        item.aliases.some((alias) => alias.toLowerCase().includes(q))
-    );
-    if (found) return found;
+    const hits = openFoodFactsAccess.search(options.search, options.category, 1);
+    if (hits.length > 0) return hits[0];
   }
 
   return null;
@@ -108,30 +110,37 @@ async function runBatch(targets: CanonicalIngredient[], options: CliOptions): Pr
       const item = targets[queueIndex++];
       const currentNum = ++completed;
       console.log(`[Worker ${workerId}] [${currentNum}/${targets.length}] Starte: ${item.name_de} (${item.id})...`);
-
       try {
+        if (options.missingOnly && findExistingIngredientImage(item.id, options.outDir)) {
+          console.log(`[Worker ${workerId}] ⏩ Übersprungen (bereits vorhanden): ${item.name_de}`);
+          continue;
+        }
+
         const result = await generateIngredientIcon(item, {
           outDir: options.outDir,
           steps: options.steps,
+          promptOverride: options.promptOverride,
         });
+
+        console.log(`[Worker ${workerId}] ✅ Gespeichert: ${result.filename} (${result.durationMs}ms)`);
         successCount++;
-        console.log(`[Worker ${workerId}] ✅ ${item.name_de} fertig in ${(result.durationMs / 1000).toFixed(1)}s (${result.sizeKb} KB)`);
       } catch (err: any) {
+        console.error(`[Worker ${workerId}] ❌ Fehler bei ${item.name_de}:`, err?.message || err);
         errorCount++;
-        console.error(`[Worker ${workerId}] ❌ Fehler bei ${item.name_de} (${item.id}):`, err.message);
       }
     }
   }
 
-  const workerCount = Math.min(options.concurrency, targets.length);
-  const workers = Array.from({ length: workerCount }, (_, i) => worker(i + 1));
+  const workers = Array.from({ length: Math.min(options.concurrency, targets.length) }, (_, i) =>
+    worker(i + 1)
+  );
   await Promise.all(workers);
 
-  const totalDuration = ((Date.now() - startTime) / 1000).toFixed(1);
-  console.log(`\n======================================================`);
-  console.log(`🎉 Batch abgeschlossen in ${totalDuration}s!`);
-  console.log(`  ✅ Erfolgreich: ${successCount}`);
-  console.log(`  ❌ Fehler:      ${errorCount}`);
+  const durationSec = Math.round((Date.now() - startTime) / 1000);
+  console.log('\n======================================================');
+  console.log(`🏁 Batch-Generierung abgeschlossen in ${durationSec}s:`);
+  console.log(`  ✅ Erfolgreich generiert: ${successCount}`);
+  console.log(`  ❌ Fehler:               ${errorCount}`);
   console.log(`  📂 Zielordner:  ${options.outDir}`);
   console.log(`======================================================\n`);
 }
@@ -141,11 +150,9 @@ async function main(): Promise<void> {
 
   // Batch mode
   if (options.batch || options.missingOnly || (options.category && !options.id && !options.search)) {
-    let targets = CANONICAL_INGREDIENTS;
-
-    if (options.category) {
-      targets = targets.filter((i) => i.category.toUpperCase() === options.category);
-    }
+    let targets = options.category
+      ? openFoodFactsAccess.listCategory(options.category, options.batch || 50)
+      : [];
 
     if (options.missingOnly) {
       targets = targets.filter((i) => !findExistingIngredientImage(i.id, options.outDir));
@@ -167,10 +174,9 @@ async function main(): Promise<void> {
   if (!options.id && !options.search) {
     console.error('❌ Fehler: Bitte gib eine Zutat-ID oder einen Suchbegriff an (oder nutze --batch).');
     console.log('\nVerwendung:');
-    console.log('  npx tsx src/scripts/generateIngredientImage.ts bls_c133000');
     console.log('  npx tsx src/scripts/generateIngredientImage.ts --search "Haferflocken"');
     console.log('  npx tsx src/scripts/generateIngredientImage.ts --batch 10 --missing --concurrency 5');
-    console.log('  npx tsx src/scripts/generateIngredientImage.ts --category FRUITS_VEGETABLES --batch 5');
+    console.log('  npx tsx src/scripts/generateIngredientImage.ts --category VEGETABLES --batch 5');
     process.exit(1);
   }
 

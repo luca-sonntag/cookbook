@@ -1,5 +1,3 @@
-import canonicalIngredientsData from './canonicalIngredientsData.json' with { type: 'json' };
-
 export interface CanonicalNutrients {
   calories: number;
   protein: number;
@@ -18,5 +16,3 @@ export interface CanonicalIngredient {
   standard_units?: Record<string, number>;
   aliases: string[];
 }
-
-export const CANONICAL_INGREDIENTS: CanonicalIngredient[] = (canonicalIngredientsData as unknown) as CanonicalIngredient[];

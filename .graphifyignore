@@ -2,10 +2,6 @@
 # Kann nur zusätzlich ausschließen — nie etwas re-includen.
 # Ziel: nur echte Architektur im Graph, keine Nutzdaten/Assets.
 
-# --- Große Nutzdaten (keine Architektur, ~7.9M Tokens) ---
-backend/src/data/canonicalIngredientsData.json
-# canonicalIngredients.ts (der Loader) bleibt bewusst drin.
-
 # --- Lock-Dateien (~277k Tokens, null Aussagekraft) ---
 **/package-lock.json
 
