@@ -209,6 +209,34 @@ export function useMealPlanner(
     [getAccessToken, toast, t, fetchPlans],
   );
 
+  // Move entry to tomorrow
+  const moveToTomorrow = useCallback(
+    async (entry: MealPlanEntry) => {
+      const currentDate = new Date(entry.planDate + 'T00:00:00');
+      const tomorrow = addDays(currentDate, 1);
+      const tomorrowStr = formatDateIso(tomorrow);
+      setMealPlans((prev) =>
+        prev.map((p) => (p.id === entry.id ? { ...p, planDate: tomorrowStr } : p)),
+      );
+      try {
+        const token = await getAccessToken();
+        await fetch(apiUrl(`/api/meal-plan/${entry.id}`), {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ planDate: tomorrowStr }),
+        });
+        toast.success(t('mealPlanner.movedToTomorrow'));
+      } catch (err) {
+        console.error('Failed to move plan to tomorrow:', err);
+        fetchPlans();
+      }
+    },
+    [getAccessToken, toast, t, fetchPlans],
+  );
+
   // Delete plan entry
   const deletePlan = useCallback(
     async (id: string) => {
@@ -294,6 +322,7 @@ export function useMealPlanner(
     addPlan,
     updateServings,
     toggleCooked,
+    moveToTomorrow,
     deletePlan,
     addWeekToShoppingList,
   };
