@@ -420,7 +420,7 @@ export function getIngredientFileBaseName(item: CanonicalIngredient): string {
   return slug ? `${item.id}_${slug}` : item.id;
 }
 
-export function findExistingIngredientImage(ingredientId: string, outDir?: string): string | null {
+export function findExistingIngredientImage(ingredientId: string, outDir?: string, synonyms?: string[]): string | null {
   const dir = outDir || getIngredientImagesDir();
   if (!fs.existsSync(dir)) return null;
 
@@ -452,7 +452,23 @@ export function findExistingIngredientImage(ingredientId: string, outDir?: strin
     return `${singular}.webp`;
   }
 
-  // 4. If identifier is a barcode or product code, resolve its English/German name via Open Food Facts
+  // 4. Check synonyms if provided (e.g. "passata" with synonym ["strained tomato"] -> "strained_tomato.webp")
+  if (Array.isArray(synonyms)) {
+    for (const syn of synonyms) {
+      if (!syn) continue;
+      const sRaw = syn.toLowerCase().trim();
+      const sCanonical = canonicalizeBaseName(sRaw).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+      const sSlug = sRaw.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+      if (sSlug && fs.existsSync(path.join(dir, `${sSlug}.webp`))) {
+        return `${sSlug}.webp`;
+      }
+      if (sCanonical && fs.existsSync(path.join(dir, `${sCanonical}.webp`))) {
+        return `${sCanonical}.webp`;
+      }
+    }
+  }
+
+  // 5. If identifier is a barcode or product code, resolve its English/German name via Open Food Facts
   const product = openFoodFactsAccess.get(raw);
   if (product) {
     const candidateNames = [product.name_en, product.name_de].filter(Boolean);

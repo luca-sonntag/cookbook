@@ -78,6 +78,17 @@ describe('buildMappingKeys', () => {
     assert.deepEqual(buildMappingKeys('cottage cheese', 'cottage cheese'), ['cottage cheese']);
   });
 
+  test('canonicalizes and appends synonyms deduplicated after primary baseName', () => {
+    assert.deepEqual(
+      buildMappingKeys('strained tomato', 'Passierte Tomaten', ['passata', 'tomato puree', 'sieved tomatoes']),
+      ['strained tomato', 'passata', 'tomato puree', 'sieved tomato']
+    );
+    assert.deepEqual(
+      buildMappingKeys('spring onion', 'Lauchzwiebeln', ['scallions', 'green onions', 'spring onion']),
+      ['spring onion']
+    );
+  });
+
   test('deduplicates and drops unusably short keys', () => {
     assert.deepEqual(buildMappingKeys('Butter', 'butter'), ['butter']);
     assert.deepEqual(buildMappingKeys('a', 'egg'), ['egg']);

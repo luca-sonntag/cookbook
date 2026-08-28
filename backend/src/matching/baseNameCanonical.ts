@@ -153,20 +153,37 @@ export function canonicalizeBaseName(raw: string | undefined | null): string {
 }
 
 /**
- * Canonical primary mapping key under which a resolved mapping is stored.
+ * Canonical mapping keys under which a resolved mapping is queried and stored.
  *
  * Prioritizes the model's standardized English `baseName` (e.g. "cottage cheese", "rolled oat").
+ * If `synonyms` are provided, canonicalizes them and appends them as secondary mapping keys.
  * If `baseName` is absent (legacy recipe text), falls back to canonicalized `rawName`.
- * Ensures exactly 1 single-source-of-truth entry per food in ingredient_mappings.
+ * Ensures full bidirectional mapping and alias discovery in ingredient_mappings.
  */
-export function buildMappingKeys(baseName?: string, rawName?: string): string[] {
-  const primary = canonicalizeBaseName(baseName);
-  if (primary && primary.length >= 2) {
-    return [primary];
+export function buildMappingKeys(baseName?: string, rawName?: string, synonyms?: string[]): string[] {
+  const keys: string[] = [];
+  const seen = new Set<string>();
+
+  const addKey = (k?: string) => {
+    if (!k) return;
+    const clean = canonicalizeBaseName(k);
+    if (clean && clean.length >= 2 && !seen.has(clean)) {
+      seen.add(clean);
+      keys.push(clean);
+    }
+  };
+
+  addKey(baseName);
+
+  if (Array.isArray(synonyms)) {
+    for (const syn of synonyms) {
+      addKey(syn);
+    }
   }
-  const fallback = canonicalizeBaseName(rawName);
-  if (fallback && fallback.length >= 2) {
-    return [fallback];
+
+  if (keys.length === 0) {
+    addKey(rawName);
   }
-  return [];
+
+  return keys;
 }

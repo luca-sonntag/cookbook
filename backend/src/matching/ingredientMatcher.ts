@@ -49,7 +49,7 @@ const RECIPE_RESOLVE_CONCURRENCY = 3;
 export async function resolveAndRemember(
   input: ResolverInput
 ): Promise<{ match: CanonicalIngredient | null; estimate: EstimatedNutrients | null; usage?: GeminiUsageInfo }> {
-  const keys = buildMappingKeys(input.baseName, input.name);
+  const keys = buildMappingKeys(input.baseName, input.name, input.synonyms);
   const category = (input.category || '').toUpperCase().trim();
 
   if (keys.length > 0) {
