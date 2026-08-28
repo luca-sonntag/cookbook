@@ -167,40 +167,67 @@ export function getFallbackCategoryTags(category: string, cleanName: string, nam
         lowerDe.includes('basilikum') ||
         lowerDe.includes('petersilie')
       ) {
-        return 'fresh vibrant green herb sprig, crisp aromatic leaves, dewy organic leaf texture, lush vivid green';
+        return 'fresh vibrant green herb sprig, 45-degree three-quarter angle view, crisp aromatic leaves, dewy organic leaf texture, lush vivid green';
       }
       if (lowerEn.includes('berry') || lowerEn.includes('berries') || lowerDe.includes('beere')) {
-        return 'single neat compact cluster of fresh ripe berries in the center, glistening skin, rich vibrant color';
+        return 'single neat compact cluster of fresh ripe berries in the center, 45-degree three-quarter angle view, glistening skin, rich vibrant color';
       }
-      return 'single whole pristine fresh fruit, intact natural stem, crisp dewy skin texture, farm-fresh, organic vibrancy';
+      return 'single whole pristine fresh produce, 45-degree three-quarter angle view, intact natural stem, crisp skin texture, farm-fresh vibrancy';
 
+    case 'OILS_CONDIMENTS':
     case 'SPICES_OILS':
       if (lowerEn.includes('oil') || lowerEn.includes('vinegar') || lowerDe.includes('öl') || lowerDe.includes('essig')) {
-        return 'clear minimalist luxury glass cruet bottle, glowing golden translucent liquid, clean glass reflections, liquid food asset';
+        return 'minimalist clear cylindrical glass cruet bottle with small cork stopper, 45-degree three-quarter angle view, glowing translucent liquid, clean glass reflections';
       }
-      if (lowerEn.includes('sauce') || lowerEn.includes('paste') || lowerEn.includes('mustard') || lowerDe.includes('soße') || lowerDe.includes('senf')) {
-        return 'small modern white ceramic dipping bowl, rich glossy sauce texture, appetizing culinary sheen';
+      if (
+        lowerEn.includes('sauce') ||
+        lowerEn.includes('paste') ||
+        lowerEn.includes('mustard') ||
+        lowerEn.includes('ketchup') ||
+        lowerEn.includes('mayo') ||
+        lowerEn.includes('dip') ||
+        lowerEn.includes('pesto') ||
+        lowerDe.includes('soße') ||
+        lowerDe.includes('senf')
+      ) {
+        return 'small minimalist matte-white ceramic dipping bowl with smooth rounded rim, 45-degree three-quarter angle view, rich glossy sauce texture, appetizing culinary sheen';
       }
-      return 'tiny minimalist white porcelain spice bowl, finely ground aromatic spice powder, vivid saturation, organic grains';
+      return 'tiny minimalist shallow white porcelain pinch bowl, 45-degree three-quarter angle view, finely ground aromatic spice powder, vivid saturation, organic grains';
 
+    case 'SPICES_SEASONINGS':
+      return 'tiny minimalist shallow white porcelain pinch bowl, 45-degree three-quarter angle view, finely ground aromatic spice powder, vivid saturation, organic grains';
+
+    case 'GRAINS_BAKERY':
     case 'GRAINS_PASTA':
       if (lowerEn.includes('pasta') || lowerEn.includes('spaghetti') || lowerEn.includes('noodle') || lowerDe.includes('nudel') || lowerDe.includes('pasta')) {
-        return 'neat bundle of raw dry artisanal pasta shapes, authentic golden durum semolina matte texture, crisp edges';
+        return 'neat compact bundle of raw dry artisanal pasta shapes, 45-degree three-quarter angle view, authentic golden durum semolina matte texture, crisp edges';
       }
       if (lowerEn.includes('flake') || lowerEn.includes('oat') || lowerEn.includes('cereal') || lowerDe.includes('flocken')) {
-        return 'neat clean mound of whole wholesome rolled flakes, toasted golden organic grain texture';
+        return 'neat clean compact mound of whole wholesome rolled flakes, 45-degree three-quarter angle view, toasted golden organic grain texture';
       }
-      return 'clean neat mound of raw polished grains, minimalist white ceramic scoop, organic grain texture';
+      if (lowerEn.includes('bread') || lowerEn.includes('bun') || lowerEn.includes('roll') || lowerDe.includes('brot') || lowerDe.includes('brötchen')) {
+        return 'freshly baked artisan bakery piece, 45-degree three-quarter angle view, golden-brown blistered crust, flour dusting, airy crisp crumb texture';
+      }
+      return 'clean neat compact mound of raw grains, 45-degree three-quarter angle view, organic grain texture';
 
+    case 'DAIRY_EGGS':
     case 'DAIRY':
       if (lowerEn.includes('cheese') || lowerEn.includes('parmesan') || lowerEn.includes('mozzarella') || lowerDe.includes('käse')) {
-        return 'gourmet artisanal cheese wedge, creamy matte texture, natural rustic rind, fine crystallization';
+        return 'gourmet artisanal cheese wedge, 45-degree three-quarter angle view, creamy matte texture, natural rustic rind';
       }
       if (lowerEn.includes('butter') || lowerDe.includes('butter')) {
-        return 'clean geometric block of golden farm butter, smooth clean cut edges, silky dairy sheen';
+        return 'clean geometric rectangular block of golden farm butter, 45-degree three-quarter angle view, smooth clean cut edges, silky dairy sheen';
       }
-      return 'pure fresh white dairy in minimalist clear glass bottle, velvety smooth consistency, clean dairy white';
+      if (lowerEn.includes('egg') || lowerDe.includes('ei')) {
+        return 'single pristine fresh raw brown egg, 45-degree three-quarter angle view, smooth natural matte shell';
+      }
+      if (lowerEn.includes('quark') || lowerEn.includes('yogurt') || lowerEn.includes('curd') || lowerDe.includes('joghurt')) {
+        return 'small minimalist matte-white ceramic dipping bowl with smooth rounded rim, 45-degree three-quarter angle view, velvety creamy texture';
+      }
+      return 'pure fresh white dairy in minimalist clear cylindrical glass bottle, 45-degree three-quarter angle view, velvety smooth consistency';
 
+    case 'MEAT_POULTRY':
+    case 'FISH_SEAFOOD':
     case 'MEAT_FISH':
       if (
         lowerEn.includes('salmon') ||
@@ -211,38 +238,39 @@ export function getFallbackCategoryTags(category: string, cleanName: string, nam
         lowerDe.includes('lachs') ||
         lowerDe.includes('garnele')
       ) {
-        return 'prime sashimi-grade raw fish fillet, fresh ocean sheen, delicate flake marbling, coral-pink color';
+        return 'prime sashimi-grade raw fish fillet, 45-degree three-quarter angle view, fresh ocean sheen, delicate flake marbling, coral-pink color, isolated without plate';
       }
-      return 'prime butcher-grade artisanal raw cut, succulent meat fibers, delicate fine marbling, fresh butcher sheen';
+      return 'prime butcher-grade artisanal raw cut, 45-degree three-quarter angle view, succulent meat fibers, delicate fine marbling, fresh butcher sheen, isolated without plate';
 
     case 'BREAD_BAKERY':
-      return 'freshly baked artisan bakery piece, golden-brown blistered crust, flour dusting, airy crisp crumb texture';
+      return 'freshly baked artisan bakery piece, 45-degree three-quarter angle view, golden-brown blistered crust, flour dusting, airy crisp crumb texture';
 
     case 'BAKING_COOKING':
-      return 'pure gourmet baking ingredient, minimalist white ceramic pinch bowl, ultra-fine consistency, pristine culinary grade';
+      return 'pure gourmet baking ingredient, tiny minimalist shallow white porcelain pinch bowl, 45-degree three-quarter angle view, ultra-fine consistency';
 
     case 'CANNED_PRESERVED':
-      return 'modern unlabeled transparent glass preserving jar, rich preserved culinary texture, vivid authentic food color';
+      return 'modern unlabeled transparent glass preserving jar, 45-degree three-quarter angle view, rich preserved culinary texture, vivid authentic food color';
 
     case 'BEVERAGES':
-      return 'crystal-clear minimalist glass tumbler, clear ice cubes, subtle condensation droplets, vibrant refreshing liquid';
+      return 'crystal-clear minimalist smooth glass tumbler, 45-degree three-quarter angle view, clear ice cubes, subtle condensation droplets, vibrant refreshing liquid';
 
     case 'SWEETS_SNACKS':
       if (lowerEn.includes('chocolate') || lowerDe.includes('schokolade')) {
-        return 'broken rustic chunks of rich dark gourmet chocolate, sharp snap fracture edges, silky matte-gloss cocoa richness';
+        return 'broken rustic chunks of rich dark gourmet chocolate, 45-degree three-quarter angle view, sharp snap fracture edges, silky matte-gloss cocoa richness';
       }
       if (lowerEn.includes('nut') || lowerEn.includes('walnut') || lowerEn.includes('almond') || lowerDe.includes('nuss')) {
-        return 'neat cluster of whole raw shelled gourmet nuts, textured ridged kernels, warm earthy organic tones';
+        return 'neat compact cluster of whole raw shelled gourmet nuts, 45-degree three-quarter angle view, textured ridged kernels, warm earthy organic tones';
       }
-      return 'single premium gourmet confectionery treat, artisanal texture, indulgent finish';
+      return 'single premium gourmet confectionery treat, 45-degree three-quarter angle view, artisanal texture, indulgent finish';
 
     case 'FROZEN':
-      return 'crisp frosty frozen whole pieces, glistening delicate ice crystals, vibrant cold freshness';
+      return 'crisp frosty frozen whole pieces, 45-degree three-quarter angle view, glistening delicate ice crystals, vibrant cold freshness';
 
     case 'REFRIGERATED_CONVENIENCE':
     case 'READY_MEALS':
+    case 'OTHER':
     default:
-      return 'gourmet culinary portion, chef-level minimalist presentation, fresh authentic food textures, vibrant colors';
+      return 'gourmet culinary ingredient, 45-degree three-quarter angle view, chef-level minimalist presentation, fresh authentic food textures, vibrant colors';
   }
 }
 
@@ -279,14 +307,27 @@ export async function describeIngredientVisuallyWithGemini(item: CanonicalIngred
         maxOutputTokens: 60,
       },
       systemInstruction:
-        'You are an expert food photography art director. Given a food ingredient name in German/English and its category, output a dense, compact English visual subject description (8 to 15 words max) for an isolated studio food icon asset. ' +
-        'Rules: ' +
-        '- Output ONLY the comma-separated visual tags/description, no introductory text, no sentences, no quotes, no markdown. ' +
-        '- Describe ONE single primary item or ONE single tight compact cluster in the exact center. ' +
-        '- Never include multiple scattered items spread across the canvas. ' +
-        '- Describe authentic real-world shape, best culinary container/presentation (e.g. glass bottle for oils, white ceramic pinch bowl for spices/powders/quark, whole produce with stem, clean butchered cut, or raw dough/pasta), and natural textures/colors. ' +
-        '- Do NOT mention background, lighting, or camera angle (handled by the template). ' +
-        '- Keep it compact and dense.',
+        'You are an expert food photography art director creating an ultra-consistent design system of isolated studio culinary icon assets. ' +
+        'Given a food ingredient in German/English and its category, output a dense, compact English visual subject description (8 to 15 words max). ' +
+        'STRICT ART DIRECTION RULES: ' +
+        '1. CAMERA ANGLE & PERSPECTIVE (MANDATORY): ' +
+        '   - Standard for ALL volumetric food, vessels, bowls, produce, cheese, cuts, blocks, and bottles: "45-degree three-quarter perspective view". ' +
+        '   - ONLY use "top-down flat-lay view" for completely flat 2D sheet items (e.g. single flat tortilla wrap, nori sheet, pancake). ' +
+        '2. STANDARDIZED VESSELS (MANDATORY BY PHYSICAL FORM): ' +
+        '   - SAUCES, DIPS, PASTES, MUSTARD, KETCHUP, MAYO, PESTO, SPREADS, QUARK, YOGURT: MUST ALWAYS BE "in a small minimalist matte-white ceramic dipping bowl with smooth rounded rim, 45-degree three-quarter view, rich glossy texture". ' +
+        '   - SPICES, GROUND HERBS, SALTS, POWDERS, SUGAR, BAKING SODA: MUST ALWAYS BE "in a tiny minimalist shallow white porcelain pinch bowl, 45-degree three-quarter view, finely ground powder". ' +
+        '   - OILS, VINEGARS, LIQUID CONDIMENTS: MUST ALWAYS BE "in a minimalist clear cylindrical glass cruet bottle with cork stopper, 45-degree three-quarter view, glowing translucent liquid". ' +
+        '   - WHOLE PRODUCE (Fruits, Vegetables): "single whole pristine piece with natural stem, 45-degree three-quarter view, floating isolated without bowl or plate". ' +
+        '   - FRESH HERB SPRIGS: "fresh vibrant crisp herb sprig with aromatic leaves, 45-degree three-quarter view". ' +
+        '   - RAW MEAT / FISH / POULTRY: "single raw prime cut or neat fillet, 45-degree three-quarter view, fresh butcher sheen, isolated without plate or tray". ' +
+        '   - CHEESE / BUTTER: "single artisanal wedge or clean geometric block, 45-degree three-quarter view". ' +
+        '   - GRAINS / FLAKES / SEEDS / NUTS: "neat compact clean mound in the center, 45-degree three-quarter view". ' +
+        '   - BEVERAGES: "in a crystal-clear minimalist straight glass tumbler, 45-degree three-quarter view". ' +
+        '3. PROHIBITIONS: ' +
+        '   - NEVER include utensils (no spoons, forks, knives, straws). ' +
+        '   - NEVER include plates, cutting boards, paper towels, or table mats. ' +
+        '   - NEVER describe multiple scattered items spread across the scene. Exactly ONE single centered object or ONE single vessel. ' +
+        '   - Output ONLY the comma-separated visual tags (no sentences, no quotes, no markdown).',
     });
 
     const userPrompt = `Ingredient: "${item.name_de}" (English: "${item.name_en}", Category: ${item.category})`;
@@ -362,7 +403,7 @@ export async function buildIngredientPrompt(
     visualTags = getFallbackCategoryTags(item.category, cleanName, item.name_de);
   }
 
-  const prompt = `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, fully contained within frame with generous white margin on all sides, complete object visible, ${visualTags}, symmetrical softbox studio lighting, sharp focus, vibrant natural colors, zero shadows, no floor shadow, no edge cutoff, not cropped, nothing touching the frame edges, no text, no labels, no watermark`;
+  const prompt = `${cleanName}, isolated on pure solid white background, dead center, 1:1 square icon, 45-degree three-quarter perspective, generous 20% white padding on all sides, complete object fully contained in frame without edge clipping, ${visualTags}, professional commercial culinary studio lighting, soft symmetrical fill light, crisp sharp focus, vibrant natural food colors, zero shadows, no floor shadow, no drop shadow, not cropped, nothing touching the frame edges, no text, no brand labels, no watermark`;
 
   return { prompt, geminiCost };
 }
