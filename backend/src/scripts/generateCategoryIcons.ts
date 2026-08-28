@@ -7,7 +7,6 @@ interface CategoryIconDefinition {
   id: string;
   nameDe: string;
   filename: string;
-  aliases?: string[];
   threeIngredients: string;
   prompt: string;
 }
@@ -17,7 +16,6 @@ const CATEGORY_DEFINITIONS: CategoryIconDefinition[] = [
     id: 'VEGETABLES',
     nameDe: 'Gemüse',
     filename: 'vegetables.webp',
-    aliases: ['produce.webp'],
     threeIngredients: 'Brokkoli, Karotte, Tomate',
     prompt:
       'Neat harmonious trio cluster of fresh raw garden vegetables: a fresh vibrant green broccoli floret, a crisp whole orange carrot with fresh green carrot top, and a whole ripe red vine tomato, placed together in the center, isolated on pure solid white background, 45-degree three-quarter perspective view, generous 20% white padding on all sides, complete objects fully contained in frame without edge clipping, professional commercial culinary studio lighting, soft symmetrical fill light, crisp sharp focus, rich fresh green and red garden colors, zero shadows, no floor shadow, no drop shadow, not cropped, no text, no watermark',
@@ -58,7 +56,6 @@ const CATEGORY_DEFINITIONS: CategoryIconDefinition[] = [
     id: 'GRAINS_PASTA',
     nameDe: 'Getreide, Nudeln & Backwaren',
     filename: 'grains_pasta.webp',
-    aliases: ['bakery.webp'],
     threeIngredients: 'Pasta, Reis, Sauerteigbrot',
     prompt:
       'Neat harmonious trio cluster of pantry grains and bakery staples: raw golden durum semolina pasta shapes, a neat compact mound of raw white rice grains, and a rustic slice of crusty artisan sourdough bread, placed together in the center, isolated on pure solid white background, 45-degree three-quarter perspective view, generous 20% white padding on all sides, complete objects fully contained in frame without edge clipping, professional commercial culinary studio lighting, soft symmetrical fill light, crisp sharp focus, golden toasted and durum textures, zero shadows, no floor shadow, no drop shadow, not cropped, no text, no watermark',
@@ -67,7 +64,6 @@ const CATEGORY_DEFINITIONS: CategoryIconDefinition[] = [
     id: 'OILS_CONDIMENTS',
     nameDe: 'Öle, Saucen & Dressings',
     filename: 'oils_condiments.webp',
-    aliases: ['condiments_oils.webp'],
     threeIngredients: 'Olivenöl, Tomatensauce/Dip, Balsamico',
     prompt:
       'Neat harmonious trio cluster of exactly three gourmet culinary condiment items: one minimalist clear cylindrical glass cruet bottle of glowing golden olive oil with cork stopper, one small minimalist matte-white ceramic dipping bowl filled with glossy red sauce in the center, and one small dark glass bottle of balsamic vinegar, placed together, isolated on pure solid white background, 45-degree three-quarter perspective view, generous 20% white padding on all sides, complete objects fully contained in frame without edge clipping, professional commercial culinary studio lighting, soft symmetrical fill light, crisp sharp focus, glowing translucent oil and glossy sauce, zero shadows, no floor shadow, no drop shadow, not cropped, no text, no watermark',
@@ -108,7 +104,6 @@ const CATEGORY_DEFINITIONS: CategoryIconDefinition[] = [
     id: 'PANTRY_BAKING',
     nameDe: 'Backen & Vorrat',
     filename: 'pantry_baking.webp',
-    aliases: ['baking.webp', 'pantry.webp'],
     threeIngredients: 'Mehl, Backpulver, Hefe',
     prompt:
       'Neat harmonious trio cluster of essential home baking ingredients: a neat compact mound of silky white wheat flour, a tiny minimalist white porcelain pinch bowl of baking powder, and a fresh compact block of baker\'s yeast, placed together in the center, isolated on pure solid white background, 45-degree three-quarter perspective view, generous 20% white padding on all sides, complete objects fully contained in frame without edge clipping, professional commercial culinary studio lighting, soft symmetrical fill light, crisp sharp focus, pure powdery textures, zero shadows, no floor shadow, no drop shadow, not cropped, no text, no watermark',
@@ -155,14 +150,6 @@ async function generateSingleCategory(def: CategoryIconDefinition, backendDir: s
   fs.writeFileSync(backendTarget, webpBuffer);
   fs.writeFileSync(frontendTarget, webpBuffer);
   console.log(`   ✅ Saved ${def.filename} (${(webpBuffer.length / 1024).toFixed(1)} KB) in ${(Date.now() - startTime)}ms`);
-
-  if (def.aliases && def.aliases.length > 0) {
-    for (const alias of def.aliases) {
-      fs.copyFileSync(backendTarget, path.join(backendDir, alias));
-      fs.copyFileSync(frontendTarget, path.join(frontendDir, alias));
-      console.log(`   📋 Copied alias -> ${alias}`);
-    }
-  }
 }
 
 async function main() {
