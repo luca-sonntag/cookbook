@@ -38,6 +38,7 @@ export interface ResolverInput {
   modifier?: string;
   category?: string;
   synonyms?: string[];
+  isGenericGrocery?: boolean;
   parentIngredient?: ParentIngredientInfo;
 }
 

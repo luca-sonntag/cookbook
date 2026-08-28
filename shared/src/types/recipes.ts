@@ -23,6 +23,7 @@ export interface Ingredient {
   carbs?: number | null;
   fat?: number | null;
   isStaple?: boolean;
+  isGenericGrocery?: boolean;
   canonicalId?: string | null;
   matchedName?: string | null;
   isVerified?: boolean | null;

@@ -82,6 +82,7 @@ function extractIngredients(recipe: Recipe): ResolverInput[] {
         modifier: ing.modifier,
         category: ing.category || group.name,
         synonyms: ing.synonyms,
+        isGenericGrocery: ing.isGenericGrocery,
         parentIngredient: ing.parentIngredient,
       });
     }

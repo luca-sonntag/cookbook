@@ -157,8 +157,12 @@ const recipeSchema = {
                   type: FunctionDeclarationSchemaType.BOOLEAN,
                   description: 'True ONLY if this is a very common basic staple that people almost always already have at home and rarely need to buy specifically for a recipe (e.g. salt, pepper, water, cooking oil, sugar, common dried spices). Set to false for anything a user would typically need to shop for (e.g. meat, cheese, vegetables, fresh herbs, specialty items).',
                 },
+                isGenericGrocery: {
+                  type: FunctionDeclarationSchemaType.BOOLEAN,
+                  description: 'True if this is a standard, widely available commercial grocery product sold as a standalone item in supermarkets (e.g. "Frischkäse", "Butter", "Edamame", "Hähnchenbrust", "Haferflocken", "Tomatenmark", "Paprikapulver", "Gouda"). Set to false if this is a custom homemade mixture, multi-ingredient marinade, compound sauce, specialty blend, or one-off creative preparation (e.g. "secret sauce", "homemade herb butter", "onion bacon topping", "sweet chili dip", "secret exotic fantasy sauce").',
+                },
               },
-              required: ['name', 'baseName', 'synonyms', 'amount', 'unit', 'gramsPerUnit', 'calories', 'protein', 'carbs', 'fat'],
+              required: ['name', 'baseName', 'synonyms', 'isGenericGrocery', 'amount', 'unit', 'gramsPerUnit', 'calories', 'protein', 'carbs', 'fat'],
             },
           },
         },
@@ -561,6 +565,7 @@ Key Constraints:
    e) Structure Template: "[Overall Dish Format in Vessel, e.g. Baked layered potato casserole in a rectangular baking dish], [visible surface appearance & textures e.g. continuous golden-brown bubbling cheese gratin crust], [inner layer cross-section if applicable e.g. portion cut open revealing fluffy mashed potatoes over meatballs in rich tomato sauce], [serveware & setting], soft natural window daylight, shallow depth of field, authentic home-cooked food photography, 35mm lens".
    f) Strict Exclusions: Absolutely NO plastic sheen, NO CGI/3D render, NO text, NO labels, NO logos, NO watermarks, NO hands, NO humans, and NO raw prep clutter.
 19. Alternative English BaseName Synonyms (synonyms): For every ingredient, you MUST populate the "synonyms" array with 1 to 3 alternative common English singular culinary names or regional English equivalents (e.g. for "strained tomato": ["passata", "tomato puree", "sieved tomato"]; for "spring onion": ["scallion", "green onion", "salad onion"]; for "eggplant": ["aubergine"]; for "zucchini": ["courgette"]; for "chickpea": ["garbanzo bean", "garbanzo"]; for "rolled oat": ["oat flake", "oats"]; for "cream cheese": ["double cream cheese", "soft cheese"]; for "quark": ["curd", "curd cheese"]; for "arugula": ["rocket"]; for "bell pepper": ["sweet pepper", "capsicum"]). Follow the exact same English singular lowercase formatting rules as baseName. Output an empty array [] ONLY if there are genuinely no alternative names.
+20. Standalone Grocery Product vs. Custom Mixture (isGenericGrocery): For every ingredient, you MUST set "isGenericGrocery" to true if it is a standard, widely available commercial grocery product sold standalone in supermarkets (e.g. "Frischkäse", "Butter", "Edamame", "Hähnchenbrust", "Haferflocken", "Tomatenmark", "Paprikapulver", "Gouda"). Set it to false for homemade mixtures, compound sauces, marinades, or special recipe-specific blends (e.g. "secret sauce", "homemade herb butter", "onion bacon topping", "sweet chili dip", "secret exotic fantasy sauce").
 ${caption.trim() ? `\nDescription/Caption:\n"""\n${caption}\n"""` : ''}${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` : ''}`;
 
     contentParts.push(prompt);
@@ -762,7 +767,8 @@ Important Constraints:
 11. Cooked vs. Raw/Dry States of Expandable Ingredients: ${COOKED_VS_RAW_INSTRUCTION}
 12. Common Pantry Staples: ${STAPLE_INGREDIENT_INSTRUCTION}
 13. Alternative English BaseName Synonyms (synonyms): For every added or modified ingredient, populate the "synonyms" array with 1 to 3 alternative English singular culinary names (e.g. for "strained tomato": ["passata", "tomato puree"]).
-14. Updated Food Photography Image Prompt: In the "imagePrompt" field, provide a newly updated, ultra-compact keyword-dense food photography prompt strictly in ENGLISH for FLUX.1 [schnell] with authentic natural food photography style (cozy kitchen, soft daylight, realistic home-cooked textures, NO fake studio/plastic look) that precisely reflects the remixed dish using short comma-separated key phrases.
+14. Standalone Grocery Product vs. Custom Mixture (isGenericGrocery): Set "isGenericGrocery" to true for standard commercial grocery items, and false for custom mixes/sauces.
+15. Updated Food Photography Image Prompt: In the "imagePrompt" field, provide a newly updated, ultra-compact keyword-dense food photography prompt strictly in ENGLISH for FLUX.1 [schnell] with authentic natural food photography style (cozy kitchen, soft daylight, realistic home-cooked textures, NO fake studio/plastic look) that precisely reflects the remixed dish using short comma-separated key phrases.
 
 User's Remix Request:
 "${remixPrompt}"

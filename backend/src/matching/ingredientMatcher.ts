@@ -206,7 +206,7 @@ export async function enrichRecipeWithCanonicalIngredients(
       modifier: ing.modifier,
       category: ing.category || groupName,
       synonyms: ing.synonyms,
-      searchQueries: ing.searchQueries,
+      isGenericGrocery: ing.isGenericGrocery,
       parentIngredient: ing.parentIngredient,
     },
   }));
