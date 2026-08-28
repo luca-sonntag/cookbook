@@ -111,7 +111,7 @@ export default function IngredientNutritionSheet({
                 </div>
 
                 {/* Calories Hero Banner */}
-                <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent dark:from-emerald-500/15 dark:to-transparent rounded-3xl p-4 sm:p-5 flex items-center justify-between">
+                <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent dark:from-emerald-500/15 dark:to-transparent rounded-3xl p-4 sm:p-5 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
                       <Flame className="w-5.5 h-5.5" />
@@ -120,30 +120,37 @@ export default function IngredientNutritionSheet({
                       <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                         {t('recipe.calories')}
                       </span>
-                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <div className="flex items-baseline gap-1">
                         <span className="text-2.5xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight tabular-nums">
                           {scaledCalories}
                         </span>
                         <span className="text-xs font-normal text-gray-500 dark:text-gray-400">kcal</span>
-                        {isMultiServing && (
-                          <span className="text-xs sm:text-sm font-medium text-emerald-700/80 dark:text-emerald-400/80 tabular-nums ml-0.5">
-                            (≈ {perServingCalories} kcal {t('recipe.nutritionPerServingLower')})
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
 
-                  {per100gKcal !== null && (
-                    <div className="text-right shrink-0">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 block">
-                        {t('recipe.per100g')}
-                      </span>
-                      <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
-                        ≈ {per100gKcal} kcal
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3.5 sm:gap-5 shrink-0">
+                    {isMultiServing && (
+                      <div className="text-right">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 block">
+                          {t('recipe.nutritionPerServing')}
+                        </span>
+                        <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
+                          ≈ {perServingCalories} kcal
+                        </span>
+                      </div>
+                    )}
+                    {per100gKcal !== null && (
+                      <div className="text-right">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 block">
+                          {t('recipe.per100g')}
+                        </span>
+                        <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
+                          ≈ {per100gKcal} kcal
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* 3-Color Macro Progress Bar */}
