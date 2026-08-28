@@ -182,43 +182,49 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
         {/* Recipes List */}
         <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
           {filteredHistory.length > 0 ? (
-            filteredHistory.map((saved) => (
-              <button
-                key={saved.recipeId}
-                onClick={() => handleSelect(saved)}
-                className="w-full flex items-center gap-3 p-2.5 rounded-2xl hover:bg-emerald-50/70 dark:hover:bg-emerald-950/30 text-left active:scale-[0.98] transition-all duration-150 group border-none cursor-pointer bg-transparent"
-              >
-                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 ring-1 ring-black/[0.06] dark:ring-white/[0.08]">
-                  <CachedImage
-                    src={saved.recipe?.imageUrl}
-                    alt={saved.recipe?.title || 'Recipe'}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white truncate group-hover:text-emerald-600 transition-colors">
-                    {saved.recipe?.title}
-                  </h4>
-                  <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 mt-1 font-semibold">
-                    {saved.recipe?.prepTime && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-gray-400" />
-                        <span>{saved.recipe.prepTime} min</span>
-                      </span>
-                    )}
-                    {saved.recipe?.calories && (
-                      <span className="flex items-center gap-1">
-                        <Flame className="w-3 h-3 text-amber-500" />
-                        <span>{Math.round(saved.recipe.calories)} kcal</span>
-                      </span>
-                    )}
+            filteredHistory.map((saved) => {
+              const calories =
+                saved.recipe?.nutritionalValues?.calories ??
+                saved.recipe?.sourceNutritionalValues?.calories;
+
+              return (
+                <button
+                  key={saved.recipeId}
+                  onClick={() => handleSelect(saved)}
+                  className="w-full flex items-center gap-3 p-2.5 rounded-2xl hover:bg-emerald-50/70 dark:hover:bg-emerald-950/30 text-left active:scale-[0.98] transition-all duration-150 group border-none cursor-pointer bg-transparent"
+                >
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 ring-1 ring-black/[0.06] dark:ring-white/[0.08]">
+                    <CachedImage
+                      src={saved.recipe?.imageUrl}
+                      alt={saved.recipe?.title || 'Recipe'}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
-                </div>
-                <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center shrink-0">
-                  <Plus className="w-4 h-4 stroke-[2.5]" />
-                </div>
-              </button>
-            ))
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white truncate group-hover:text-emerald-600 transition-colors">
+                      {saved.recipe?.title}
+                    </h4>
+                    <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 mt-1 font-semibold">
+                      {saved.recipe?.prepTime && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-gray-400" />
+                          <span>{saved.recipe.prepTime} min</span>
+                        </span>
+                      )}
+                      {calories && (
+                        <span className="flex items-center gap-1">
+                          <Flame className="w-3 h-3 text-amber-500" />
+                          <span>{Math.round(calories)} kcal</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center shrink-0">
+                    <Plus className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                </button>
+              );
+            })
           ) : (
             <div className="py-12 text-center text-gray-400">
               <ChefHat className="w-8 h-8 mx-auto mb-2 opacity-40" />

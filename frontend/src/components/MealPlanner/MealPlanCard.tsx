@@ -16,6 +16,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
 }) => {
   const { t } = useI18n();
   const recipe = entry.recipe;
+  const calories = recipe?.calories;
 
   return (
     <div
@@ -67,10 +68,10 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
               <span>{recipe.prepTime} min</span>
             </span>
           )}
-          {recipe?.calories && (
+          {calories && (
             <span className="flex items-center gap-1">
               <Flame className="w-3 h-3 text-amber-500" />
-              <span>{Math.round(recipe.calories)} kcal</span>
+              <span>{Math.round(calories)} kcal</span>
             </span>
           )}
         </div>
