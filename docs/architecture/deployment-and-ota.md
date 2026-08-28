@@ -2,11 +2,17 @@
 
 ## 1. Native Build & Release-Pipeline (Google Play Store)
 
-### Gradle & Dev-Port-Forwarding
-* **Automatisches Live-Reload Port-Forwarding:** In `frontend/android/app/build.gradle` führt die Task `reversePorts` vor jedem Build (`preBuild.dependsOn reversePorts`) automatisch `adb reverse tcp:5173 tcp:5173` aus. Dies stellt sicher, dass der Android Emulator/das Testgerät im Live-Reload-Modus stets Verbindung zum Vite-Dev-Server auf dem Host hat.
+### Capacitor Live-Reload (WLAN / Kabellos & USB)
+* **Kabelloses Live-Reload (Empfohlen):** `npm run cap:live` (oder `npm run cap:live:remote`) führt `frontend/scripts/cap-live-remote.ps1` aus. Das Skript ermittelt blitzschnell die lokale LAN-IP des Entwickler-PCs (`Get-NetRoute`), setzt `server.url = http://<LAN_IP>:5173` in `capacitor.config.json` und startet den Vite-Dev-Server auf `0.0.0.0:5173`. Auf dem Smartphone im selben WLAN öffnet man die installierte Snagbite-Debug-App oder den Browser – Änderungen an TypeScript/React-Code werden sofort per HMR über WLAN synchronisiert.
+* **Optionen & Wireless ADB:**
+  * `npm run cap:live:local`: Startet Live-Reload mit lokalem Backend (`-Mode devlocal`).
+  * `.\scripts\cap-live-remote.ps1 -Connect <phone-ip>:5555 -Launch`: Verbindet ADB kabellos und startet die App direkt auf dem Smartphone.
+  * `.\scripts\cap-live-remote.ps1 -Build`: Baut vorab eine Debug-APK (`assembleDebug`) mit injizierter Live-Reload-URL.
+  * `npm run cap:live:usb`: Legacy-Modus mit USB-Kabel und ADB Reverse Port-Forwarding (`localhost:5173`).
+* **Automatisches Rollback:** Beim Beenden des Live-Reload-Skripts (`Ctrl+C`) wird `capacitor.config.json` automatisch auf den Ursprungszustand zurückgesetzt, um versehentliches Einchecken oder Blockieren von Release-Builds (`release.ps1`) zu verhindern.
 
 ### Splash-Screen-Hang Diagnosen & Schutz
-* **Fehlender Vite-Dev-Server (`cap:live`-Builds):** Live-Reload-APKs rendern Inhalte zur Laufzeit vom Vite-Dev-Server (`SplashScreen.launchAutoHide: false`). Läuft der Vite-Dev-Server nicht (`localhost:5173`), bleibt die App unendlich auf dem Splash-Screen hängen. **Fix:** `cd frontend && npm run dev`. Statische Release-APKs (`frontend/dist/`) sind davon unbetroffen.
+* **Fehlender Vite-Dev-Server (`cap:live`-Builds):** Live-Reload-APKs rendern Inhalte zur Laufzeit vom Vite-Dev-Server (`SplashScreen.launchAutoHide: false`). Läuft der Vite-Dev-Server nicht, bleibt die App auf dem Splash-Screen hängen. `cap-live-remote.ps1` startet den Vite-Server automatisch oder nutzt eine bestehende Instanz. Statische Release-APKs (`frontend/dist/`) sind davon unbetroffen.
 * **JS-Runtime-Fehler im React-Mount:** React-Hydrationsfehler (z.B. `<p>` mit verschachteltem `<div>` aus Popover) können das Render unterbrechen. **Schutz:** `MainActivity.java` setzt einen 3-Sekunden-Safety-Timeout, der den Splash via `Capacitor.Plugins.SplashScreen.hide()` zwangsweise ausblendet.
 
 ### Auto-Versioning & Fastlane in Docker
