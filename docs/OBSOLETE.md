@@ -19,6 +19,18 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ---
 
+### 2026-08-28: Bereinigung von Legacy-Kategorien & Löschung redundanter Kategorie-Icon-Dateien
+
+* **Ersetzter Code / Anti-Pattern:**
+  - Veraltete Legacy-Enum-Werte `PRODUCE`, `BAKERY`, `PANTRY`, `BAKING`, `CONDIMENTS_OILS` in `IngredientCategory` (`frontend/src/i18n.ts`).
+  - Redundante physische Alias-Bilddateien (`produce.webp`, `bakery.webp`, `condiments_oils.webp`, `baking.webp`, `pantry.webp`) in `backend/public/category-icons/` und `frontend/public/category-icons/`.
+* **Ersetzt durch:**
+  - **Strikte 15 kanonische Supermarkt-Hauptkategorien:** `VEGETABLES`, `FRUITS`, `DAIRY_EGGS`, `MEAT_POULTRY`, `SEAFOOD`, `GRAINS_PASTA`, `OILS_CONDIMENTS`, `SPICES_HERBS`, `NUTS_SEEDS`, `SWEETS_SNACKS`, `BEVERAGES`, `PANTRY_BAKING`, `PREPARED_DISHES`, `FROZEN`, `OTHER`.
+  - **Reines String-Mapping in `legacyCategoryMap`:** Sprachvariationen (z. B. `'produce'`, `'bakery'`, `'baking'`, `'pantry'`) werden direkt auf die 15 kanonischen Keys abgebildet, ohne separate Enum-Werte oder Dateiduplikate.
+* **Betroffene Dateien:** `frontend/src/i18n.ts`, `backend/src/scripts/generateCategoryIcons.ts`, `backend/public/category-icons/`, `frontend/public/category-icons/`, `docs/OBSOLETE.md`.
+
+---
+
 ### 2026-08-28: Redundantes `searchQueries`-Feld aus Gemini-Zutaten-Schema entfernt
 
 * **Ersetzter Code / Anti-Pattern:**
