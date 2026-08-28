@@ -50,8 +50,10 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
   return (
     <div
       onClick={() => onSelectRecipe(entry.recipeId)}
-      className={`group relative flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-gray-800/90 border border-black/[0.04] dark:border-white/[0.06] shadow-sm shadow-black/[0.03] hover:shadow-md transition-all cursor-pointer ${
-        entry.isCooked ? 'opacity-70 dark:opacity-60 bg-gray-50/50 dark:bg-gray-800/40' : ''
+      className={`group relative flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${
+        entry.isCooked
+          ? 'bg-emerald-50/50 dark:bg-emerald-950/25 border-emerald-500/20 shadow-none'
+          : 'bg-white dark:bg-gray-800/90 border-black/[0.04] dark:border-white/[0.06] shadow-sm shadow-black/[0.03] hover:shadow-md'
       }`}
     >
       {/* Recipe Thumbnail */}
@@ -70,23 +72,25 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
 
       {/* Recipe Content */}
       <div className="flex-1 min-w-0 pr-1">
-        <h4 className={`text-sm font-bold text-gray-900 dark:text-white truncate ${
-          entry.isCooked ? 'line-through text-gray-500 dark:text-gray-400' : ''
+        <h4 className={`text-sm font-bold truncate ${
+          entry.isCooked
+            ? 'line-through text-gray-500 dark:text-gray-400'
+            : 'text-gray-900 dark:text-white'
         }`}>
           {recipe?.title || 'Rezept'}
         </h4>
 
         {/* Badges: Time & Calories */}
-        <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-2 mt-1 text-[11px] font-medium text-gray-600 dark:text-gray-300">
           {recipe?.prepTime && (
             <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-gray-400" />
+              <Clock className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
               {recipe.prepTime} min
             </span>
           )}
           {recipe?.calories && (
             <span className="flex items-center gap-1">
-              <Flame className="w-3.5 h-3.5 text-orange-500/80" />
+              <Flame className="w-3.5 h-3.5 text-amber-500" />
               {Math.round(recipe.calories)} kcal
             </span>
           )}

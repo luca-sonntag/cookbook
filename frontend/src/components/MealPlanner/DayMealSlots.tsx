@@ -112,9 +112,9 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                 /* Empty Slot Add Button */
                 <button
                   onClick={() => onAddRecipeToSlot(slot.type)}
-                  className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-emerald-200/60 dark:border-emerald-800/40 hover:border-emerald-400 dark:hover:border-emerald-500/60 text-emerald-600/70 dark:text-emerald-400/60 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center justify-center gap-2 text-xs font-semibold active:scale-[0.99] transition-all bg-emerald-50/30 dark:bg-emerald-950/10 hover:bg-emerald-50/60 hover:shadow-sm"
+                  className="w-full py-3 px-4 rounded-2xl bg-black/[0.025] dark:bg-white/[0.035] hover:bg-emerald-500/10 dark:hover:bg-emerald-500/15 border border-black/[0.04] dark:border-white/[0.06] text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center gap-2 text-xs font-semibold active:scale-[0.99] transition-all group"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
                   <span>{t('mealPlanner.emptySlot', { meal: slotTitle })}</span>
                 </button>
               )}
