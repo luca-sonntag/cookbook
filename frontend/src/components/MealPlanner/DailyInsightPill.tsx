@@ -28,25 +28,25 @@ export const DailyInsightPill: React.FC<DailyInsightPillProps> = ({ entries }) =
       : t('mealPlanner.insightMeals', { count: entries.length });
 
   return (
-    <div className="w-full flex items-center justify-center flex-wrap gap-1.5 sm:gap-2 pt-1 pb-0.5 text-[11px] font-medium animate-fade-in select-none">
+    <div className="w-full flex items-center justify-center flex-wrap gap-1.5 sm:gap-2 pt-1 pb-0.5 text-[11px] font-bold animate-fade-in select-none">
       {/* Meals Count Pill */}
-      <div className="flex items-center gap-1 px-2 py-0.5 rounded-xl bg-white/70 dark:bg-gray-700/40 text-gray-600 dark:text-gray-300 shadow-2xs">
-        <Utensils className="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-gray-200 shadow-2xs">
+        <Utensils className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
         <span>{mealsText}</span>
       </div>
 
       {/* Calories Pill */}
       {totalCalories > 0 && (
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded-xl bg-white/70 dark:bg-gray-700/40 text-gray-600 dark:text-gray-300 shadow-2xs">
-          <Flame className="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 shadow-2xs">
+          <Flame className="w-3.5 h-3.5 text-amber-500 shrink-0 fill-amber-500/20" />
           <span>{Math.round(totalCalories)} kcal</span>
         </div>
       )}
 
       {/* Prep Time Pill */}
       {totalTime > 0 && (
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded-xl bg-white/70 dark:bg-gray-700/40 text-gray-600 dark:text-gray-300 shadow-2xs">
-          <Clock className="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 shadow-2xs">
+          <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{totalTime} min</span>
         </div>
       )}
@@ -54,13 +54,13 @@ export const DailyInsightPill: React.FC<DailyInsightPillProps> = ({ entries }) =
       {/* Cooked Progress Pill */}
       {cookedCount > 0 && (
         <div
-          className={`flex items-center gap-1 px-2 py-0.5 rounded-xl shadow-2xs transition-colors font-semibold ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl shadow-2xs transition-colors ${
             isAllCooked
-              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-              : 'bg-white/70 dark:bg-gray-700/40 text-emerald-600 dark:text-emerald-400'
+              ? 'bg-emerald-600 text-white font-extrabold shadow-sm shadow-emerald-600/30'
+              : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold'
           }`}
         >
-          <CheckCircle2 className="w-3 h-3 shrink-0" />
+          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
           <span>
             {isAllCooked
               ? t('mealPlanner.allCookedDone')

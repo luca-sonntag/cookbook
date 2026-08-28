@@ -93,7 +93,7 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
             }}
             title={t('mealPlanner.cookNow')}
             aria-label={t('mealPlanner.cookNow')}
-            className="w-8 h-8 rounded-xl bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none shadow-2xs"
+            className="w-8 h-8 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs shadow-emerald-600/30 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none"
           >
             <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
           </button>

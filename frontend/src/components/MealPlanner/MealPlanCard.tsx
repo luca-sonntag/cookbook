@@ -61,16 +61,16 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
         </div>
 
         {/* Badges: Time & Calories */}
-        <div className="flex items-center gap-2 mt-1 text-[11px] font-semibold text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-2.5 mt-1 text-[11px] font-semibold text-gray-600 dark:text-gray-300">
           {recipe?.prepTime && (
             <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-gray-400 dark:text-gray-500" />
+              <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>{recipe.prepTime} min</span>
             </span>
           )}
           {calories && (
             <span className="flex items-center gap-1">
-              <Flame className="w-3 h-3 text-amber-500" />
+              <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20" />
               <span>{Math.round(calories)} kcal</span>
             </span>
           )}
