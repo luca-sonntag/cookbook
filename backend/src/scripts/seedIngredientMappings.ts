@@ -31,7 +31,7 @@ interface SeedRow {
 async function main(): Promise<void> {
   const byCode = new Map<string, (typeof CANONICAL_INGREDIENTS)[number]>();
   for (const item of CANONICAL_INGREDIENTS) {
-    if (item.bls_code) byCode.set(item.bls_code.toUpperCase().trim(), item);
+    if (item.product_code) byCode.set(item.product_code.toUpperCase().trim(), item);
     byCode.set(item.id.toLowerCase().trim(), item);
   }
 
@@ -47,7 +47,7 @@ async function main(): Promise<void> {
   const conflicts: string[] = [];
 
   for (const [baseName, code] of entries) {
-    const item = byCode.get(code.toUpperCase().trim()) || byCode.get(('bls_' + code).toLowerCase().trim());
+    const item = byCode.get(code.toUpperCase().trim()) || byCode.get(('bls_' + code).toLowerCase().trim()) || byCode.get(code.toLowerCase().trim());
     if (!item) {
       missing.push(`${baseName} -> ${code}`);
       continue;

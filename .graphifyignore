@@ -3,7 +3,6 @@
 # Ziel: nur echte Architektur im Graph, keine Nutzdaten/Assets.
 
 # --- Große Nutzdaten (keine Architektur, ~7.9M Tokens) ---
-backend/src/data/bls_4_0_daten_2025_de.csv
 backend/src/data/canonicalIngredientsData.json
 # canonicalIngredients.ts (der Loader) bleibt bewusst drin.
 

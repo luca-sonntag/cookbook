@@ -68,7 +68,7 @@ function findIngredient(options: CliOptions): CanonicalIngredient | null {
   if (options.id) {
     const targetId = options.id.toLowerCase().trim();
     const found = CANONICAL_INGREDIENTS.find(
-      (item) => item.id.toLowerCase() === targetId || item.product_code?.toLowerCase() === targetId || item.bls_code?.toLowerCase() === targetId
+      (item) => item.id.toLowerCase() === targetId || item.product_code?.toLowerCase() === targetId
     );
     if (found) return found;
   }
@@ -185,7 +185,7 @@ async function main(): Promise<void> {
 
   console.log('\n======================================================');
   console.log(`🥑 Zutat:       ${ingredient.name_de} (${ingredient.name_en})`);
-  console.log(`🆔 ID:          ${ingredient.id} (BLS: ${ingredient.bls_code})`);
+  console.log(`🆔 ID:          ${ingredient.id} (Code: ${ingredient.product_code || '-'})`);
   console.log(`📁 Kategorie:   ${ingredient.category}`);
   console.log(`🎯 Prompt:      "${prompt}"`);
   console.log(`📂 Zielordner:  ${options.outDir}`);

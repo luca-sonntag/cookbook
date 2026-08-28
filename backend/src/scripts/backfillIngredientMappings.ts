@@ -157,7 +157,7 @@ async function main(): Promise<void> {
   let totalIngredients = 0;
   let cacheHits = 0;
   let resolverCalls = 0;
-  let matchedBlsCount = 0;
+  let matchedOffCount = 0;
   let noMatchEstimatedCount = 0;
   let totalCostUsd = 0;
   let totalTokens = 0;
@@ -200,15 +200,15 @@ async function main(): Promise<void> {
           resolverCalls++;
           totalTokens += res.usage.tokenUsage?.totalTokens ?? 0;
           totalCostUsd += res.usage.costEstimate?.totalCostUsd ?? 0;
-          const target = res.match ? `OFF ${res.match.product_code || res.match.bls_code || res.match.id} (${res.match.name_de})` : 'NO_MATCH (Estimated)';
+          const target = res.match ? `OFF ${res.match.product_code || res.match.id} (${res.match.name_de})` : 'NO_MATCH (Estimated)';
           console.log(`  🤖 [Gemini Resolver] "${nameDisplay}" -> ${target}`);
         } else {
           cacheHits++;
-          const target = res.match ? `OFF ${res.match.product_code || res.match.bls_code || res.match.id}` : 'Store cached';
+          const target = res.match ? `OFF ${res.match.product_code || res.match.id}` : 'Store cached';
           if (options.verbose) console.log(`  ⚡ [Store Hit] "${nameDisplay}" -> ${target}`);
         }
 
-        if (res.match) matchedBlsCount++;
+        if (res.match) matchedOffCount++;
         else if (res.estimate) noMatchEstimatedCount++;
       }
 
@@ -226,7 +226,7 @@ async function main(): Promise<void> {
   console.log(`  Total ingredients:   ${totalIngredients}`);
   console.log(`  Store / Cache hits:  ${cacheHits}`);
   console.log(`  Gemini tool calls:   ${resolverCalls}`);
-  console.log(`  OFF matches:         ${matchedBlsCount}`);
+  console.log(`  OFF matches:         ${matchedOffCount}`);
   console.log(`  Estimates (no match):${noMatchEstimatedCount}`);
   console.log(`  Total tokens used:   ${totalTokens}`);
   console.log(`  Estimated LLM cost:  $${totalCostUsd.toFixed(4)}`);

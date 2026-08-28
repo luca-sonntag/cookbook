@@ -301,7 +301,7 @@ async function run() {
               const normBase = ing.baseName.toLowerCase().trim();
               const singular = toEnglishSingular(normBase);
               const mappedCode = BASE_NAME_TO_CANONICAL_ID[normBase] || BASE_NAME_TO_CANONICAL_ID[singular];
-              const cleanCanonicalId = ing.canonicalId.replace(/^bls_/i, '').toUpperCase();
+              const cleanCanonicalId = ing.canonicalId.replace(/^(bls_|off_)/i, '').toUpperCase();
               if (mappedCode && cleanCanonicalId === mappedCode.toUpperCase()) {
                 isBaseNameMapMatch = true;
               }

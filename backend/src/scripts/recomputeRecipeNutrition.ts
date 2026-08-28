@@ -1,5 +1,5 @@
 /**
- * One-off migration: rebuild per-ingredient and recipe-level nutrition from BLS.
+ * Migration: rebuild per-ingredient and recipe-level nutrition from Open Food Facts.
  *
  * Stored recipes accumulated two defects that this brings in line with the
  * now-derived model (see `enrichRecipeWithCanonicalIngredients`):
@@ -13,7 +13,7 @@
  *      afterwards, and remixes/photo imports left model estimates in place.
  *
  * Re-running the matcher fixes both: every ingredient is recomputed from its own
- * `amount`/`unit` against BLS, and the recipe total becomes the ingredient sum.
+ * `amount`/`unit` against Open Food Facts, and the recipe total becomes the ingredient sum.
  * A pre-existing `nutritionalValues` cannot be reclassified as source-stated in
  * hindsight, so it is preserved under `sourceNutritionalValues` only when it
  * diverges from the freshly computed sum by more than 10% — a near-identical
@@ -43,7 +43,7 @@ function hasIngredients(recipe: any): recipe is Recipe {
 }
 
 async function main(): Promise<void> {
-  console.log(`Recomputing recipe nutrition from BLS${DRY_RUN ? ' (DRY RUN)' : ''}...`);
+  console.log(`Recomputing recipe nutrition from Open Food Facts${DRY_RUN ? ' (DRY RUN)' : ''}...`);
   const client = getClient();
 
   let from = 0;

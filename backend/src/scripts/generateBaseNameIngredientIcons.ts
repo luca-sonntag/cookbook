@@ -75,7 +75,7 @@ async function main() {
   for (const blsCode of uniqueBlsCodes) {
     const canonicalId = `bls_${blsCode.toLowerCase()}`;
     const found = CANONICAL_INGREDIENTS.find(
-      (ing) => ing.id.toLowerCase() === canonicalId || ing.bls_code?.toUpperCase() === blsCode
+      (ing) => ing.id.toLowerCase() === canonicalId || ing.product_code?.toUpperCase() === blsCode
     );
 
     if (found) {
