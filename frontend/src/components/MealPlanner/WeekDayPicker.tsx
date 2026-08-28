@@ -27,7 +27,7 @@ export const WeekDayPicker: React.FC<WeekDayPickerProps> = ({
             className={`group relative flex flex-col items-center justify-center py-2.5 px-0.5 rounded-2xl transition-all duration-200 cursor-pointer border-none select-none active:scale-[0.93] ${
               isSelected
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 scale-[1.03] z-10'
-                : 'bg-white/90 dark:bg-gray-700/60 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 shadow-xs'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-750 shadow-2xs'
             }`}
           >
             {/* Day of week initial (Mo, Di, ...) */}

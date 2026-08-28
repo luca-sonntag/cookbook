@@ -24,7 +24,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
       className={`group relative flex items-center gap-3 p-3 rounded-2xl md:rounded-3xl border-none transition-all duration-200 cursor-pointer select-none active:scale-[0.99] ${
         entry.isCooked
           ? 'bg-emerald-50/60 dark:bg-emerald-950/20 shadow-2xs'
-          : 'bg-white dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 shadow-xs hover:shadow-md'
+          : 'bg-white dark:bg-gray-900/95 hover:bg-white dark:hover:bg-gray-850 shadow-xs hover:shadow-md ring-1 ring-black/[0.04] dark:ring-white/[0.06]'
       }`}
     >
       {/* Recipe Thumbnail with 1px outline */}

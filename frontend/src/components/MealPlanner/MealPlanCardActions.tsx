@@ -60,12 +60,12 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
       className="flex items-center justify-between mt-2 pt-0.5 gap-2 select-none"
     >
       {/* Servings Stepper */}
-      <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800/80 p-0.5 rounded-xl border-none shadow-2xs">
+      <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-850 p-0.5 rounded-xl border-none shadow-2xs">
         <button
           onClick={handleServingsDecrease}
           disabled={entry.servings <= 1}
           aria-label={t('mealPlanner.changeServings')}
-          className="w-7 h-7 rounded-lg bg-white dark:bg-gray-700 shadow-xs flex items-center justify-center text-gray-700 dark:text-gray-200 disabled:opacity-30 active:scale-[0.88] transition-transform duration-150 cursor-pointer border-none"
+          className="w-7 h-7 rounded-lg bg-white dark:bg-gray-750 shadow-xs flex items-center justify-center text-gray-700 dark:text-gray-200 disabled:opacity-30 active:scale-[0.88] transition-transform duration-150 cursor-pointer border-none"
         >
           <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
@@ -76,7 +76,7 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
         <button
           onClick={handleServingsIncrease}
           aria-label={t('mealPlanner.changeServings')}
-          className="w-7 h-7 rounded-lg bg-white dark:bg-gray-700 shadow-xs flex items-center justify-center text-gray-700 dark:text-gray-200 active:scale-[0.88] transition-transform duration-150 cursor-pointer border-none"
+          className="w-7 h-7 rounded-lg bg-white dark:bg-gray-750 shadow-xs flex items-center justify-center text-gray-700 dark:text-gray-200 active:scale-[0.88] transition-transform duration-150 cursor-pointer border-none"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
@@ -110,7 +110,7 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
           className={`w-8 h-8 rounded-xl transition-all duration-150 active:scale-[0.90] flex items-center justify-center cursor-pointer border-none shadow-2xs ${
             entry.isCooked
               ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-gray-750'
           }`}
         >
           <CheckCircle2 className="w-4 h-4 stroke-[2.25]" />
@@ -125,7 +125,7 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
             }}
             title={t('mealPlanner.moveToTomorrow')}
             aria-label={t('mealPlanner.moveToTomorrow')}
-            className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none shadow-2xs"
+            className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 dark:hover:bg-gray-750 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none shadow-2xs"
           >
             <CalendarClock className="w-3.5 h-3.5" />
           </button>
@@ -136,7 +136,7 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
           onClick={handleDelete}
           title={t('mealPlanner.deleteAction')}
           aria-label={t('mealPlanner.deleteConfirmBtn')}
-          className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none shadow-2xs"
+          className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 dark:hover:bg-gray-750 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none shadow-2xs"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
@@ -146,3 +146,4 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
 };
 
 export default MealPlanCardActions;
+
