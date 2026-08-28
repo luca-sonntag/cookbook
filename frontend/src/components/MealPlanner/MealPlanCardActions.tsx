@@ -116,7 +116,7 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
           <CheckCircle2 className="w-4.5 h-4.5 stroke-[2.25]" />
         </button>
 
-        {/* Move to Tomorrow */}
+        {/* Move to Tomorrow (Visible on larger screens where space permits) */}
         {onMoveToTomorrow && (
           <button
             onClick={() => {
@@ -125,7 +125,7 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
             }}
             title={t('mealPlanner.moveToTomorrow')}
             aria-label={t('mealPlanner.moveToTomorrow')}
-            className="w-9.5 h-9.5 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 dark:hover:bg-gray-750 active:scale-[0.90] transition-all duration-150 flex items-center justify-center cursor-pointer border-none shadow-2xs"
+            className="hidden sm:flex w-9.5 h-9.5 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 dark:hover:bg-gray-750 active:scale-[0.90] transition-all duration-150 items-center justify-center cursor-pointer border-none shadow-2xs"
           >
             <CalendarClock className="w-4 h-4" />
           </button>
