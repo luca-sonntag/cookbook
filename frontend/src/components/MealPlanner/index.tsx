@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import type { MealPlannerViewProps } from './types';
 import { useMealPlanner } from './useMealPlanner';
 import { MealPlannerHeader } from './MealPlannerHeader';
+import { WeekNavigator } from './WeekNavigator';
 import { WeekDayPicker } from './WeekDayPicker';
 import { DayMealSlots } from './DayMealSlots';
 import { RecipePickerModal } from './RecipePickerModal';
@@ -64,26 +65,30 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
 
   return (
     <div className="w-full flex flex-col gap-4 overflow-hidden">
-      {/* Header with week navigation & shopping button */}
+      {/* Header with page title & shopping action */}
       <MealPlannerHeader
-        weekStart={currentWeekStart}
-        weekEnd={weekEnd}
-        isCurrentWeek={isCurrentWeek}
         plannedTotalCount={mealPlans.length}
         isAddingToShopping={isAddingToShopping}
         isShopAdded={isShopAdded}
-        onPrevWeek={goToPrevWeek}
-        onNextWeek={goToNextWeek}
-        onToday={goToToday}
         onShopWeek={addWeekToShoppingList}
       />
 
-      {/* 7-day strip selector */}
-      <WeekDayPicker
-        days={weekDays}
-        selectedDate={selectedDate}
-        onSelectDate={setSelectedDate}
-      />
+      {/* Unified Calendar Widget Card */}
+      <div className="w-full flex flex-col gap-1.5 p-2 rounded-3xl bg-gray-100/75 dark:bg-gray-800/70 border border-black/[0.04] dark:border-white/[0.06] shadow-sm shadow-black/[0.02]">
+        <WeekNavigator
+          weekStart={currentWeekStart}
+          weekEnd={weekEnd}
+          isCurrentWeek={isCurrentWeek}
+          onPrevWeek={goToPrevWeek}
+          onNextWeek={goToNextWeek}
+          onToday={goToToday}
+        />
+        <WeekDayPicker
+          days={weekDays}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+        />
+      </div>
 
       {/* Loading state skeleton vs Day Slots */}
       {isLoading && mealPlans.length === 0 ? (

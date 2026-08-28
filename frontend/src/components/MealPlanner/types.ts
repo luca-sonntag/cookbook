@@ -18,16 +18,19 @@ export interface MealPlannerViewProps {
 }
 
 export interface MealPlannerHeaderProps {
-  weekStart: Date;
-  weekEnd: Date;
-  isCurrentWeek: boolean;
   plannedTotalCount: number;
   isAddingToShopping: boolean;
   isShopAdded?: boolean;
+  onShopWeek: () => void;
+}
+
+export interface WeekNavigatorProps {
+  weekStart: Date;
+  weekEnd: Date;
+  isCurrentWeek: boolean;
   onPrevWeek: () => void;
   onNextWeek: () => void;
   onToday: () => void;
-  onShopWeek: () => void;
 }
 
 export interface WeekDayPickerProps {

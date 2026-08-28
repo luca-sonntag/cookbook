@@ -8,7 +8,7 @@ export const WeekDayPicker: React.FC<WeekDayPickerProps> = ({
   onSelectDate,
 }) => {
   return (
-    <div className="w-full grid grid-cols-7 gap-1.5 pt-1 pb-2">
+    <div className="w-full grid grid-cols-7 gap-1 pt-0.5 pb-0.5">
       {days.map((day) => {
         const isSelected = day.dateStr === selectedDate;
 
@@ -19,10 +19,10 @@ export const WeekDayPicker: React.FC<WeekDayPickerProps> = ({
               hapticSelection();
               onSelectDate(day.dateStr);
             }}
-            className={`flex flex-col items-center justify-center py-2 px-1 rounded-2xl relative transition-all duration-200 ${
+            className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-2xl relative transition-all duration-200 cursor-pointer border-none ${
               isSelected
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25 scale-[1.08] z-10'
-                : 'bg-gray-50 dark:bg-gray-800/40 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 scale-[1.04] z-10'
+                : 'bg-white/80 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 shadow-sm shadow-black/[0.02]'
             }`}
           >
             {/* Day of week initial (Mo, Di, ...) */}
