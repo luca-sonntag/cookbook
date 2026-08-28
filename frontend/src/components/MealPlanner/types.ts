@@ -39,6 +39,10 @@ export interface WeekDayPickerProps {
   onSelectDate: (dateStr: string) => void;
 }
 
+export interface DailyInsightPillProps {
+  entries: MealPlanEntry[];
+}
+
 export interface DayMealSlotsProps {
   selectedDateStr: string;
   entries: MealPlanEntry[];
@@ -46,6 +50,7 @@ export interface DayMealSlotsProps {
   onUpdateServings: (id: string, servings: number) => void;
   onToggleCooked: (entry: MealPlanEntry) => void;
   onDeleteEntry: (id: string) => void;
+  onMoveToTomorrow?: (entry: MealPlanEntry) => void;
   onSelectRecipe: (recipeId: string) => void;
   onOpenCookMode?: (recipeId: string) => void;
 }
@@ -55,6 +60,7 @@ export interface MealPlanCardProps {
   onUpdateServings: (id: string, servings: number) => void;
   onToggleCooked: (entry: MealPlanEntry) => void;
   onDeleteEntry: (id: string) => void;
+  onMoveToTomorrow?: (entry: MealPlanEntry) => void;
   onSelectRecipe: (recipeId: string) => void;
   onOpenCookMode?: (recipeId: string) => void;
 }
