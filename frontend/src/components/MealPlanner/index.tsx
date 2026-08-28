@@ -24,6 +24,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
     weekDays,
     isLoading,
     isAddingToShopping,
+    isShopAdded,
     pickerSlot,
     setPickerSlot,
     goToPrevWeek,
@@ -70,6 +71,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
         isCurrentWeek={isCurrentWeek}
         plannedTotalCount={mealPlans.length}
         isAddingToShopping={isAddingToShopping}
+        isShopAdded={isShopAdded}
         onPrevWeek={goToPrevWeek}
         onNextWeek={goToNextWeek}
         onToday={goToToday}

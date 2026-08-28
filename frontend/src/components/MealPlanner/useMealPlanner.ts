@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useI18n } from '../../context/I18nContext';
 import { apiUrl } from '../../api';
-import { hapticLight } from '../../utils/haptics';
+import { hapticLight, hapticMedium } from '../../utils/haptics';
 
 export function getMonday(date: Date): Date {
   const d = new Date(date);
@@ -42,6 +42,7 @@ export function useMealPlanner(
   const [mealPlans, setMealPlans] = useState<MealPlanEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isAddingToShopping, setIsAddingToShopping] = useState<boolean>(false);
+  const [isShopAdded, setIsShopAdded] = useState<boolean>(false);
   const [pickerSlot, setPickerSlot] = useState<{ date: string; mealType: MealType } | null>(null);
 
   const weekEnd = useMemo(() => addDays(currentWeekStart, 6), [currentWeekStart]);
@@ -80,6 +81,7 @@ export function useMealPlanner(
   // Navigation handlers
   const goToPrevWeek = useCallback(() => {
     hapticLight();
+    setIsShopAdded(false);
     setCurrentWeekStart((prev) => {
       const next = addDays(prev, -7);
       setSelectedDate(formatDateIso(next));
@@ -89,6 +91,7 @@ export function useMealPlanner(
 
   const goToNextWeek = useCallback(() => {
     hapticLight();
+    setIsShopAdded(false);
     setCurrentWeekStart((prev) => {
       const next = addDays(prev, 7);
       setSelectedDate(formatDateIso(next));
@@ -98,6 +101,7 @@ export function useMealPlanner(
 
   const goToToday = useCallback(() => {
     hapticLight();
+    setIsShopAdded(false);
     const today = new Date();
     setCurrentWeekStart(getMonday(today));
     setSelectedDate(formatDateIso(today));
@@ -255,6 +259,8 @@ export function useMealPlanner(
       }
 
       if (addedCount > 0) {
+        hapticMedium();
+        setIsShopAdded(true);
         toast.success(t('mealPlanner.addedToShoppingList'));
       } else {
         toast.info(t('mealPlanner.noPlannedRecipes'));
@@ -279,6 +285,7 @@ export function useMealPlanner(
     weekDays,
     isLoading,
     isAddingToShopping,
+    isShopAdded,
     pickerSlot,
     setPickerSlot,
     goToPrevWeek,

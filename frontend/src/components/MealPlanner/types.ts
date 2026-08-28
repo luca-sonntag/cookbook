@@ -23,6 +23,7 @@ export interface MealPlannerHeaderProps {
   isCurrentWeek: boolean;
   plannedTotalCount: number;
   isAddingToShopping: boolean;
+  isShopAdded?: boolean;
   onPrevWeek: () => void;
   onNextWeek: () => void;
   onToday: () => void;
