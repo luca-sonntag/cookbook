@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utensils, Clock, Flame } from 'lucide-react';
+import { Utensils, Clock, Flame, CheckCircle2 } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import type { DailyInsightPillProps } from './types';
 
@@ -19,36 +19,57 @@ export const DailyInsightPill: React.FC<DailyInsightPillProps> = ({ entries }) =
     return sum + (e.recipe?.prepTime ? Number(e.recipe.prepTime) : 0);
   }, 0);
 
+  const cookedCount = entries.filter((e) => e.isCooked).length;
+  const isAllCooked = cookedCount > 0 && cookedCount === entries.length;
+
   const mealsText =
     entries.length === 1
       ? t('mealPlanner.insightMealsSingle')
       : t('mealPlanner.insightMeals', { count: entries.length });
 
   return (
-    <div className="w-full flex items-center justify-center gap-2.5 sm:gap-3.5 pt-1.5 pb-0.5 mt-0.5 text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 animate-fade-in">
-      <span className="flex items-center gap-1 font-semibold text-gray-700 dark:text-gray-200">
-        <Utensils className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-        {mealsText}
-      </span>
+    <div className="w-full flex items-center justify-center flex-wrap gap-1.5 sm:gap-2 pt-1 pb-0.5 text-[11px] font-semibold animate-fade-in select-none">
+      {/* Meals Count Pill */}
+      <div className="flex items-center gap-1 px-2 py-0.5 rounded-xl bg-white/70 dark:bg-gray-700/50 text-gray-700 dark:text-gray-200 shadow-xs">
+        <Utensils className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+        <span>{mealsText}</span>
+      </div>
 
+      {/* Calories Pill */}
       {totalCalories > 0 && (
-        <>
-          <span className="text-gray-300 dark:text-gray-600">•</span>
-          <span className="flex items-center gap-1 font-semibold text-gray-700 dark:text-gray-200">
-            <Flame className="w-3.5 h-3.5 text-amber-500" />
-            {Math.round(totalCalories)} kcal
-          </span>
-        </>
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded-xl bg-white/70 dark:bg-gray-700/50 text-gray-700 dark:text-gray-200 shadow-xs">
+          <Flame className="w-3 h-3 text-amber-500 shrink-0" />
+          <span>{Math.round(totalCalories)} kcal</span>
+        </div>
       )}
 
+      {/* Prep Time Pill */}
       {totalTime > 0 && (
-        <>
-          <span className="text-gray-300 dark:text-gray-600">•</span>
-          <span className="flex items-center gap-1 font-semibold text-gray-700 dark:text-gray-200">
-            <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            {totalTime} min
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded-xl bg-white/70 dark:bg-gray-700/50 text-gray-700 dark:text-gray-200 shadow-xs">
+          <Clock className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span>{totalTime} min</span>
+        </div>
+      )}
+
+      {/* Cooked Progress Pill */}
+      {cookedCount > 0 && (
+        <div
+          className={`flex items-center gap-1 px-2 py-0.5 rounded-xl shadow-xs transition-colors ${
+            isAllCooked
+              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold'
+              : 'bg-white/70 dark:bg-gray-700/50 text-emerald-600 dark:text-emerald-400'
+          }`}
+        >
+          <CheckCircle2 className="w-3 h-3 shrink-0" />
+          <span>
+            {isAllCooked
+              ? t('mealPlanner.allCookedDone')
+              : t('mealPlanner.insightCookedProgress', {
+                  cooked: cookedCount,
+                  total: entries.length,
+                })}
           </span>
-        </>
+        </div>
       )}
     </div>
   );

@@ -35,7 +35,7 @@ export function useMealPlanner(
 ) {
   const { getAccessToken, user } = useAuth();
   const toast = useToast();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [selectedDate, setSelectedDate] = useState<string>(() => formatDateIso(new Date()));
@@ -111,22 +111,27 @@ export function useMealPlanner(
   const weekDays = useMemo<WeekDayInfo[]>(() => {
     const todayStr = formatDateIso(new Date());
     const dayNamesDe = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+    const dayNamesEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const dayNames = language === 'en' ? dayNamesEn : dayNamesDe;
 
     return Array.from({ length: 7 }, (_, i) => {
       const d = addDays(currentWeekStart, i);
       const dStr = formatDateIso(d);
-      const plannedCount = mealPlans.filter((p) => p.planDate === dStr).length;
+      const dayPlans = mealPlans.filter((p) => p.planDate === dStr);
+      const plannedCount = dayPlans.length;
+      const cookedCount = dayPlans.filter((p) => p.isCooked).length;
 
       return {
         date: d,
         dateStr: dStr,
-        dayName: dayNamesDe[i],
+        dayName: dayNames[i],
         dayNumber: d.getDate(),
         isToday: dStr === todayStr,
         plannedCount,
+        cookedCount,
       };
     });
-  }, [currentWeekStart, mealPlans]);
+  }, [currentWeekStart, mealPlans, language]);
 
   // Add a recipe to meal plan
   const addPlan = useCallback(

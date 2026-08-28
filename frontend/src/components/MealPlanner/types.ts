@@ -7,6 +7,7 @@ export interface WeekDayInfo {
   dayNumber: number; // e.g. 27
   isToday: boolean;
   plannedCount: number;
+  cookedCount?: number;
 }
 
 export interface MealPlannerViewProps {
