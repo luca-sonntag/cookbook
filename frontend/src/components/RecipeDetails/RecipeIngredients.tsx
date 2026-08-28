@@ -294,6 +294,7 @@ export default function RecipeIngredients({
         ingredient={selectedNutrition?.ingredient ?? null}
         category={selectedNutrition?.category}
         scaleFactor={scaleFactor}
+        servings={servings}
       />
 
       <PremiumModal

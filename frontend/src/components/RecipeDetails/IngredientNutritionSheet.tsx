@@ -11,6 +11,7 @@ interface IngredientNutritionSheetProps {
   ingredient: Ingredient | null;
   category?: string;
   scaleFactor?: number;
+  servings?: number;
 }
 
 export default function IngredientNutritionSheet({
@@ -19,18 +20,26 @@ export default function IngredientNutritionSheet({
   ingredient,
   category,
   scaleFactor = 1,
+  servings = 1,
 }: IngredientNutritionSheetProps) {
   const { t } = useI18n();
   useAdOverlay(isOpen);
 
   if (!ingredient) return null;
 
-  // Scaled amounts & macro values
+  // Scaled amounts & macro values (for total selected servings)
   const scaledAmount = Math.round(ingredient.amount * scaleFactor * 10) / 10;
   const scaledCalories = Math.round((ingredient.calories ?? 0) * scaleFactor);
   const scaledProtein = Math.round((ingredient.protein ?? 0) * scaleFactor * 10) / 10;
   const scaledCarbs = Math.round((ingredient.carbs ?? 0) * scaleFactor * 10) / 10;
   const scaledFat = Math.round((ingredient.fat ?? 0) * scaleFactor * 10) / 10;
+
+  // Per-serving breakdown (when recipe has more than 1 serving)
+  const isMultiServing = servings > 1;
+  const perServingCalories = isMultiServing ? Math.round(scaledCalories / servings) : scaledCalories;
+  const perServingProtein = isMultiServing ? Math.round((scaledProtein / servings) * 10) / 10 : scaledProtein;
+  const perServingCarbs = isMultiServing ? Math.round((scaledCarbs / servings) * 10) / 10 : scaledCarbs;
+  const perServingFat = isMultiServing ? Math.round((scaledFat / servings) * 10) / 10 : scaledFat;
 
   // Calorie contribution calculation
   const proteinKcal = scaledProtein * 4;
@@ -120,16 +129,28 @@ export default function IngredientNutritionSheet({
                     </div>
                   </div>
 
-                  {per100gKcal !== null && (
-                    <div className="text-right">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 block">
-                        {t('recipe.per100g')}
-                      </span>
-                      <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
-                        ≈ {per100gKcal} kcal
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex flex-col items-end gap-1 text-right">
+                    {isMultiServing && (
+                      <div>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/80 dark:text-emerald-400/80 block">
+                          {t('recipe.nutritionPerServing')}
+                        </span>
+                        <span className="text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
+                          ≈ {perServingCalories} kcal
+                        </span>
+                      </div>
+                    )}
+                    {per100gKcal !== null && (
+                      <div>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 block">
+                          {t('recipe.per100g')}
+                        </span>
+                        <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
+                          ≈ {per100gKcal} kcal
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* 3-Color Macro Progress Bar */}
@@ -181,9 +202,12 @@ export default function IngredientNutritionSheet({
                       <span className="text-lg font-bold text-gray-900 dark:text-white tracking-tight block tabular-nums">
                         {scaledProtein} <span className="text-xs font-normal text-gray-500 dark:text-gray-400">g</span>
                       </span>
-                      <span className="text-[10.5px] text-gray-400 dark:text-gray-500 font-normal">
-                        {proteinPct}%
-                      </span>
+                      <div className="flex items-center justify-between text-[10.5px] text-gray-400 dark:text-gray-500 font-normal mt-0.5">
+                        <span>{proteinPct}%</span>
+                        {isMultiServing && (
+                          <span className="tabular-nums opacity-90">≈{perServingProtein}g/P.</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -199,9 +223,12 @@ export default function IngredientNutritionSheet({
                       <span className="text-lg font-bold text-gray-900 dark:text-white tracking-tight block tabular-nums">
                         {scaledCarbs} <span className="text-xs font-normal text-gray-500 dark:text-gray-400">g</span>
                       </span>
-                      <span className="text-[10.5px] text-gray-400 dark:text-gray-500 font-normal">
-                        {carbsPct}%
-                      </span>
+                      <div className="flex items-center justify-between text-[10.5px] text-gray-400 dark:text-gray-500 font-normal mt-0.5">
+                        <span>{carbsPct}%</span>
+                        {isMultiServing && (
+                          <span className="tabular-nums opacity-90">≈{perServingCarbs}g/P.</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -217,9 +244,12 @@ export default function IngredientNutritionSheet({
                       <span className="text-lg font-bold text-gray-900 dark:text-white tracking-tight block tabular-nums">
                         {scaledFat} <span className="text-xs font-normal text-gray-500 dark:text-gray-400">g</span>
                       </span>
-                      <span className="text-[10.5px] text-gray-400 dark:text-gray-500 font-normal">
-                        {fatPct}%
-                      </span>
+                      <div className="flex items-center justify-between text-[10.5px] text-gray-400 dark:text-gray-500 font-normal mt-0.5">
+                        <span>{fatPct}%</span>
+                        {isMultiServing && (
+                          <span className="tabular-nums opacity-90">≈{perServingFat}g/P.</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
