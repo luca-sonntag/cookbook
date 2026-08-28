@@ -2,6 +2,7 @@ import React from 'react';
 import { ShoppingCart, ShoppingBag, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { PageHeader } from '../PageHeader';
+import { hapticLight } from '../../utils/haptics';
 import type { MealPlannerHeaderProps } from './types';
 
 export const MealPlannerHeader: React.FC<MealPlannerHeaderProps> = ({
@@ -12,32 +13,37 @@ export const MealPlannerHeader: React.FC<MealPlannerHeaderProps> = ({
 }) => {
   const { t } = useI18n();
 
+  const handleShop = () => {
+    hapticLight();
+    onShopWeek();
+  };
+
   const shopAction = plannedTotalCount > 0 ? (
     <button
-      onClick={onShopWeek}
+      onClick={handleShop}
       disabled={isAddingToShopping}
-      className={`flex items-center justify-center gap-1.5 w-10 h-10 min-w-[40px] min-h-[40px] sm:w-auto sm:px-3 sm:py-2 rounded-2xl active:scale-95 transition-all disabled:opacity-50 cursor-pointer border-none ${
+      className={`flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-2xl active:scale-[0.93] transition-all duration-150 disabled:opacity-50 cursor-pointer border-none shadow-xs ${
         isShopAdded
-          ? 'bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-          : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400'
+          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold'
+          : 'bg-emerald-500/10 hover:bg-emerald-500/15 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
       }`}
       title={t('mealPlanner.shopWeekDescription')}
       aria-label={t('mealPlanner.shopWeek')}
     >
       {isAddingToShopping ? (
-        <Loader2 className="w-5 h-5 animate-spin text-emerald-600 dark:text-emerald-400" />
+        <Loader2 className="w-4 h-4 animate-spin text-emerald-600 dark:text-emerald-400" />
       ) : isShopAdded ? (
-        <ShoppingBag className="w-5 h-5" />
+        <ShoppingBag className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
       ) : (
-        <ShoppingCart className="w-5 h-5" />
+        <ShoppingCart className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
       )}
-      <span className="hidden sm:inline text-xs font-semibold">{t('mealPlanner.shopWeek')}</span>
+      <span className="text-xs font-bold">{t('mealPlanner.shopWeek')}</span>
     </button>
   ) : undefined;
 
   return (
     <PageHeader
-      icon={<CalendarIcon className="w-6 h-6" />}
+      icon={<CalendarIcon className="w-5 h-5 stroke-[2.25]" />}
       title={t('mealPlanner.title')}
       subtitle={t('mealPlanner.subtitle')}
       action={shopAction}
