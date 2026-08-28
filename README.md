@@ -91,9 +91,8 @@ From `frontend/`:
 ```bash
 npm run cap:sync         # build web assets + sync into the Android project
 npm run cap:run          # build, sync, and run on a device/emulator
-npm run cap:live         # wireless live-reload over LAN/Wi-Fi (no USB cable needed!)
-npm run cap:live:local   # wireless live-reload pointing to local backend
-npm run cap:live:usb     # legacy live-reload with USB cable and adb reverse
+npm run cap:live         # wireless/USB live-reload (local frontend + local backend)
+npm run cap:live:cloud   # live-reload pointing to Railway cloud dev backend
 ```
 
 Release + Play Store upload are automated via the PowerShell scripts in `frontend/scripts/`
