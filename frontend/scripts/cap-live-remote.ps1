@@ -18,7 +18,7 @@
     Vite dev server port (default: 5173).
 
 .PARAMETER Mode
-    Vite build mode: 'development' (default, uses dev Railway backend) or 'devlocal' (local backend).
+    Vite build mode: 'devlocal' (default, local frontend + local backend via proxy) or 'development' (Railway cloud dev backend).
 
 .PARAMETER Connect
     Optional phone IP (or IP:port) to connect via Wireless ADB (e.g. 192.168.1.50:5555).
@@ -43,7 +43,7 @@
 param(
     [string]$Ip = '',
     [int]$Port = 5173,
-    [string]$Mode = 'development',
+    [string]$Mode = 'devlocal',
     [string]$Connect = '',
     [switch]$Build,
     [switch]$Launch,
@@ -122,6 +122,7 @@ function Test-PortOpen {
 # -----------------------------------------------------------------------------
 $targetIp = if ([string]::IsNullOrWhiteSpace($Ip)) { Get-LocalLanIp } else { $Ip.Trim() }
 $liveUrl = "http://${targetIp}:${Port}"
+$isBackendRunning = Test-PortOpen -HostAddress "127.0.0.1" -PortNumber 3000
 
 Write-Host ""
 Write-Host "=================================================================" -ForegroundColor Cyan
@@ -130,6 +131,16 @@ Write-Host "=================================================================" -
 Write-Host "  [LAN] Host IP   : " -NoNewline; Write-Host $targetIp -ForegroundColor Green
 Write-Host "  [WEB] Live URL  : " -NoNewline; Write-Host $liveUrl -ForegroundColor Yellow
 Write-Host "  [ENV] Vite Mode : " -NoNewline; Write-Host $Mode -ForegroundColor Magenta
+if ($Mode -eq 'devlocal') {
+    Write-Host "  [API] Backend   : " -NoNewline
+    if ($isBackendRunning) {
+        Write-Host "http://127.0.0.1:3000 (Local running)" -ForegroundColor Green
+    } else {
+        Write-Host "Local port 3000 not open (Start with: npm run dev -w backend)" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "  [API] Backend   : " -NoNewline; Write-Host "Railway Cloud Dev (development mode)" -ForegroundColor Cyan
+}
 Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host ""
 
