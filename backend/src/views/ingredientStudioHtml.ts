@@ -692,6 +692,23 @@ export function renderIngredientViewerHtml(): string {
 
         if (data.success && data.item) {
           showToast('✨ Icon für ' + data.item.name_en + ' erfolgreich generiert!');
+          const freshUrl = data.item.imageUrl || ('/api/ingredient-icons/' + data.item.filename + '?v=' + Date.now());
+
+          if (selectedItem && (selectedItem.id === id || selectedItem.slug === id)) {
+            selectedItem.hasImage = true;
+            selectedItem.imageUrl = freshUrl;
+            selectedItem.filename = data.item.filename;
+            renderInspector();
+          }
+
+          const itemIdx = ingredients.findIndex(i => i.id === id || i.slug === id);
+          if (itemIdx !== -1) {
+            ingredients[itemIdx].hasImage = true;
+            ingredients[itemIdx].imageUrl = freshUrl;
+            ingredients[itemIdx].filename = data.item.filename;
+          }
+          
+          renderList();
           loadData();
         } else {
           showToast('❌ Fehler: ' + (data.error || 'Generierung fehlgeschlagen'));
@@ -729,11 +746,17 @@ export function renderIngredientViewerHtml(): string {
           const item = queue.shift();
           if (!item) break;
           try {
-            await fetch('/api/dev/ingredients/' + encodeURIComponent(item.id) + '/generate', {
+            const res = await fetch('/api/dev/ingredients/' + encodeURIComponent(item.id) + '/generate', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ category: item.category }),
             });
+            const data = await res.json();
+            if (data.success && data.item) {
+              item.hasImage = true;
+              item.imageUrl = data.item.imageUrl || ('/api/ingredient-icons/' + data.item.filename + '?v=' + Date.now());
+              item.filename = data.item.filename;
+            }
           } catch {}
           completed++;
           const pct = Math.round((completed / total) * 100);

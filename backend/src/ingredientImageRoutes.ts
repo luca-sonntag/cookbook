@@ -17,6 +17,17 @@ import {
 
 export const ingredientImageRouter = express.Router();
 
+function getFileMtimeMs(filename: string | null): number {
+  if (!filename) return 0;
+  try {
+    const fullPath = path.join(getIngredientImagesDir(), filename);
+    if (fs.existsSync(fullPath)) {
+      return Math.floor(fs.statSync(fullPath).mtimeMs);
+    }
+  } catch {}
+  return Date.now();
+}
+
 // GET /api/dev/ingredients - List ingredients with image status & cost summary
 ingredientImageRouter.get('/api/dev/ingredients', async (req: Request, res: Response) => {
   try {
@@ -72,6 +83,7 @@ ingredientImageRouter.get('/api/dev/ingredients', async (req: Request, res: Resp
         if (source === 'missing' && hasImage) continue;
 
         const formatted = key.replace(/_/g, ' ');
+        const v = getFileMtimeMs(filename);
         items.push({
           id: key,
           slug: key.replace(/\s+/g, '_'),
@@ -80,7 +92,7 @@ ingredientImageRouter.get('/api/dev/ingredients', async (req: Request, res: Resp
           category: m.category || 'OTHER',
           hasImage,
           filename,
-          imageUrl: hasImage ? `/api/ingredient-icons/${filename}?v=${encodeURIComponent(filename)}` : null,
+          imageUrl: hasImage ? `/api/ingredient-icons/${filename}?v=${v}` : null,
           hitCount: m.hit_count ?? 0,
           source: 'db',
         });
@@ -95,6 +107,7 @@ ingredientImageRouter.get('/api/dev/ingredients', async (req: Request, res: Resp
         const slug = getIngredientSlug(prod);
         const filename = findExistingIngredientImage(prod.id) || (slug ? findExistingIngredientImage(slug) : null);
         const hasImage = !!filename;
+        const v = getFileMtimeMs(filename);
 
         items.push({
           id: prod.id,
@@ -104,7 +117,7 @@ ingredientImageRouter.get('/api/dev/ingredients', async (req: Request, res: Resp
           category: prod.category,
           hasImage,
           filename,
-          imageUrl: hasImage ? `/api/ingredient-icons/${filename}?v=${encodeURIComponent(filename)}` : null,
+          imageUrl: hasImage ? `/api/ingredient-icons/${filename}?v=${v}` : null,
           source: 'off',
         });
       }
@@ -113,6 +126,7 @@ ingredientImageRouter.get('/api/dev/ingredients', async (req: Request, res: Resp
       for (const f of iconFiles) {
         const slug = f.replace(/\.webp$/i, '').toLowerCase();
         const formatted = slug.replace(/_/g, ' ');
+        const v = getFileMtimeMs(f);
         items.push({
           id: slug,
           slug,
@@ -121,7 +135,7 @@ ingredientImageRouter.get('/api/dev/ingredients', async (req: Request, res: Resp
           category: 'OTHER',
           hasImage: true,
           filename: f,
-          imageUrl: `/api/ingredient-icons/${f}?v=${encodeURIComponent(f)}`,
+          imageUrl: `/api/ingredient-icons/${f}?v=${v}`,
           source: 'disk',
         });
       }
@@ -184,8 +198,13 @@ ingredientImageRouter.get(['/api/ingredient-icons/:filename', '/api/dev/ingredie
       return res.status(404).send('Ingredient icon file missing');
     }
 
+    const hasVersion = !!req.query.v;
     res.setHeader('Content-Type', 'image/webp');
-    res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+    if (hasVersion) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=86400');
+    }
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.sendFile(filePath);
