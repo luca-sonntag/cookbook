@@ -28,13 +28,14 @@ export const MealPlannerHeader: React.FC<MealPlannerHeaderProps> = ({
     <button
       onClick={onShopWeek}
       disabled={isAddingToShopping}
-      className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm shadow-emerald-600/20 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+      className="flex items-center justify-center gap-1.5 w-10 h-10 min-w-[40px] min-h-[40px] sm:w-auto sm:px-3 sm:py-2 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/15 text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 text-xs font-semibold active:scale-95 transition-all disabled:opacity-50 cursor-pointer border-none"
       title={t('mealPlanner.shopWeekDescription')}
+      aria-label={t('mealPlanner.shopWeek')}
     >
       {isAddingToShopping ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <Loader2 className="w-5 h-5 animate-spin text-emerald-600 dark:text-emerald-400" />
       ) : (
-        <ShoppingBag className="w-4 h-4" />
+        <ShoppingBag className="w-5 h-5" />
       )}
       <span className="hidden sm:inline">{t('mealPlanner.shopWeek')}</span>
     </button>
