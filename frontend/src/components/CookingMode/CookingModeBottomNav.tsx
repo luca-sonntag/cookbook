@@ -40,7 +40,7 @@ export const CookingModeBottomNav: React.FC<CookingModeBottomNavProps> = ({
         {/* Next / Finish Button */}
         {isLastStep ? (
           <Button
-            className="flex-[2] py-3.5 h-13 min-h-[52px] rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white active:scale-[0.98] transition-all border-none shadow-md cursor-pointer"
+            className="flex-[2] py-3.5 h-13 min-h-[52px] rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white active:scale-[0.98] transition-all border-none shadow-[0_4px_16px_rgba(16,185,129,0.25)] dark:shadow-[0_4px_20px_rgba(16,185,129,0.2)] cursor-pointer"
             onPress={() => {
               hapticNotification('success');
               onFinish();
@@ -51,7 +51,7 @@ export const CookingModeBottomNav: React.FC<CookingModeBottomNavProps> = ({
           </Button>
         ) : (
           <Button
-            className="flex-[2] py-3.5 h-13 min-h-[52px] rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white active:scale-[0.98] transition-all border-none shadow-md cursor-pointer"
+            className="flex-[2] py-3.5 h-13 min-h-[52px] rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white active:scale-[0.98] transition-all border-none shadow-[0_4px_16px_rgba(16,185,129,0.25)] dark:shadow-[0_4px_20px_rgba(16,185,129,0.2)] cursor-pointer"
             onPress={() => {
               hapticLight();
               onNext();
