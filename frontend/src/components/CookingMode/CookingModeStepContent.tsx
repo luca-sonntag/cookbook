@@ -3,6 +3,7 @@ import type { Recipe, InstructionStep } from '../../types';
 import type { StepIngredientItem } from './types';
 import RecipeInstructionText from '../RecipeInstructionText';
 import CookingModeIngredients from './CookingModeIngredients';
+import { useI18n } from '../../context/I18nContext';
 
 interface CookingModeStepContentProps {
   recipe: Recipe;
@@ -19,24 +20,31 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
   formatAmount,
   cookingStepIndex,
 }) => {
+  const { t } = useI18n();
+
   if (!currentStep) return null;
 
   return (
     <div
       key={cookingStepIndex}
-      className="flex-1 min-h-0 flex flex-col justify-center items-center my-auto max-w-2xl mx-auto w-full px-1 sm:px-2 overflow-y-auto animate-fade-in py-2"
+      className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain flex flex-col items-center py-2 sm:py-3 px-0.5 sm:px-2 animate-fade-in"
     >
-      {/* Cohesive Step Card */}
-      <div className="w-full bg-gray-50/90 dark:bg-gray-900/60 rounded-[32px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] border-none flex flex-col transition-all">
-        {/* Step Header & Instruction Text */}
-        <div className="p-6 sm:p-8 flex flex-col items-center text-center gap-4">
-          {/* Step Number Badge */}
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-xl shadow-xs select-none mb-1">
-            {currentStep.step}
+      {/* Cohesive Step Card - Full Width & Naturally Scrollable */}
+      <div className="w-full max-w-3xl bg-gray-50/90 dark:bg-gray-900/60 rounded-[28px] sm:rounded-[32px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] border-none flex flex-col my-auto shrink-0 transition-all">
+        {/* Step Header & Instruction Text - Left-aligned for natural reading flow & visual harmony */}
+        <div className="p-5 sm:p-7 flex flex-col gap-3 text-left">
+          {/* Step Header with Step Badge */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-lg shadow-xs select-none shrink-0">
+              {currentStep.step}
+            </div>
+            <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+              {t('recipe.step')} {currentStep.step}
+            </span>
           </div>
 
-          {/* Step Description - Large & Bold for kitchen glanceability */}
-          <h1 className="text-2xl sm:text-3xl md:text-3.5xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.4] sm:leading-[1.45] px-1">
+          {/* Step Description */}
+          <h1 className="text-xl sm:text-2xl md:text-[26px] font-bold text-gray-900 dark:text-white tracking-tight leading-relaxed sm:leading-[1.55]">
             <RecipeInstructionText
               variant="focused"
               text={currentStep.description}
