@@ -126,16 +126,18 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
       )}
 
       {/* Recipe Picker Modal */}
-      {pickerSlot && (
-        <RecipePickerModal
-          isOpen={!!pickerSlot}
-          mealType={pickerSlot.mealType}
-          dateStr={pickerSlot.date}
-          history={history}
-          onClose={() => setPickerSlot(null)}
-          onSelectRecipe={(saved) => addPlan(saved, pickerSlot.date, pickerSlot.mealType)}
-        />
-      )}
+      <RecipePickerModal
+        isOpen={!!pickerSlot}
+        mealType={pickerSlot?.mealType ?? null}
+        dateStr={pickerSlot?.date ?? selectedDate}
+        history={history}
+        onClose={() => setPickerSlot(null)}
+        onSelectRecipe={(saved) => {
+          if (pickerSlot) {
+            addPlan(saved, pickerSlot.date, pickerSlot.mealType);
+          }
+        }}
+      />
     </div>
   );
 };

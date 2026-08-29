@@ -9,7 +9,8 @@ import { hapticLight, hapticMedium } from '../../utils/haptics';
 
 type FilterType = 'all' | 'quick' | 'favorites';
 
-function formatDateHuman(iso: string, language: string): string {
+function formatDateHuman(iso: string | undefined, language: string): string {
+  if (!iso) return '';
   const d = new Date(iso + 'T00:00:00');
   const locale = language === 'en' ? 'en-US' : 'de-DE';
   return d.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
