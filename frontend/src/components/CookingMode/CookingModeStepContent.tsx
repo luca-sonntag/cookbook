@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Recipe, InstructionStep } from '../../types';
 import type { StepIngredientItem } from './types';
+import type { StepSlideDirection } from '../../hooks/useCookingMode';
 import RecipeInstructionText from '../RecipeInstructionText';
 import CookingModeIngredients from './CookingModeIngredients';
 import CachedImage from '../CachedImage';
@@ -12,6 +13,7 @@ interface CookingModeStepContentProps {
   formatAmount: (amount: number, unit?: string) => string;
   cookingStepIndex: number;
   totalSteps: number;
+  slideDirection?: StepSlideDirection;
 }
 
 export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
@@ -21,6 +23,7 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
   formatAmount,
   cookingStepIndex,
   totalSteps,
+  slideDirection = 'forward',
 }) => {
   if (!currentStep) return null;
 
@@ -30,10 +33,12 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
   return (
     <div
       key={cookingStepIndex}
-      className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain scrollbar-none flex flex-col items-center py-2 sm:py-3 px-0.5 sm:px-2 animate-fade-in"
+      className={`flex-1 min-h-0 w-full overflow-y-auto overscroll-contain scrollbar-none flex flex-col items-center py-2 sm:py-3 px-0.5 sm:px-2 ${
+        slideDirection === 'forward' ? 'animate-step-in-right' : 'animate-step-in-left'
+      }`}
     >
-      {/* Cohesive Step Content - Clean Flat seamless container */}
-      <div className="w-full max-w-3xl flex flex-col my-auto shrink-0 transition-all">
+      {/* Cohesive Step Content with smooth layout transition */}
+      <div className="w-full max-w-3xl flex flex-col my-auto shrink-0 transition-[margin,transform,height] duration-350 ease-out">
         {/* 100% Unobscured Cover Photo without overlays */}
         {hasCover && (
           <div className="w-full h-40 sm:h-52 rounded-[28px] overflow-hidden relative shadow-xs shrink-0 bg-gray-100 dark:bg-gray-800/80 mb-3.5">

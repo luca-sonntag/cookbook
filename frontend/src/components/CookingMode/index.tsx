@@ -52,6 +52,7 @@ export default function CookingMode({
 
   const {
     cookingStepIndex,
+    slideDirection,
     setCookingStepIndex,
     handleNextCookingStep,
     handlePrevCookingStep,
@@ -211,6 +212,7 @@ export default function CookingMode({
         formatAmount={formatAmount}
         cookingStepIndex={cookingStepIndex}
         totalSteps={totalSteps}
+        slideDirection={slideDirection}
       />
 
       {/* Bottom Navigation Controls */}

@@ -260,6 +260,37 @@ html.dark .glass-panel {
   animation: tab-slide-in-left 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Direction-aware step transitions for Cooking Mode */
+@keyframes step-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes step-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-step-in-right {
+  animation: step-slide-in-right 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-step-in-left {
+  animation: step-slide-in-left 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Elastic top-slide animation for floating toasts */
 @keyframes toast-in-top {
   from {
