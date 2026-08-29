@@ -94,7 +94,7 @@ export default function RecipeInstructions({
               </div>
 
               <Button
-                className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-12 min-h-[48px] px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all flex-shrink-0 self-start cursor-pointer border-none"
+                className="relative w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-12 min-h-[48px] px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer border-none"
                 onPress={() => {
                   hapticMedium();
                   onStartCooking();

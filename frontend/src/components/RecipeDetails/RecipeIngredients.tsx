@@ -128,10 +128,10 @@ export default function RecipeIngredients({
         {onAddIngredients && (
           <div className="px-4.5 py-3.5 sm:px-6 border-t border-black/5 dark:border-white/5 bg-black/[0.01] dark:bg-white/[0.01]">
             <Button
-              className={`w-full h-12 min-h-[48px] rounded-2xl font-bold transition-all flex items-center justify-center gap-2 text-sm active:scale-[0.98] border-none shadow-none cursor-pointer ${
+              className={`w-full h-12 min-h-[48px] rounded-2xl font-bold transition-all flex items-center justify-center gap-2 text-sm active:scale-[0.98] border-none cursor-pointer ${
                 isAdded
-                  ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                  : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                  ? 'bg-emerald-500 text-white shadow-md'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md'
               }`}
               onPress={() => {
                 hapticLight();
@@ -140,12 +140,12 @@ export default function RecipeIngredients({
             >
               {isAdded ? (
                 <>
-                  <Check className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
+                  <Check className="w-4.5 h-4.5 text-white" />
                   <span>{t('recipe.addedToShopping')}</span>
                 </>
               ) : (
                 <>
-                  <ShoppingCart className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
+                  <ShoppingCart className="w-4.5 h-4.5 text-white" />
                   <span>{t('recipe.addToShopping')}</span>
                 </>
               )}
