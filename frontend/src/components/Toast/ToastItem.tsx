@@ -18,13 +18,13 @@ export default function ToastItem({ toast, onDismiss }: ToastItemProps) {
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartY.current === null) return;
     const diff = e.touches[0].clientY - touchStartY.current;
-    if (diff < 0) {
+    if (diff > 0) {
       setDragOffsetY(diff);
     }
   };
 
   const handleTouchEnd = () => {
-    if (dragOffsetY < -25) {
+    if (dragOffsetY > 25) {
       onDismiss(toast.id);
     } else {
       setDragOffsetY(0);

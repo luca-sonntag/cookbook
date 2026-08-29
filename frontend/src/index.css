@@ -19,29 +19,29 @@
 @import "tailwindcss";
 
 @theme {
-  /* Apple iOS HIG Native Dark Palette */
-  --color-gray-950: #000000; /* OLED Pure Black canvas */
-  --color-gray-900: #1c1c1e; /* iOS Secondary System Background (Containers) */
-  --color-gray-850: #242426;
-  --color-gray-800: #2c2c2e; /* iOS Tertiary System Background (Cards) */
-  --color-gray-750: #343438;
-  --color-gray-700: #3a3a3c; /* iOS Quaternary Fill (Buttons / Stepper) */
-  --color-gray-600: #48484a; /* Separators / Hairline borders */
-  --color-gray-500: #636366; /* Muted icons */
-  --color-gray-400: #8e8e93; /* Secondary text */
-  --color-gray-300: #aeaeb2;
-  --color-gray-200: #c7c7cc;
-  --color-gray-100: #f2f2f7;
-  --color-gray-50:  #ffffff;
+  /* Linear Onyx & Carbon dark palette - pure harmonic depth */
+  --color-gray-950: #09090b; /* Canvas background */
+  --color-gray-900: #121215; /* Container / Surface Level 1 */
+  --color-gray-850: #16161b;
+  --color-gray-800: #1c1c21; /* Card / Panel Level 2 */
+  --color-gray-750: #23232a;
+  --color-gray-700: #2b2b33; /* Interactive pill / button Level 3 */
+  --color-gray-600: #3f3f46; /* Hairline borders & rings */
+  --color-gray-500: #71717a; /* Muted captions & inactive icons */
+  --color-gray-400: #a1a1aa; /* Secondary body text */
+  --color-gray-300: #d4d4d8;
+  --color-gray-200: #e4e4e7;
+  --color-gray-100: #f4f4f5;
+  --color-gray-50:  #fafafa;
 
-  --color-slate-950: #000000;
-  --color-slate-900: #1c1c1e;
-  --color-slate-850: #242426;
-  --color-slate-800: #2c2c2e;
-  --color-slate-700: #3a3a3c;
-  --color-slate-600: #48484a;
-  --color-slate-500: #636366;
-  --color-slate-400: #8e8e93;
+  --color-slate-950: #09090b;
+  --color-slate-900: #121215;
+  --color-slate-850: #16161b;
+  --color-slate-800: #1c1c21;
+  --color-slate-700: #2b2b33;
+  --color-slate-600: #3f3f46;
+  --color-slate-500: #71717a;
+  --color-slate-400: #a1a1aa;
 }
 
 @import "@heroui/styles";
@@ -172,7 +172,7 @@ html.dark body {
   background: #f3f4f6;
 }
 html.dark ::-webkit-scrollbar-track {
-  background: #000000;
+  background: #09090b;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-emerald-500); /* Muted sage green accent */
@@ -254,11 +254,11 @@ html.dark .glass-panel {
   animation: tab-slide-in-left 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Elastic top-slide animation for floating toasts */
+/* Elastic bottom-slide animation for floating toasts */
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(-100%) scale(0.95);
+    transform: translateY(100%) scale(0.95);
   }
   to {
     opacity: 1;
@@ -273,7 +273,7 @@ html.dark .glass-panel {
   }
   to {
     opacity: 0;
-    transform: translateY(-80%) scale(0.92);
+    transform: translateY(80%) scale(0.92);
   }
 }
 
