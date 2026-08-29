@@ -84,32 +84,35 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
           className="!z-[100]"
         >
           <Drawer.Content placement="bottom" className="!z-[100]">
-            <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 max-h-[88vh] flex flex-col p-4 pb-[calc(1.5rem_+_var(--safe-area-inset-bottom,0px))] rounded-t-3xl border-none shadow-2xl overflow-hidden select-none">
+            <Drawer.Dialog className="relative !bg-white dark:!bg-gray-900 max-h-[85vh] flex flex-col p-4 pb-[calc(1.5rem_+_var(--safe-area-inset-bottom,0px))] rounded-t-3xl border-none shadow-2xl overflow-hidden select-none w-full max-w-lg mx-auto">
               <Drawer.Handle />
 
               {/* Header */}
-              <div className="flex items-center justify-between pt-1 pb-2">
-                <div>
-                  <Drawer.Heading className="text-base font-extrabold text-gray-900 dark:text-white">
-                    {mealTitle} – {formatDateHuman(dateStr, language)}
-                  </Drawer.Heading>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {t('mealPlanner.addRecipePrompt')}
-                  </p>
+              <Drawer.Header className="pt-1 pb-2">
+                <div className="flex items-center justify-between w-full">
+                  <div className="min-w-0 pr-2">
+                    <Drawer.Heading className="text-base font-extrabold text-gray-900 dark:text-white truncate">
+                      {mealTitle} – {formatDateHuman(dateStr, language)}
+                    </Drawer.Heading>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                      {t('mealPlanner.addRecipePrompt')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Close"
+                    className="w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 active:scale-90 transition-all flex items-center justify-center border-none cursor-pointer shrink-0"
+                  >
+                    <X className="w-5 h-5 stroke-[2.25]" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label="Close"
-                  className="w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 active:scale-90 transition-all flex items-center justify-center border-none cursor-pointer"
-                >
-                  <X className="w-5 h-5 stroke-[2.25]" />
-                </button>
-              </div>
+              </Drawer.Header>
 
-              {/* Search Input */}
-              <div className="pt-1 pb-2">
-                <div className="relative">
+              {/* Sticky Filter & Search Toolbar */}
+              <div className="flex flex-col gap-2 shrink-0 pb-2">
+                {/* Search Bar */}
+                <div className="relative w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
@@ -128,64 +131,64 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
                     </button>
                   )}
                 </div>
+
+                {/* Filter Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full py-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      hapticLight();
+                      setActiveFilter('all');
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all duration-150 cursor-pointer border-none ${
+                      activeFilter === 'all'
+                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
+                    }`}
+                  >
+                    {t('mealPlanner.pickerFilterAll')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      hapticLight();
+                      setActiveFilter('quick');
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all duration-150 cursor-pointer border-none ${
+                      activeFilter === 'quick'
+                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
+                    }`}
+                  >
+                    {t('mealPlanner.pickerFilterQuick')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      hapticLight();
+                      setActiveFilter('favorites');
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all duration-150 cursor-pointer border-none ${
+                      activeFilter === 'favorites'
+                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
+                    }`}
+                  >
+                    {t('mealPlanner.pickerFilterFavorites')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRandomPick}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-[0.95] transition-all duration-150 cursor-pointer border-none flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+                    <span>{t('mealPlanner.pickerFilterRandom')}</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Quick Filter Chips */}
-              <div className="flex items-center gap-1.5 pb-2.5 overflow-x-auto no-scrollbar">
-                <button
-                  type="button"
-                  onClick={() => {
-                    hapticLight();
-                    setActiveFilter('all');
-                  }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all duration-150 cursor-pointer border-none ${
-                    activeFilter === 'all'
-                      ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
-                  }`}
-                >
-                  {t('mealPlanner.pickerFilterAll')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    hapticLight();
-                    setActiveFilter('quick');
-                  }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all duration-150 cursor-pointer border-none ${
-                    activeFilter === 'quick'
-                      ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
-                  }`}
-                >
-                  {t('mealPlanner.pickerFilterQuick')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    hapticLight();
-                    setActiveFilter('favorites');
-                  }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all duration-150 cursor-pointer border-none ${
-                    activeFilter === 'favorites'
-                      ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
-                  }`}
-                >
-                  {t('mealPlanner.pickerFilterFavorites')}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRandomPick}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-[0.95] transition-all duration-150 cursor-pointer border-none flex items-center gap-1.5"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
-                  <span>{t('mealPlanner.pickerFilterRandom')}</span>
-                </button>
-              </div>
-
-              {/* Recipes Scrollable List */}
-              <div className="flex-1 overflow-y-auto pt-1 pb-4 space-y-1.5 overscroll-contain">
+              {/* Scrollable Recipe Body */}
+              <Drawer.Body className="overflow-y-auto px-0 py-1 flex-1 flex flex-col gap-1.5 overscroll-contain">
                 {filteredHistory.length > 0 ? (
                   filteredHistory.map((saved) => {
                     const calories =
@@ -237,7 +240,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
                     <p className="text-xs font-semibold">Keine Rezepte gefunden</p>
                   </div>
                 )}
-              </div>
+              </Drawer.Body>
             </Drawer.Dialog>
           </Drawer.Content>
         </Drawer.Backdrop>
