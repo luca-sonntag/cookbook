@@ -1,7 +1,6 @@
 import React from 'react';
 import { Trash2, CheckCircle2, Play, CalendarClock } from 'lucide-react';
 import type { MealPlanEntry } from '../../types';
-import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
 import { hapticLight, hapticMedium, hapticHeavy } from '../../utils/haptics';
 import ServingsStepper from '../ServingsStepper';
@@ -23,22 +22,12 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
   onMoveToTomorrow,
   onOpenCookMode,
 }) => {
-  const dialog = useDialog();
   const { t } = useI18n();
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const confirmed = await dialog.confirm({
-      title: t('mealPlanner.deleteConfirmTitle'),
-      message: t('mealPlanner.deleteConfirmMessage'),
-      confirmLabel: t('mealPlanner.deleteConfirmBtn'),
-      cancelLabel: t('mealPlanner.cancelBtn'),
-      status: 'danger',
-    });
-    if (confirmed) {
-      hapticHeavy();
-      onDeleteEntry(entry.id);
-    }
+    hapticHeavy();
+    onDeleteEntry(entry.id);
   };
 
   if (entry.isCooked) {
