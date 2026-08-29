@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ToastItemData } from './types';
 import ToastItem from './ToastItem';
@@ -10,15 +11,79 @@ interface ToastContainerProps {
 
 export default function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
   const { isAnyOverlayOpen } = useOverlayStack();
+  const [bottomSheetHeight, setBottomSheetHeight] = useState<number | null>(null);
+  const [placement, setPlacement] = useState<'top' | 'bottom'>('bottom');
+
+  useEffect(() => {
+    const updateHeight = () => {
+      // Find active modal or bottom sheet overlay
+      const candidates = Array.from(
+        document.querySelectorAll<HTMLElement>(
+          '[role="dialog"], [data-slot="dialog"], [data-slot="drawer"], [data-slot="modal"], div[class*="fixed inset-0"][class*="z-"] > div[class*="rounded-"]'
+        )
+      );
+
+      // Filter to visible overlays that are actually on screen
+      const visibleOverlays = candidates.filter((el) => {
+        // Exclude the toast container itself
+        if (el.closest('[aria-live="polite"]')) return false;
+        const rect = el.getBoundingClientRect();
+        return (
+          rect.height > 80 &&
+          rect.width > 80 &&
+          window.getComputedStyle(el).display !== 'none' &&
+          window.getComputedStyle(el).visibility !== 'hidden'
+        );
+      });
+
+      if (visibleOverlays.length > 0) {
+        // Select topmost overlay
+        const overlay = visibleOverlays[visibleOverlays.length - 1];
+        const rect = overlay.getBoundingClientRect();
+
+        if (rect.top >= 100) {
+          // Bottom sheet / bottom modal: anchor floating 12px above its top edge
+          const heightFromBottom = window.innerHeight - rect.top;
+          setBottomSheetHeight(heightFromBottom);
+          setPlacement('bottom');
+        } else {
+          // Fullscreen or high modal: render toast at the top of viewport
+          setBottomSheetHeight(null);
+          setPlacement('top');
+        }
+      } else {
+        setBottomSheetHeight(null);
+        setPlacement('bottom');
+      }
+    };
+
+    updateHeight();
+    const interval = setInterval(updateHeight, 80);
+    window.addEventListener('resize', updateHeight);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, [isAnyOverlayOpen, toasts]);
 
   if (toasts.length === 0) return null;
 
+  const isAboveBottomSheet = bottomSheetHeight !== null;
+
   return createPortal(
     <div
-      className={`fixed inset-x-0 pointer-events-none flex items-center gap-2 p-3 sm:p-4 transition-all duration-300 ${
-        isAnyOverlayOpen
-          ? 'top-0 z-[220] flex-col pt-[calc(var(--safe-area-inset-top,0px)+1rem)]'
-          : 'bottom-0 z-[160] flex-col-reverse pb-[calc(var(--safe-area-inset-bottom,0px)+7rem)]'
+      style={
+        isAboveBottomSheet && placement === 'bottom'
+          ? { paddingBottom: `${bottomSheetHeight + 12}px` }
+          : undefined
+      }
+      className={`fixed inset-x-0 pointer-events-none flex items-center gap-2 p-3 sm:p-4 transition-[padding] duration-200 z-[220] ${
+        placement === 'top'
+          ? 'top-0 flex-col pt-[calc(var(--safe-area-inset-top,0px)+1rem)]'
+          : `bottom-0 flex-col-reverse ${
+              !isAboveBottomSheet ? 'pb-[calc(var(--safe-area-inset-bottom,0px)+7rem)]' : ''
+            }`
       }`}
       aria-live="polite"
       aria-atomic="false"
@@ -28,7 +93,7 @@ export default function ToastContainer({ toasts, onDismiss }: ToastContainerProp
           key={toast.id}
           toast={toast}
           onDismiss={onDismiss}
-          placement={isAnyOverlayOpen ? 'top' : 'bottom'}
+          placement={placement}
         />
       ))}
     </div>,

@@ -5,7 +5,6 @@ import { useI18n } from '../context/I18nContext';
 import { resolveErrorCode } from '../i18n';
 import { useGamification } from '../context/GamificationContext';
 import { useTimerManager } from '../hooks/useTimerManager';
-import { useAdOverlay } from '../context/OverlayStackContext';
 import { compressImage, PREVIEW_PROFILE } from '../utils/imageCompression';
 
 interface CookedModalProps {
@@ -23,7 +22,6 @@ export default function CookedModal({
   recipeTitle,
   viaCookingMode,
 }: CookedModalProps) {
-  useAdOverlay(isOpen);
   const { t, language } = useI18n();
   const { markCooked } = useGamification();
   const { finishedRecipeIds } = useTimerManager();
@@ -131,7 +129,11 @@ export default function CookedModal({
         onChange={handlePhotoSelect}
       />
 
-      <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-gray-900 p-6 text-gray-900 dark:text-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="relative w-full max-w-md rounded-3xl bg-white dark:bg-gray-900 p-6 text-gray-900 dark:text-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+      >
         {/* Close Button */}
         <button
           onClick={handleResetAndClose}
