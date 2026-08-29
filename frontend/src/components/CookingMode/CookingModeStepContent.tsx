@@ -24,7 +24,7 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
   return (
     <div
       key={cookingStepIndex}
-      className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain flex flex-col items-center py-2 sm:py-3 px-0.5 sm:px-2 animate-fade-in"
+      className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain scrollbar-none flex flex-col items-center py-2 sm:py-3 px-0.5 sm:px-2 animate-fade-in"
     >
       {/* Cohesive Step Content - Clean Flat seamless container */}
       <div className="w-full max-w-3xl flex flex-col my-auto shrink-0 transition-all">
