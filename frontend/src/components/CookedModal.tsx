@@ -10,6 +10,7 @@ import { compressImage, PREVIEW_PROFILE } from '../utils/imageCompression';
 interface CookedModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   recipeId: string;
   recipeTitle?: string;
   viaCookingMode?: boolean;
@@ -18,6 +19,7 @@ interface CookedModalProps {
 export default function CookedModal({
   isOpen,
   onClose,
+  onSuccess,
   recipeId,
   recipeTitle,
   viaCookingMode,
@@ -63,7 +65,7 @@ export default function CookedModal({
         viaCookingMode,
         timerElapsed,
       });
-      // GamificationContext automatically opens the RewardOverlay on success
+      onSuccess?.();
       handleResetAndClose();
     } catch (err: any) {
       console.error('[CookedModal] Verification failed:', err);
@@ -72,6 +74,29 @@ export default function CookedModal({
       const localizedReason = code
         ? resolveErrorCode(code, params, err?.message, language)
         : (params?.reason || (err?.message && !err.message.includes('Failed to record cook') ? err.message : t('error.codes.PHOTO_NOT_MATCHING')));
+      setRejectionReason(localizedReason);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleMarkWithoutPhoto = async () => {
+    setIsVerifying(true);
+    setRejectionReason(null);
+    try {
+      await markCooked(recipeId, {
+        viaCookingMode,
+        timerElapsed,
+      });
+      onSuccess?.();
+      handleResetAndClose();
+    } catch (err: any) {
+      console.error('[CookedModal] Mark without photo failed:', err);
+      const code = err?.code;
+      const params = err?.params;
+      const localizedReason = code
+        ? resolveErrorCode(code, params, err?.message, language)
+        : (err?.message || 'Fehler beim Speichern');
       setRejectionReason(localizedReason);
     } finally {
       setIsVerifying(false);
@@ -184,6 +209,17 @@ export default function CookedModal({
                 <span className="text-xs">{t('app.gamification.chooseGallery')}</span>
               </button>
             </div>
+
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={handleMarkWithoutPhoto}
+                disabled={isVerifying}
+                className="w-full py-2.5 px-3 rounded-2xl text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 active:scale-[0.98] transition-all cursor-pointer border-none bg-transparent"
+              >
+                {t('app.gamification.markWithoutPhoto')}
+              </button>
+            </div>
           </div>
         )}
 
@@ -237,17 +273,26 @@ export default function CookedModal({
                 </p>
               </div>
             ) : rejectionReason ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setPhoto(null);
-                  setRejectionReason(null);
-                }}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/15 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 px-4 py-3.5 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer outline-none border-none"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>{t('app.gamification.retryPhoto')}</span>
-              </button>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhoto(null);
+                    setRejectionReason(null);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/15 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 px-4 py-3.5 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer outline-none border-none"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>{t('app.gamification.retryPhoto')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleMarkWithoutPhoto}
+                  className="w-full py-2 text-center text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 font-medium cursor-pointer border-none bg-transparent"
+                >
+                  {t('app.gamification.markWithoutPhoto')}
+                </button>
+              </div>
             ) : (
               <button
                 type="button"

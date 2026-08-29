@@ -37,7 +37,6 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
     goToToday,
     addPlan,
     updateServings,
-    toggleCooked,
     moveToTomorrow,
     deletePlan,
     addWeekToShoppingList,
@@ -52,8 +51,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
         title: entry.recipe?.title || 'Rezept',
       });
     }
-    toggleCooked(entry);
-  }, [toggleCooked]);
+  }, []);
 
   const goToNextDay = useCallback(() => {
     const days = weekDays;
