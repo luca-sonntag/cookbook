@@ -54,7 +54,7 @@ function getBadgeProgressInfo(key: string, stats?: any): { current: number; tota
 }
 
 export interface ProgressOverviewProps {
-  onSelectRecipe?: (jobId: string) => void;
+  onSelectRecipe?: (recipeId: string) => void;
 }
 
 /**
@@ -191,7 +191,10 @@ export default function ProgressOverview({ onSelectRecipe }: ProgressOverviewPro
             {recentPhotos.map((item) => (
               <Button
                 key={item.id}
-                onPress={() => onSelectRecipe?.(item.jobId)}
+                onPress={() => {
+                  const targetId = item.recipeId || item.jobId;
+                  if (targetId) onSelectRecipe?.(targetId);
+                }}
                 className="group relative h-40 w-32 shrink-0 p-0 overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 transition-transform active:scale-95 text-left cursor-pointer outline-none border-none"
               >
                 <img

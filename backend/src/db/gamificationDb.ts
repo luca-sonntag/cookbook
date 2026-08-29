@@ -287,6 +287,7 @@ export async function getRecentCookPhotos(
       }
       return {
         id: row.id,
+        jobId: row.recipe_id || '',
         recipeId: row.recipe_id,
         photoUrl,
         cookedAt: row.cooked_at,

@@ -15,7 +15,7 @@ interface ProgressViewProps {
   /** Friend code from an invite link (#/invite/<code>) to prefill in Friends. */
   pendingInviteCode?: string | null;
   onInviteConsumed?: () => void;
-  onSelectRecipe?: (jobId: string) => void;
+  onSelectRecipe?: (recipeId: string) => void;
 }
 
 /**

@@ -107,7 +107,7 @@ export interface CookedResult {
 
 export interface CookPhotoItem {
   id: string;
-  jobId: string;
+  jobId?: string;
   recipeId?: string | null;
   photoUrl: string;
   cookedAt: string;

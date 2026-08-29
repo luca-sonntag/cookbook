@@ -518,8 +518,8 @@ export default function App() {
               <ProgressView
                 pendingInviteCode={pendingInviteCode}
                 onInviteConsumed={() => setPendingInviteCode(null)}
-                onSelectRecipe={(jobId) => {
-                  navigate('history', jobId);
+                onSelectRecipe={(recipeId) => {
+                  navigate('history', recipeId);
                 }}
               />
             </Suspense>
