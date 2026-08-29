@@ -54,10 +54,13 @@ export function useMealPlanBadge({ user, authLoading, getAccessToken }: UseMealP
     };
 
     window.addEventListener('meal-plans-updated', handleUpdate);
+    window.addEventListener('app:recipe-cooked', handleUpdate);
     return () => {
       window.removeEventListener('meal-plans-updated', handleUpdate);
+      window.removeEventListener('app:recipe-cooked', handleUpdate);
     };
   }, [fetchCurrentWeekOutstanding]);
 
   return { outstandingCount, refreshMealPlanBadge: fetchCurrentWeekOutstanding };
 }
+

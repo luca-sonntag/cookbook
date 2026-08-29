@@ -115,13 +115,14 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
       // Async refresh to fetch latest photos from backend
       refresh();
 
-      // Dispatch event to notify components (e.g. useRecipeProgress) to reset checked steps
+      // Dispatch event to notify components (e.g. useRecipeProgress, useMealPlanBadge) to update state
       try {
         window.dispatchEvent(
           new CustomEvent('app:recipe-cooked', {
             detail: { recipeId, duplicate: result.duplicate },
           })
         );
+        window.dispatchEvent(new CustomEvent('meal-plans-updated'));
       } catch (e) {
         console.warn('Failed to dispatch app:recipe-cooked event', e);
       }
