@@ -6,14 +6,11 @@ import {
   Utensils,
   Moon,
   Apple,
-  Plus,
-  Minus,
   Loader2,
   ChevronLeft,
   ChevronRight,
   Clock,
   Flame,
-  Users,
   X,
 } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
@@ -25,6 +22,7 @@ import type { MealType, Recipe } from '../../types';
 import { formatDateIso, addDays, getMonday } from './useMealPlanner';
 import { getTotalTime } from '../../hooks/useSavedCatalog';
 import CachedImage from '../CachedImage';
+import ServingsStepper from '../ServingsStepper';
 import { hapticLight, hapticSelection } from '../../utils/haptics';
 
 interface AddToMealPlanSheetProps {
@@ -342,38 +340,14 @@ export const AddToMealPlanSheet: React.FC<AddToMealPlanSheetProps> = ({
                     </span>
                   </div>
 
-                  {/* Modern Unified Servings Capsule matching MealPlanCardActions */}
-                  <div className="flex items-center bg-gray-100/90 dark:bg-gray-800/80 rounded-full h-8.5 px-0.5 shrink-0 select-none border-none">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        hapticLight();
-                        setServings((s) => Math.max(1, s - 1));
-                      }}
-                      disabled={servings <= 1}
-                      aria-label={t('mealPlanner.changeServings')}
-                      className="w-7.5 h-7.5 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-25 active:scale-90 transition-all cursor-pointer border-none"
-                    >
-                      <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
-                    </button>
-
-                    <div className="flex items-center gap-1 px-2 min-w-[24px] justify-center text-gray-800 dark:text-gray-100">
-                      <Users className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 shrink-0" />
-                      <span className="text-xs font-black tabular-nums">{servings}</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        hapticLight();
-                        setServings((s) => s + 1);
-                      }}
-                      aria-label={t('mealPlanner.changeServings')}
-                      className="w-7.5 h-7.5 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none"
-                    >
-                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                    </button>
-                  </div>
+                  <ServingsStepper
+                    servings={servings}
+                    onDecrease={() => setServings((s) => Math.max(1, s - 1))}
+                    onIncrease={() => setServings((s) => s + 1)}
+                    size="md"
+                    showIcon={true}
+                    ariaLabel={t('mealPlanner.servings')}
+                  />
                 </div>
               </Drawer.Body>
 

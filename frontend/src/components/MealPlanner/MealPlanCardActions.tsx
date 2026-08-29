@@ -1,9 +1,10 @@
 import React from 'react';
-import { Users, Trash2, CheckCircle2, Play, Plus, Minus, CalendarClock } from 'lucide-react';
+import { Trash2, CheckCircle2, Play, CalendarClock } from 'lucide-react';
 import type { MealPlanEntry } from '../../types';
 import { useDialog } from '../../context/DialogContext';
 import { useI18n } from '../../context/I18nContext';
 import { hapticLight, hapticMedium, hapticHeavy } from '../../utils/haptics';
+import ServingsStepper from '../ServingsStepper';
 
 export interface MealPlanCardActionsProps {
   entry: MealPlanEntry;
@@ -40,49 +41,20 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
     }
   };
 
-  const handleServingsDecrease = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (entry.servings > 1) {
-      hapticLight();
-      onUpdateServings(entry.id, entry.servings - 1);
-    }
-  };
-
-  const handleServingsIncrease = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    hapticLight();
-    onUpdateServings(entry.id, entry.servings + 1);
-  };
-
   return (
     <div
       onClick={(e) => e.stopPropagation()}
       className="flex items-center justify-between mt-2 pt-0.5 gap-1.5 select-none"
     >
-      {/* Modern Unified Servings Capsule */}
-      <div className="flex items-center bg-gray-100/90 dark:bg-gray-800/80 rounded-full h-8.5 px-0.5 shrink-0 select-none border-none">
-        <button
-          onClick={handleServingsDecrease}
-          disabled={entry.servings <= 1}
-          aria-label={t('mealPlanner.changeServings')}
-          className="w-7.5 h-7.5 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-25 active:scale-90 transition-all cursor-pointer border-none"
-        >
-          <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
-        </button>
-
-        <div className="flex items-center gap-1 px-1.5 min-w-[24px] justify-center text-gray-800 dark:text-gray-100">
-          <Users className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 shrink-0" />
-          <span className="text-xs font-black tabular-nums">{entry.servings}</span>
-        </div>
-
-        <button
-          onClick={handleServingsIncrease}
-          aria-label={t('mealPlanner.changeServings')}
-          className="w-7.5 h-7.5 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none"
-        >
-          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-        </button>
-      </div>
+      {/* Reusable Modern Servings Stepper */}
+      <ServingsStepper
+        servings={entry.servings}
+        onDecrease={() => onUpdateServings(entry.id, entry.servings - 1)}
+        onIncrease={() => onUpdateServings(entry.id, entry.servings + 1)}
+        size="md"
+        showIcon={true}
+        ariaLabel={t('mealPlanner.changeServings')}
+      />
 
       {/* Action Buttons Cluster */}
       <div className="flex items-center gap-1 shrink-0">
