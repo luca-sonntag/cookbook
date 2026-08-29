@@ -131,3 +131,5 @@ flowchart TD
   * `POST /api/meal-plan`: Erstellt einen neuen Plan-Eintrag mit Validierung von `planDate` (Regex `^\d{4}-\d{2}-\d{2}$`) und `mealType`.
   * `PATCH /api/meal-plan/:id`: Aktualisiert Portionsanzahl, Datum, Mahlzeitentyp, Notiz oder `isCooked`-Status.
   * `DELETE /api/meal-plan/:id`: Löscht einen Plan-Eintrag isoliert für den anfragenden Benutzer.
+* **Automatische Gamification-/Koch-Synchronisation:**
+  * Beim erfolgreichen Kochen eines Rezepts (`POST /api/recipes/:id/cooked`) aktualisiert das Backend via `markMealPlansCookedForRecipe(userId, recipeId)` automatisch alle offenen Plan-Einträge dieses Rezepts für das aktuelle Datum (`is_cooked = true`), sodass Wochenplaner und Koch-Historie synchron bleiben.

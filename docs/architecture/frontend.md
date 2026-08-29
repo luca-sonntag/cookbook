@@ -74,7 +74,8 @@ Der Rezept-Katalog ist als **Kochbuch mit drei Ebenen** aufgebaut:
   * **Rezeptansicht (`AddToMealPlanSheet.tsx`):** Direkter "Planen"-Button im `RecipeActionDock` mit Tages-Schnellauswahl, Mahlzeiten-Typ und dynamischem Portions-Stepper.
   * **Einkaufslisten-Batch-Sync:** Button "Woche einkaufen" skaliert alle Zutaten der geplanten Gerichte anhand der eingestellten Portionen und aggregiert sie in die smarte Einkaufsliste.
   * **Interaktive Karten (`MealPlanCard.tsx`):** Schnelle Portionsanpassung per Stepper, Direktstart in den Kochmodus (`CookingMode`) und Gekocht-Status-Toggle.
-* **Modularisierung:** Strikte Aufteilung in `useMealPlanner.ts`, `MealPlannerHeader.tsx`, `WeekDayPicker.tsx`, `DayMealSlots.tsx`, `MealPlanCard.tsx`, `RecipePickerModal.tsx` und `AddToMealPlanSheet.tsx` (< 150 Zeilen pro Komponente).
+  * **Event-Synchronisation mit Kochmodus:** `useMealPlanner` und `useMealPlanBadge` hören auf `app:recipe-cooked` und `meal-plans-updated`, um bei Abschluss eines Rezepts im Kochmodus oder Recipe Details den Status im Wochenplaner sowie den Tab-Badge sofort in Echtzeit zu aktualisieren.
+* **Modularisierung:** Strikte Aufteilung in `useMealPlanner.ts`, `mealPlannerUtils.ts`, `MealPlannerHeader.tsx`, `WeekDayPicker.tsx`, `DayMealSlots.tsx`, `MealPlanCard.tsx`, `RecipePickerModal.tsx` und `AddToMealPlanSheet.tsx` (< 150–200 Zeilen pro Komponente).
 
 ---
 
