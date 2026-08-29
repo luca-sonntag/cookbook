@@ -1,5 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import type { ToastContextValue, ToastItemData, ToastOptions } from '../components/Toast/types';
 import ToastContainer from '../components/Toast/ToastContainer';
 
@@ -44,6 +43,21 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     timeoutsRef.current.clear();
     setToasts([]);
   }, []);
+
+  // Automatically dismiss active toasts whenever navigation occurs (hashchange or popstate)
+  useEffect(() => {
+    const handleNavigation = () => {
+      dismissAll();
+    };
+
+    window.addEventListener('hashchange', handleNavigation);
+    window.addEventListener('popstate', handleNavigation);
+
+    return () => {
+      window.removeEventListener('hashchange', handleNavigation);
+      window.removeEventListener('popstate', handleNavigation);
+    };
+  }, [dismissAll]);
 
   const show = useCallback(
     (options: ToastOptions): string => {
