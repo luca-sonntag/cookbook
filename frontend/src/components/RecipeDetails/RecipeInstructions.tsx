@@ -63,49 +63,47 @@ export default function RecipeInstructions({
       {/* Main Cohesive Card Group (Progress + Equipment + Steps) */}
       <div className="glass-panel rounded-2xl overflow-hidden">
         {/* 1. Cooking Progress & Start Button */}
-        <div className="px-5 py-5 sm:px-6">
+        <div className="px-5 py-5 sm:px-6 flex flex-col gap-4">
           <div className="flex items-start gap-4">
             <div className={medallion}>
               <ListChecks className={medallionIcon} />
             </div>
 
-            <div className="flex-1 min-w-0 flex flex-col gap-3.5">
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between items-baseline gap-2">
-                  <span className={blockLabel}>{t('recipe.cookingProgress')}</span>
-                  <span className={`text-xs font-bold tabular-nums ${
-                    hasStarted
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-gray-400 dark:text-gray-500'
-                  }`}>
-                    {t('recipe.progressSteps', {
-                      completed: completedStepsCount,
-                      total: totalStepsCount,
-                      percent: Math.round(progressPercent)
-                    })}
-                  </span>
-                </div>
-                <div className="w-full bg-black/[0.07] dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
+            <div className="flex-1 min-w-0 flex flex-col gap-2">
+              <div className="flex justify-between items-baseline gap-2">
+                <span className={blockLabel}>{t('recipe.cookingProgress')}</span>
+                <span className={`text-xs font-bold tabular-nums ${
+                  hasStarted
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-gray-400 dark:text-gray-500'
+                }`}>
+                  {t('recipe.progressSteps', {
+                    completed: completedStepsCount,
+                    total: totalStepsCount,
+                    percent: Math.round(progressPercent)
+                  })}
+                </span>
               </div>
-
-              <Button
-                className="relative w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-12 min-h-[48px] px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer border-none"
-                onPress={() => {
-                  hapticMedium();
-                  onStartCooking();
-                }}
-              >
-                <Play className="w-4.5 h-4.5 fill-white ml-0.5" />
-                <span>{t('recipe.startCooking')}</span>
-                {!isPremium && <PremiumCrownBadge />}
-              </Button>
+              <div className="w-full bg-black/[0.07] dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
           </div>
+
+          <Button
+            className="relative w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-12 min-h-[48px] px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer border-none"
+            onPress={() => {
+              hapticMedium();
+              onStartCooking();
+            }}
+          >
+            <Play className="w-4.5 h-4.5 fill-white ml-0.5" />
+            <span>{t('recipe.startCooking')}</span>
+            {!isPremium && <PremiumCrownBadge />}
+          </Button>
         </div>
 
         {/* 2. Required Equipment */}
