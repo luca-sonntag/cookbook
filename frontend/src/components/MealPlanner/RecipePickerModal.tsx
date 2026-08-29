@@ -20,7 +20,6 @@ function formatDateHuman(iso: string | undefined, language: string): string {
 
 export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
   isOpen,
-  mealType,
   dateStr,
   history,
   onClose,
@@ -74,8 +73,6 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
     onClose();
   };
 
-  const mealTitle = mealType ? t(`mealPlanner.meals.${mealType}`) : '';
-
   return (
     <div onClick={(e) => e.stopPropagation()}>
       <Drawer>
@@ -95,7 +92,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
                 <div className="flex items-center justify-between w-full">
                   <div className="min-w-0 pr-2">
                     <Drawer.Heading className="text-base font-extrabold text-gray-900 dark:text-white truncate">
-                      {mealTitle} – {formatDateHuman(dateStr, language)}
+                      {t('mealPlanner.planRecipe')} – {formatDateHuman(dateStr, language)}
                     </Drawer.Heading>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                       {t('mealPlanner.addRecipePrompt')}

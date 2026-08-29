@@ -47,7 +47,7 @@ export interface DailyInsightPillProps {
 export interface DayMealSlotsProps {
   selectedDateStr: string;
   entries: MealPlanEntry[];
-  onAddRecipeToSlot: (mealType: MealType) => void;
+  onAddRecipe: () => void;
   onUpdateServings: (id: string, servings: number) => void;
   onToggleCooked: (entry: MealPlanEntry) => void;
   onDeleteEntry: (id: string) => void;
@@ -68,7 +68,7 @@ export interface MealPlanCardProps {
 
 export interface RecipePickerModalProps {
   isOpen: boolean;
-  mealType: MealType | null;
+  mealType?: MealType | null;
   dateStr: string;
   history: SavedRecipe[];
   onClose: () => void;

@@ -2,10 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Drawer } from '@heroui/react';
 import {
   Calendar,
-  Coffee,
-  Utensils,
-  Moon,
-  Apple,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -18,7 +14,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useAdOverlay } from '../../context/OverlayStackContext';
 import { apiUrl } from '../../api';
-import type { MealType, Recipe } from '../../types';
+import type { Recipe } from '../../types';
 import { formatDateIso, addDays, getMonday } from './mealPlannerUtils';
 import { getTotalTime } from '../../hooks/useSavedCatalog';
 import CachedImage from '../CachedImage';
@@ -33,29 +29,6 @@ interface AddToMealPlanSheetProps {
   initialServings?: number;
   onAddedSuccess?: () => void;
 }
-
-const MEAL_OPTIONS: Array<{ type: MealType; labelKey: string; icon: React.ReactNode }> = [
-  {
-    type: 'breakfast',
-    labelKey: 'mealPlanner.meals.breakfast',
-    icon: <Coffee className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
-  },
-  {
-    type: 'lunch',
-    labelKey: 'mealPlanner.meals.lunch',
-    icon: <Utensils className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
-  },
-  {
-    type: 'dinner',
-    labelKey: 'mealPlanner.meals.dinner',
-    icon: <Moon className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
-  },
-  {
-    type: 'snack',
-    labelKey: 'mealPlanner.meals.snack',
-    icon: <Apple className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
-  },
-];
 
 export const AddToMealPlanSheet: React.FC<AddToMealPlanSheetProps> = ({
   isOpen,
@@ -72,7 +45,6 @@ export const AddToMealPlanSheet: React.FC<AddToMealPlanSheetProps> = ({
 
   const [selectedDate, setSelectedDate] = useState<string>(() => formatDateIso(new Date()));
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()));
-  const [selectedMeal, setSelectedMeal] = useState<MealType>('dinner');
   const [servings, setServings] = useState<number>(initialServings);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -128,7 +100,7 @@ export const AddToMealPlanSheet: React.FC<AddToMealPlanSheetProps> = ({
         body: JSON.stringify({
           recipeId,
           planDate: selectedDate,
-          mealType: selectedMeal,
+          mealType: 'dinner',
           servings,
         }),
       });
@@ -300,38 +272,8 @@ export const AddToMealPlanSheet: React.FC<AddToMealPlanSheetProps> = ({
                   </div>
                 </div>
 
-                {/* Meal Type Selection */}
-                <div className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-0.5">
-                    {t('mealPlanner.selectMealType')}
-                  </span>
-                  <div className="grid grid-cols-2 gap-2">
-                    {MEAL_OPTIONS.map((opt) => {
-                      const isActive = selectedMeal === opt.type;
-                      return (
-                        <button
-                          key={opt.type}
-                          type="button"
-                          onClick={() => {
-                            hapticSelection();
-                            setSelectedMeal(opt.type);
-                          }}
-                          className={`flex items-center gap-2.5 p-3 rounded-2xl border-none text-xs font-bold transition-all cursor-pointer select-none active:scale-95 ${
-                            isActive
-                              ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 shadow-2xs'
-                              : 'bg-gray-100/90 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-gray-750'
-                          }`}
-                        >
-                          {opt.icon}
-                          <span className="truncate">{t(opt.labelKey)}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
                 {/* Servings Stepper */}
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-gray-50/80 dark:bg-gray-850/60">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-gray-50/80 dark:bg-gray-850/60">
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-gray-800 dark:text-gray-200">
                       {t('mealPlanner.servings')}

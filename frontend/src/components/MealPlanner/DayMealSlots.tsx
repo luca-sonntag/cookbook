@@ -1,44 +1,14 @@
-import React, { useMemo } from 'react';
-import { Coffee, Utensils, Moon, Apple, Plus } from 'lucide-react';
+import React from 'react';
+import { Plus } from 'lucide-react';
 import type { DayMealSlotsProps } from './types';
-import type { MealType } from '../../types';
 import { MealPlanCard } from './MealPlanCard';
 import { EmptyDayState } from './EmptyDayState';
 import { useI18n } from '../../context/I18nContext';
 import { hapticLight } from '../../utils/haptics';
 
-interface SlotTheme {
-  type: MealType;
-  titleKey: string;
-  icon: React.ReactNode;
-}
-
-const SLOTS: SlotTheme[] = [
-  {
-    type: 'breakfast',
-    titleKey: 'mealPlanner.meals.breakfast',
-    icon: <Coffee className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
-  },
-  {
-    type: 'lunch',
-    titleKey: 'mealPlanner.meals.lunch',
-    icon: <Utensils className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
-  },
-  {
-    type: 'dinner',
-    titleKey: 'mealPlanner.meals.dinner',
-    icon: <Moon className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
-  },
-  {
-    type: 'snack',
-    titleKey: 'mealPlanner.meals.snack',
-    icon: <Apple className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
-  },
-];
-
 export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
   entries,
-  onAddRecipeToSlot,
+  onAddRecipe,
   onUpdateServings,
   onToggleCooked,
   onDeleteEntry,
@@ -48,100 +18,43 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
 }) => {
   const { t } = useI18n();
 
-  // Show planned/filled slots at the top, followed by empty quick-add slots
-  const orderedSlots = useMemo(() => {
-    const filled = SLOTS.filter((s) => entries.some((e) => e.mealType === s.type));
-    const empty = SLOTS.filter((s) => !entries.some((e) => e.mealType === s.type));
-    return [...filled, ...empty];
-  }, [entries]);
-
   if (entries.length === 0) {
-    return <EmptyDayState onAddRecipeToSlot={onAddRecipeToSlot} />;
+    return <EmptyDayState onAddRecipe={onAddRecipe} />;
   }
 
   return (
     <div className="space-y-3 pt-1 pb-24">
-      {orderedSlots.map((slot) => {
-        const slotEntries = entries.filter((e) => e.mealType === slot.type);
-        const slotTitle = t(slot.titleKey);
+      {/* Planned Meals Cards */}
+      <div className="space-y-2.5">
+        {entries.map((entry) => (
+          <MealPlanCard
+            key={entry.id}
+            entry={entry}
+            onUpdateServings={onUpdateServings}
+            onToggleCooked={onToggleCooked}
+            onDeleteEntry={onDeleteEntry}
+            onMoveToTomorrow={onMoveToTomorrow}
+            onSelectRecipe={onSelectRecipe}
+            onOpenCookMode={onOpenCookMode}
+          />
+        ))}
+      </div>
 
-        return (
-          <div key={slot.type} className="space-y-1.5 animate-fade-in">
-            {slotEntries.length > 0 ? (
-              <>
-                {/* Slot Header */}
-                <div className="flex items-center justify-between px-3 py-1">
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center">
-                      {slot.icon}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200">
-                        {slotTitle}
-                      </h3>
-                      {slotEntries.length > 1 && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-gray-200/70 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                          {slotEntries.length}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      hapticLight();
-                      onAddRecipeToSlot(slot.type);
-                    }}
-                    aria-label={t('mealPlanner.emptySlot', { meal: slotTitle })}
-                    className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 active:scale-90 transition-transform duration-150 cursor-pointer border-none shadow-2xs"
-                  >
-                    <Plus className="w-4 h-4 stroke-[2.25]" />
-                  </button>
-                </div>
-
-                {/* Slot Content Cards */}
-                <div className="space-y-2">
-                  {slotEntries.map((entry) => (
-                    <MealPlanCard
-                      key={entry.id}
-                      entry={entry}
-                      onUpdateServings={onUpdateServings}
-                      onToggleCooked={onToggleCooked}
-                      onDeleteEntry={onDeleteEntry}
-                      onMoveToTomorrow={onMoveToTomorrow}
-                      onSelectRecipe={onSelectRecipe}
-                      onOpenCookMode={onOpenCookMode}
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              /* Minimalist Quick-Add Slot Card with pure emerald icon outline (no background box) */
-              <button
-                onClick={() => {
-                  hapticLight();
-                  onAddRecipeToSlot(slot.type);
-                }}
-                className="w-full px-3.5 py-3 rounded-2xl bg-white/80 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-850 border-none shadow-2xs ring-1 ring-black/[0.03] dark:ring-white/[0.04] flex items-center justify-between text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 active:scale-[0.98] transition-all duration-150 group cursor-pointer min-h-[48px]"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="flex items-center justify-center group-hover:scale-105 transition-transform">
-                    {slot.icon}
-                  </span>
-                  <span className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200">
-                    {slotTitle}
-                  </span>
-                </div>
-                <div className="w-8.5 h-8.5 rounded-xl bg-gray-100 dark:bg-gray-800 shadow-2xs flex items-center justify-center text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
-                  <Plus className="w-4 h-4 stroke-[2.5]" />
-                </div>
-              </button>
-            )}
-          </div>
-        );
-      })}
+      {/* Add another recipe button */}
+      <button
+        type="button"
+        onClick={() => {
+          hapticLight();
+          onAddRecipe();
+        }}
+        className="w-full px-4 py-3 rounded-2xl bg-white/80 dark:bg-gray-900/80 hover:bg-white dark:hover:bg-gray-850 text-gray-700 dark:text-gray-200 text-xs sm:text-sm font-bold active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 border-none shadow-xs ring-1 ring-black/[0.03] dark:ring-white/[0.04] cursor-pointer min-h-[48px]"
+      >
+        <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
+        <span>{t('mealPlanner.addAnotherRecipe')}</span>
+      </button>
     </div>
   );
 };
 
 export default DayMealSlots;
+

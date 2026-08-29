@@ -127,7 +127,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
           <DayMealSlots
             selectedDateStr={selectedDate}
             entries={activeDayEntries}
-            onAddRecipeToSlot={(slotType) => setPickerSlot({ date: selectedDate, mealType: slotType })}
+            onAddRecipe={() => setPickerSlot({ date: selectedDate })}
             onUpdateServings={updateServings}
             onToggleCooked={handleToggleCooked}
             onDeleteEntry={deletePlan}
@@ -147,7 +147,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
         onClose={() => setPickerSlot(null)}
         onSelectRecipe={(saved) => {
           if (pickerSlot) {
-            addPlan(saved, pickerSlot.date, pickerSlot.mealType);
+            addPlan(saved, pickerSlot.date);
           }
         }}
       />

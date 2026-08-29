@@ -24,7 +24,15 @@ export function useMealPlanner(
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isAddingToShopping, setIsAddingToShopping] = useState<boolean>(false);
   const [isShopAdded, setIsShopAdded] = useState<boolean>(false);
-  const [pickerSlot, setPickerSlot] = useState<{ date: string; mealType: MealType } | null>(null);
+  const [pickerDate, setPickerDate] = useState<string | null>(null);
+
+  const pickerSlot = useMemo(() => {
+    return pickerDate ? { date: pickerDate, mealType: 'dinner' as MealType } : null;
+  }, [pickerDate]);
+
+  const setPickerSlot = useCallback((slot: { date: string; mealType?: MealType } | null) => {
+    setPickerDate(slot ? slot.date : null);
+  }, []);
 
   const weekEnd = useMemo(() => addDays(currentWeekStart, 6), [currentWeekStart]);
   const startDateStr = useMemo(() => formatDateIso(currentWeekStart), [currentWeekStart]);
@@ -147,9 +155,18 @@ export function useMealPlanner(
 
   // Add a recipe to meal plan
   const addPlan = useCallback(
-    async (recipe: SavedRecipe, planDate: string, mealType: MealType, servings?: number) => {
+    async (
+      recipe: SavedRecipe,
+      planDate: string,
+      arg3?: MealType | number,
+      arg4?: number,
+    ) => {
       if (!user) return;
-      const targetServings = servings ?? (recipe.recipe?.servings ? Number(recipe.recipe.servings) : 2);
+      const mealType: MealType = typeof arg3 === 'string' ? arg3 : 'dinner';
+      const servingsParam = typeof arg3 === 'number' ? arg3 : arg4;
+      const targetServings =
+        servingsParam ??
+        (recipe.recipe?.servings ? Number(recipe.recipe.servings) : 2);
       try {
         const token = await getAccessToken();
         const res = await fetch(apiUrl('/api/meal-plan'), {
