@@ -1,8 +1,10 @@
+import React from 'react';
 import type { Recipe, InstructionStep } from '../../types';
 import type { StepIngredientItem } from './types';
 import type { StepSlideDirection } from '../../hooks/useCookingMode';
 import { getStepSlideClass } from '../../utils/animations';
 import { Sparkles } from 'lucide-react';
+import { useI18n } from '../../context/I18nContext';
 import RecipeInstructionText from '../RecipeInstructionText';
 import CookingModeIngredients from './CookingModeIngredients';
 import CachedImage from '../CachedImage';
@@ -26,6 +28,8 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
   totalSteps,
   slideDirection = 'forward',
 }) => {
+  const { t } = useI18n();
+
   if (!currentStep) return null;
 
   const hasCover = Boolean(recipe.imageUrl || recipe.emoji);
@@ -90,23 +94,32 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
             </div>
           </div>
 
-          {/* Parallel Preparation Chef Hint (Wartezeit-Tipp) */}
-          {currentStep.parallelPrepHint && (
-            <div className="mx-2 my-1 sm:mx-4 sm:my-2 p-3 sm:p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border-none text-amber-950 dark:text-amber-200 flex items-start gap-3 shadow-xs">
-              <div className="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5 select-none">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <div className="flex-1 text-sm font-semibold leading-relaxed">
-                {currentStep.parallelPrepHint}
-              </div>
-            </div>
-          )}
-
           {/* Integrated Contextual Step Ingredients */}
           <CookingModeIngredients
             ingredients={stepIngredients}
             formatAmount={formatAmount}
           />
+
+          {/* Parallel Preparation Chef Hint (Wartezeit-Tipp) - Harmonious Clean Flat styling under ingredients */}
+          {currentStep.parallelPrepHint && (
+            <div className="mx-2 mt-4 mb-2 sm:mx-4 p-3.5 sm:p-4 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] text-gray-800 dark:text-gray-200 flex items-start gap-3 text-left transition-all">
+              <div className="w-7 h-7 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 select-none">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col gap-1">
+                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                  {t('recipe.parallelPrepHint')}
+                </span>
+                <div className="text-sm sm:text-base font-medium leading-relaxed">
+                  <RecipeInstructionText
+                    text={currentStep.parallelPrepHint}
+                    recipe={recipe}
+                    formatAmount={formatAmount}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

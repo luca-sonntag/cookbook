@@ -204,9 +204,11 @@ export default function RecipeInstructions({
                     </span>
 
                     {step.parallelPrepHint && !isChecked && (
-                      <div className="mt-2 p-2.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border-none text-amber-950 dark:text-amber-200 flex items-start gap-2 text-xs font-semibold leading-relaxed">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                        <span>{step.parallelPrepHint}</span>
+                      <div className="mt-2.5 p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] text-gray-800 dark:text-gray-200 flex items-start gap-2.5 text-xs font-medium leading-relaxed">
+                        <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <RecipeInstructionText text={step.parallelPrepHint} recipe={recipe} formatAmount={formatAmount} />
+                        </div>
                       </div>
                     )}
                   </div>
