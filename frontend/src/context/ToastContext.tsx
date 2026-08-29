@@ -38,16 +38,27 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     }, EXIT_ANIMATION_DURATION);
   }, [removeImmediately]);
 
-  const dismissAll = useCallback(() => {
+  const dismissAll = useCallback((animated = true) => {
     timeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
     timeoutsRef.current.clear();
-    setToasts([]);
+
+    if (animated) {
+      setToasts((prev) => {
+        if (prev.length === 0) return prev;
+        return prev.map((t) => ({ ...t, isExiting: true }));
+      });
+      setTimeout(() => {
+        setToasts([]);
+      }, EXIT_ANIMATION_DURATION);
+    } else {
+      setToasts([]);
+    }
   }, []);
 
-  // Automatically dismiss active toasts whenever navigation occurs (hashchange or popstate)
+  // Automatically dismiss active toasts with smooth exit animation whenever navigation occurs
   useEffect(() => {
     const handleNavigation = () => {
-      dismissAll();
+      dismissAll(true);
     };
 
     window.addEventListener('hashchange', handleNavigation);
