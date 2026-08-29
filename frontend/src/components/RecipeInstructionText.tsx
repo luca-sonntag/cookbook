@@ -29,7 +29,7 @@ interface RecipeInstructionTextProps {
  */
 const getChipClass = (variant: 'list' | 'focused' = 'list') =>
   variant === 'focused'
-    ? 'bg-black/[0.06] dark:bg-white/[0.09] rounded-xl px-2.5 py-0.5 text-gray-700 dark:text-gray-300 font-medium inline-block align-baseline'
+    ? 'bg-black/[0.05] dark:bg-white/[0.08] rounded-lg px-2 py-0.5 text-gray-700 dark:text-gray-300 font-medium inline'
     : 'bg-black/[0.06] dark:bg-white/[0.09] rounded px-1.5 py-[1.5px] text-gray-700 dark:text-gray-300 font-medium inline';
 
 export default function RecipeInstructionText({
