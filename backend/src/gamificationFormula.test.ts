@@ -18,24 +18,22 @@ const ctx = (over: Partial<AwardContext>): AwardContext => ({
   priorCookCount: 0,
   cookIndexToday: 1,
   streakDays: 1,
-  hasPhoto: false,
+  hasPhoto: true,
   ...over,
 });
 
-test('base honest cook (no photo, first time) = full base + novelty', () => {
-  const r = computeAward(C, ctx({}));
-  assert.equal(r.xp, 120); // 100 base + 20 novelty
-  assert.equal(r.coins, 12);
+test('unverified cook (no photo) yields 0 XP and 0 coins', () => {
+  const r = computeAward(C, ctx({ hasPhoto: false }));
+  assert.equal(r.xp, 0);
+  assert.equal(r.coins, 0);
   assert.equal(r.leaderboardEligible, false);
   assert.equal(r.verified, false);
-  assert.equal(r.trustScore, 0.5);
+  assert.equal(r.trustScore, 0);
 });
 
-test('photo is now mandatory (no bonus) but still marks verified + leaderboard-eligible', () => {
-  // A finished-dish photo is required to record a cook at all, so it grants no
-  // XP bonus — it only flips the trust/verification flags. See docs/OBSOLETE.md.
+test('verified cook (with photo, first time) = full base + novelty', () => {
   const r = computeAward(C, ctx({ hasPhoto: true }));
-  assert.equal(r.xp, 120); // 100 base + 20 novelty, no photo multiplier
+  assert.equal(r.xp, 120); // 100 base + 20 novelty
   assert.equal(r.coins, 12);
   assert.equal(r.leaderboardEligible, true);
   assert.equal(r.verified, true);

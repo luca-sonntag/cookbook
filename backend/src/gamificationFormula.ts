@@ -69,6 +69,17 @@ export function levelForXp(xp: number, thresholds: number[]): number {
 
 /** Compute the XP/coins award for one cook. Pure — same inputs, same output. */
 export function computeAward(config: GamificationConfig, ctx: AwardContext): AwardResult {
+  if (!ctx.hasPhoto) {
+    return {
+      xp: 0,
+      coins: 0,
+      reasons: ['unverified_no_photo'],
+      verified: false,
+      leaderboardEligible: false,
+      trustScore: 0,
+    };
+  }
+
   const reasons: string[] = [];
   const tier = ctx.difficultyTier ?? '1';
   const base = config.baseXp;
@@ -90,10 +101,6 @@ export function computeAward(config: GamificationConfig, ctx: AwardContext): Awa
     reasons.push(`novelty_cuisine_+${config.noveltyCuisineBonus}`);
   }
 
-  // Note: a finished-dish photo is now mandatory (verified before a cook is
-  // accepted), so there is no photo *bonus* — every cook already has one.
-  // The photoBonusPct config key was removed; see docs/OBSOLETE.md.
-
   // Daily soft-cap.
   const sc = softcapFactor(ctx.cookIndexToday, config.dailySoftcap);
   if (sc !== 1) reasons.push(`softcap_x${sc}`);
@@ -111,8 +118,8 @@ export function computeAward(config: GamificationConfig, ctx: AwardContext): Awa
     xp: finalXp,
     coins,
     reasons,
-    verified: ctx.hasPhoto,
-    leaderboardEligible: ctx.hasPhoto,
-    trustScore: ctx.hasPhoto ? 1.0 : 0.5,
+    verified: true,
+    leaderboardEligible: true,
+    trustScore: 1.0,
   };
 }

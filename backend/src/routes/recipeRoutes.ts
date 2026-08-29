@@ -490,33 +490,35 @@ recipeRoutes.post('/recipes/:id/cooked', async (req: Request, res: Response): Pr
     const { id } = req.params;
     const { photoBase64, viaCookingMode, timerElapsed } = req.body ?? {};
 
-    if (!photoBase64 || typeof photoBase64 !== 'string' || photoBase64.trim().length === 0) {
-      throw new AppError('PHOTO_REQUIRED');
-    }
-    if (photoBase64.length > MAX_PHOTOS_TOTAL_CHARS) {
-      throw new AppError('PHOTOS_TOO_LARGE');
-    }
-
     const recipe = await assertRecipeAccess(req.userId!, id);
 
-    const verification = await verifyCookedDishPhoto(recipe, photoBase64);
-    if (!verification.isMatchingDish) {
-      throw new AppError('PHOTO_NOT_MATCHING', {
-        params: { reason: verification.reasoning },
-      });
-    }
-
     let photoPath: string | null = null;
-    try {
-      photoPath = await uploadCookPhoto(req.userId!, randomUUID(), photoBase64);
-    } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : String(err);
-      console.error('Cook photo upload failed:', errMsg);
-      throw new AppError('PHOTO_UPLOAD_FAILED');
+    let hasPhoto = false;
+
+    if (photoBase64 && typeof photoBase64 === 'string' && photoBase64.trim().length > 0) {
+      if (photoBase64.length > MAX_PHOTOS_TOTAL_CHARS) {
+        throw new AppError('PHOTOS_TOO_LARGE');
+      }
+
+      const verification = await verifyCookedDishPhoto(recipe, photoBase64);
+      if (!verification.isMatchingDish) {
+        throw new AppError('PHOTO_NOT_MATCHING', {
+          params: { reason: verification.reasoning },
+        });
+      }
+
+      try {
+        photoPath = await uploadCookPhoto(req.userId!, randomUUID(), photoBase64);
+        hasPhoto = true;
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        console.error('Cook photo upload failed:', errMsg);
+        throw new AppError('PHOTO_UPLOAD_FAILED');
+      }
     }
 
     const result = await recordCook(req.userId!, id, {
-      hasPhoto: true,
+      hasPhoto,
       photoPath,
       viaCookingMode: !!viaCookingMode,
       timerElapsed: !!timerElapsed,
