@@ -27,10 +27,15 @@ interface OverlayStackContextValue {
 
 const OverlayStackContext = createContext<OverlayStackContextValue | undefined>(undefined);
 
+const fallbackOverlayStack: OverlayStackContextValue = {
+  pushOverlay: () => 0,
+  popOverlay: () => 0,
+  isAnyOverlayOpen: false,
+};
+
 export function useOverlayStack(): OverlayStackContextValue {
   const ctx = useContext(OverlayStackContext);
-  if (!ctx) throw new Error('useOverlayStack must be used within an OverlayStackProvider');
-  return ctx;
+  return ctx ?? fallbackOverlayStack;
 }
 
 /**
