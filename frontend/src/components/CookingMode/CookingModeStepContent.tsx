@@ -24,6 +24,9 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
 }) => {
   if (!currentStep) return null;
 
+  const hasCover = Boolean(recipe.imageUrl || recipe.emoji);
+  const progressPercent = totalSteps > 0 ? ((cookingStepIndex + 1) / totalSteps) * 100 : 0;
+
   return (
     <div
       key={cookingStepIndex}
@@ -31,46 +34,53 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
     >
       {/* Cohesive Step Content - Clean Flat seamless container */}
       <div className="w-full max-w-3xl flex flex-col my-auto shrink-0 transition-all">
-        {/* Hero Cover Banner with Segmented Story-Style Progress */}
-        {(recipe.imageUrl || recipe.emoji) && (
-          <div className="w-full h-36 sm:h-48 rounded-[24px] overflow-hidden relative shadow-xs shrink-0 bg-gray-100 dark:bg-gray-800/80 mb-2">
+        {/* Option 3: Hero Cover Banner with Integrated Glassmorphism Step Badge & Progress Line */}
+        {hasCover ? (
+          <div className="w-full h-40 sm:h-52 rounded-[28px] overflow-hidden relative shadow-sm shrink-0 bg-gray-100 dark:bg-gray-800/80 mb-3">
             <CachedImage
               src={recipe.imageUrl}
               emoji={recipe.emoji}
               alt={recipe.title}
               className="w-full h-full object-cover"
             />
-            {/* Top dark gradient for story progress bar contrast + subtle bottom vignette */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/20 pointer-events-none" />
+            {/* Rich bottom gradient for glass badge readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
-            {/* Segmented Story Progress Bars (Instagram / Reel Style) */}
+            {/* Floating Glassmorphism Step Info Bar */}
+            <div className="absolute inset-x-3.5 bottom-3.5 z-10 flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-black/45 backdrop-blur-md border border-white/15 text-white shadow-lg pointer-events-none">
+              {/* Left: Step Badge + Recipe Title */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0 select-none">
+                  {currentStep.step}
+                </div>
+                {recipe.title && (
+                  <span className="text-sm font-bold text-white tracking-tight truncate">
+                    {recipe.title}
+                  </span>
+                )}
+              </div>
+
+              {/* Right: Step Counter Progress Pill */}
+              {totalSteps > 0 && (
+                <span className="text-xs font-bold text-emerald-300 bg-white/10 backdrop-blur-xs px-2.5 py-1 rounded-full shrink-0 tabular-nums border border-white/10">
+                  {currentStep.step} / {totalSteps}
+                </span>
+              )}
+            </div>
+
+            {/* Seamless 3px Glowing Progress Line at bottom edge */}
             {totalSteps > 0 && (
-              <div className="absolute top-3 inset-x-3.5 z-10 flex gap-1.5 items-center pointer-events-none">
-                {Array.from({ length: totalSteps }).map((_, idx) => (
-                  <div
-                    key={idx}
-                    className="flex-1 h-1 rounded-full overflow-hidden bg-white/35 backdrop-blur-xs transition-all"
-                  >
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        idx < cookingStepIndex
-                          ? 'w-full bg-white'
-                          : idx === cookingStepIndex
-                          ? 'w-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
-                          : 'w-0'
-                      }`}
-                    />
-                  </div>
-                ))}
+              <div className="absolute bottom-0 inset-x-0 h-1 bg-white/20 overflow-hidden z-20 pointer-events-none">
+                <div
+                  className="bg-emerald-400 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+                  style={{ width: `${progressPercent}%` }}
+                />
               </div>
             )}
           </div>
-        )}
-
-        {/* Step Header & Instruction Text - Left-aligned for natural reading flow & visual harmony */}
-        <div className="px-2 py-3 sm:px-4 sm:py-4 flex flex-col gap-3 text-left">
-          {/* Step Badge & Recipe context */}
-          <div className="flex items-center gap-2.5">
+        ) : (
+          /* Fallback Header when no cover image exists */
+          <div className="px-2 pt-2 pb-1 flex items-center gap-2.5 text-left">
             <div className="w-8 h-8 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-sm shadow-xs select-none shrink-0">
               {currentStep.step}
             </div>
@@ -80,8 +90,10 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
               </span>
             )}
           </div>
+        )}
 
-          {/* Step Description - Large, warm, editorial typography */}
+        {/* Step Description - Warm, readable editorial typography */}
+        <div className="px-2 py-3 sm:px-4 sm:py-4 flex flex-col text-left">
           <div className="text-[22px] sm:text-[26px] md:text-[28px] font-semibold text-gray-800 dark:text-gray-100 tracking-normal leading-[1.55] sm:leading-[1.6]">
             <RecipeInstructionText
               variant="focused"
