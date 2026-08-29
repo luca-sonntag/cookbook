@@ -3,7 +3,6 @@ import { Clock, Flame, CheckCircle2 } from 'lucide-react';
 import type { MealPlanCardProps } from './types';
 import CachedImage from '../CachedImage';
 import { MealPlanCardActions } from './MealPlanCardActions';
-import { useI18n } from '../../context/I18nContext';
 import { getTotalTime } from '../../hooks/useSavedCatalog';
 
 export const MealPlanCard: React.FC<MealPlanCardProps> = ({
@@ -15,7 +14,6 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
   onSelectRecipe,
   onOpenCookMode,
 }) => {
-  const { t } = useI18n();
   const recipe = entry.recipe;
   const calories = recipe?.calories;
   const totalTime = getTotalTime(recipe);
@@ -45,22 +43,15 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
 
       {/* Recipe Content */}
       <div className="flex-1 min-w-0 pr-0.5 @container">
-        <div className="flex items-center gap-1.5">
-          <h4
-            className={`text-sm sm:text-base font-extrabold line-clamp-1 leading-snug transition-colors ${
-              entry.isCooked
-                ? 'text-gray-500 dark:text-gray-400 line-through decoration-gray-400/60'
-                : 'text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
-            }`}
-          >
-            {recipe?.title || 'Rezept'}
-          </h4>
-          {entry.isCooked && (
-            <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-              {t('mealPlanner.doneBadge')}
-            </span>
-          )}
-        </div>
+        <h4
+          className={`text-sm sm:text-base font-extrabold line-clamp-1 leading-snug transition-colors ${
+            entry.isCooked
+              ? 'text-gray-500 dark:text-gray-400 line-through decoration-gray-400/60'
+              : 'text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+          }`}
+        >
+          {recipe?.title || 'Rezept'}
+        </h4>
 
         {/* Badges: Total Time (Prep + Cook) & Calories */}
         <div className="flex items-center gap-2.5 mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
