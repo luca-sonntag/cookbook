@@ -7,7 +7,9 @@ für Social/Shop/AI-Verifizierung.
 
 ## 1. Leitprinzipien
 
-* **Foto-Pflicht & KI-Verifizierung via Gemini Vision.** Jeder Cook erfordert ein **Foto des fertigen Gerichts** (`photoBase64`). Das Backend prüft das Foto via Gemini Vision (`verifyCookedDishPhoto`), ob es visuell zum Rezept passt. Nur bei positiver KI-Verifizierung wird der Cook gezählt und belohnt.
+* **2-Wege-Erfassung & Foto-Verifizierung:**
+  * **Mit Foto (+XP & Belohnungen):** Ein Foto des fertigen Gerichts (`photoBase64`) wird via Gemini Vision (`verifyCookedDishPhoto`) validiert und in Supabase `cook-photos` abgelegt. Bei Erfolg winken volle XP, Coins, Badges, Levelaufstiege und Leaderboard-Berechtigung (`verified: true`).
+  * **Ohne Foto (0 XP, rein organisatorisch):** Nutzer können Mahlzeiten auch ohne Foto als gekocht erfassen (z. B. im Wochenplaner oder Rezept). Dabei werden 0 XP und 0 Coins gutgeschrieben (`verified: false`), aber der Kochvorgang wird in `cook_events` und im Wochenplaner als erledigt vermerkt.
 * **Anti-Grind über Diminishing Returns**, nicht über Misstrauen: Wiederholungen
   desselben Rezepts fallen schnell ab, plus ein Tages-Softcap.
 * **Server-autoritativ.** Punkte werden ausschließlich im Backend (service-role)
@@ -41,11 +43,11 @@ Alles additiv, RLS aktiv (`SELECT`-own als Defense-in-Depth; Writes nur service-
 Formel: `XP = 100 × Schwierigkeit × Wiederholung + Neuheit`, dann `× Streak`;
 `Coins = ⌊XP × 0.1⌋`. Schwierigkeit ist zum Start flach ×1 (kein `difficulty`-Feld
 im Recipe/Gemini-Schema); Cuisine-Neuheit ist als Config-Wert vorhanden, aber
-inaktiv (kein Cuisine-Signal).
+inaktiv (kein Cuisine-Signal). Ohne Foto (`hasPhoto: false`) liefert `computeAward` strikt `xp: 0` und `coins: 0`.
 
 ## 4. Endpoints (`backend/src/routes.ts`)
 
-* `POST /api/recipes/:id/cooked` — verbucht einen Cook (erfordert `photoBase64`; verifiziert per Gemini Vision, lädt Foto in Supabase `cook-photos` hoch). Antwort enthält `stats`, `earned`, `newBadges`, `previousXp/previousLevel/leveledUp` für die Overlay-Animation.
+* `POST /api/recipes/:id/cooked` — verbucht einen Cook (optional mit `photoBase64`; bei Foto verifiziert per Gemini Vision und hochgeladen in `cook-photos`; ohne Foto als 0-XP-Eintrag verbucht). Synchronisiert automatisch offene `meal_plans`-Einträge für den aktuellen Tag. Antwort enthält `stats`, `earned`, `newBadges`, `previousXp/previousLevel/leveledUp` für die Overlay-Animation.
 * `GET /api/recipes/:id/cook-history` — liefert `count`, `firstCookedAt`, `lastCookedAt` sowie `items` (`xpAwarded`, `coinsAwarded`, `hasPhoto`, `photoUrl`, `verified`, `viaCookingMode`, `timerElapsed`) für das Rezept-Detail-Badge & die Koch-Historie.
 * `GET /api/me/gamification` — `stats` + `badges` + `levelThresholds` für den Tab.
 
