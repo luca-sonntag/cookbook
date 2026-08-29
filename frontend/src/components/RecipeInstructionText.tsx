@@ -27,10 +27,16 @@ interface RecipeInstructionTextProps {
  * so they share one quiet chip — defined once so the two cannot drift apart.
  * Colour stays reserved for the tappable things: ingredients and timers.
  */
-const CONTEXT_CHIP =
-  'bg-black/[0.06] dark:bg-white/[0.09] rounded px-1.5 py-[1.5px] text-gray-700 dark:text-gray-300';
+const getChipClass = (variant: 'list' | 'focused' = 'list') =>
+  variant === 'focused'
+    ? 'bg-black/[0.06] dark:bg-white/[0.09] rounded-xl px-2.5 py-0.5 text-gray-700 dark:text-gray-300 font-medium inline-block align-baseline'
+    : 'bg-black/[0.06] dark:bg-white/[0.09] rounded px-1.5 py-[1.5px] text-gray-700 dark:text-gray-300 font-medium inline';
 
-export default function RecipeInstructionText({ text, recipe, formatAmount, stepNum,
+export default function RecipeInstructionText({
+  text,
+  recipe,
+  formatAmount,
+  stepNum,
   variant = 'list',
 }: RecipeInstructionTextProps) {
   const { t } = useI18n();
@@ -227,11 +233,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
             return (
               <span
                 key={index}
-                className={
-                  variant === 'focused'
-                    ? 'font-semibold text-orange-600 dark:text-orange-500 cursor-default select-none'
-                    : `${CONTEXT_CHIP} cursor-default select-none`
-                }
+                className={`${getChipClass(variant)} cursor-default select-none`}
               >
                 {part}
               </span>
@@ -246,12 +248,7 @@ export default function RecipeInstructionText({ text, recipe, formatAmount, step
               return (
                 <span
                   key={index}
-                  className={
-                    // In cooking mode the step is set large and bold, where the
-                    // chip reads as a button dropped into the sentence — there
-                    // the word carries itself.
-                    variant === 'focused' ? undefined : CONTEXT_CHIP
-                  }
+                  className={`${getChipClass(variant)} cursor-default select-none`}
                 >
                   {part}
                 </span>
