@@ -56,14 +56,14 @@ export const WeekDayPicker: React.FC<WeekDayPickerProps> = ({
               {day.dayNumber}
             </span>
 
-            {/* Harmonious Status indicator row */}
+            {/* Harmonious Neutral Gray Status indicator row */}
             <div className="flex items-center justify-center h-4 mt-0.5">
               {isAllCooked ? (
                 <span
                   className={`flex items-center justify-center w-4 h-4 rounded-full ${
                     isSelected
                       ? 'bg-white text-emerald-800 shadow-2xs'
-                      : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/20'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
                   }`}
                 >
                   <Check className="w-2.5 h-2.5 stroke-[3]" />
@@ -73,7 +73,7 @@ export const WeekDayPicker: React.FC<WeekDayPickerProps> = ({
                   className={`flex items-center justify-center min-w-4 h-4 px-1 rounded-full text-[10px] font-black leading-none ${
                     isSelected
                       ? 'bg-white text-emerald-800 shadow-2xs'
-                      : 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/20'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
                   }`}
                 >
                   {day.plannedCount}
