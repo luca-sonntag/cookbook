@@ -46,7 +46,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
         <h4
           className={`text-sm sm:text-base font-extrabold line-clamp-1 leading-snug transition-colors ${
             entry.isCooked
-              ? 'text-gray-500 dark:text-gray-400 line-through decoration-gray-400/60'
+              ? 'text-gray-600 dark:text-gray-300'
               : 'text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
           }`}
         >
