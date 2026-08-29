@@ -12,7 +12,7 @@ export default function ToastContainer({ toasts, onDismiss }: ToastContainerProp
 
   return createPortal(
     <div
-      className="fixed bottom-0 inset-x-0 z-[160] pointer-events-none flex flex-col-reverse items-center gap-2 p-3 sm:p-4 pb-[calc(var(--safe-area-inset-bottom,0px)+7rem)]"
+      className="fixed bottom-0 inset-x-0 z-[300] pointer-events-none flex flex-col-reverse items-center gap-2 p-3 sm:p-4 pb-[calc(var(--safe-area-inset-bottom,0px)+7rem)]"
       aria-live="polite"
       aria-atomic="false"
     >
