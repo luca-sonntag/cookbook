@@ -35,8 +35,10 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         {entry.isCooked && (
-          <div className="absolute inset-0 bg-emerald-900/50 flex items-center justify-center backdrop-blur-[1px] animate-fade-in">
-            <CheckCircle2 className="w-6 h-6 text-white stroke-[2.5]" />
+          <div className="absolute inset-0 bg-emerald-950/25 dark:bg-emerald-950/35 flex items-center justify-center animate-fade-in">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-900/60 text-white backdrop-blur-xs shadow-xs">
+              <CheckCircle2 className="w-4 h-4 stroke-[2.25]" />
+            </div>
           </div>
         )}
       </div>
