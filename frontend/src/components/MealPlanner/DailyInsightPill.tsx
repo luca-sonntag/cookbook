@@ -9,11 +9,10 @@ export const DailyInsightPill: React.FC<DailyInsightPillProps> = ({ entries }) =
 
   if (entries.length === 0) return null;
 
+  // recipe.calories is already per portion/serving
   const totalCalories = entries.reduce((sum, e) => {
     const cal = e.recipe?.calories ? Number(e.recipe.calories) : 0;
-    const baseServings = e.recipe?.servings ? Number(e.recipe.servings) : 2;
-    const scale = (e.servings || baseServings) / baseServings;
-    return sum + cal * scale;
+    return sum + cal;
   }, 0);
 
   const totalTime = entries.reduce((sum, e) => {
