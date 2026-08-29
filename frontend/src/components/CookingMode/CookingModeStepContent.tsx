@@ -56,8 +56,8 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
             )}
           </div>
 
-          {/* Step Description - Slightly larger, warm, editorial typography */}
-          <div className="text-xl sm:text-2xl md:text-[25px] font-semibold text-gray-800 dark:text-gray-100 tracking-normal leading-[1.6] sm:leading-[1.65]">
+          {/* Step Description - Large, warm, editorial typography */}
+          <div className="text-[22px] sm:text-[26px] md:text-[28px] font-semibold text-gray-800 dark:text-gray-100 tracking-normal leading-[1.55] sm:leading-[1.6]">
             <RecipeInstructionText
               variant="focused"
               text={currentStep.description}
