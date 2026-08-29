@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Flame, CheckCircle2 } from 'lucide-react';
+import { Clock, Flame } from 'lucide-react';
 import type { MealPlanCardProps } from './types';
 import CachedImage from '../CachedImage';
 import { MealPlanCardActions } from './MealPlanCardActions';
@@ -34,13 +34,6 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
           alt={recipe?.title || 'Recipe'}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        {entry.isCooked && (
-          <div className="absolute inset-0 bg-emerald-950/25 dark:bg-emerald-950/35 flex items-center justify-center animate-fade-in">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-900/60 text-white backdrop-blur-xs shadow-xs">
-              <CheckCircle2 className="w-4 h-4 stroke-[2.25]" />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Recipe Content */}
