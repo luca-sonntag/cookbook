@@ -73,18 +73,23 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
           </button>
         )}
 
-        {/* Toggle Cooked */}
+        {/* Cooked Status Button */}
         <button
-          onClick={() => {
-            hapticMedium();
-            onToggleCooked(entry);
-          }}
-          title={entry.isCooked ? t('mealPlanner.markAsUncooked') : t('mealPlanner.markAsCooked')}
-          aria-label={entry.isCooked ? t('mealPlanner.markAsUncooked') : t('mealPlanner.markAsCooked')}
-          className={`w-8.5 h-8.5 rounded-full transition-all duration-150 active:scale-[0.90] flex items-center justify-center cursor-pointer border-none ${
+          disabled={entry.isCooked}
+          onClick={
             entry.isCooked
-              ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30'
-              : 'bg-gray-100/90 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-gray-750'
+              ? undefined
+              : () => {
+                  hapticMedium();
+                  onToggleCooked(entry);
+                }
+          }
+          title={entry.isCooked ? t('mealPlanner.cooked') : t('mealPlanner.markAsCooked')}
+          aria-label={entry.isCooked ? t('mealPlanner.cooked') : t('mealPlanner.markAsCooked')}
+          className={`w-8.5 h-8.5 rounded-full transition-all duration-150 flex items-center justify-center border-none ${
+            entry.isCooked
+              ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30 cursor-default opacity-90'
+              : 'bg-gray-100/90 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-gray-750 active:scale-[0.90] cursor-pointer'
           }`}
         >
           <CheckCircle2 className="w-4 h-4 stroke-[2.25]" />
