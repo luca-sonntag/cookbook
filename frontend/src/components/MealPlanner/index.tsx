@@ -25,6 +25,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
     setSelectedDate,
     mealPlans,
     activeDayEntries,
+    futurePlannedCount,
     weekDays,
     isLoading,
     isAddingToShopping,
@@ -83,7 +84,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
     <div className="w-full flex flex-col gap-3 overflow-hidden">
       {/* Header with page title & shopping action */}
       <MealPlannerHeader
-        plannedTotalCount={mealPlans.length}
+        plannedTotalCount={futurePlannedCount}
         isAddingToShopping={isAddingToShopping}
         isShopAdded={isShopAdded}
         onShopWeek={addWeekToShoppingList}

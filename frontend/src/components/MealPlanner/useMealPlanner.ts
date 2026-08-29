@@ -261,13 +261,17 @@ export function useMealPlanner(
     [getAccessToken, toast, t, fetchPlans],
   );
 
-  // Batch add week ingredients to shopping list
+  // Batch add week ingredients to shopping list (only today and future days)
   const addWeekToShoppingList = useCallback(async () => {
     if (!addRecipeIngredients) return;
     setIsAddingToShopping(true);
     try {
+      const todayStr = formatDateIso(new Date());
       let addedCount = 0;
       for (const entry of mealPlans) {
+        // Skip past days - only add recipes for today or later
+        if (entry.planDate < todayStr) continue;
+
         const fullRecipe = history.find((h) => h.recipeId === entry.recipeId)?.recipe || entry.recipe;
         if (!fullRecipe || !fullRecipe.ingredients) continue;
 
@@ -307,6 +311,11 @@ export function useMealPlanner(
     return mealPlans.filter((p) => p.planDate === selectedDate);
   }, [mealPlans, selectedDate]);
 
+  const futurePlannedCount = useMemo(() => {
+    const todayStr = formatDateIso(new Date());
+    return mealPlans.filter((p) => p.planDate >= todayStr).length;
+  }, [mealPlans]);
+
   return {
     currentWeekStart,
     weekEnd,
@@ -315,6 +324,7 @@ export function useMealPlanner(
     setSelectedDate,
     mealPlans,
     activeDayEntries,
+    futurePlannedCount,
     weekDays,
     isLoading,
     isAddingToShopping,
