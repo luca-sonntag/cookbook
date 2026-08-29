@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Popover, Button } from '@heroui/react';
-import { Plus, Trash2, X, MoreHorizontal, ShoppingCart } from 'lucide-react';
+import { Plus, Trash2, CheckCheck, ShoppingCart } from 'lucide-react';
 import type { AggregatedShoppingItem, ShoppingListItem } from '../../types';
 import { categoryOrder } from '../../i18n';
 import { useDialog } from '../../context/DialogContext';
@@ -69,7 +68,6 @@ export default function ShoppingList({
 
   // Local UI states
   const [showAddForm, setShowAddForm] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [checkingKeys, setCheckingKeys] = useState<Set<string>>(new Set());
   const [collapsingKeys, setCollapsingKeys] = useState<Set<string>>(new Set());
 
@@ -190,7 +188,6 @@ export default function ShoppingList({
   };
 
   const handleClearAll = async () => {
-    setIsMenuOpen(false);
     const confirmed = await dialog.confirm({
       title: t('shopping.dialogClear.title'),
       message: t('shopping.dialogClear.message'),
@@ -213,7 +210,6 @@ export default function ShoppingList({
   };
 
   const handleClearChecked = () => {
-    setIsMenuOpen(false);
     const checkedItems = shoppingList.filter((item) => item.checked);
     if (checkedItems.length === 0) return;
     clearChecked();
@@ -282,41 +278,26 @@ export default function ShoppingList({
           }
           action={
             totalCount > 0 ? (
-              <Popover isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
-                <Popover.Trigger>
-                  <Button
-                    isIconOnly
-                    variant="outline"
-                    aria-label={t('shopping.moreActions')}
-                    className="w-10 h-10 min-w-[40px] min-h-[40px] flex-shrink-0 flex items-center justify-center rounded-2xl border-none bg-black/5 dark:bg-white/5 shadow-none text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+              <div className="flex items-center gap-1.5 shrink-0">
+                {checkedCount > 0 && (
+                  <button
+                    onClick={handleClearChecked}
+                    aria-label={t('shopping.clearChecked')}
+                    title={t('shopping.clearChecked')}
+                    className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-2xl border-none bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-90 transition-all cursor-pointer shadow-2xs"
                   >
-                    <MoreHorizontal className="w-5 h-5" />
-                  </Button>
-                </Popover.Trigger>
-                <Popover.Content
-                  placement="bottom end"
-                  className="p-1.5 min-w-[190px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg"
+                    <CheckCheck className="w-5 h-5 stroke-[2.25]" />
+                  </button>
+                )}
+                <button
+                  onClick={handleClearAll}
+                  aria-label={t('shopping.clearAll')}
+                  title={t('shopping.clearAll')}
+                  className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-2xl border-none bg-black/5 dark:bg-white/5 text-gray-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 active:scale-90 transition-all cursor-pointer shadow-2xs"
                 >
-                  <div className="flex flex-col w-full">
-                    {checkedCount > 0 && (
-                      <button
-                        onClick={handleClearChecked}
-                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
-                      >
-                        <X className="w-4 h-4 text-emerald-500" />
-                        <span>{t('shopping.clearChecked')}</span>
-                      </button>
-                    )}
-                    <button
-                      onClick={handleClearAll}
-                      className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>{t('shopping.clearAll')}</span>
-                    </button>
-                  </div>
-                </Popover.Content>
-              </Popover>
+                  <Trash2 className="w-4.5 h-4.5" />
+                </button>
+              </div>
             ) : undefined
           }
         />
