@@ -42,8 +42,34 @@ export function seasonKeywords(season: Season): string[] {
   return SEASON_KEYWORDS[season];
 }
 
+/** Common keyword dictionaries for thematic discovery and planning. */
+export const COMFORT_KEYWORDS = [
+  'pizza', 'burger', 'pasta', 'taco', 'nacho', 'fries', 'fritten', 'pommes',
+  'comfort', 'cheese', 'käse', 'snack', 'dip', 'fingerfood', 'wings', 'wrap',
+  'sandwich', 'toast', 'overload', 'cremig', 'creamy', 'fondue'
+];
+
+export const BRUNCH_KEYWORDS = [
+  'pancake', 'waffel', 'waffle', 'ei', 'egg', 'omelett', 'omelette', 'rührei',
+  'toast', 'brunch', 'frühstück', 'breakfast', 'smoothie', 'bowl', 'porridge',
+  'müsli', 'croissant', 'crepe', 'stulle', 'avocado'
+];
+
+export const PASTA_KEYWORDS = [
+  'pasta', 'spaghetti', 'penne', 'nudel', 'noodle', 'lasagne', 'gnocchi',
+  'tagliatelle', 'tortellini', 'macaroni', 'ravioli', 'fusilli', 'rigatoni',
+  'bolognese', 'carbonara', 'pesto', 'alfredo'
+];
+
+export const GRILL_KEYWORDS = [
+  'grill', 'bbq', 'steak', 'burger', 'spieß', 'skewer', 'marinade',
+  'kräuterbutter', 'kotelett', 'rippchen', 'ribs', 'würstchen'
+];
+
 /**
- * Date-window calendar events and culinary seasons (DACH-flavoured).
+ * Short-term calendar events and genuine holiday windows (DACH-flavoured).
+ * Note: Long-term seasons (e.g. 3-month summer grilling) are handled via
+ * seasonal produce and day-of-week rotation, not as overriding holiday events.
  */
 export function getActiveHolidays(date: Date): HolidayEvent[] {
   const m = date.getUTCMonth() + 1; // 1=Jan
@@ -52,8 +78,8 @@ export function getActiveHolidays(date: Date): HolidayEvent[] {
 
   const inWindow = (mm: number, from: number, to: number) => m === mm && d >= from && d <= to;
 
-  // Valentine's Day
-  if (inWindow(2, 8, 14)) {
+  // Valentine's Day (Feb 10 - Feb 14)
+  if (inWindow(2, 10, 14)) {
     events.push({
       id: 'valentine',
       label: "Valentine's Day (romantic dinner for two)",
@@ -64,32 +90,8 @@ export function getActiveHolidays(date: Date): HolidayEvent[] {
     });
   }
 
-  // Spargelzeit (April 15 - June 24)
-  if ((m === 4 && d >= 15) || m === 5 || (m === 6 && d <= 24)) {
-    events.push({
-      id: 'asparagus_season',
-      label: 'Asparagus season (Spargelzeit)',
-      titleKey: 'catalog.recommendations.holidayAsparagus',
-      defaultTitle: 'Frische Spargel-Küche',
-      badgeEmoji: '🌿',
-      keywords: ['spargel', 'asparagus', 'hollandaise', 'schinken', 'kartoffel', 'bärlauch'],
-    });
-  }
-
-  // Grilling & BBQ season (June 1 - August 31)
-  if (m >= 6 && m <= 8) {
-    events.push({
-      id: 'grill_season',
-      label: 'Grilling season (BBQ, salads, outdoor food)',
-      titleKey: 'catalog.recommendations.holidayGrill',
-      defaultTitle: 'Sommer-Rezepte & Grillen',
-      badgeEmoji: '🔥',
-      keywords: ['grill', 'bbq', 'steak', 'burger', 'salat', 'salad', 'spieß', 'skewer', 'marinade', 'dip', 'kräuterbutter'],
-    });
-  }
-
-  // Oktoberfest / Herbstfest (Sept 15 - Oct 10)
-  if ((m === 9 && d >= 15) || (m === 10 && d <= 10)) {
+  // Oktoberfest / Bavarian specials (Sept 18 - Oct 5)
+  if ((m === 9 && d >= 18) || (m === 10 && d <= 5)) {
     events.push({
       id: 'oktoberfest',
       label: 'Oktoberfest (Bavarian hearty dishes & pretzels)',
@@ -100,8 +102,8 @@ export function getActiveHolidays(date: Date): HolidayEvent[] {
     });
   }
 
-  // Halloween / Pumpkin harvest (Oct 20 - Nov 2)
-  if ((m === 10 && d >= 20) || (m === 11 && d <= 2)) {
+  // Halloween & Pumpkin Harvest Peak (Oct 26 - Nov 1)
+  if ((m === 10 && d >= 26) || (m === 11 && d === 1)) {
     events.push({
       id: 'halloween',
       label: 'Halloween & Pumpkin specials',
@@ -112,8 +114,8 @@ export function getActiveHolidays(date: Date): HolidayEvent[] {
     });
   }
 
-  // Christmas baking & holiday feasts (Dec 1 - Dec 26)
-  if (m === 12 && d <= 26) {
+  // Christmas baking & holiday feasts (Dec 15 - Dec 26)
+  if (m === 12 && d >= 15 && d <= 26) {
     events.push({
       id: 'christmas',
       label: 'Christmas (festive baking & roasts)',
@@ -124,8 +126,8 @@ export function getActiveHolidays(date: Date): HolidayEvent[] {
     });
   }
 
-  // Silvester / New Year (Dec 28 - Jan 1)
-  if ((m === 12 && d >= 28) || (m === 1 && d === 1)) {
+  // Silvester / New Year (Dec 29 - Jan 2)
+  if ((m === 12 && d >= 29) || (m === 1 && d <= 2)) {
     events.push({
       id: 'new_year',
       label: "New Year's Eve (fondue, raclette, party finger food)",
