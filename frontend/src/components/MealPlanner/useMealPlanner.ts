@@ -68,7 +68,7 @@ export function useMealPlanner(
         const todayIso = formatDateIso(new Date());
         setMealPlans((prev) =>
           prev.map((p) =>
-            p.recipeId === cookedRecipeId && p.planDate === todayIso
+            p.recipeId === cookedRecipeId && (p.planDate === todayIso || p.planDate === selectedDate)
               ? { ...p, isCooked: true }
               : p,
           ),
