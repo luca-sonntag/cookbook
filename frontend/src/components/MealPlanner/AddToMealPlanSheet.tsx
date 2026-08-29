@@ -4,6 +4,7 @@ import { Calendar, Sun, Utensils, Moon, Cookie, Plus, Minus, Loader2 } from 'luc
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useAdOverlay } from '../../context/OverlayStackContext';
 import { apiUrl } from '../../api';
 import type { MealType, Recipe } from '../../types';
 import { formatDateIso, addDays } from './useMealPlanner';
@@ -32,6 +33,7 @@ export const AddToMealPlanSheet: React.FC<AddToMealPlanSheetProps> = ({
   initialServings = 2,
   onAddedSuccess,
 }) => {
+  useAdOverlay(isOpen);
   const { t } = useI18n();
   const { getAccessToken, user } = useAuth();
   const toast = useToast();

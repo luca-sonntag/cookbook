@@ -5,9 +5,10 @@ import type { ToastItemData, ToastType } from './types';
 interface ToastItemProps {
   toast: ToastItemData;
   onDismiss: (id: string) => void;
+  placement?: 'top' | 'bottom';
 }
 
-export default function ToastItem({ toast, onDismiss }: ToastItemProps) {
+export default function ToastItem({ toast, onDismiss, placement = 'bottom' }: ToastItemProps) {
   const touchStartY = useRef<number | null>(null);
   const [dragOffsetY, setDragOffsetY] = useState(0);
 
@@ -18,16 +19,26 @@ export default function ToastItem({ toast, onDismiss }: ToastItemProps) {
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartY.current === null) return;
     const diff = e.touches[0].clientY - touchStartY.current;
-    if (diff > 0) {
-      setDragOffsetY(diff);
+    if (placement === 'top') {
+      if (diff < 0) setDragOffsetY(diff);
+    } else {
+      if (diff > 0) setDragOffsetY(diff);
     }
   };
 
   const handleTouchEnd = () => {
-    if (dragOffsetY > 25) {
-      onDismiss(toast.id);
+    if (placement === 'top') {
+      if (dragOffsetY < -25) {
+        onDismiss(toast.id);
+      } else {
+        setDragOffsetY(0);
+      }
     } else {
-      setDragOffsetY(0);
+      if (dragOffsetY > 25) {
+        onDismiss(toast.id);
+      } else {
+        setDragOffsetY(0);
+      }
     }
     touchStartY.current = null;
   };
@@ -59,6 +70,15 @@ export default function ToastItem({ toast, onDismiss }: ToastItemProps) {
     }
   };
 
+  const animationClass =
+    placement === 'top'
+      ? toast.isExiting
+        ? 'animate-toast-out-top'
+        : 'animate-toast-in-top'
+      : toast.isExiting
+      ? 'animate-toast-out-bottom'
+      : 'animate-toast-in-bottom';
+
   return (
     <div
       onTouchStart={handleTouchStart}
@@ -68,9 +88,7 @@ export default function ToastItem({ toast, onDismiss }: ToastItemProps) {
         transform: dragOffsetY !== 0 ? `translateY(${dragOffsetY}px)` : undefined,
         opacity: dragOffsetY !== 0 ? Math.max(0, 1 - Math.abs(dragOffsetY) / 80) : undefined,
       }}
-      className={`pointer-events-auto w-full max-w-sm bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl md:rounded-3xl border-none shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-3 sm:p-3.5 flex items-center gap-3 transition-transform duration-100 ${
-        toast.isExiting ? 'animate-toast-out' : 'animate-toast-in'
-      }`}
+      className={`pointer-events-auto w-full max-w-sm bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl md:rounded-3xl border-none shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-3 sm:p-3.5 flex items-center gap-3 transition-transform duration-100 ${animationClass}`}
       role="status"
       aria-live="polite"
     >
@@ -114,7 +132,7 @@ export default function ToastItem({ toast, onDismiss }: ToastItemProps) {
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
-        className="w-7 h-7 rounded-lg bg-gray-100/80 hover:bg-gray-200/80 dark:bg-gray-800/80 dark:hover:bg-gray-700/80 text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-center border-none transition-all active:scale-95 cursor-pointer flex-shrink-0"
+        className="w-7 h-7 rounded-lg bg-gray-100/80 hover:bg-gray-200/80 dark:bg-gray-800/80 dark:hover:bg-gray-750 text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-center border-none transition-all active:scale-95 cursor-pointer flex-shrink-0"
         aria-label="Schließen"
       >
         <X className="w-3.5 h-3.5" />

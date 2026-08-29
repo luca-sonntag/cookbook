@@ -5,6 +5,7 @@ import { useI18n } from '../context/I18nContext';
 import { resolveErrorCode } from '../i18n';
 import { useGamification } from '../context/GamificationContext';
 import { useTimerManager } from '../hooks/useTimerManager';
+import { useAdOverlay } from '../context/OverlayStackContext';
 import { compressImage, PREVIEW_PROFILE } from '../utils/imageCompression';
 
 interface CookedModalProps {
@@ -22,6 +23,7 @@ export default function CookedModal({
   recipeTitle,
   viaCookingMode,
 }: CookedModalProps) {
+  useAdOverlay(isOpen);
   const { t, language } = useI18n();
   const { markCooked } = useGamification();
   const { finishedRecipeIds } = useTimerManager();
