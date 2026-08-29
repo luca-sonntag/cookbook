@@ -88,13 +88,13 @@ export default function ToastItem({ toast, onDismiss, placement = 'bottom' }: To
         transform: dragOffsetY !== 0 ? `translateY(${dragOffsetY}px)` : undefined,
         opacity: dragOffsetY !== 0 ? Math.max(0, 1 - Math.abs(dragOffsetY) / 80) : undefined,
       }}
-      className={`pointer-events-auto w-full max-w-sm bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl md:rounded-3xl border-none shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-3 sm:p-3.5 flex items-center gap-3 transition-transform duration-100 ${animationClass}`}
+      className={`pointer-events-auto w-[75%] sm:w-auto sm:max-w-xs bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl md:rounded-3xl border-none shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-2.5 sm:p-3 flex items-center gap-2.5 transition-transform duration-100 ${animationClass}`}
       role="status"
       aria-live="polite"
     >
       {/* Icon Medallion */}
       <div
-        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${getMedallionColor(
+        className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-xl flex items-center justify-center flex-shrink-0 ${getMedallionColor(
           toast.type
         )}`}
       >
