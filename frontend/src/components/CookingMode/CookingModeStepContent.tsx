@@ -31,17 +31,12 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
   const progressPercent = totalSteps > 0 ? ((cookingStepIndex + 1) / totalSteps) * 100 : 0;
 
   return (
-    <div
-      key={cookingStepIndex}
-      className={`flex-1 min-h-0 w-full overflow-y-auto overscroll-contain scrollbar-none flex flex-col items-center py-2 sm:py-3 px-0.5 sm:px-2 ${
-        slideDirection === 'forward' ? 'animate-step-in-right' : 'animate-step-in-left'
-      }`}
-    >
-      {/* Cohesive Step Content with smooth layout transition */}
-      <div className="w-full max-w-3xl flex flex-col my-auto shrink-0 transition-[margin,transform,height] duration-350 ease-out">
-        {/* 100% Unobscured Cover Photo without overlays */}
+    <div className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain scrollbar-none flex flex-col items-center py-1 sm:py-2 px-0.5 sm:px-2">
+      {/* Stable Outer Container - No Jumping / Snapping */}
+      <div className="w-full max-w-3xl flex flex-col shrink-0">
+        {/* 100% Stable Cover Photo - Locked in position, never jumps */}
         {hasCover && (
-          <div className="w-full h-40 sm:h-52 rounded-[28px] overflow-hidden relative shadow-xs shrink-0 bg-gray-100 dark:bg-gray-800/80 mb-3.5">
+          <div className="w-full h-40 sm:h-52 rounded-[28px] overflow-hidden relative shadow-xs shrink-0 bg-gray-100 dark:bg-gray-800/80 mb-3">
             <CachedImage
               src={recipe.imageUrl}
               emoji={recipe.emoji}
@@ -51,14 +46,14 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
           </div>
         )}
 
-        {/* Unified Step & Progress Bar (Lösung B: Badge + Balken + Zähler) */}
+        {/* Stable Step & Progress Bar */}
         <div className="px-2 pt-1 pb-1 flex items-center gap-3 w-full">
           {/* Step Badge */}
-          <div className="w-8 h-8 rounded-full bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-black text-sm shadow-xs select-none shrink-0">
+          <div className="w-8 h-8 rounded-full bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-black text-sm shadow-xs select-none shrink-0 transition-all duration-200">
             {currentStep.step}
           </div>
 
-          {/* Connected Progress Bar Track */}
+          {/* Smooth Progress Bar */}
           {totalSteps > 0 && (
             <div className="flex-1 bg-black/[0.06] dark:bg-white/[0.08] h-2 rounded-full overflow-hidden">
               <div
@@ -76,24 +71,30 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
           )}
         </div>
 
-        {/* Step Description - Warm, readable editorial typography */}
-        <div className="px-2 py-2 sm:px-4 sm:py-3 flex flex-col text-left">
-          <div className="text-[22px] sm:text-[26px] md:text-[28px] font-semibold text-gray-800 dark:text-gray-100 tracking-normal leading-[1.55] sm:leading-[1.6]">
-            <RecipeInstructionText
-              variant="focused"
-              text={currentStep.description}
-              recipe={recipe}
-              formatAmount={formatAmount}
-              stepNum={currentStep.step}
-            />
+        {/* Step Dynamic Content with Directional Slide Transition */}
+        <div
+          key={cookingStepIndex}
+          className={slideDirection === 'forward' ? 'animate-step-in-right' : 'animate-step-in-left'}
+        >
+          {/* Step Description - Warm, readable editorial typography */}
+          <div className="px-2 py-2 sm:px-4 sm:py-3 flex flex-col text-left">
+            <div className="text-[22px] sm:text-[26px] md:text-[28px] font-semibold text-gray-800 dark:text-gray-100 tracking-normal leading-[1.55] sm:leading-[1.6]">
+              <RecipeInstructionText
+                variant="focused"
+                text={currentStep.description}
+                recipe={recipe}
+                formatAmount={formatAmount}
+                stepNum={currentStep.step}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Integrated Contextual Step Ingredients */}
-        <CookingModeIngredients
-          ingredients={stepIngredients}
-          formatAmount={formatAmount}
-        />
+          {/* Integrated Contextual Step Ingredients */}
+          <CookingModeIngredients
+            ingredients={stepIngredients}
+            formatAmount={formatAmount}
+          />
+        </div>
       </div>
     </div>
   );
