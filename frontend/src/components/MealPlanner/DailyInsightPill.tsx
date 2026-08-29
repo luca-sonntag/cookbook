@@ -2,6 +2,7 @@ import React from 'react';
 import { Utensils, Clock, Flame, CheckCircle2 } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import type { DailyInsightPillProps } from './types';
+import { getTotalTime } from '../../hooks/useSavedCatalog';
 
 export const DailyInsightPill: React.FC<DailyInsightPillProps> = ({ entries }) => {
   const { t } = useI18n();
@@ -16,7 +17,7 @@ export const DailyInsightPill: React.FC<DailyInsightPillProps> = ({ entries }) =
   }, 0);
 
   const totalTime = entries.reduce((sum, e) => {
-    return sum + (e.recipe?.prepTime ? Number(e.recipe.prepTime) : 0);
+    return sum + getTotalTime(e.recipe);
   }, 0);
 
   const cookedCount = entries.filter((e) => e.isCooked).length;
@@ -31,19 +32,19 @@ export const DailyInsightPill: React.FC<DailyInsightPillProps> = ({ entries }) =
     <div className="w-full flex items-center justify-center flex-wrap gap-1.5 sm:gap-2 pt-1 pb-0.5 text-xs font-semibold animate-fade-in select-none">
       {/* Meals Count Pill */}
       <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-2xs ring-1 ring-black/[0.04] dark:ring-white/[0.05]">
-        <Utensils className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 shrink-0" />
+        <Utensils className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
         <span>{mealsText}</span>
       </div>
 
       {/* Calories Pill */}
       {totalCalories > 0 && (
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-2xs ring-1 ring-black/[0.04] dark:ring-white/[0.05]">
-          <Flame className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 shrink-0" />
+          <Flame className="w-3.5 h-3.5 text-amber-500 shrink-0" />
           <span>{Math.round(totalCalories)} kcal</span>
         </div>
       )}
 
-      {/* Prep Time Pill */}
+      {/* Total Time Pill (Prep + Cook) */}
       {totalTime > 0 && (
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-2xs ring-1 ring-black/[0.04] dark:ring-white/[0.05]">
           <Clock className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 shrink-0" />

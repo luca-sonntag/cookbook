@@ -17,8 +17,8 @@ export const EmptyDayState: React.FC<EmptyDayStateProps> = ({
 
   return (
     <div className="flex flex-col items-center justify-center py-10 px-4 text-center animate-fade-in select-none">
-      {/* Minimalist Icon Box */}
-      <div className="w-13 h-13 rounded-2xl bg-gray-100 dark:bg-gray-850 flex items-center justify-center text-gray-400 dark:text-gray-500 mb-3.5 shadow-2xs ring-1 ring-black/[0.04] dark:ring-white/[0.06]">
+      {/* Minimalist Emerald Icon Box */}
+      <div className="w-13 h-13 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/15 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3.5 shadow-2xs ring-1 ring-emerald-500/10">
         <UtensilsCrossed className="w-6 h-6 stroke-[1.75]" />
       </div>
 
@@ -29,7 +29,7 @@ export const EmptyDayState: React.FC<EmptyDayStateProps> = ({
         {t('mealPlanner.emptyDaySubtitle')}
       </p>
 
-      {/* Generous Touch-Optimized Action Buttons */}
+      {/* Generous Touch-Optimized Action Buttons with subtle Emerald Icons */}
       <div className="w-full max-w-sm grid grid-cols-2 gap-2.5 sm:gap-3">
         <button
           onClick={() => {
@@ -38,7 +38,7 @@ export const EmptyDayState: React.FC<EmptyDayStateProps> = ({
           }}
           className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100 text-xs sm:text-sm font-bold active:scale-[0.96] transition-all duration-150 cursor-pointer border-none shadow-xs ring-1 ring-black/[0.04] dark:ring-white/[0.06] min-h-[48px]"
         >
-          <Coffee className="w-4.5 h-4.5 text-gray-400 dark:text-gray-500 shrink-0" />
+          <Coffee className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{t('mealPlanner.quickAddBreakfast')}</span>
         </button>
 
@@ -49,7 +49,7 @@ export const EmptyDayState: React.FC<EmptyDayStateProps> = ({
           }}
           className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100 text-xs sm:text-sm font-bold active:scale-[0.96] transition-all duration-150 cursor-pointer border-none shadow-xs ring-1 ring-black/[0.04] dark:ring-white/[0.06] min-h-[48px]"
         >
-          <Utensils className="w-4.5 h-4.5 text-gray-400 dark:text-gray-500 shrink-0" />
+          <Utensils className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{t('mealPlanner.quickAddLunch')}</span>
         </button>
 
@@ -60,7 +60,7 @@ export const EmptyDayState: React.FC<EmptyDayStateProps> = ({
           }}
           className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100 text-xs sm:text-sm font-bold active:scale-[0.96] transition-all duration-150 cursor-pointer border-none shadow-xs ring-1 ring-black/[0.04] dark:ring-white/[0.06] min-h-[48px]"
         >
-          <Moon className="w-4.5 h-4.5 text-gray-400 dark:text-gray-500 shrink-0" />
+          <Moon className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{t('mealPlanner.quickAddDinner')}</span>
         </button>
 
@@ -71,7 +71,7 @@ export const EmptyDayState: React.FC<EmptyDayStateProps> = ({
           }}
           className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100 text-xs sm:text-sm font-bold active:scale-[0.96] transition-all duration-150 cursor-pointer border-none shadow-xs ring-1 ring-black/[0.04] dark:ring-white/[0.06] min-h-[48px]"
         >
-          <Apple className="w-4.5 h-4.5 text-gray-400 dark:text-gray-500 shrink-0" />
+          <Apple className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{t('mealPlanner.quickAddSnack')}</span>
         </button>
       </div>
@@ -85,7 +85,7 @@ export const EmptyDayState: React.FC<EmptyDayStateProps> = ({
           }}
           className="mt-4 inline-flex items-center gap-2 px-4.5 py-2.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 text-xs sm:text-sm font-semibold active:scale-[0.96] transition-all duration-150 cursor-pointer border-none shadow-xs ring-1 ring-black/[0.04] dark:ring-white/[0.06] min-h-[42px]"
         >
-          <Sparkles className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+          <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>{t('mealPlanner.quickAddRandom')}</span>
         </button>
       )}

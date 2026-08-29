@@ -6,6 +6,7 @@ import CachedImage from '../CachedImage';
 import { useI18n } from '../../context/I18nContext';
 import { useToast } from '../../context/ToastContext';
 import { hapticLight, hapticMedium } from '../../utils/haptics';
+import { getTotalTime } from '../../hooks/useSavedCatalog';
 
 type FilterType = 'all' | 'quick' | 'favorites';
 
@@ -34,7 +35,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
 
     if (activeFilter === 'quick') {
       result = result.filter(
-        (h) => h.recipe?.prepTime && Number(h.recipe.prepTime) <= 25,
+        (h) => getTotalTime(h.recipe) > 0 && getTotalTime(h.recipe) <= 25,
       );
     } else if (activeFilter === 'favorites') {
       result = result.filter(
@@ -194,6 +195,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
                     const calories =
                       saved.recipe?.nutritionalValues?.calories ??
                       saved.recipe?.sourceNutritionalValues?.calories;
+                    const totalTime = getTotalTime(saved.recipe);
 
                     return (
                       <button
@@ -214,15 +216,15 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
                             {saved.recipe?.title}
                           </h4>
                           <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 mt-1 font-semibold">
-                            {saved.recipe?.prepTime && (
+                            {totalTime > 0 && (
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3.5 h-3.5 text-gray-400" />
-                                <span>{saved.recipe.prepTime} min</span>
+                                <span>{totalTime} min</span>
                               </span>
                             )}
                             {calories && (
                               <span className="flex items-center gap-1">
-                                <Flame className="w-3.5 h-3.5 text-gray-400" />
+                                <Flame className="w-3.5 h-3.5 text-amber-500" />
                                 <span>{Math.round(calories)} kcal</span>
                               </span>
                             )}

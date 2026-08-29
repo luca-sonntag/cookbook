@@ -56,24 +56,24 @@ export const WeekDayPicker: React.FC<WeekDayPickerProps> = ({
               {day.dayNumber}
             </span>
 
-            {/* Status indicator row */}
-            <div className="flex items-center justify-center h-3.5 mt-0.5">
+            {/* Harmonious Status indicator row */}
+            <div className="flex items-center justify-center h-4 mt-0.5">
               {isAllCooked ? (
                 <span
-                  className={`flex items-center justify-center w-3.5 h-3.5 rounded-full ${
+                  className={`flex items-center justify-center w-4 h-4 rounded-full ${
                     isSelected
-                      ? 'bg-white text-emerald-700'
-                      : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                      ? 'bg-white text-emerald-800 shadow-2xs'
+                      : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/20'
                   }`}
                 >
                   <Check className="w-2.5 h-2.5 stroke-[3]" />
                 </span>
               ) : day.plannedCount > 0 ? (
                 <span
-                  className={`flex items-center justify-center h-3.5 min-w-3.5 px-1 rounded-full text-[9px] font-black leading-none ${
+                  className={`flex items-center justify-center min-w-4 h-4 px-1 rounded-full text-[10px] font-black leading-none ${
                     isSelected
-                      ? 'bg-white text-emerald-700'
-                      : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                      ? 'bg-white text-emerald-800 shadow-2xs'
+                      : 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/20'
                   }`}
                 >
                   {day.plannedCount}
@@ -84,7 +84,9 @@ export const WeekDayPicker: React.FC<WeekDayPickerProps> = ({
                     isSelected ? 'bg-white' : 'bg-emerald-500 ring-2 ring-emerald-500/20'
                   }`}
                 />
-              ) : null}
+              ) : (
+                <span className="w-4 h-4" />
+              )}
             </div>
           </button>
         );

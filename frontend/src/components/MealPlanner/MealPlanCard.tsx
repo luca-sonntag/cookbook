@@ -4,6 +4,7 @@ import type { MealPlanCardProps } from './types';
 import CachedImage from '../CachedImage';
 import { MealPlanCardActions } from './MealPlanCardActions';
 import { useI18n } from '../../context/I18nContext';
+import { getTotalTime } from '../../hooks/useSavedCatalog';
 
 export const MealPlanCard: React.FC<MealPlanCardProps> = ({
   entry,
@@ -17,6 +18,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
   const { t } = useI18n();
   const recipe = entry.recipe;
   const calories = recipe?.calories;
+  const totalTime = getTotalTime(recipe);
 
   return (
     <div
@@ -45,7 +47,7 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
       <div className="flex-1 min-w-0 pr-0.5 @container">
         <div className="flex items-center gap-1.5">
           <h4
-            className={`text-xs sm:text-sm font-extrabold line-clamp-1 leading-snug transition-colors ${
+            className={`text-sm sm:text-base font-extrabold line-clamp-1 leading-snug transition-colors ${
               entry.isCooked
                 ? 'text-gray-500 dark:text-gray-400 line-through decoration-gray-400/60'
                 : 'text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
@@ -60,23 +62,23 @@ export const MealPlanCard: React.FC<MealPlanCardProps> = ({
           )}
         </div>
 
-        {/* Badges: Time & Calories */}
-        <div className="flex items-center gap-2.5 mt-1 text-[11px] font-semibold text-gray-500 dark:text-gray-400">
-          {recipe?.prepTime && (
+        {/* Badges: Total Time (Prep + Cook) & Calories */}
+        <div className="flex items-center gap-2.5 mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {totalTime > 0 && (
             <span className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
-              <span>{recipe.prepTime} min</span>
+              <span>{totalTime} min</span>
             </span>
           )}
           {calories && (
             <span className="flex items-center gap-1">
-              <Flame className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+              <Flame className="w-3.5 h-3.5 text-amber-500" />
               <span>{Math.round(calories)} kcal</span>
             </span>
           )}
         </div>
 
-        {/* Action Bar */}
+        {/* Bottom Actions Cluster */}
         <MealPlanCardActions
           entry={entry}
           onUpdateServings={onUpdateServings}

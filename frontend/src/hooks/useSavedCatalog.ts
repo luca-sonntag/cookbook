@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import type { SavedRecipe, Ingredient, Recipe } from '../types';
+import type { SavedRecipe, Ingredient } from '../types';
 import { useI18n } from '../context/I18nContext';
 import { useDialog } from '../context/DialogContext';
 import { deleteCachedImage } from '../utils/imageStore';
@@ -39,8 +39,10 @@ export const SHELF_SIZE = 12;
 /** Number of recipes shown in the vertical 2-column shelf on the cookbook home. */
 export const SHELF_VERTICAL_SIZE = 24;
 
-/** Total prep + cook time in minutes; tolerates legacy string values. */
-export function getTotalTime(recipe: Pick<Recipe, 'prepTime' | 'cookTime'> | undefined | null): number {
+/** Total prep + cook time in minutes; tolerates legacy string values and optional fields. */
+export function getTotalTime(
+  recipe: { prepTime?: number | string | null; cookTime?: number | string | null } | undefined | null
+): number {
   if (!recipe) return 0;
   const toMinutes = (value: unknown) =>
     typeof value === 'number' ? value : (parseInt(String(value ?? ''), 10) || 0);

@@ -65,7 +65,7 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                 {/* Slot Header */}
                 <div className="flex items-center justify-between px-3 py-1">
                   <div className="flex items-center gap-2">
-                    <span className="p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                    <span className="p-1.5 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                       {slot.icon}
                     </span>
                     <div className="flex items-center gap-1.5">
@@ -109,7 +109,7 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                 </div>
               </>
             ) : (
-              /* Minimalist Monochrome Quick-Add Slot Card */
+              /* Minimalist Quick-Add Slot Card with light emerald icon */
               <button
                 onClick={() => {
                   hapticLight();
@@ -118,7 +118,7 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                 className="w-full px-3.5 py-3 rounded-2xl bg-white/80 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-850 border-none shadow-2xs ring-1 ring-black/[0.03] dark:ring-white/[0.04] flex items-center justify-between text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 active:scale-[0.98] transition-all duration-150 group cursor-pointer min-h-[48px]"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 transition-colors">
+                  <span className="p-1.5 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform">
                     {slot.icon}
                   </span>
                   <span className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200">
