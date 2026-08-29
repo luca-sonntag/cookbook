@@ -145,6 +145,35 @@ describe('Smart Recommendation Engine', () => {
     assert.equal(result.themeId, 'holiday_christmas');
   });
 
+  it('boosts Comfort Food on Saturday late night / Sunday early morning', () => {
+    const saturdayLateNight = new Date('2026-08-30T00:15:00+02:00'); // Sunday 00:15 local time (Saturday late night)
+    const recipes = [
+      makeRecipe('1', 'Midnight Burger', 10, 10, ['comfort'], ['burger', 'käse', 'pommes']),
+      makeRecipe('2', 'Crispy Pizza', 15, 15, ['comfort'], ['pizza', 'mozzarella']),
+      makeRecipe('3', 'Schnelle Nudeln', 5, 10, [], ['pasta']),
+      makeRecipe('4', 'Blitz Snack', 5, 5, [], ['brot']),
+    ];
+
+    const result = getRecommendedShelf(recipes, { now: saturdayLateNight });
+    assert.ok(result);
+    assert.equal(result.themeId, 'friday_comfort');
+  });
+
+  it('boosts Week Ahead ideas on Sunday late afternoon/evening', () => {
+    const sundayEvening = new Date('2026-08-30T18:00:00+02:00'); // Sunday 18:00
+    const recipes = [
+      makeRecipe('1', 'Blitz-Nudeln', 5, 10, ['schnell'], ['pasta', 'tomaten']),
+      makeRecipe('2', 'Schnelle Gemüsepfanne', 5, 15, ['schnell'], ['zucchini', 'paprika']),
+      makeRecipe('3', 'Sommerlicher Salat', 10, 0, ['sommer'], ['gurke', 'tomate']),
+      makeRecipe('4', 'Braten', 20, 60, ['festlich'], ['fleisch']),
+    ];
+
+    const result = getRecommendedShelf(recipes, { now: sundayEvening });
+    assert.ok(result);
+    assert.equal(result.themeId, 'week_ahead');
+    assert.equal(result.titleKey, 'catalog.recommendations.weekAhead');
+  });
+
   it('gracefully falls back when primary theme lacks matching recipes', () => {
     const thursday = new Date('2026-08-27T17:00:00Z'); // Thursday (Pasta Day)
     // No pasta recipes in the collection, only seasonal summer recipes

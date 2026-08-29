@@ -102,15 +102,20 @@ export function getRecommendedShelf<T extends SharedSavedRecipe = SharedSavedRec
     }
   }
 
-  // Day-of-week boolean flags for planning & discovery boost
-  const isSunOrMon = localWeekday === 0 || localWeekday === 1;
+  // Day-of-week & hour context flags
+  const isSaturdayNight = localWeekday === 0 && localHour < 5; // Sat late night / Sun early morning
+  const isFridayComfort = (localWeekday === 5 && localHour >= 12) || (localWeekday === 6 && localHour >= 18) || isSaturdayNight;
+  const isWeekendMorning = (localWeekday === 6 || localWeekday === 0) && localHour >= 5 && localHour < 14;
+  const isSundayPrep = localWeekday === 0 && localHour >= 15;
+  const isMonday = localWeekday === 1;
   const isTuesday = localWeekday === 2;
   const isWednesday = localWeekday === 3;
   const isThursday = localWeekday === 4;
   const isFriday = localWeekday === 5;
   const isSaturday = localWeekday === 6;
 
-  // 2. Quick Dinners / Week-Ahead Prep (Boosted on Sunday & Monday for weekly grocery/meal planning)
+  // 2. Quick Dinners / Week-Ahead Prep
+  // Boosted on Monday (all day) and Sunday late afternoon/evening for weekly planning
   const quickMatches = validJobs
     .filter((job) => {
       const t = totalRecipeMinutes(job.recipe);
@@ -119,14 +124,25 @@ export function getRecommendedShelf<T extends SharedSavedRecipe = SharedSavedRec
     .sort((a, b) => totalRecipeMinutes(a.recipe) - totalRecipeMinutes(b.recipe));
 
   if (quickMatches.length >= 2) {
-    themes.push({
-      themeId: 'quick_dinner',
-      titleKey: 'catalog.recommendations.quickDinner',
-      defaultTitle: 'Schnelle Feierabendküche',
-      badgeEmoji: '⚡',
-      score: (isSunOrMon ? 88 : 73) + Math.min(quickMatches.length, 5),
-      matchedJobs: quickMatches,
-    });
+    if (isSundayPrep) {
+      themes.push({
+        themeId: 'week_ahead',
+        titleKey: 'catalog.recommendations.weekAhead',
+        defaultTitle: 'Schnelle Ideen für die Woche',
+        badgeEmoji: '⚡',
+        score: 88 + Math.min(quickMatches.length, 5),
+        matchedJobs: quickMatches,
+      });
+    } else {
+      themes.push({
+        themeId: 'quick_dinner',
+        titleKey: 'catalog.recommendations.quickDinner',
+        defaultTitle: 'Schnelle Feierabendküche',
+        badgeEmoji: '⚡',
+        score: (isMonday ? 88 : 73) + Math.min(quickMatches.length, 5),
+        matchedJobs: quickMatches,
+      });
+    }
   }
 
   // 3. Seasonal Produce & Kitchen (Boosted on Tuesday, steady baseline on all other days)
@@ -194,7 +210,7 @@ export function getRecommendedShelf<T extends SharedSavedRecipe = SharedSavedRec
     });
   }
 
-  // 6. Friday Weekend-Start & Comfort Food (Boosted on Friday for burgers, pizza, wraps, tacos)
+  // 6. Weekend-Start & Comfort Food (Boosted on Friday afternoon through Saturday late night)
   const comfortMatches = validJobs
     .map((job) => ({ job, count: countKeywordMatches(job.recipe!, COMFORT_KEYWORDS) }))
     .filter((m) => m.count > 0)
@@ -207,13 +223,12 @@ export function getRecommendedShelf<T extends SharedSavedRecipe = SharedSavedRec
       titleKey: 'catalog.recommendations.fridayComfort',
       defaultTitle: 'Freitagabend Comfort Food',
       badgeEmoji: '🍕',
-      score: (isFriday ? 89 : 68) + Math.min(comfortMatches.length, 5),
+      score: (isFridayComfort ? 89 : 68) + Math.min(comfortMatches.length, 5),
       matchedJobs: comfortMatches,
     });
   }
 
-  // 7. Weekend Brunch (Saturday morning < 14:00)
-  const isWeekendMorning = (isSaturday || localWeekday === 0) && localHour < 14;
+  // 7. Weekend Brunch (Saturday and Sunday morning 05:00 - 14:00)
   const brunchMatches = validJobs
     .map((job) => ({ job, count: countKeywordMatches(job.recipe!, BRUNCH_KEYWORDS) }))
     .filter((m) => m.count > 0)
@@ -240,30 +255,31 @@ export function getRecommendedShelf<T extends SharedSavedRecipe = SharedSavedRec
       .map((m) => m.job);
 
     if (grillMatches.length >= 2) {
+      const isSaturdayGrill = isSaturday && localHour >= 12 && localHour < 20;
       themes.push({
         themeId: 'summer_grill',
         titleKey: 'catalog.recommendations.holidayGrill',
         defaultTitle: 'Sommer-Rezepte & Grillen',
         badgeEmoji: '🔥',
-        score: (isSaturday && localHour >= 12 ? 88 : 74) + Math.min(grillMatches.length, 5),
+        score: (isSaturdayGrill ? 88 : 74) + Math.min(grillMatches.length, 5),
         matchedJobs: grillMatches,
       });
     }
   }
 
-  // 9. Weekend Cooking Project (Saturday afternoon >= 14:00 or Sunday, recipes >= 35 min)
+  // 9. Weekend Cooking Project (Saturday / Sunday afternoon, recipes >= 35 min)
   const projectMatches = validJobs
     .filter((job) => totalRecipeMinutes(job.recipe) >= 35)
     .sort((a, b) => totalRecipeMinutes(b.recipe) - totalRecipeMinutes(a.recipe));
 
   if (projectMatches.length >= 2) {
-    const isSaturdayAfternoon = isSaturday && localHour >= 14;
+    const isWeekendProjectTime = (isSaturday || (localWeekday === 0 && localHour < 15)) && localHour >= 13;
     themes.push({
       themeId: 'weekend_project',
       titleKey: 'catalog.recommendations.weekendProject',
       defaultTitle: 'Wochenend-Kochprojekt',
       badgeEmoji: '🍲',
-      score: (isSaturdayAfternoon ? 86 : 64) + Math.min(projectMatches.length, 5),
+      score: (isWeekendProjectTime ? 86 : 64) + Math.min(projectMatches.length, 5),
       matchedJobs: projectMatches,
     });
   }
