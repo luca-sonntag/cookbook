@@ -41,6 +41,23 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
     }
   };
 
+  if (entry.isCooked) {
+    return (
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex items-center justify-between mt-2 pt-0.5 gap-1.5 select-none"
+      >
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {entry.servings} {t('mealPlanner.servings')}
+        </span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+          <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
+          <span>{t('mealPlanner.cooked')}</span>
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
@@ -75,22 +92,13 @@ export const MealPlanCardActions: React.FC<MealPlanCardActionsProps> = ({
 
         {/* Cooked Status Button */}
         <button
-          disabled={entry.isCooked}
-          onClick={
-            entry.isCooked
-              ? undefined
-              : () => {
-                  hapticMedium();
-                  onToggleCooked(entry);
-                }
-          }
-          title={entry.isCooked ? t('mealPlanner.cooked') : t('mealPlanner.markAsCooked')}
-          aria-label={entry.isCooked ? t('mealPlanner.cooked') : t('mealPlanner.markAsCooked')}
-          className={`w-8.5 h-8.5 rounded-full transition-all duration-150 flex items-center justify-center border-none ${
-            entry.isCooked
-              ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30 cursor-default opacity-90'
-              : 'bg-gray-100/90 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-gray-750 active:scale-[0.90] cursor-pointer'
-          }`}
+          onClick={() => {
+            hapticMedium();
+            onToggleCooked(entry);
+          }}
+          title={t('mealPlanner.markAsCooked')}
+          aria-label={t('mealPlanner.markAsCooked')}
+          className="w-8.5 h-8.5 rounded-full transition-all duration-150 flex items-center justify-center border-none bg-gray-100/90 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-gray-750 active:scale-[0.90] cursor-pointer"
         >
           <CheckCircle2 className="w-4 h-4 stroke-[2.25]" />
         </button>
