@@ -147,19 +147,26 @@ export async function recordCook(
   const cooksToday = await getCookCountSince(userId, startOfUtcDayIso(now));
   const cookIndexToday = cooksToday + 1;
 
-  // Streak: at most one increment per day; a gap of >1 day resets to 1.
-  const today = utcDateStr(now);
-  let currentStreak: number;
-  if (prevStats.lastCookDate === today) {
-    currentStreak = prevStats.currentStreak || 1; // already cooked today — hold
-  } else if (prevStats.lastCookDate && addDaysStr(prevStats.lastCookDate, 1) === today) {
-    currentStreak = (prevStats.currentStreak || 0) + 1;
-  } else {
-    currentStreak = 1;
-  }
-  const longestStreak = Math.max(prevStats.longestStreak, currentStreak);
-
   const hasPhoto = !!signals.hasPhoto && !!signals.photoPath;
+
+  // Streak: at most one increment per day; only verified cooks with photo count towards streaks.
+  const today = utcDateStr(now);
+  let currentStreak = prevStats.currentStreak || 0;
+  let longestStreak = prevStats.longestStreak || 0;
+  let lastCookDate = prevStats.lastCookDate;
+
+  if (hasPhoto) {
+    if (prevStats.lastCookDate === today) {
+      currentStreak = prevStats.currentStreak || 1; // already cooked today — hold
+    } else if (prevStats.lastCookDate && addDaysStr(prevStats.lastCookDate, 1) === today) {
+      currentStreak = (prevStats.currentStreak || 0) + 1;
+    } else {
+      currentStreak = 1;
+    }
+    longestStreak = Math.max(prevStats.longestStreak, currentStreak);
+    lastCookDate = today;
+  }
+
   const award = computeAward(config, {
     priorCookCount,
     cookIndexToday,
@@ -182,9 +189,11 @@ export async function recordCook(
     timerElapsed: !!signals.timerElapsed,
   });
 
-  await insertLedgerRows(userId, cookEventId, [
-    { deltaXp: award.xp, deltaCoins: award.coins, reason: 'cook' },
-  ]);
+  if (award.xp > 0 || award.coins > 0) {
+    await insertLedgerRows(userId, cookEventId, [
+      { deltaXp: award.xp, deltaCoins: award.coins, reason: 'cook' },
+    ]);
+  }
 
   const newXp = previousXp + award.xp;
   const newLevel = levelForXp(newXp, config.levelThresholds);
@@ -195,58 +204,60 @@ export async function recordCook(
     coins: prevStats.coins + award.coins,
     currentStreak,
     longestStreak,
-    lastCookDate: today,
-    totalCooks: prevStats.totalCooks + 1,
+    lastCookDate,
+    totalCooks: hasPhoto ? prevStats.totalCooks + 1 : prevStats.totalCooks,
   };
   await upsertUserStats(newStats);
 
-  // Badges — counts read after insert so they include this cook.
-  const cookHour = now.getUTCHours();
-  const cookDay = now.getUTCDay();
-  const isNightCook = cookHour >= 22 || cookHour < 5;
-  const isWeekendCook = cookDay === 0 || cookDay === 6;
-
-  const [existing, distinctRecipes, timerCooks, weekendCooks, maxSameRecipeCooks] = await Promise.all([
-    getUserBadges(userId).then((keys) => new Set(keys)),
-    getDistinctCookedRecipeCount(userId),
-    getTimerCookCount(userId),
-    getWeekendCookCount(userId),
-    getMaxCooksForSameRecipe(userId),
-  ]);
-
-  const newBadges = evaluateBadges({
-    totalCooks: newStats.totalCooks,
-    currentStreak,
-    hasPhoto,
-    distinctRecipes,
-    isNightCook,
-    isWeekendCook,
-    timerCooks,
-    weekendCooks,
-    maxSameRecipeCooks,
-    existing,
-  });
-  await awardBadges(userId, newBadges);
-
-  // One-off badge XP/coins — server-authoritative (mirrors DEFAULT_BADGE_XP).
-  // Badges are awarded at most once, so this never double-counts.
+  // Badges — only evaluated and awarded for verified cooks with photo
+  let newBadges: string[] = [];
   let badgeXp = 0;
   let badgeCoins = 0;
-  const badgeLedgerRows: { deltaXp: number; deltaCoins: number; reason: string }[] = [];
-  for (const key of newBadges) {
-    const xp = config.badgeXp?.[key] ?? DEFAULT_BADGE_XP[key] ?? 0;
-    if (xp > 0) {
-      badgeXp += xp;
-      badgeCoins += Math.floor(xp * config.coinsPerXp);
-      badgeLedgerRows.push({ deltaXp: xp, deltaCoins: Math.floor(xp * config.coinsPerXp), reason: `badge:${key}` });
+
+  if (hasPhoto) {
+    const cookHour = now.getUTCHours();
+    const cookDay = now.getUTCDay();
+    const isNightCook = cookHour >= 22 || cookHour < 5;
+    const isWeekendCook = cookDay === 0 || cookDay === 6;
+
+    const [existing, distinctRecipes, timerCooks, weekendCooks, maxSameRecipeCooks] = await Promise.all([
+      getUserBadges(userId).then((keys) => new Set(keys)),
+      getDistinctCookedRecipeCount(userId),
+      getTimerCookCount(userId),
+      getWeekendCookCount(userId),
+      getMaxCooksForSameRecipe(userId),
+    ]);
+
+    newBadges = evaluateBadges({
+      totalCooks: newStats.totalCooks,
+      currentStreak,
+      hasPhoto,
+      distinctRecipes,
+      isNightCook,
+      isWeekendCook,
+      timerCooks,
+      weekendCooks,
+      maxSameRecipeCooks,
+      existing,
+    });
+    await awardBadges(userId, newBadges);
+
+    const badgeLedgerRows: { deltaXp: number; deltaCoins: number; reason: string }[] = [];
+    for (const key of newBadges) {
+      const xp = config.badgeXp?.[key] ?? DEFAULT_BADGE_XP[key] ?? 0;
+      if (xp > 0) {
+        badgeXp += xp;
+        badgeCoins += Math.floor(xp * config.coinsPerXp);
+        badgeLedgerRows.push({ deltaXp: xp, deltaCoins: Math.floor(xp * config.coinsPerXp), reason: `badge:${key}` });
+      }
     }
-  }
-  if (badgeLedgerRows.length > 0) {
-    await insertLedgerRows(userId, cookEventId, badgeLedgerRows);
-    newStats.xp += badgeXp;
-    newStats.coins += badgeCoins;
-    newStats.level = levelForXp(newStats.xp, config.levelThresholds);
-    await upsertUserStats(newStats);
+    if (badgeLedgerRows.length > 0) {
+      await insertLedgerRows(userId, cookEventId, badgeLedgerRows);
+      newStats.xp += badgeXp;
+      newStats.coins += badgeCoins;
+      newStats.level = levelForXp(newStats.xp, config.levelThresholds);
+      await upsertUserStats(newStats);
+    }
   }
 
   const totalXp = award.xp + badgeXp;
