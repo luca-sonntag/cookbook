@@ -218,10 +218,11 @@ export function getRecommendedShelf<T extends SharedSavedRecipe = SharedSavedRec
     .map((m) => m.job);
 
   if (comfortMatches.length >= 2) {
+    const isFri = localWeekday === 5;
     themes.push({
-      themeId: 'friday_comfort',
-      titleKey: 'catalog.recommendations.fridayComfort',
-      defaultTitle: 'Freitagabend Comfort Food',
+      themeId: isFri ? 'friday_comfort' : 'weekend_comfort',
+      titleKey: isFri ? 'catalog.recommendations.fridayComfort' : 'catalog.recommendations.weekendComfort',
+      defaultTitle: isFri ? 'Freitagabend Comfort Food' : 'Wochenend-Comfort Food & Snacks',
       badgeEmoji: '🍕',
       score: (isFridayComfort ? 89 : 68) + Math.min(comfortMatches.length, 5),
       matchedJobs: comfortMatches,

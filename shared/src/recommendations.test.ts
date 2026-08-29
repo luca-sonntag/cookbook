@@ -156,7 +156,8 @@ describe('Smart Recommendation Engine', () => {
 
     const result = getRecommendedShelf(recipes, { now: saturdayLateNight });
     assert.ok(result);
-    assert.equal(result.themeId, 'friday_comfort');
+    assert.equal(result.themeId, 'weekend_comfort');
+    assert.equal(result.titleKey, 'catalog.recommendations.weekendComfort');
   });
 
   it('boosts Week Ahead ideas on Sunday late afternoon/evening', () => {
