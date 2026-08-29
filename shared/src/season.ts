@@ -44,15 +44,18 @@ export function seasonKeywords(season: Season): string[] {
 
 /** Common keyword dictionaries for thematic discovery and planning. */
 export const COMFORT_KEYWORDS = [
-  'pizza', 'burger', 'pasta', 'taco', 'nacho', 'fries', 'fritten', 'pommes',
-  'comfort', 'cheese', 'käse', 'snack', 'dip', 'fingerfood', 'wings', 'wrap',
-  'sandwich', 'toast', 'overload', 'cremig', 'creamy', 'fondue'
+  'burger', 'cheeseburger', 'pizza', 'pommes', 'fries', 'fritten',
+  'taco', 'tacos', 'nacho', 'nachos', 'quesadilla', 'burrito', 'enchilada',
+  'sandwich', 'toastie', 'grilled cheese', 'hotdog', 'nuggets', 'wings',
+  'mac and cheese', 'mac & cheese', 'fastfood', 'fast food', 'comfort food',
+  'soulfood', 'überbacken', 'gratin', 'käsespätzle', 'currywurst', 'fondue', 'raclette'
 ];
 
 export const BRUNCH_KEYWORDS = [
-  'pancake', 'waffel', 'waffle', 'ei', 'egg', 'omelett', 'omelette', 'rührei',
-  'toast', 'brunch', 'frühstück', 'breakfast', 'smoothie', 'bowl', 'porridge',
-  'müsli', 'croissant', 'crepe', 'stulle', 'avocado'
+  'pancake', 'pancakes', 'waffel', 'waffeln', 'waffle', 'waffles',
+  'omelett', 'omelette', 'rührei', 'spiegelei', 'brunch', 'frühstück',
+  'breakfast', 'smoothie', 'porridge', 'müsli', 'croissant', 'crepe',
+  'french toast', 'bagel', 'stulle', 'haferflocken', 'chia'
 ];
 
 export const PASTA_KEYWORDS = [
@@ -62,8 +65,9 @@ export const PASTA_KEYWORDS = [
 ];
 
 export const GRILL_KEYWORDS = [
-  'grill', 'bbq', 'steak', 'burger', 'spieß', 'skewer', 'marinade',
-  'kräuterbutter', 'kotelett', 'rippchen', 'ribs', 'würstchen'
+  'grill', 'grillen', 'gegrillt', 'bbq', 'spieß', 'spieße', 'skewer',
+  'marinade', 'mariniert', 'kräuterbutter', 'kotelett', 'rippchen', 'ribs',
+  'würstchen', 'bratwurst', 'steak', 'steaks'
 ];
 
 /**
@@ -164,7 +168,13 @@ export function countKeywordMatches(recipe: SharedRecipe, keywords: string[]): n
   let n = 0;
   for (const kw of keywords) {
     const k = kw.trim().toLowerCase();
-    if (k && hay.includes(k)) n++;
+    if (!k) continue;
+    if (k.length >= 4) {
+      if (hay.includes(k)) n++;
+    } else {
+      const regex = new RegExp(`(^|[^a-z0-9äöüß])${k}([^a-z0-9äöüß]|$)`, 'i');
+      if (regex.test(hay)) n++;
+    }
   }
   return n;
 }
