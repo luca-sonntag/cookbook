@@ -37,6 +37,7 @@ import { useAlphaWelcome } from './hooks/useAlphaWelcome';
 import { useAppHistory } from './hooks/useAppHistory';
 import { useAppAds } from './hooks/useAppAds';
 import { useAppNativeListeners } from './hooks/useAppNativeListeners';
+import { useMealPlanBadge } from './hooks/useMealPlanBadge';
 
 function ViewFallback() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
   const { user, isPremium, loading: authLoading, getAccessToken } = useAuth();
   const { snapshot: gamificationSnapshot } = useGamification();
   const { incomingRequests } = useSocial();
+  const { outstandingCount: outstandingMealPlansCount } = useMealPlanBadge({ user, authLoading, getAccessToken });
   const userLevel = gamificationSnapshot?.stats?.level ?? null;
   const incomingRequestsCount = incomingRequests.length;
 
@@ -556,6 +558,7 @@ export default function App() {
         uncheckedShoppingItemsCount={aggregatedList.unchecked.length}
         incomingRequestsCount={incomingRequestsCount}
         userLevel={userLevel}
+        outstandingMealPlansCount={outstandingMealPlansCount}
         lastHistorySubPath={lastHistorySubPathRef.current}
         onNavigate={navigate}
         onFetchHistory={fetchHistory}

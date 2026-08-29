@@ -134,6 +134,7 @@ export const AddToMealPlanSheet: React.FC<AddToMealPlanSheetProps> = ({
       });
       const data = await res.json();
       if (data.success) {
+        window.dispatchEvent(new CustomEvent('meal-plans-updated'));
         toast.success(t('mealPlanner.addedToPlan'));
         onAddedSuccess?.();
         onClose();

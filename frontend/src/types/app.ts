@@ -12,6 +12,7 @@ export interface AppBottomNavProps {
   uncheckedShoppingItemsCount: number;
   incomingRequestsCount: number;
   userLevel: number | null;
+  outstandingMealPlansCount?: number;
   lastHistorySubPath: string | null;
   onNavigate: (tab: AppTab, subPath?: string | null) => void;
   onFetchHistory: () => void;

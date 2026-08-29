@@ -15,6 +15,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
   uncheckedShoppingItemsCount,
   incomingRequestsCount,
   userLevel,
+  outstandingMealPlansCount = 0,
   lastHistorySubPath,
   onNavigate,
   onFetchHistory,
@@ -102,6 +103,11 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
             >
               <div className="relative">
                 <Calendar className="w-5 h-5 mb-1" />
+                {outstandingMealPlansCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center text-center leading-none rounded-full bg-rose-500 px-1 text-[9px] font-black text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
+                    {outstandingMealPlansCount}
+                  </span>
+                )}
               </div>
               <span className="text-[10px] sm:text-[11px] tracking-tight sm:tracking-wide font-medium">{t('app.nav.mealPlanner')}</span>
               {activeView === 'meal-planner' && (

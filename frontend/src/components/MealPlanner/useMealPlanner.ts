@@ -156,6 +156,7 @@ export function useMealPlanner(
         const data = await res.json();
         if (data.success && data.mealPlan) {
           setMealPlans((prev) => [...prev, data.mealPlan]);
+          window.dispatchEvent(new CustomEvent('meal-plans-updated'));
           toast.success(t('mealPlanner.addedToPlan'));
         }
       } catch (err) {
@@ -193,6 +194,7 @@ export function useMealPlanner(
     async (entry: MealPlanEntry) => {
       const nextCooked = !entry.isCooked;
       setMealPlans((prev) => prev.map((p) => (p.id === entry.id ? { ...p, isCooked: nextCooked } : p)));
+      window.dispatchEvent(new CustomEvent('meal-plans-updated'));
       try {
         const token = await getAccessToken();
         await fetch(apiUrl(`/api/meal-plan/${entry.id}`), {
@@ -223,6 +225,7 @@ export function useMealPlanner(
       setMealPlans((prev) =>
         prev.map((p) => (p.id === entry.id ? { ...p, planDate: tomorrowStr } : p)),
       );
+      window.dispatchEvent(new CustomEvent('meal-plans-updated'));
       try {
         const token = await getAccessToken();
         await fetch(apiUrl(`/api/meal-plan/${entry.id}`), {
@@ -246,6 +249,7 @@ export function useMealPlanner(
   const deletePlan = useCallback(
     async (id: string) => {
       setMealPlans((prev) => prev.filter((p) => p.id !== id));
+      window.dispatchEvent(new CustomEvent('meal-plans-updated'));
       try {
         const token = await getAccessToken();
         await fetch(apiUrl(`/api/meal-plan/${id}`), {
