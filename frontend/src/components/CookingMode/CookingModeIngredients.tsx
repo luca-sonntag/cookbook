@@ -18,14 +18,14 @@ export const CookingModeIngredients: React.FC<CookingModeIngredientsProps> = ({
   if (!ingredients || ingredients.length === 0) return null;
 
   return (
-    <div className="w-full max-w-xl bg-gray-50/90 dark:bg-gray-900/60 rounded-3xl p-4 sm:p-5 text-left flex flex-col min-h-0 border-none shadow-xs">
-      {/* Section Header */}
-      <div className="flex items-center justify-between gap-2 mb-3.5 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+    <div className="w-full px-4.5 py-4 sm:px-6 sm:py-5 border-t border-black/5 dark:border-white/5 bg-black/[0.015] dark:bg-white/[0.015] flex flex-col text-left">
+      {/* Section Header inside cohesive card */}
+      <div className="flex items-center justify-between gap-2 mb-3 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
             {t('recipe.ingredientsForStep')}
           </h3>
         </div>
@@ -34,8 +34,8 @@ export const CookingModeIngredients: React.FC<CookingModeIngredientsProps> = ({
         </span>
       </div>
 
-      {/* Ingredients List */}
-      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs overflow-y-auto pr-1 min-h-0 max-h-[35dvh]">
+      {/* 2-Column Grid of Clean Flat ingredient chips */}
+      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
         {ingredients.map((ing, i) => {
           const scaledAmount = formatAmount(ing.amount, ing.unit);
           const amountStr = scaledAmount ? `${scaledAmount} ` : '';
@@ -44,7 +44,7 @@ export const CookingModeIngredients: React.FC<CookingModeIngredientsProps> = ({
           return (
             <li
               key={`${ing.name}-${i}`}
-              className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-gray-800/80 shadow-xs border-none transition-all"
+              className="flex items-center gap-3 p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-gray-800/90 shadow-xs border-none transition-all"
             >
               <IngredientIcon
                 baseName={ing.baseName}

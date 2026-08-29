@@ -24,29 +24,35 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
   return (
     <div
       key={cookingStepIndex}
-      className="flex-1 min-h-0 flex flex-col justify-center items-center my-2 sm:my-5 max-w-4xl mx-auto w-full px-2 sm:px-4 text-center overflow-y-auto animate-fade-in"
+      className="flex-1 min-h-0 flex flex-col justify-center items-center my-2 sm:my-4 max-w-2xl mx-auto w-full px-1 sm:px-3 overflow-y-auto animate-fade-in"
     >
-      {/* Step Number Badge */}
-      <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-xl mb-4 shrink-0 shadow-xs select-none">
-        {currentStep.step}
-      </div>
+      {/* Cohesive Step Card */}
+      <div className="w-full bg-gray-50/90 dark:bg-gray-900/60 rounded-3xl overflow-hidden shadow-xs border-none flex flex-col my-auto transition-all">
+        {/* Step Header & Instruction Text */}
+        <div className="p-5 sm:p-7 flex flex-col items-center text-center gap-3.5">
+          {/* Step Number Badge */}
+          <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-lg shrink-0 shadow-xs select-none">
+            {currentStep.step}
+          </div>
 
-      {/* Step Description */}
-      <h1 className="text-2xl sm:text-3xl md:text-3.5xl font-bold text-gray-900 dark:text-white tracking-tight leading-relaxed md:leading-[1.6] mb-5 max-h-[35dvh] overflow-y-auto px-2 shrink-0">
-        <RecipeInstructionText
-          variant="focused"
-          text={currentStep.description}
-          recipe={recipe}
+          {/* Step Description */}
+          <h1 className="text-xl sm:text-2xl md:text-2.5xl font-bold text-gray-900 dark:text-white tracking-tight leading-relaxed px-1">
+            <RecipeInstructionText
+              variant="focused"
+              text={currentStep.description}
+              recipe={recipe}
+              formatAmount={formatAmount}
+              stepNum={currentStep.step}
+            />
+          </h1>
+        </div>
+
+        {/* Integrated Contextual Step Ingredients */}
+        <CookingModeIngredients
+          ingredients={stepIngredients}
           formatAmount={formatAmount}
-          stepNum={currentStep.step}
         />
-      </h1>
-
-      {/* Contextual Ingredients */}
-      <CookingModeIngredients
-        ingredients={stepIngredients}
-        formatAmount={formatAmount}
-      />
+      </div>
     </div>
   );
 };
