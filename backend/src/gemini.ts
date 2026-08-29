@@ -185,7 +185,7 @@ const recipeSchema = {
           },
           parallelPrepHint: {
             type: FunctionDeclarationSchemaType.STRING,
-            description: 'Optional chef tip for parallel preparation during passive waiting times (e.g. while baking, simmering, boiling, or cooling for >= 5 minutes, advise what upcoming steps the user can already prepare in advance, e.g. "Tipp: Während das Hähnchen 20 Min. im Ofen backt: Schon die Burger Buns aufschneiden und die Sauce anrühren."). Only set when there is a significant passive waiting time AND an upcoming step that can be prepared in advance.',
+            description: 'Optional chef tip for parallel preparation ONLY during explicit passive waiting times of >= 5 minutes (e.g., while baking in oven, simmering, or chilling). Advises what upcoming steps the user can already prepare in advance (e.g., "Tipp: Während das Hähnchen 20 Min. im Ofen backt: Schon die Burger Buns aufschneiden und die Sauce anrühren."). CRITICAL: NEVER populate this for active hands-on steps (chopping, mixing, assembling, plating), and NEVER output generic phrases like "prepare for next step". Omit if there is no passive waiting time >= 5 min.',
           },
         },
         required: ['step', 'description'],
@@ -570,7 +570,13 @@ Key Constraints:
    f) Strict Exclusions: Absolutely NO plastic sheen, NO CGI/3D render, NO text, NO labels, NO logos, NO watermarks, NO hands, NO humans, and NO raw prep clutter.
 19. Alternative English BaseName Synonyms (synonyms): For every ingredient, you MUST populate the "synonyms" array with 1 to 3 alternative common English singular culinary names or regional English equivalents (e.g. for "strained tomato": ["passata", "tomato puree", "sieved tomato"]; for "spring onion": ["scallion", "green onion", "salad onion"]; for "eggplant": ["aubergine"]; for "zucchini": ["courgette"]; for "chickpea": ["garbanzo bean", "garbanzo"]; for "rolled oat": ["oat flake", "oats"]; for "cream cheese": ["double cream cheese", "soft cheese"]; for "quark": ["curd", "curd cheese"]; for "arugula": ["rocket"]; for "bell pepper": ["sweet pepper", "capsicum"]). Follow the exact same English singular lowercase formatting rules as baseName. Output an empty array [] ONLY if there are genuinely no alternative names.
 20. Standalone Grocery Product vs. Custom Mixture (isGenericGrocery): For every ingredient, you MUST set "isGenericGrocery" to true if it is a standard, widely available commercial grocery product sold standalone in supermarkets (e.g. "Frischkäse", "Butter", "Edamame", "Hähnchenbrust", "Haferflocken", "Tomatenmark", "Paprikapulver", "Gouda"). Set it to false for homemade mixtures, compound sauces, marinades, or special recipe-specific blends (e.g. "secret sauce", "homemade herb butter", "onion bacon topping", "sweet chili dip", "secret exotic fantasy sauce").
-21. Parallel Preparation Chef Hints (parallelPrepHint): For any instruction step that involves a significant passive waiting time (e.g. baking in the oven, simmering/boiling a sauce, chilling in the fridge for >= 5 minutes) AND where upcoming steps involve tasks that can be prepared in advance (e.g. washing/cutting vegetables, mixing a sauce, slicing buns/bread, prepping garnishes), provide a short, helpful chef hint in "parallelPrepHint" advising the cook to use the waiting time (e.g. "Tipp: Nutze die 20 Min. Backzeit, um schon die Burger Buns aufzuschneiden und die Sauce anzurühren."). If a step has no passive waiting time or future steps depend directly on the hot/finished output of this step, omit this field or leave it undefined.
+21. Parallel Preparation Chef Hints (parallelPrepHint):
+   - STRICT CRITERIA: A step may ONLY have a "parallelPrepHint" if it has an explicit, PASSIVE waiting time of AT LEAST 5 minutes (e.g. baking in the oven, boiling pasta/potatoes, simmering a stew/sauce, resting dough, or chilling in the fridge) AND there are remaining subsequent steps containing independent tasks that can be pre-assembled or pre-chopped (e.g. washing lettuce, slicing buns, mixing sauces, prepping garnishes).
+   - STRICT PROHIBITIONS:
+     * NEVER generate a "parallelPrepHint" for active, hands-on steps (e.g. chopping, frying while stirring, mixing, assembling/layering, or plating).
+     * NEVER output generic tautological placeholder phrases (e.g. "Tipp: Die Zutaten vorbereiten", "Für den nächsten Schritt bereitstellen", "Zutaten bereitstellen").
+     * NEVER add a hint to the final step.
+   - EXPECTATION: In most recipes, only 0 or 1 step (e.g. the long bake or simmer step) should have a "parallelPrepHint". If there is no passive waiting time of >= 5 minutes, leave "parallelPrepHint" completely omitted/undefined.
 ${caption.trim() ? `\nDescription/Caption:\n"""\n${caption}\n"""` : ''}${htmlContent ? `\nWebsite Content:\n"""\n${htmlContent.slice(0, 30000)}\n"""` : ''}`;
 
     contentParts.push(prompt);
@@ -774,7 +780,7 @@ Important Constraints:
 13. Alternative English BaseName Synonyms (synonyms): For every added or modified ingredient, populate the "synonyms" array with 1 to 3 alternative English singular culinary names (e.g. for "strained tomato": ["passata", "tomato puree"]).
 14. Standalone Grocery Product vs. Custom Mixture (isGenericGrocery): Set "isGenericGrocery" to true for standard commercial grocery items, and false for custom mixes/sauces.
 15. Updated Food Photography Image Prompt: In the "imagePrompt" field, provide a newly updated, ultra-compact keyword-dense food photography prompt strictly in ENGLISH for FLUX.1 [schnell] with authentic natural food photography style (cozy kitchen, soft daylight, realistic home-cooked textures, NO fake studio/plastic look) that precisely reflects the remixed dish using short comma-separated key phrases.
-16. Parallel Preparation Chef Hints (parallelPrepHint): For any updated step with >= 5 min waiting time, update or keep the "parallelPrepHint" advising what upcoming tasks can be prepared in advance.
+16. Parallel Preparation Chef Hints (parallelPrepHint): Follow the exact same strict criteria as the base extraction: ONLY include a "parallelPrepHint" if the step has an explicit passive waiting duration of >= 5 minutes (e.g. baking, simmering, chilling) and subsequent steps contain independent advance prep. NEVER generate hints for active hands-on steps, placeholder phrases, or the final step.
 
 User's Remix Request:
 "${remixPrompt}"
