@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Recipe, InstructionStep } from '../../types';
 import type { StepIngredientItem } from './types';
 import RecipeInstructionText from '../RecipeInstructionText';
@@ -10,6 +11,7 @@ interface CookingModeStepContentProps {
   stepIngredients: StepIngredientItem[];
   formatAmount: (amount: number, unit?: string) => string;
   cookingStepIndex: number;
+  totalSteps: number;
 }
 
 export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
@@ -18,6 +20,7 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
   stepIngredients,
   formatAmount,
   cookingStepIndex,
+  totalSteps,
 }) => {
   if (!currentStep) return null;
 
@@ -28,7 +31,7 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
     >
       {/* Cohesive Step Content - Clean Flat seamless container */}
       <div className="w-full max-w-3xl flex flex-col my-auto shrink-0 transition-all">
-        {/* Hero Cover Banner (Appetite Banner) */}
+        {/* Hero Cover Banner with Segmented Story-Style Progress */}
         {(recipe.imageUrl || recipe.emoji) && (
           <div className="w-full h-36 sm:h-48 rounded-[24px] overflow-hidden relative shadow-xs shrink-0 bg-gray-100 dark:bg-gray-800/80 mb-2">
             <CachedImage
@@ -37,8 +40,30 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
               alt={recipe.title}
               className="w-full h-full object-cover"
             />
-            {/* Subtle gradient vignette at bottom for seamless depth */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
+            {/* Top dark gradient for story progress bar contrast + subtle bottom vignette */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/20 pointer-events-none" />
+
+            {/* Segmented Story Progress Bars (Instagram / Reel Style) */}
+            {totalSteps > 0 && (
+              <div className="absolute top-3 inset-x-3.5 z-10 flex gap-1.5 items-center pointer-events-none">
+                {Array.from({ length: totalSteps }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="flex-1 h-1 rounded-full overflow-hidden bg-white/35 backdrop-blur-xs transition-all"
+                  >
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        idx < cookingStepIndex
+                          ? 'w-full bg-white'
+                          : idx === cookingStepIndex
+                          ? 'w-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
+                          : 'w-0'
+                      }`}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

@@ -197,6 +197,7 @@ export default function CookingMode({
         onClose={onClose}
         onOpenTimer={handleOpenTimer}
         onOpenCopilot={handleOpenCopilot}
+        hasCoverImage={Boolean(recipe.imageUrl || recipe.emoji)}
       />
 
       {/* Active Timers Banner Section */}
@@ -209,6 +210,7 @@ export default function CookingMode({
         stepIngredients={stepIngredients}
         formatAmount={formatAmount}
         cookingStepIndex={cookingStepIndex}
+        totalSteps={totalSteps}
       />
 
       {/* Bottom Navigation Controls */}

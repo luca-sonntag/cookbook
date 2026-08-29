@@ -11,6 +11,7 @@ interface CookingModeHeaderProps {
   onClose: () => void;
   onOpenTimer: () => void;
   onOpenCopilot: () => void;
+  hasCoverImage?: boolean;
 }
 
 export const CookingModeHeader: React.FC<CookingModeHeaderProps> = ({
@@ -19,6 +20,7 @@ export const CookingModeHeader: React.FC<CookingModeHeaderProps> = ({
   onClose,
   onOpenTimer,
   onOpenCopilot,
+  hasCoverImage = false,
 }) => {
   const { t } = useI18n();
   const { timers } = useTimerContext();
@@ -27,7 +29,7 @@ export const CookingModeHeader: React.FC<CookingModeHeaderProps> = ({
   const progressPercent = totalSteps > 0 ? ((currentStepIndex + 1) / totalSteps) * 100 : 0;
 
   return (
-    <header className="flex flex-col gap-2.5 pb-1 shrink-0">
+    <header className="flex flex-col gap-2 pb-1 shrink-0">
       {/* Top action row: Left Close, Center Step Badge, Right Tools */}
       <div className="flex justify-between items-center gap-2">
         {/* Left: Close Action */}
@@ -87,8 +89,8 @@ export const CookingModeHeader: React.FC<CookingModeHeaderProps> = ({
         </div>
       </div>
 
-      {/* Progress bar track */}
-      {totalSteps > 0 && (
+      {/* Fallback progress bar track (only shown when recipe has no cover banner) */}
+      {!hasCoverImage && totalSteps > 0 && (
         <div className="w-full bg-black/[0.04] dark:bg-white/[0.08] h-1.5 rounded-full overflow-hidden">
           <div
             className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out"
