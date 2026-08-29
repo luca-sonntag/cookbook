@@ -12,6 +12,7 @@
   * **Dekomposition von Verbundzutaten:** Im Prompt ist geregelt, dass während des Rezept-Videos zubereitete Verbundkomponenten (wie "Smash Burger Patties" oder "selbstgemachtes Pesto") in ihre atomaren Rohbestandteile zersetzt werden müssen (z. B. Rinderhack, Chesterkäse, Basilikum, Olivenöl).
   * **Erzwingung von Portions-bezogenen Nährwerten:** Das Schema und der Prompt instruieren Gemini, die Rezept-Nährwerte (`nutritionalValues`) stets auf eine einzelne Portion/Servierung normiert zu extrahieren.
   * **Vermeidung von Gesamtnährwert-Halluzinationen:** Ein explizites `hasExplicitNutritionalValues` Boolean-Flag im Schema zwingt Gemini zur Angabe, ob die Gesamtnährwerte im Quellmaterial explizit genannt wurden. Wenn nicht (`false`), löscht das Backend eventuell generierte Werte proaktiv.
+  * **Parallele Zubereitung & Wartezeit-Tipps (`parallelPrepHint`):** Bei Schritten mit passiver Wartezeit (z. B. Backen im Ofen, Köcheln, Kühlen ≥ 5 Min.) generiert Gemini bei Vorhandensein vorbereitbarer Folgeschritte einen kurzen, maßgeschneiderten Chefkoch-Tipp pro Schritt (z. B. *„Tipp: Nutze die 20 Min. Backzeit, um schon die Burger Buns aufzuschneiden und die Sauce anzurühren.“*). Dies ermöglicht dem Nutzer im Kochmodus und in den Rezeptdetails eine effiziente, parallele Zubereitung.
 
 ---
 
