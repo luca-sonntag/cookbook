@@ -48,17 +48,11 @@ export const CookingModeHeader: React.FC<CookingModeHeaderProps> = ({
           </Button>
         </div>
 
-        {/* Center: Title / Progress */}
+        {/* Center: Step Progress Pill */}
         <div className="flex items-center">
-          {hasCoverImage ? (
-            <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">
-              {t('recipe.cookingMode')}
-            </span>
-          ) : (
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-full select-none tabular-nums">
-              {t('recipe.cookingModeProgress', { current: currentStepIndex + 1, total: totalSteps })}
-            </span>
-          )}
+          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-full select-none tabular-nums">
+            {t('recipe.cookingModeProgress', { current: currentStepIndex + 1, total: totalSteps })}
+          </span>
         </div>
 
         {/* Right: Quick action controls in unified calm styling */}
