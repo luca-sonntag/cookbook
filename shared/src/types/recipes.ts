@@ -37,6 +37,7 @@ export interface IngredientGroup {
 export interface InstructionStep {
   step: number;
   description: string;
+  parallelPrepHint?: string;
 }
 
 export interface AlternativeIngredient {

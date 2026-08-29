@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { Play, Check, ChefHat, Utensils, ListChecks, Lightbulb } from 'lucide-react';
+import { Play, Check, ChefHat, Utensils, ListChecks, Lightbulb, Sparkles } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeInstructionText from '../RecipeInstructionText';
 import { useI18n } from '../../context/I18nContext';
@@ -202,6 +202,13 @@ export default function RecipeInstructions({
                     >
                       <RecipeInstructionText text={step.description} recipe={recipe} formatAmount={formatAmount} stepNum={step.step} />
                     </span>
+
+                    {step.parallelPrepHint && !isChecked && (
+                      <div className="mt-2 p-2.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border-none text-amber-950 dark:text-amber-200 flex items-start gap-2 text-xs font-semibold leading-relaxed">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                        <span>{step.parallelPrepHint}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

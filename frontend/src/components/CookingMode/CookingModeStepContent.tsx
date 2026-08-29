@@ -2,6 +2,7 @@ import type { Recipe, InstructionStep } from '../../types';
 import type { StepIngredientItem } from './types';
 import type { StepSlideDirection } from '../../hooks/useCookingMode';
 import { getStepSlideClass } from '../../utils/animations';
+import { Sparkles } from 'lucide-react';
 import RecipeInstructionText from '../RecipeInstructionText';
 import CookingModeIngredients from './CookingModeIngredients';
 import CachedImage from '../CachedImage';
@@ -88,6 +89,18 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
               />
             </div>
           </div>
+
+          {/* Parallel Preparation Chef Hint (Wartezeit-Tipp) */}
+          {currentStep.parallelPrepHint && (
+            <div className="mx-2 my-1 sm:mx-4 sm:my-2 p-3 sm:p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border-none text-amber-950 dark:text-amber-200 flex items-start gap-3 shadow-xs">
+              <div className="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5 select-none">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="flex-1 text-sm font-semibold leading-relaxed">
+                {currentStep.parallelPrepHint}
+              </div>
+            </div>
+          )}
 
           {/* Integrated Contextual Step Ingredients */}
           <CookingModeIngredients
