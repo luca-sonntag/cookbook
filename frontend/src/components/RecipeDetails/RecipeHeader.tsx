@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Popover, Button } from '@heroui/react';
-import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Star } from 'lucide-react';
+import { MoreVertical, Check, Copy, ShoppingCart, Trash2, Folder, Tag, Star, RefreshCw } from 'lucide-react';
 import type { Recipe } from '../../types';
 import RecipeImageGallery from '../RecipeImageGallery';
 import { useI18n } from '../../context/I18nContext';
@@ -8,6 +8,7 @@ import { isPhotoImportUrl } from '../../utils/photoImport';
 import { useCookHistory } from '../../hooks/useCookHistory';
 import { formatRelative } from '../../utils/formatRelative';
 import { hapticLight, hapticNotification } from '../../utils/haptics';
+import { devReExtractRecipe } from '../../utils/dev';
 
 interface RecipeHeaderProps {
   recipe: Recipe;
@@ -69,6 +70,24 @@ export default function RecipeHeader({
       <div className="relative p-2 flex flex-col gap-2">
         {/* Top right action buttons */}
         <div className="absolute top-2 right-2 flex items-center gap-1.5 z-10">
+          {/* DEV Re-Extract Button */}
+          {import.meta.env.DEV && (reelUrl || recipe.sourceUrl) && (
+            <Button
+              isIconOnly
+              onClick={() => {
+                hapticNotification('success');
+                const targetUrl = reelUrl || recipe.sourceUrl;
+                if (targetUrl) {
+                  devReExtractRecipe(targetUrl);
+                }
+              }}
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25 border-none rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-xs"
+              aria-label="[DEV] Re-Extract Recipe"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </Button>
+          )}
+
           {onToggleFavorite && (
             <Button
               isIconOnly
@@ -176,6 +195,23 @@ export default function RecipeHeader({
                   </button>
                 )}
 
+                {import.meta.env.DEV && (reelUrl || recipe.sourceUrl) && (
+                  <button
+                    onClick={() => {
+                      hapticNotification('success');
+                      setIsMenuOpen(false);
+                      const targetUrl = reelUrl || recipe.sourceUrl;
+                      if (targetUrl) {
+                        devReExtractRecipe(targetUrl);
+                      }
+                    }}
+                    className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 active:scale-[0.98] rounded-xl text-left transition-all cursor-pointer outline-none border-none"
+                  >
+                    <RefreshCw className="w-4 h-4 text-amber-500" />
+                    <span>[DEV] Neu extrahieren</span>
+                  </button>
+                )}
+
                 {/* Looked up rarely, so it lives here rather than competing
                     with the title for space above the fold. */}
                 {createdAt && (
@@ -189,7 +225,11 @@ export default function RecipeHeader({
         </div>
 
         {/* Creator handle + Title: no gap between handle and title, padded right so title wraps before buttons */}
-        <div className={onToggleFavorite ? 'pr-[100px]' : 'pr-[52px]'}>
+        <div className={
+          import.meta.env.DEV && (reelUrl || recipe.sourceUrl)
+            ? (onToggleFavorite ? 'pr-[148px]' : 'pr-[100px]')
+            : (onToggleFavorite ? 'pr-[100px]' : 'pr-[52px]')
+        }>
           {(recipe.sourceHandle || isPhotoImportUrl(reelUrl)) && (
             <div className="text-xs font-extrabold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-300 mb-0.5 leading-none select-none">
               {recipe.sourceHandle || '@PHOTOIMPORT'}

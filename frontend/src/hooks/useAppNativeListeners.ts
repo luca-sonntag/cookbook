@@ -222,6 +222,20 @@ export function useAppNativeListeners({
     });
   }, [authLoading, user, replace, setUrl, triggerExtraction, limitStatus]);
 
+  // Dev mode re-extraction trigger
+  useEffect(() => {
+    const handleDevReExtract = (e: Event) => {
+      const customEvent = e as CustomEvent<{ url: string }>;
+      if (customEvent.detail?.url) {
+        replace('extract');
+        setUrl(customEvent.detail.url);
+        triggerExtraction(customEvent.detail.url);
+      }
+    };
+    window.addEventListener('app:dev-re-extract', handleDevReExtract);
+    return () => window.removeEventListener('app:dev-re-extract', handleDevReExtract);
+  }, [replace, setUrl, triggerExtraction]);
+
   // Native Deep Links
   useEffect(() => {
     return registerAppUrlOpen((openUrl) => {
