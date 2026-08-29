@@ -12,6 +12,7 @@ import CachedImage from './CachedImage';
 import FullscreenImageModal from './FullscreenImageModal';
 import { getCachedImage } from '../utils/imageStore';
 import { isPhotoImportUrl } from '../utils/photoImport';
+import { hapticLight } from '../utils/haptics';
 
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -168,15 +169,18 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
 
   const overlayButtons = (
     <>
-      {/* Floating Back Button */}
+      {/* Floating Back Button (44x44px touch target) */}
       {onBack && (
         <Button
           isIconOnly
-          onPress={onBack}
-          className="absolute top-6 left-5 z-20 bg-black/65 hover:bg-emerald-600/90 text-white w-9 h-9 min-w-0 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+          onPress={() => {
+            hapticLight();
+            onBack();
+          }}
+          className="absolute top-4 left-4 z-20 bg-black/65 hover:bg-emerald-600/90 text-white w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
           aria-label="Go back"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-5 h-5" />
         </Button>
       )}
 
@@ -186,9 +190,9 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
         // rendering a link to an unresolvable photo:// URL.
         if (isPhotoImportUrl(reelUrl)) {
           return (
-            <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
-              <span className="bg-black/65 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-lg">
-                <Camera className="w-3 h-3 text-emerald-300" />
+            <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2">
+              <span className="bg-black/65 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-md border border-white/10 shadow-lg select-none">
+                <Camera className="w-3.5 h-3.5 text-emerald-300" />
                 <span>{t('catalog.photoImport')}</span>
               </span>
             </div>
@@ -199,14 +203,15 @@ export default function RecipeImageGallery({ recipe, reelUrl, onBack }: RecipeIm
         const iconColor = platformIconColor(platform);
 
         return (
-          <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
+          <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2">
             <a
               href={reelUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-black/65 hover:bg-emerald-600/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105"
+              onClick={() => hapticLight()}
+              className="bg-black/65 hover:bg-emerald-600/90 text-white text-xs font-semibold px-3 py-1.5 min-h-[36px] rounded-full flex items-center gap-1.5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
             >
-              <PlatformIcon platform={platform} className={`w-3 h-3 ${iconColor}`} />
+              <PlatformIcon platform={platform} className={`w-3.5 h-3.5 ${iconColor}`} />
               <span>{t('catalog.viewReel')}</span>
             </a>
           </div>

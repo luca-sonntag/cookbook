@@ -1,5 +1,6 @@
 import { ArrowLeft, Clock, Users, Flame } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
+import { hapticSelection, hapticLight } from '../../utils/haptics';
 import CachedImage from '../CachedImage';
 
 interface RecipeStickyBarProps {
@@ -44,6 +45,11 @@ export default function RecipeStickyBar({
     { id: 'instructions' as const, label: t('recipe.tabInstructions') },
   ];
 
+  const handleTabClick = (sectionId: 'ingredients' | 'instructions' | 'details') => {
+    hapticSelection();
+    onSectionClick(sectionId);
+  };
+
   return (
     <div
       id="recipe-sticky-bar"
@@ -56,22 +62,25 @@ export default function RecipeStickyBar({
       {/* Collapsed title row — only present once the hero has scrolled away. */}
       <div
         className={`flex items-center gap-2.5 overflow-hidden motion-safe:transition-all motion-safe:duration-200 ${
-          isCollapsed ? 'max-h-14 opacity-100 pt-2 pb-1' : 'max-h-0 opacity-0 pointer-events-none py-0'
+          isCollapsed ? 'max-h-16 opacity-100 pt-2 pb-1.5' : 'max-h-0 opacity-0 pointer-events-none py-0'
         }`}
         aria-hidden={!isCollapsed}
       >
         {onBack && (
           <button
             type="button"
-            onClick={onBack}
+            onClick={() => {
+              hapticLight();
+              onBack();
+            }}
             tabIndex={isCollapsed ? 0 : -1}
             aria-label={t('recipe.back')}
-            className="w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 transition-all cursor-pointer outline-none border-none bg-transparent"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 transition-all cursor-pointer outline-none border-none bg-transparent"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
         )}
-        <div className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-black/5 dark:border-white/10 shadow-xs flex items-center justify-center">
+        <div className="w-10 h-10 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-black/5 dark:border-white/10 shadow-xs flex items-center justify-center">
           <CachedImage
             src={imageUrl}
             emoji={emoji}
@@ -104,25 +113,25 @@ export default function RecipeStickyBar({
         </div>
       </div>
 
-      {/* Navigation tabs */}
-      <nav className="flex w-full mt-1.5" aria-label="Recipe Navigation">
+      {/* Navigation tabs with min 48px touch target */}
+      <nav className="flex w-full mt-1" aria-label="Recipe Navigation">
         {sections.map((section) => {
           const isActive = activeSection === section.id;
           return (
             <button
               key={section.id}
               type="button"
-              onClick={() => onSectionClick(section.id)}
-              className={`flex-1 text-center py-3 text-sm font-semibold transition-all relative cursor-pointer outline-none border-none select-none ${
+              onClick={() => handleTabClick(section.id)}
+              className={`flex-1 text-center min-h-[48px] py-3 text-sm font-semibold transition-all relative flex items-center justify-center cursor-pointer outline-none border-none select-none ${
                 isActive
-                  ? 'text-emerald-600 dark:text-emerald-400'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <span>{section.label}</span>
               {/* Smooth sliding scale underline */}
               <span
-                className={`absolute bottom-0 inset-x-0 h-0.5 bg-emerald-600 dark:bg-emerald-500 transition-all duration-200 origin-center ${
+                className={`absolute bottom-0 inset-x-0 h-0.5 bg-emerald-600 dark:bg-emerald-500 transition-all duration-200 ease-out origin-center ${
                   isActive ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
                 }`}
               />

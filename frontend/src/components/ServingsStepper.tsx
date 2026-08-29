@@ -44,28 +44,28 @@ export const ServingsStepper: React.FC<ServingsStepperProps> = ({
     }
   };
 
-  // Size variations
+  // Size variations with touch-friendly targets (Rule 1: Min Tap Areas)
   const sizeConfig = {
     sm: {
-      capsule: 'h-8 px-0.5 gap-1',
-      btn: 'w-7 h-7',
-      icon: 'w-3 h-3',
-      text: 'text-xs min-w-[20px]',
-      userIcon: 'w-3 h-3',
-    },
-    md: {
-      capsule: 'h-8.5 px-0.5 gap-1',
-      btn: 'w-7.5 h-7.5',
-      icon: 'w-3.5 h-3.5 stroke-[2.5]',
-      text: 'text-xs min-w-[24px]',
+      capsule: 'h-9 px-1 gap-1',
+      btn: 'w-8 h-8 min-w-[32px] min-h-[32px]',
+      icon: 'w-3.5 h-3.5',
+      text: 'text-xs min-w-[22px]',
       userIcon: 'w-3.5 h-3.5',
     },
-    lg: {
+    md: {
       capsule: 'h-10 px-1 gap-1.5',
-      btn: 'w-8 h-8',
+      btn: 'w-9 h-9 min-w-[36px] min-h-[36px]',
       icon: 'w-4 h-4 stroke-[2.5]',
-      text: 'text-sm min-w-[28px]',
+      text: 'text-xs font-bold min-w-[26px]',
       userIcon: 'w-4 h-4',
+    },
+    lg: {
+      capsule: 'h-11.5 px-1.5 gap-2',
+      btn: 'w-10 h-10 min-w-[40px] min-h-[40px]',
+      icon: 'w-4.5 h-4.5 stroke-[2.5]',
+      text: 'text-sm font-bold min-w-[30px]',
+      userIcon: 'w-4.5 h-4.5',
     },
   }[size];
 
