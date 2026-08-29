@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { MealPlannerViewProps } from './types';
+import type { MealPlanEntry } from '../../types';
 import { useMealPlanner } from './useMealPlanner';
 import { MealPlannerHeader } from './MealPlannerHeader';
 import { WeekNavigator } from './WeekNavigator';
@@ -7,6 +8,7 @@ import { WeekDayPicker } from './WeekDayPicker';
 import { DailyInsightPill } from './DailyInsightPill';
 import { DayMealSlots } from './DayMealSlots';
 import { RecipePickerModal } from './RecipePickerModal';
+import CookedModal from '../CookedModal';
 import { useSwipeGesture } from '../../hooks/useSwipeGesture';
 
 export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
@@ -39,6 +41,18 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
     deletePlan,
     addWeekToShoppingList,
   } = useMealPlanner(history, addRecipeIngredients);
+
+  const [cookedModalRecipe, setCookedModalRecipe] = useState<{ id: string; title: string } | null>(null);
+
+  const handleToggleCooked = useCallback((entry: MealPlanEntry) => {
+    if (!entry.isCooked) {
+      setCookedModalRecipe({
+        id: entry.recipeId,
+        title: entry.recipe?.title || 'Rezept',
+      });
+    }
+    toggleCooked(entry);
+  }, [toggleCooked]);
 
   const goToNextDay = useCallback(() => {
     const days = weekDays;
@@ -116,7 +130,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
             entries={activeDayEntries}
             onAddRecipeToSlot={(slotType) => setPickerSlot({ date: selectedDate, mealType: slotType })}
             onUpdateServings={updateServings}
-            onToggleCooked={toggleCooked}
+            onToggleCooked={handleToggleCooked}
             onDeleteEntry={deletePlan}
             onMoveToTomorrow={moveToTomorrow}
             onSelectRecipe={onSelectRecipe}
@@ -138,6 +152,16 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
           }
         }}
       />
+
+      {/* Gamification Cooked Verification Modal */}
+      {cookedModalRecipe && (
+        <CookedModal
+          isOpen={!!cookedModalRecipe}
+          recipeId={cookedModalRecipe.id}
+          recipeTitle={cookedModalRecipe.title}
+          onClose={() => setCookedModalRecipe(null)}
+        />
+      )}
     </div>
   );
 };

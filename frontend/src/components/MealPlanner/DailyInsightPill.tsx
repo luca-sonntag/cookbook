@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utensils, Clock, Flame, CheckCircle2 } from 'lucide-react';
+import { Utensils, Clock, Flame } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import type { DailyInsightPillProps } from './types';
 import { getTotalTime } from '../../hooks/useSavedCatalog';
@@ -19,9 +19,6 @@ export const DailyInsightPill: React.FC<DailyInsightPillProps> = ({ entries }) =
   const totalTime = entries.reduce((sum, e) => {
     return sum + getTotalTime(e.recipe);
   }, 0);
-
-  const cookedCount = entries.filter((e) => e.isCooked).length;
-  const isAllCooked = cookedCount > 0 && cookedCount === entries.length;
 
   const mealsText =
     entries.length === 1
@@ -49,27 +46,6 @@ export const DailyInsightPill: React.FC<DailyInsightPillProps> = ({ entries }) =
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100/90 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border-none">
           <Clock className="w-3.5 h-3.5 text-gray-400 dark:text-gray-400 stroke-[2] shrink-0" />
           <span>{totalTime} min</span>
-        </div>
-      )}
-
-      {/* Cooked Progress Chip */}
-      {cookedCount > 0 && (
-        <div
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-full border-none font-bold transition-colors ${
-            isAllCooked
-              ? 'bg-emerald-600 text-white shadow-xs shadow-emerald-600/30'
-              : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-          }`}
-        >
-          <CheckCircle2 className="w-3.5 h-3.5 shrink-0 stroke-[2.25]" />
-          <span>
-            {isAllCooked
-              ? t('mealPlanner.allCookedDone')
-              : t('mealPlanner.insightCookedProgress', {
-                  cooked: cookedCount,
-                  total: entries.length,
-                })}
-          </span>
         </div>
       )}
     </div>
