@@ -4,21 +4,22 @@ import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import PremiumModal from '../PremiumModal';
 import { Flame, Crown } from 'lucide-react';
+import type { NutritionalValues } from '../../types';
+
+type NutritionValue = string | number | null | undefined;
 
 interface RecipeNutritionProps {
-  nutritionalValues: any;
-  sourceNutritionalValues?: any;
+  nutritionalValues: NutritionalValues;
+  sourceNutritionalValues?: NutritionalValues | null;
   isAiEstimated: boolean;
   isVerified?: boolean;
   showTotalNutrition?: boolean;
   onToggleTotalNutrition?: (isTotal: boolean) => void;
-  getNutritionDisplayValue: (val: any, unit?: string, isTotal?: boolean, includeUnit?: boolean) => string;
+  getNutritionDisplayValue: (val: NutritionValue, unit?: string, isTotal?: boolean, includeUnit?: boolean) => string;
   /**
    * `summary` is the headline figure carried by the metrics row at the top of
    * the page: calories plus the macro distribution bar. `detail` is the full
-   * per-macro breakdown that sits in its own section further down. Splitting
-   * them keeps the numbers in one component while letting the page show the
-   * short version early and the long version where it belongs.
+   * per-macro breakdown that sits in its own section further down.
    */
   variant?: 'summary' | 'detail';
 }
@@ -35,7 +36,7 @@ export default function RecipeNutrition({
   const { isPremium } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
-  const parseNum = (val: any) => {
+  const parseNum = (val: NutritionValue): number => {
     if (val === undefined || val === null || val === '') return 0;
     if (typeof val === 'number') return val;
     const match = String(val).trim().match(/^([\d.,]+)/);

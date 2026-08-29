@@ -1,32 +1,29 @@
 import { Clock, Utensils, Users } from 'lucide-react';
 import RecipeNutrition from './RecipeNutrition';
 import { useI18n } from '../../context/I18nContext';
+import type { NutritionalValues } from '../../types';
 
 interface RecipeInfoSectionProps {
-  prepTime: any;
-  cookTime: any;
-  formatTimeValue: (time: any) => string;
+  prepTime?: string | number | null;
+  cookTime?: string | number | null;
+  formatTimeValue: (time: string | number | null | undefined) => string;
   servings: number;
 
   /** Nutrition block is omitted entirely when the recipe carries no values. */
-  nutritionalValues: any | null;
+  nutritionalValues: NutritionalValues | null;
   /** What the recipe source claimed, shown only when it diverges from the computed figure. */
-  sourceNutritionalValues?: any | null;
+  sourceNutritionalValues?: NutritionalValues | null;
   isAiEstimated: boolean;
   isVerified?: boolean;
   showTotalNutrition: boolean;
   onToggleTotalNutrition: (isTotal: boolean) => void;
-  getNutritionDisplayValue: (val: any, unit?: string, isTotal?: boolean, includeUnit?: boolean) => string;
+  getNutritionDisplayValue: (val: string | number | null | undefined, unit?: string, isTotal?: boolean, includeUnit?: boolean) => string;
 }
 
 /**
  * The metrics row at the top of the recipe page: prep time, cook time and
  * servings as three equal figures, followed by the calorie headline and the
  * macro bar.
- *
- * Deliberately short. The full per-macro breakdown lives in its own section
- * below the instructions, and the servings *stepper* sits in the ingredients
- * header where its effect is visible — this row only reports the number.
  */
 export default function RecipeInfoSection({
   prepTime,

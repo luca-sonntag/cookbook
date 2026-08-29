@@ -1,25 +1,25 @@
 import { useState } from 'react';
 import { Button } from '@heroui/react';
-import { Check, Salad, ChevronRight, Users, ShoppingCart, ArrowRight, ArrowLeftRight } from 'lucide-react';
+import { Check, Salad, Users, ShoppingCart } from 'lucide-react';
 import type { Ingredient, Recipe } from '../../types';
+import type { SortedIngredientGroup } from './types';
 import { useI18n } from '../../context/I18nContext';
 import { getCategoryTheme } from '../../i18n';
-import { getParentIngredient } from '../../utils/ingredientTaxonomy';
-import IngredientIcon from '../IngredientIcon';
+import { hapticLight } from '../../utils/haptics';
 import IngredientNutritionSheet from './IngredientNutritionSheet';
 import RecipeServingsStepper from './RecipeServingsStepper';
+import IngredientItemRow from './IngredientItemRow';
+import AlternativeIngredientsList from './AlternativeIngredientsList';
 import PremiumModal from '../PremiumModal';
 
 interface RecipeIngredientsProps {
   recipe: Recipe;
-  sortedIngredients: Array<{ group: { name: string; items: Ingredient[] }; originalIdx: number }>;
+  sortedIngredients: SortedIngredientGroup[];
   isPremium: boolean;
   scaleFactor: number;
   formatAmount: (amount: number | undefined, unit: string | undefined) => string;
   onAddIngredients?: () => void;
   isAdded: boolean;
-  /** Scaling lives here rather than in the metrics row, so the amounts it
-   *  rewrites are on screen while the user adjusts it. */
   servings: number;
   onDecreaseServings: () => void;
   onIncreaseServings: () => void;
@@ -104,139 +104,48 @@ export default function RecipeIngredients({
                   </h4>
                 )}
                 <ul className="flex flex-col gap-1">
-                {group.items.map((ing, idx) => {
-                  const scaledAmount = formatAmount(ing.amount, ing.unit);
-                  const amountStr = scaledAmount ? `${scaledAmount} ` : '';
-                  const unitStr = ing.unit ? `${ing.unit} ` : '';
-                  const name = ing.name;
-                  const uniqueId = `${name}-${originalIdx}-${idx}`;
-                  const parent = getParentIngredient(ing);
-                  const showParentBadge = parent && parent.name.toLowerCase().trim() !== name.toLowerCase().trim();
-
-                  return (
-                    <li
-                      key={uniqueId}
-                      onClick={() => {
-                        if (ing.calories !== undefined && ing.calories !== null) {
-                          if (!isPremium) {
-                            setIsPremiumModalOpen(true);
-                          } else {
-                            setSelectedNutrition({ ingredient: ing, category: group.name });
-                          }
-                        }
-                      }}
-                      className={`flex items-center justify-between gap-2 py-1.5 transition-all ${
-                        ing.calories !== undefined && ing.calories !== null
-                          ? 'cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/[0.02] rounded-xl px-1 -mx-1 active:scale-[0.99]'
-                          : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <IngredientIcon
-                          baseName={ing.baseName}
-                          canonicalId={ing.canonicalId}
-                          category={group.name}
-                          name={name}
-                          size="md"
-                        />
-                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                          {ing.replacedOriginal && (
-                            <span className="text-[11px] leading-tight text-red-500/70 dark:text-red-400/70 line-through font-normal truncate block mb-0.5">
-                              {ing.replacedOriginal}
-                            </span>
-                          )}
-                          {/* 1. Name oben */}
-                          <div className="flex items-baseline flex-wrap gap-x-1.5 min-w-0 text-sm font-medium text-gray-900 dark:text-white leading-snug">
-                            {ing.brand && (
-                              <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 bg-black/[0.05] dark:bg-white/[0.08] px-1.5 py-0.5 rounded-md leading-tight">
-                                {ing.brand}
-                              </span>
-                            )}
-                            <span>{name}</span>
-                            {showParentBadge && (
-                              <span className="text-xs text-gray-400 dark:text-gray-400 font-normal">
-                                {t('recipe.parentDerivedLabel', { parent: parent.name })}
-                              </span>
-                            )}
-                            {ing.modifier && (
-                              <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
-                                ({ing.modifier})
-                              </span>
-                            )}
-                          </div>
-
-                          {/* 2. Menge darunter und etwas kleiner */}
-                          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5">
-                            {(amountStr || unitStr) && (
-                              <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                                {`${amountStr}${unitStr}`.trim()}
-                              </span>
-                            )}
-                            {ing.notes && (
-                              <span className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
-                                {ing.notes}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {(ing.calories !== undefined && ing.calories !== null) && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!isPremium) {
-                              setIsPremiumModalOpen(true);
-                            } else {
-                              setSelectedNutrition({ ingredient: ing, category: group.name });
-                            }
-                          }}
-                          className={`px-2 py-1 rounded-full inline-flex items-center gap-1 text-xs font-semibold shrink-0 border-none transition-all active:scale-95 cursor-pointer ${
-                            isPremium
-                              ? 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
-                              : 'bg-black/[0.04] hover:bg-black/[0.08] dark:bg-white/[0.06] dark:hover:bg-white/[0.1] text-gray-400 dark:text-gray-500'
-                          }`}
-                          title={isPremium && ing.matchedName ? t('recipe.verifiedIngredientTooltip', { name: ing.matchedName }) : undefined}
-                        >
-                          {isPremium ? (
-                            <>
-                              <span className="tabular-nums">{Math.round(ing.calories * scaleFactor)} kcal</span>
-                              <ChevronRight className="w-3 h-3 opacity-40 -ml-0.5" />
-                            </>
-                          ) : (
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          );
-        })}
+                  {group.items.map((ing, idx) => (
+                    <IngredientItemRow
+                      key={`${ing.name}-${originalIdx}-${idx}`}
+                      ingredient={ing}
+                      categoryName={group.name}
+                      originalIdx={originalIdx}
+                      itemIdx={idx}
+                      isPremium={isPremium}
+                      scaleFactor={scaleFactor}
+                      formatAmount={formatAmount}
+                      onSelectNutrition={(item, cat) => setSelectedNutrition({ ingredient: item, category: cat })}
+                      onOpenPremium={() => setIsPremiumModalOpen(true)}
+                    />
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </div>
 
         {/* 3. Add to Shopping List Button (Inside Card Footer) */}
         {onAddIngredients && (
           <div className="px-4.5 py-3.5 sm:px-6 border-t border-black/5 dark:border-white/5 bg-black/[0.01] dark:bg-white/[0.01]">
             <Button
-              className={`w-full py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 h-11 text-xs sm:text-sm active:scale-[0.98] border-none shadow-none ${
+              className={`w-full h-12 min-h-[48px] rounded-2xl font-bold transition-all flex items-center justify-center gap-2 text-sm active:scale-[0.98] border-none shadow-none cursor-pointer ${
                 isAdded
                   ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                   : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
               }`}
-              onPress={onAddIngredients}
+              onPress={() => {
+                hapticLight();
+                onAddIngredients();
+              }}
             >
               {isAdded ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <Check className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
                   <span>{t('recipe.addedToShopping')}</span>
                 </>
               ) : (
                 <>
-                  <ShoppingCart className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <ShoppingCart className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
                   <span>{t('recipe.addToShopping')}</span>
                 </>
               )}
@@ -245,46 +154,9 @@ export default function RecipeIngredients({
         )}
       </div>
 
+      {/* Alternative ingredients section */}
       {recipe.alternativeIngredients && recipe.alternativeIngredients.length > 0 && (
-        <div className="flex flex-col gap-4 mt-2">
-          {/* Section Header (OUTSIDE card) */}
-          <div className="flex items-center gap-3">
-            <div className={medallion}>
-              <ArrowLeftRight className={medallionIcon} />
-            </div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">
-              {t('recipe.alternativeIngredients')}
-            </h3>
-            <span className="ml-auto text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-full px-2.5 py-1 tabular-nums select-none">
-              {recipe.alternativeIngredients.length}
-            </span>
-          </div>
-
-          {/* Clean Flat Card Container */}
-          <div className="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5">
-            {recipe.alternativeIngredients.map((alt, idx) => (
-              <div
-                key={idx}
-                className="bg-gray-50/80 dark:bg-gray-800/50 rounded-xl p-3.5 transition-all"
-              >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 line-through decoration-gray-400/60 bg-gray-200/60 dark:bg-gray-700/50 px-2.5 py-1 rounded-lg">
-                    {alt.original}
-                  </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-500/20 px-2.5 py-1 rounded-lg">
-                    {alt.substitute}
-                  </span>
-                </div>
-                {alt.notes && (
-                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-2 leading-relaxed">
-                    {alt.notes}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+        <AlternativeIngredientsList alternativeIngredients={recipe.alternativeIngredients} />
       )}
 
       {/* Ingredient Nutrition Detail Sheet (Premium only) */}

@@ -1,16 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
-import type { Recipe, Ingredient } from '../../types';
-import { useRecipeScaling } from '../../hooks/useRecipeScaling';
-import { useRecipeProgress } from '../../hooks/useRecipeProgress';
-import { useRecipeNutrition } from '../../hooks/useRecipeNutrition';
-import { categoryOrder, legacyCategoryMap } from '../../i18n';
-import { useI18n } from '../../context/I18nContext';
-import { useToast } from '../../context/ToastContext';
-import { useTimerManager } from '../../hooks/useTimerManager';
-import { useGamification } from '../../context/GamificationContext';
-import { useCookHistory } from '../../hooks/useCookHistory';
+import type { RecipeDetailsProps } from './types';
+import { useRecipeDetails } from './useRecipeDetails';
 
-// Import subcomponents
 import RecipeHeader from './RecipeHeader';
 import RecipeInfoSection from './RecipeInfoSection';
 import RecipeStickyBar from './RecipeStickyBar';
@@ -22,34 +12,10 @@ import CookedButton from '../CookedButton';
 import CookedModal from '../CookedModal';
 import CookHistoryTimeline from '../CookHistoryTimeline';
 import RecipeCopilot from './RecipeCopilot';
-import { useAuth } from '../../context/AuthContext';
 import PremiumModal from '../PremiumModal';
 import ShoppingConfirmSheet from './ShoppingConfirmSheet';
 import AddToMealPlanSheet from '../MealPlanner/AddToMealPlanSheet';
-
-
-import { stripInlineIngredientTags } from '../../utils/ingredientMatch';
-
-interface RecipeDetailsProps {
-  recipe: Recipe;
-  onAddIngredients?: (ingredients: Ingredient[], recipeId: string, recipeTitle: string) => void;
-  onDelete?: () => void;
-  reelUrl?: string;
-  createdAt?: string;
-  onBack?: () => void;
-  onNavigateToShoppingList?: () => void;
-  shoppingListCount?: number;
-  onRemixSuccess?: (newRecipe: Recipe, newJobId: string) => void;
-  onReplaceCurrent?: (newRecipe: Recipe) => void;
-  isParentAvailable?: boolean;
-  onNavigateToRecipe?: (recipeId: string) => void;
-  parentRecipeTitle?: string | null;
-  onAssignCollections?: () => void;
-  onManageFlags?: () => void;
-  flags?: string[];
-  isFavorite?: boolean;
-  onToggleFavorite?: () => void;
-}
+import { useI18n } from '../../context/I18nContext';
 
 export default function RecipeDetails({
   recipe,
@@ -68,485 +34,63 @@ export default function RecipeDetails({
   onManageFlags,
   flags,
   isFavorite = false,
-  onToggleFavorite
+  onToggleFavorite,
 }: RecipeDetailsProps) {
-  const { t, translateCategory } = useI18n();
-  const toast = useToast();
+  const { t } = useI18n();
 
-  // Checklists state (persisted in localStorage)
   const {
-    checkedSteps,
-    toggleStep
-  } = useRecipeProgress(recipe);
-
-  // Configurable servings & scaling hook
-  const {
+    isPremium,
+    isPremiumModalOpen,
+    setIsPremiumModalOpen,
     servings,
     setServings,
     scaleFactor,
-    formatAmount
-  } = useRecipeScaling(recipe);
-
-  // Local UI states
-  const [isCopied, setIsCopied] = useState(false);
-  const { isPremium } = useAuth();
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
-
-  const [isAdded, setIsAdded] = useState(false);
-  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
-  const [isCookingMode, setIsCookingMode] = useState(false);
-  const [isCookedModalOpen, setIsCookedModalOpen] = useState(false);
-  const [initialStepOverride, setInitialStepOverride] = useState<number | undefined>(undefined);
-  const { pendingNavigation, setPendingNavigation } = useTimerManager();
-  const { snapshot } = useGamification();
-  // Bump the cook-history refresh whenever a cook is recorded (totalCooks grows).
-  const cookRefreshKey = snapshot?.stats?.totalCooks ?? 0;
-  const { history: cookHistory } = useCookHistory(recipe.id, cookRefreshKey);
-  const [isShoppingConfirmOpen, setIsShoppingConfirmOpen] = useState(false);
-  const [isAddToPlanOpen, setIsAddToPlanOpen] = useState(false);
-  const [shouldNavigateAfterAdd, setShouldNavigateAfterAdd] = useState(false);
-
-  // In development mode, log the complete recipe model to the browser console when opened
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('🍳 [DevMode] Full Recipe Model:', recipe);
-    }
-  }, [recipe]);
-
-  const handleToggleStep = (stepNum: number) => {
-    const instructions = recipe.instructions ?? [];
-    const isCurrentlyChecked = !!checkedSteps[stepNum];
-    const currentIdx = instructions.findIndex((s) => s.step === stepNum);
-
-    toggleStep(stepNum);
-
-    // If checking this step completes all instructions, automatically prompt to log cooked dish & claim XP
-    if (!isCurrentlyChecked && instructions.length > 0 && currentIdx === instructions.length - 1 && recipe.id) {
-      setIsCookedModalOpen(true);
-    }
-  };
-
-  const [activeSection, setActiveSection] = useState<'ingredients' | 'instructions' | 'details'>('details');
-
-  const [collapseSentinel, setCollapseSentinel] = useState<HTMLDivElement | null>(null);
-  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
-
-  // Track scroll position to update both active navigation section (scroll spy)
-  // and compact title row in sticky sub-navigation.
-  useEffect(() => {
-    const handleScroll = () => {
-      const stickyTopHeight = parseInt(
-        getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
-        10
-      );
-
-      // 1. Collapse state: only show compact title row when the sticky bar is
-      // actually stuck at the top and the hero header has scrolled past.
-      const stickyBar = document.getElementById('recipe-sticky-bar');
-      if (stickyBar) {
-        const barRect = stickyBar.getBoundingClientRect();
-        const isStuck = barRect.top <= stickyTopHeight + 1;
-        const isPastHeader = collapseSentinel
-          ? collapseSentinel.getBoundingClientRect().top <= stickyTopHeight + 2
-          : isStuck;
-
-        setIsHeaderCollapsed(isStuck && isPastHeader);
-      }
-
-      // 2. Section scroll spy
-      const sections = ['ingredients', 'instructions', 'details'] as const;
-      // Offset corresponds to status bar/timers + sub-navigation (48px) + offset buffer.
-      // The extra buffer (120 px instead of 64 px) makes the tab switch earlier so
-      // that it already highlights the incoming section while its heading is still
-      // slightly below the sticky bar — prevents the "tab doesn't switch on click" feel.
-      const offset = stickyTopHeight + 48 + 120;
-      const scrollPosition = window.scrollY + offset;
-
-      for (const sectionId of sections) {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            setActiveSection(sectionId);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initialize
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [recipe, collapseSentinel]);
-
-  const scrollToSection = (sectionId: 'ingredients' | 'instructions' | 'details') => {
-    const el = document.getElementById(sectionId);
-    if (!el) return;
-
-    const stickyTopHeight = parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
-      10
-    );
-
-    // The sticky sub-nav is ~44px on its own, but grows to reveal the compact
-    // title row (~95px total) once the hero has scrolled away.
-    const bar = document.getElementById('recipe-sticky-bar');
-    const barHeight = bar?.offsetHeight ?? 44;
-    const reserved = Math.max(barHeight, 96);
-    // Extra padding so the section heading lands below the sticky bar with
-    // a comfortable gap — keeps the tab switch and the visual starting point in sync.
-    const offset = stickyTopHeight + reserved + 20;
-
-    const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
-  };
-
-  // Listen to state-based pending navigation (handles timing/mount delays)
-  useEffect(() => {
-    if (
-      pendingNavigation &&
-      pendingNavigation.stepNum !== undefined &&
-      (pendingNavigation.recipeId === recipe.id || pendingNavigation.recipeId === recipe.title)
-    ) {
-      setInitialStepOverride(pendingNavigation.stepNum - 1);
-      setIsCookingMode(true);
-      // Consume the navigation state
-      setPendingNavigation(null);
-    }
-  }, [pendingNavigation, recipe.id, recipe.title, setPendingNavigation]);
-
-  // Listen to timer click navigation events to open cooking mode at the correct step
-  useEffect(() => {
-    const handleNavigate = (e: Event) => {
-      const customEvent = e as CustomEvent<{ recipeId: string; stepNum: number }>;
-      if (
-        customEvent.detail &&
-        customEvent.detail.stepNum !== undefined &&
-        (customEvent.detail.recipeId === recipe.id || customEvent.detail.recipeId === recipe.title)
-      ) {
-        setInitialStepOverride(customEvent.detail.stepNum - 1);
-        setIsCookingMode(true);
-      }
-    };
-    window.addEventListener('app:navigate-to-timer-step', handleNavigate);
-    return () => window.removeEventListener('app:navigate-to-timer-step', handleNavigate);
-  }, [recipe.id, recipe.title]);
-
-
-  // Show total or per portion nutrition (persisted in localStorage)
-  const [showTotalNutrition, setShowTotalNutrition] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('recipe_show_total_nutrition');
-      return saved !== null ? JSON.parse(saved) : false;
-    } catch {
-      return false;
-    }
-  });
-
-  // Format prep and cook time helper supporting both legacy string values and new number values
-  const formatTimeValue = (time: any) => {
-    if (time === undefined || time === null || time === '') return 'N/A';
-    if (typeof time === 'number') {
-      return t('recipe.minutes', { count: time });
-    }
-    const strTime = String(time).trim();
-    const match = strTime.match(/\d+/);
-    if (match) {
-      return t('recipe.minutes', { count: match[0] });
-    }
-    return strTime;
-  };
-
-  // Helper to format nutrition values, optionally scaling them and appending units
-  const getNutritionDisplayValue = (val: any, unit: string = 'g', isTotal: boolean = false, includeUnit: boolean = true) => {
-    if (val === undefined || val === null || val === '') return '—';
-
-    let numericVal: number;
-    let originalUnit = '';
-
-    if (typeof val === 'number') {
-      numericVal = val;
-    } else {
-      const match = String(val).trim().match(/^([\d.,]+)\s*([a-zA-Z%]*)$/);
-      if (!match) return String(val);
-      numericVal = parseFloat(match[1].replace(',', '.'));
-      originalUnit = match[2] || '';
-      if (isNaN(numericVal)) return String(val);
-    }
-
-    if (numericVal === 0) return '—';
-
-    // Scale value if total is requested: multiply the per-serving value by the selected servings
-    const finalVal = isTotal ? numericVal * servings : numericVal;
-
-    const displayUnit = originalUnit || unit;
-
-    const rounded = Math.round(finalVal);
-
-    if (includeUnit) {
-      return `${rounded}${displayUnit}`;
-    }
-    return String(rounded);
-  };
-
-  const handleToggleTotalNutrition = (isTotal: boolean) => {
-    setShowTotalNutrition(isTotal);
-    try {
-      localStorage.setItem('recipe_show_total_nutrition', JSON.stringify(isTotal));
-    } catch (e) {
-      console.error('Error saving showTotalNutrition to localStorage', e);
-    }
-  };
-
-
-
-  // Cooking mode is premium-gated: free users are steered to the upsell modal.
-  const handleStartCooking = () => {
-    if (isPremium) {
-      setIsCookingMode(true);
-    } else {
-      setIsPremiumModalOpen(true);
-    }
-  };
-
-
-  // Find the first uncompleted step to highlight it
-  const activeStepNum = useMemo(() => {
-    if (!recipe.instructions) return null;
-    const activeStep = recipe.instructions.find(s => !checkedSteps[s.step]);
-    return activeStep ? activeStep.step : null;
-  }, [recipe.instructions, checkedSteps]);
-
-  // Steps progress calculations
-  const totalStepsCount = recipe.instructions ? recipe.instructions.length : 0;
-  const completedStepsCount = useMemo(() => {
-    if (!recipe.instructions) return 0;
-    return recipe.instructions.filter(s => !!checkedSteps[s.step]).length;
-  }, [recipe.instructions, checkedSteps]);
-  const progressPercent = totalStepsCount > 0 ? (completedStepsCount / totalStepsCount) * 100 : 0;
-
-  // Get nutritional info (either reel-level or aggregated per-ingredient AI estimates)
-  const { nutritionalValues, sourceNutritionalValues, isAiEstimated, isVerified, hasNutritionInfo } =
-    useRecipeNutrition(recipe);
-
-  // Prep + cook collapsed into the single figure shown in the meta strip. Both
-  // fields may be legacy strings ("20 Min."), so pull the leading number out.
-  const totalTimeLabel = useMemo(() => {
-    const minutesOf = (time: any): number | null => {
-      if (time === undefined || time === null || time === '') return null;
-      if (typeof time === 'number') return time;
-      const match = String(time).match(/\d+/);
-      return match ? parseInt(match[0], 10) : null;
-    };
-    const total = [minutesOf(recipe.prepTime), minutesOf(recipe.cookTime)]
-      .filter((v): v is number => v !== null)
-      .reduce((sum, v) => sum + v, 0);
-    return total > 0 ? t('recipe.minutes', { count: total }) : null;
-  }, [recipe.prepTime, recipe.cookTime, t]);
-
-  // Per-serving calories for the meta strip; the full table lives in the sheet.
-  const metaCalories = useMemo(() => {
-    const raw = nutritionalValues?.calories;
-    if (raw === undefined || raw === null) return null;
-    return raw > 0 ? Math.round(raw) : null;
-  }, [nutritionalValues]);
-
-  // Sort ingredient groups based on categoryOrder
-  const sortedIngredients = useMemo(() => {
-    if (!recipe.ingredients) return [];
-
-    // Map each group to include its original index for correct checklist progress tracking
-    const mapped = recipe.ingredients.map((group, originalIdx) => ({
-      group,
-      originalIdx
-    }));
-
-    return mapped.sort((a, b) => {
-      const getCategoryIndex = (name: string) => {
-        const cleanName = name.trim().toUpperCase();
-        let idx = categoryOrder.indexOf(cleanName as any);
-        if (idx !== -1) return idx;
-
-        const lowerName = name.trim().toLowerCase();
-        const enumKey = legacyCategoryMap[lowerName];
-        if (enumKey) {
-          return categoryOrder.indexOf(enumKey);
-        }
-        return 999;
-      };
-
-      return getCategoryIndex(a.group.name) - getCategoryIndex(b.group.name);
-    });
-  }, [recipe.ingredients]);
-
-  const handleAddToShoppingList = () => {
-    setShouldNavigateAfterAdd(false);
-    setIsShoppingConfirmOpen(true);
-  };
-
-  const handleAddAndNavigateToShoppingList = () => {
-    setShouldNavigateAfterAdd(true);
-    setIsShoppingConfirmOpen(true);
-  };
-
-  const handleConfirmShoppingListSelection = (itemsToAdd: Ingredient[]) => {
-    if (!onAddIngredients) return;
-    if (itemsToAdd.length === 0) return;
-
-    const recipeId = recipe.id || recipe.title;
-    onAddIngredients(itemsToAdd, recipeId, recipe.title);
-    setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 2000);
-
-    const title =
-      itemsToAdd.length === 1
-        ? t('toast.ingredientsAddedSingle', { name: itemsToAdd[0].name })
-        : t('toast.ingredientsAddedMany', { count: itemsToAdd.length });
-
-    toast.success(title, {
-      description: recipe.title,
-      action: onNavigateToShoppingList
-        ? {
-            label: t('toast.viewShoppingList'),
-            onClick: () => onNavigateToShoppingList(),
-          }
-        : undefined,
-    });
-
-    if (shouldNavigateAfterAdd) {
-      onNavigateToShoppingList?.();
-    }
-  };
-
-  // Build a human-readable ingredient line, e.g. "200 g Mehl (gesiebt) (Bio)"
-  const formatIngredientLine = (ing: Ingredient) => {
-    const scaledAmount = formatAmount(ing.amount, ing.unit);
-    const amountStr = scaledAmount ? `${scaledAmount} ` : '';
-    const unitStr = ing.unit ? `${ing.unit} ` : '';
-    const modifierStr = ing.modifier ? ` (${ing.modifier})` : '';
-    const noteStr = ing.notes ? ` (${ing.notes})` : '';
-    return `${amountStr}${unitStr}${ing.name}${modifierStr}${noteStr}`;
-  };
-
-  // Escape user-provided text so it is safe/well-formed inside the rich-text (HTML) clipboard payload
-  const escapeHtml = (value: string) =>
-    value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-
-  // Copy the recipe to the clipboard in two shapes at once:
-  //  - text/plain: clean, readable text (no markdown symbols) for WhatsApp, notes, e-mail
-  //  - text/html: real headings/bold/lists that paste formatted into Word, Google Docs, Gmail
-  const copyRecipe = () => {
-    const hasGroups = recipe.ingredients.length > 1;
-    const metaLine = `${t('recipe.prep')}: ${formatTimeValue(recipe.prepTime)} · ${t('recipe.cook')}: ${formatTimeValue(recipe.cookTime)} · ${t('recipe.serves')}: ${servings}`;
-
-    // --- Plain text ---
-    let text = `${recipe.title}\n\n`;
-    if (recipe.description) text += `${stripInlineIngredientTags(recipe.description)}\n\n`;
-    text += `${metaLine}\n\n`;
-
-    text += `${t('recipe.tabIngredients')}\n`;
-    sortedIngredients.forEach(({ group }) => {
-      if (hasGroups) text += `${translateCategory(group.name)}\n`;
-      group.items.forEach((ing: Ingredient) => {
-        text += `• ${formatIngredientLine(ing)}\n`;
-      });
-      if (hasGroups) text += `\n`;
-    });
-    if (!hasGroups) text += `\n`;
-
-    text += `${t('recipe.tabInstructions')}\n`;
-    recipe.instructions.forEach((step) => {
-      text += `${step.step}. ${stripInlineIngredientTags(step.description)}\n`;
-    });
-    text += `\n`;
-
-    if (recipe.equipment && recipe.equipment.length > 0) {
-      text += `${t('recipe.requiredEquipment')}\n`;
-      recipe.equipment.forEach((item) => {
-        text += `• ${stripInlineIngredientTags(item)}\n`;
-      });
-      text += `\n`;
-    }
-
-    if (recipe.tips && recipe.tips.length > 0) {
-      text += `${t('recipe.tipsTitle')}\n`;
-      recipe.tips.forEach((tip) => {
-        text += `• ${stripInlineIngredientTags(tip)}\n`;
-      });
-      text += `\n`;
-    }
-
-    // --- Rich text (HTML) ---
-    let html = `<h1>${escapeHtml(recipe.title)}</h1>`;
-    if (recipe.description) html += `<p>${escapeHtml(stripInlineIngredientTags(recipe.description))}</p>`;
-    html += `<p><strong>${escapeHtml(t('recipe.prep'))}:</strong> ${escapeHtml(formatTimeValue(recipe.prepTime))} · <strong>${escapeHtml(t('recipe.cook'))}:</strong> ${escapeHtml(formatTimeValue(recipe.cookTime))} · <strong>${escapeHtml(t('recipe.serves'))}:</strong> ${servings}</p>`;
-
-    html += `<h2>${escapeHtml(t('recipe.tabIngredients'))}</h2>`;
-    sortedIngredients.forEach(({ group }) => {
-      if (hasGroups) html += `<h3>${escapeHtml(translateCategory(group.name))}</h3>`;
-      html += `<ul>`;
-      group.items.forEach((ing: Ingredient) => {
-        html += `<li>${escapeHtml(formatIngredientLine(ing))}</li>`;
-      });
-      html += `</ul>`;
-    });
-
-    html += `<h2>${escapeHtml(t('recipe.tabInstructions'))}</h2><ol>`;
-    recipe.instructions.forEach((step) => {
-      html += `<li>${escapeHtml(stripInlineIngredientTags(step.description))}</li>`;
-    });
-    html += `</ol>`;
-
-    if (recipe.equipment && recipe.equipment.length > 0) {
-      html += `<h2>${escapeHtml(t('recipe.requiredEquipment'))}</h2><ul>`;
-      recipe.equipment.forEach((item) => {
-        html += `<li>${escapeHtml(stripInlineIngredientTags(item))}</li>`;
-      });
-      html += `</ul>`;
-    }
-
-    if (recipe.tips && recipe.tips.length > 0) {
-      html += `<h2>${escapeHtml(t('recipe.tipsTitle'))}</h2><ul>`;
-      recipe.tips.forEach((tip) => {
-        html += `<li>${escapeHtml(stripInlineIngredientTags(tip))}</li>`;
-      });
-      html += `</ul>`;
-    }
-
-    const markCopied = () => {
-      setIsCopied(true);
-      toast.success(t('toast.recipeCopied'));
-      setTimeout(() => setIsCopied(false), 2000);
-    };
-
-    // Prefer writing both HTML + plain text; fall back to plain text where
-    // ClipboardItem is unavailable (e.g. some Android WebViews).
-    const writeRichText = async () => {
-      try {
-        if (navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
-          await navigator.clipboard.write([
-            new ClipboardItem({
-              'text/html': new Blob([html], { type: 'text/html' }),
-              'text/plain': new Blob([text], { type: 'text/plain' }),
-            }),
-          ]);
-          return;
-        }
-      } catch {
-        // fall through to plain-text write
-      }
-      await navigator.clipboard.writeText(text);
-    };
-
-    writeRichText().then(markCopied).catch(() => {
-      // Last resort: plain text only
-      navigator.clipboard.writeText(text).then(markCopied).catch(() => { });
-    });
-  };
+    formatAmount,
+    checkedSteps,
+    toggleStep,
+    handleToggleStep,
+    activeStepNum,
+    totalStepsCount,
+    completedStepsCount,
+    progressPercent,
+    activeSection,
+    isHeaderCollapsed,
+    setCollapseSentinel,
+    scrollToSection,
+    nutritionalValues,
+    sourceNutritionalValues,
+    isAiEstimated,
+    isVerified,
+    hasNutritionInfo,
+    showTotalNutrition,
+    handleToggleTotalNutrition,
+    formatTimeValue,
+    getNutritionDisplayValue,
+    totalTimeLabel,
+    metaCalories,
+    sortedIngredients,
+    isCopied,
+    isCopilotOpen,
+    setIsCopilotOpen,
+    isCookingMode,
+    setIsCookingMode,
+    initialStepOverride,
+    setInitialStepOverride,
+    isCookedModalOpen,
+    setIsCookedModalOpen,
+    isAdded,
+    isShoppingConfirmOpen,
+    setIsShoppingConfirmOpen,
+    isAddToPlanOpen,
+    setIsAddToPlanOpen,
+    handleStartCooking,
+    handleAddToShoppingList,
+    handleAddAndNavigateToShoppingList,
+    handleConfirmShoppingListSelection,
+    copyRecipe,
+    cookRefreshKey,
+    cookHistory,
+  } = useRecipeDetails({ recipe, onAddIngredients, onNavigateToShoppingList });
 
   return (
     <article className="flex flex-col">
@@ -571,7 +115,7 @@ export default function RecipeDetails({
         cookRefreshKey={cookRefreshKey}
       />
 
-      {/* Sentinel for the sticky bar's collapsed title row (see effect above). */}
+      {/* Sentinel for the sticky bar's collapsed title row */}
       <div ref={setCollapseSentinel} aria-hidden="true" className="h-px mb-4" />
 
       {/* Smart Sticky Sub-navigation */}
@@ -591,16 +135,12 @@ export default function RecipeDetails({
       {/* Single scrollable layout containing all sections */}
       <div className="flex flex-col gap-8 mt-5 pb-16">
         {/* Info & Nutrition Details section */}
-        <section
-          id="details"
-          style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}
-        >
+        <section id="details" style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}>
           <RecipeInfoSection
             prepTime={recipe.prepTime}
             cookTime={recipe.cookTime}
             formatTimeValue={formatTimeValue}
             servings={servings}
-
             nutritionalValues={hasNutritionInfo ? nutritionalValues : null}
             sourceNutritionalValues={sourceNutritionalValues}
             isAiEstimated={isAiEstimated}
@@ -611,12 +151,8 @@ export default function RecipeDetails({
           />
         </section>
 
-
         {/* Ingredients section */}
-        <section
-          id="ingredients"
-          style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}
-        >
+        <section id="ingredients" style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}>
           <RecipeIngredients
             recipe={recipe}
             sortedIngredients={sortedIngredients}
@@ -631,12 +167,8 @@ export default function RecipeDetails({
           />
         </section>
 
-
         {/* Instructions section */}
-        <section
-          id="instructions"
-          style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}
-        >
+        <section id="instructions" style={{ scrollMarginTop: 'calc(var(--app-sticky-top) + 60px)' }}>
           <RecipeInstructions
             recipe={recipe}
             checkedSteps={checkedSteps}
@@ -650,14 +182,14 @@ export default function RecipeDetails({
           />
         </section>
 
-        {/* "I cooked this" — gamification CTA card with photo verification */}
+        {/* "I cooked this" — gamification CTA card */}
         {recipe.id && (
           <div className="mt-4 mb-2">
             <CookedButton recipeId={recipe.id} recipeTitle={recipe.title} variant="card" />
           </div>
         )}
 
-        {/* Cook history timeline (count + past cooks) */}
+        {/* Cook history timeline */}
         {recipe.id && (
           <div id="cook-history" className="mt-2 mb-2 scroll-mt-24">
             <CookHistoryTimeline history={cookHistory} />
@@ -669,7 +201,7 @@ export default function RecipeDetails({
         </p>
       </div>
 
-      {/* Unified Floating Action Dock (Bottom-Center) */}
+      {/* Unified Floating Action Dock */}
       {!isCookingMode && (totalStepsCount > 0 || onAddIngredients || onNavigateToShoppingList) && (
         <RecipeActionDock
           totalStepsCount={totalStepsCount}
@@ -745,7 +277,7 @@ export default function RecipeDetails({
         />
       )}
 
-      {/* Cooked Modal (triggered when completing all steps) */}
+      {/* Cooked Modal */}
       {recipe.id && (
         <CookedModal
           isOpen={isCookedModalOpen}
