@@ -30,38 +30,38 @@ export const DailyInsightPill: React.FC<DailyInsightPillProps> = ({ entries }) =
 
   return (
     <div className="w-full flex items-center justify-center flex-wrap gap-1.5 sm:gap-2 pt-1 pb-0.5 text-xs font-semibold animate-fade-in select-none">
-      {/* Meals Count Pill */}
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-2xs ring-1 ring-black/[0.04] dark:ring-white/[0.05]">
-        <Utensils className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+      {/* Meals Count Chip (Clean Flat) */}
+      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100/90 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border-none">
+        <Utensils className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2] shrink-0" />
         <span>{mealsText}</span>
       </div>
 
-      {/* Calories Pill */}
+      {/* Calories Chip (Clean Flat) */}
       {totalCalories > 0 && (
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-2xs ring-1 ring-black/[0.04] dark:ring-white/[0.05]">
-          <Flame className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100/90 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border-none">
+          <Flame className="w-3.5 h-3.5 text-amber-500 stroke-[2] shrink-0" />
           <span>{Math.round(totalCalories)} kcal</span>
         </div>
       )}
 
-      {/* Total Time Pill (Prep + Cook) */}
+      {/* Total Time Chip (Clean Flat) */}
       {totalTime > 0 && (
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-2xs ring-1 ring-black/[0.04] dark:ring-white/[0.05]">
-          <Clock className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 shrink-0" />
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100/90 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border-none">
+          <Clock className="w-3.5 h-3.5 text-gray-400 dark:text-gray-400 stroke-[2] shrink-0" />
           <span>{totalTime} min</span>
         </div>
       )}
 
-      {/* Cooked Progress Pill */}
+      {/* Cooked Progress Chip */}
       {cookedCount > 0 && (
         <div
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl shadow-2xs transition-colors font-bold ${
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full border-none font-bold transition-colors ${
             isAllCooked
-              ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30'
+              ? 'bg-emerald-600 text-white shadow-xs shadow-emerald-600/30'
               : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
           }`}
         >
-          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+          <CheckCircle2 className="w-3.5 h-3.5 shrink-0 stroke-[2.25]" />
           <span>
             {isAllCooked
               ? t('mealPlanner.allCookedDone')

@@ -17,22 +17,22 @@ const SLOTS: SlotTheme[] = [
   {
     type: 'breakfast',
     titleKey: 'mealPlanner.meals.breakfast',
-    icon: <Coffee className="w-4 h-4" />,
+    icon: <Coffee className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
   },
   {
     type: 'lunch',
     titleKey: 'mealPlanner.meals.lunch',
-    icon: <Utensils className="w-4 h-4" />,
+    icon: <Utensils className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
   },
   {
     type: 'dinner',
     titleKey: 'mealPlanner.meals.dinner',
-    icon: <Moon className="w-4 h-4" />,
+    icon: <Moon className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
   },
   {
     type: 'snack',
     titleKey: 'mealPlanner.meals.snack',
-    icon: <Apple className="w-4 h-4" />,
+    icon: <Apple className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 stroke-[2.25]" />,
   },
 ];
 
@@ -65,7 +65,7 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                 {/* Slot Header */}
                 <div className="flex items-center justify-between px-3 py-1">
                   <div className="flex items-center gap-2">
-                    <span className="p-1.5 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                    <span className="flex items-center justify-center">
                       {slot.icon}
                     </span>
                     <div className="flex items-center gap-1.5">
@@ -109,7 +109,7 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                 </div>
               </>
             ) : (
-              /* Minimalist Quick-Add Slot Card with light emerald icon */
+              /* Minimalist Quick-Add Slot Card with pure emerald icon outline (no background box) */
               <button
                 onClick={() => {
                   hapticLight();
@@ -118,7 +118,7 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
                 className="w-full px-3.5 py-3 rounded-2xl bg-white/80 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-850 border-none shadow-2xs ring-1 ring-black/[0.03] dark:ring-white/[0.04] flex items-center justify-between text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 active:scale-[0.98] transition-all duration-150 group cursor-pointer min-h-[48px]"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="p-1.5 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform">
+                  <span className="flex items-center justify-center group-hover:scale-105 transition-transform">
                     {slot.icon}
                   </span>
                   <span className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200">
