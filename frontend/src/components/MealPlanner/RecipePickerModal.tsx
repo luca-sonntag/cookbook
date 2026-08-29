@@ -4,6 +4,7 @@ import type { RecipePickerModalProps } from './types';
 import CachedImage from '../CachedImage';
 import { useI18n } from '../../context/I18nContext';
 import { useToast } from '../../context/ToastContext';
+import { useBottomSheetDrag } from '../../hooks/useBottomSheetDrag';
 import { hapticLight, hapticMedium } from '../../utils/haptics';
 
 type FilterType = 'all' | 'quick' | 'favorites';
@@ -26,11 +27,11 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
   const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const { sheetStyle, dragHandleProps } = useBottomSheetDrag({ onClose });
 
   const filteredHistory = useMemo(() => {
     let result = history;
 
-    // Filter by type
     if (activeFilter === 'quick') {
       result = result.filter(
         (h) => h.recipe?.prepTime && Number(h.recipe.prepTime) <= 25,
@@ -39,11 +40,9 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
       result = result.filter(
         (h) => (h as unknown as { isFavorite?: boolean })?.isFavorite || (h as unknown as { favorite?: boolean })?.favorite,
       );
-      // Fallback if no explicit favorites: show top 5
       if (result.length === 0) result = history.slice(0, 5);
     }
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter(
@@ -78,18 +77,27 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-3xl border-none shadow-[0_-8px_32px_rgba(0,0,0,0.15)] max-h-[85vh] flex flex-col overflow-hidden animate-slide-up"
+        style={sheetStyle}
+        className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-t-[28px] sm:rounded-3xl border-none shadow-[0_-8px_32px_rgba(0,0,0,0.15)] max-h-[88dvh] sm:max-h-[85vh] flex flex-col overflow-hidden pb-[var(--safe-area-inset-bottom,0px)] select-none animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Mobile Drag Handle */}
-        <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-700 mx-auto mt-2.5 sm:hidden" />
+        {/* Mobile Drag Handle Area (Touch-Drag Down to Dismiss) */}
+        <div
+          {...dragHandleProps}
+          className="w-full pt-3 pb-1 flex items-center justify-center cursor-grab active:cursor-grabbing sm:hidden touch-none"
+        >
+          <div className="w-12 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700" />
+        </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 pb-2">
+        <div
+          {...dragHandleProps}
+          className="flex items-center justify-between px-4 pt-2 pb-2 cursor-grab active:cursor-grabbing sm:cursor-auto"
+        >
           <div>
             <h3 className="text-base font-extrabold text-gray-900 dark:text-white">
               {mealTitle} – {formatDateHuman(dateStr, language)}
@@ -130,7 +138,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
         </div>
 
         {/* Quick Filter Chips */}
-        <div className="flex items-center gap-1.5 px-4 pb-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5 px-4 pb-2.5 overflow-x-auto no-scrollbar">
           <button
             onClick={() => {
               hapticLight();
@@ -179,8 +187,8 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
           </button>
         </div>
 
-        {/* Recipes List */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+        {/* Recipes Scrollable List with Safe-Area Bottom Inset */}
+        <div className="flex-1 overflow-y-auto px-3 pt-1 pb-8 space-y-1.5 overscroll-contain">
           {filteredHistory.length > 0 ? (
             filteredHistory.map((saved) => {
               const calories =
@@ -207,19 +215,19 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
                     <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 mt-1 font-semibold">
                       {saved.recipe?.prepTime && (
                         <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-gray-400" />
+                          <Clock className="w-3.5 h-3.5 text-gray-400" />
                           <span>{saved.recipe.prepTime} min</span>
                         </span>
                       )}
                       {calories && (
                         <span className="flex items-center gap-1">
-                          <Flame className="w-3 h-3 text-amber-500" />
+                          <Flame className="w-3.5 h-3.5 text-gray-400" />
                           <span>{Math.round(calories)} kcal</span>
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center shrink-0">
+                  <div className="w-8.5 h-8.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center shrink-0 shadow-2xs">
                     <Plus className="w-4 h-4 stroke-[2.5]" />
                   </div>
                 </button>
