@@ -3,8 +3,6 @@ import { Sparkles, BookOpen, Calendar, ShoppingCart, User, Trophy } from 'lucide
 import { useI18n } from '../context/I18nContext';
 import type { AppBottomNavProps } from '../types/app';
 
-
-
 export const AppBottomNav: React.FC<AppBottomNavProps> = ({
   activeView,
   isPending,
@@ -31,6 +29,15 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
     isBottomBarHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
   }`;
 
+  const navButtonBase =
+    'flex-1 flex flex-col items-center justify-center py-2 relative transition-colors cursor-pointer border-none bg-transparent select-none active:scale-95';
+  const iconWrapperBase = 'relative flex items-center justify-center w-6 h-6 shrink-0';
+  const iconBase = 'w-5 h-5 shrink-0';
+  const labelBase = 'text-[10px] sm:text-[11px] tracking-tight sm:tracking-wide leading-tight mt-1 text-center truncate max-w-full';
+  const activeIndicator = (
+    <span className="absolute bottom-0 w-5 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+  );
+
   return (
     <>
       {/* Subtle bottom gradient fade to soften scrolling content behind floating bars */}
@@ -43,31 +50,29 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
 
       <div className={bottomBarClasses}>
         <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-black/[0.08] dark:border-white/[0.12] shadow-[0_12px_36px_-6px_rgba(0,0,0,0.16),0_4px_16px_rgba(0,0,0,0.08)] w-full max-w-md mx-auto flex flex-col rounded-3xl overflow-hidden">
-          <div className="w-full flex justify-around items-center pt-3 pb-3 px-2">
-            {/* Extract / New Recipe Tab */}
+          <div className="w-full flex justify-around items-center py-2.5 px-2">
+            {/* 1. Extract / New Recipe Tab */}
             <button
               onClick={() => onNavigate('extract')}
-              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${
+              className={`${navButtonBase} ${
                 activeView === 'extract'
-                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
               }`}
             >
-              <div className="relative">
-                <Sparkles className="w-5 h-5 mb-1" />
+              <div className={iconWrapperBase}>
+                <Sparkles className={iconBase} />
                 {isPending && (
-                  <span className="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-gray-900 shadow-sm">
+                  <span className="absolute -top-1 -right-2 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white dark:bg-gray-900 shadow-sm">
                     <span className="h-2.5 w-2.5 rounded-full border-[1.5px] border-emerald-600 dark:border-emerald-400 border-t-transparent animate-spin" />
                   </span>
                 )}
               </div>
-              <span className="text-[10px] sm:text-[11px] tracking-tight sm:tracking-wide font-medium">{t('app.nav.newRecipe')}</span>
-              {activeView === 'extract' && (
-                <span className="absolute bottom-0.5 w-5 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              )}
+              <span className={labelBase}>{t('app.nav.newRecipe')}</span>
+              {activeView === 'extract' && activeIndicator}
             </button>
 
-            {/* Recipes / History Tab */}
+            {/* 2. Recipes / History Tab */}
             <button
               onClick={() => {
                 if (activeView === 'history') {
@@ -77,110 +82,100 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
                 }
                 onFetchHistory();
               }}
-              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${
+              className={`${navButtonBase} ${
                 activeView === 'history'
-                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
               }`}
             >
-              <div className="relative">
-                <BookOpen className="w-5 h-5 mb-1" />
+              <div className={iconWrapperBase}>
+                <BookOpen className={iconBase} />
               </div>
-              <span className="text-[10px] sm:text-[11px] tracking-tight sm:tracking-wide font-medium">{t('app.nav.savedRecipes')}</span>
-              {activeView === 'history' && (
-                <span className="absolute bottom-0.5 w-5 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              )}
+              <span className={labelBase}>{t('app.nav.savedRecipes')}</span>
+              {activeView === 'history' && activeIndicator}
             </button>
 
-            {/* Meal Planner Tab */}
+            {/* 3. Meal Planner Tab */}
             <button
               onClick={() => onNavigate('meal-planner')}
-              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${
+              className={`${navButtonBase} ${
                 activeView === 'meal-planner'
-                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
               }`}
             >
-              <div className="relative">
-                <Calendar className="w-5 h-5 mb-1" />
+              <div className={iconWrapperBase}>
+                <Calendar className={iconBase} />
                 {outstandingMealPlansCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center text-center leading-none rounded-full bg-rose-500 px-1 text-[9px] font-black text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
+                  <span className="absolute -top-1 -right-2 flex h-4 min-w-4 items-center justify-center text-center leading-none rounded-full bg-rose-500 px-1 text-[9px] font-black text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
                     {outstandingMealPlansCount}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] sm:text-[11px] tracking-tight sm:tracking-wide font-medium">{t('app.nav.mealPlanner')}</span>
-              {activeView === 'meal-planner' && (
-                <span className="absolute bottom-0.5 w-5 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              )}
+              <span className={labelBase}>{t('app.nav.mealPlanner')}</span>
+              {activeView === 'meal-planner' && activeIndicator}
             </button>
 
-            {/* Shopping List Tab */}
+            {/* 4. Shopping List Tab */}
             <button
               onClick={() => onNavigate('shopping-list')}
-              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${
+              className={`${navButtonBase} ${
                 activeView === 'shopping-list'
-                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
               }`}
             >
-              <div className="relative">
-                <ShoppingCart className="w-5 h-5 mb-1" />
+              <div className={iconWrapperBase}>
+                <ShoppingCart className={iconBase} />
                 {uncheckedShoppingItemsCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
+                  <span className="absolute -top-1 -right-2 flex h-4 min-w-4 items-center justify-center text-center leading-none rounded-full bg-rose-500 px-1 text-[9px] font-black text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
                     {uncheckedShoppingItemsCount}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] sm:text-[11px] tracking-tight sm:tracking-wide font-medium">{t('app.nav.shoppingList')}</span>
-              {activeView === 'shopping-list' && (
-                <span className="absolute bottom-0.5 w-5 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              )}
+              <span className={labelBase}>{t('app.nav.shoppingList')}</span>
+              {activeView === 'shopping-list' && activeIndicator}
             </button>
 
-            {/* Progress Tab */}
+            {/* 5. Progress Tab */}
             <button
               onClick={() => onNavigate('progress')}
-              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${
+              className={`${navButtonBase} ${
                 activeView === 'progress'
-                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
               }`}
             >
-              <div className="relative">
-                <Trophy className="w-5.5 h-5.5 mb-1" />
+              <div className={iconWrapperBase}>
+                <Trophy className={iconBase} />
                 {incomingRequestsCount > 0 ? (
-                  <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center text-center leading-none rounded-full bg-rose-500 px-1 text-[9px] font-black text-white ring-2 ring-white dark:ring-gray-900 animate-pulse">
+                  <span className="absolute -top-1 -right-2 flex h-4 min-w-4 items-center justify-center text-center leading-none rounded-full bg-rose-500 px-1 text-[9px] font-black text-white ring-2 ring-white dark:ring-gray-900 animate-pulse">
                     {incomingRequestsCount}
                   </span>
                 ) : userLevel !== null && (
-                  <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center text-center leading-none rounded-full bg-emerald-600 px-1 text-[9px] font-black text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
+                  <span className="absolute -top-1 -right-2 flex h-4 min-w-4 items-center justify-center text-center leading-none rounded-full bg-emerald-600 px-1 text-[9px] font-black text-white ring-2 ring-white dark:ring-gray-900 animate-pulse-slow">
                     {userLevel}
                   </span>
                 )}
               </div>
-              <span className="text-[11px] tracking-wide font-medium">{t('app.nav.progress')}</span>
-              {activeView === 'progress' && (
-                <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              )}
+              <span className={labelBase}>{t('app.nav.progress')}</span>
+              {activeView === 'progress' && activeIndicator}
             </button>
 
-            {/* Settings Tab */}
+            {/* 6. Settings / Profile Tab */}
             <button
               onClick={() => onNavigate('settings')}
-              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-2.5 relative transition-colors ${
+              className={`${navButtonBase} ${
                 activeView === 'settings'
-                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
               }`}
             >
-              <div className="relative">
-                <User className="w-5.5 h-5.5 mb-1" />
+              <div className={iconWrapperBase}>
+                <User className={iconBase} />
               </div>
-              <span className="text-[11px] tracking-wide font-medium">{t('app.nav.settings') || 'Profil'}</span>
-              {activeView === 'settings' && (
-                <span className="absolute bottom-0.5 w-6 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              )}
+              <span className={labelBase}>{t('app.nav.settings') || 'Profil'}</span>
+              {activeView === 'settings' && activeIndicator}
             </button>
           </div>
         </div>
@@ -188,4 +183,5 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
     </>
   );
 };
+
 export default AppBottomNav;
