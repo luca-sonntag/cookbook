@@ -1,7 +1,7 @@
-import React from 'react';
 import type { Recipe, InstructionStep } from '../../types';
 import type { StepIngredientItem } from './types';
 import type { StepSlideDirection } from '../../hooks/useCookingMode';
+import { getStepSlideClass } from '../../utils/animations';
 import RecipeInstructionText from '../RecipeInstructionText';
 import CookingModeIngredients from './CookingModeIngredients';
 import CachedImage from '../CachedImage';
@@ -74,7 +74,7 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
         {/* Step Dynamic Content with Directional Slide Transition */}
         <div
           key={cookingStepIndex}
-          className={slideDirection === 'forward' ? 'animate-step-in-right' : 'animate-step-in-left'}
+          className={getStepSlideClass(slideDirection)}
         >
           {/* Step Description - Warm, readable editorial typography */}
           <div className="px-2 py-2 sm:px-4 sm:py-3 flex flex-col text-left">
