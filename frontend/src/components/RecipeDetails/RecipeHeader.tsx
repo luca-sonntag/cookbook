@@ -7,6 +7,7 @@ import { useI18n } from '../../context/I18nContext';
 import { isPhotoImportUrl } from '../../utils/photoImport';
 import { useCookHistory } from '../../hooks/useCookHistory';
 import { formatRelative } from '../../utils/formatRelative';
+import { hapticLight, hapticNotification } from '../../utils/haptics';
 
 interface RecipeHeaderProps {
   recipe: Recipe;
@@ -71,8 +72,11 @@ export default function RecipeHeader({
           {onToggleFavorite && (
             <Button
               isIconOnly
-              onClick={onToggleFavorite}
-              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border-none rounded-xl flex items-center justify-center transition-all ${
+              onClick={() => {
+                hapticLight();
+                onToggleFavorite();
+              }}
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 border-none rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                 isFavorite
                   ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20'
                   : 'bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
@@ -86,21 +90,23 @@ export default function RecipeHeader({
             <Popover.Trigger>
               <Button
                 isIconOnly
-                className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white border-none rounded-xl flex items-center justify-center transition-all"
+                onClick={() => hapticLight()}
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white border-none rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95"
                 aria-label="Options"
               >
                 <MoreVertical className="w-5 h-5" />
               </Button>
             </Popover.Trigger>
-            <Popover.Content placement="bottom end" className="p-1.5 min-w-[180px] bg-white dark:bg-gray-950 border border-black/10 dark:border-white/10 rounded-xl shadow-lg">
+            <Popover.Content placement="bottom end" className="p-1.5 min-w-[200px] bg-white dark:bg-gray-950 border-none rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
               <div className="flex flex-col w-full">
                 {onAssignCollections && (
                   <button
                     onClick={() => {
+                      hapticLight();
                       setIsMenuOpen(false);
                       onAssignCollections();
                     }}
-                    className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                    className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] rounded-xl text-left transition-all cursor-pointer outline-none border-none"
                   >
                     <Folder className="w-4 h-4 text-emerald-500" />
                     <span>{t('catalog.bulkAddToCollection') || 'Zu Sammlung hinzufügen'}</span>
@@ -110,10 +116,11 @@ export default function RecipeHeader({
                 {onManageFlags && (
                   <button
                     onClick={() => {
+                      hapticLight();
                       setIsMenuOpen(false);
                       onManageFlags();
                     }}
-                    className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                    className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] rounded-xl text-left transition-all cursor-pointer outline-none border-none"
                   >
                     <Tag className="w-4 h-4 text-emerald-500" />
                     <span>{t('catalog.manageRecipeFlagsTitle') || 'Labels verwalten'}</span>
@@ -122,10 +129,11 @@ export default function RecipeHeader({
 
                 <button
                   onClick={() => {
+                    hapticNotification('success');
                     onCopyRecipe();
                     setIsMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                  className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] rounded-xl text-left transition-all cursor-pointer outline-none border-none"
                 >
                   {isCopied ? (
                     <>
@@ -143,10 +151,11 @@ export default function RecipeHeader({
                 {onNavigateToShoppingList && (
                   <button
                     onClick={() => {
+                      hapticLight();
                       setIsMenuOpen(false);
                       onNavigateToShoppingList();
                     }}
-                    className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                    className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] rounded-xl text-left transition-all cursor-pointer outline-none border-none"
                   >
                     <ShoppingCart className="w-4 h-4 text-emerald-500" />
                     <span>{t('recipe.goToShoppingList')}</span>
@@ -156,10 +165,11 @@ export default function RecipeHeader({
                 {onDelete && (
                   <button
                     onClick={() => {
+                      hapticLight();
                       setIsMenuOpen(false);
                       onDelete();
                     }}
-                    className="flex items-center gap-3 w-full px-4.5 py-3.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg text-left transition-colors cursor-pointer outline-none border-none"
+                    className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 active:scale-[0.98] rounded-xl text-left transition-all cursor-pointer outline-none border-none"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span>{t('recipe.delete')}</span>
@@ -169,7 +179,7 @@ export default function RecipeHeader({
                 {/* Looked up rarely, so it lives here rather than competing
                     with the title for space above the fold. */}
                 {createdAt && (
-                  <div className="px-4.5 pt-2.5 pb-1.5 mt-1 border-t border-black/5 dark:border-white/5 text-[11px] font-medium text-gray-400 dark:text-gray-500 select-none">
+                  <div className="px-4 pt-2.5 pb-1.5 mt-1 border-t border-black/5 dark:border-white/5 text-[11px] font-medium text-gray-400 dark:text-gray-500 select-none">
                     {t('catalog.savedOn', { date: new Date(createdAt).toLocaleDateString(language) })}
                   </div>
                 )}
@@ -210,35 +220,40 @@ export default function RecipeHeader({
         {recipe.description && (
           <div>
             <p
-              className={`text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words ${isDescriptionExpanded || !isDescriptionLong ? '' : 'line-clamp-2'
-                }`}
+              className={`text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words ${
+                isDescriptionExpanded || !isDescriptionLong ? '' : 'line-clamp-2'
+              }`}
             >
               {recipe.description}
             </p>
             {isDescriptionLong && (
               <button
                 type="button"
-                onClick={() => setIsDescriptionExpanded(v => !v)}
-                className="mt-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer outline-none border-none bg-transparent p-0"
+                onClick={() => {
+                  hapticLight();
+                  setIsDescriptionExpanded(v => !v);
+                }}
+                className="mt-1 py-1 px-1.5 -ml-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline active:scale-95 transition-all cursor-pointer outline-none border-none bg-transparent inline-flex items-center"
               >
                 {isDescriptionExpanded ? t('recipe.descriptionLess') : t('recipe.descriptionMore')}
               </button>
             )}
           </div>
         )}
-        {/* Only the labels themselves earn a row here. Adding one is already an
-            entry in the overflow menu, so the empty-state chip was a second
-            door to the same place — and it cost a full row above the fold. */}
+        {/* Only the labels themselves earn a row here. */}
         {flags && flags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-1">
+          <div className="flex flex-wrap gap-2 mt-1">
             {flags.map((flag, idx) => (
               <button
                 key={`flag-${idx}`}
                 type="button"
-                onClick={onManageFlags}
+                onClick={() => {
+                  hapticLight();
+                  onManageFlags?.();
+                }}
                 disabled={!onManageFlags}
-                className={`bg-amber-500/10 text-amber-600 dark:text-amber-400 text-sm font-bold px-3 py-1 rounded-full select-none whitespace-nowrap border border-amber-500/20 flex items-center gap-1 outline-none ${
-                  onManageFlags ? 'cursor-pointer active:scale-95 transition-transform' : ''
+                className={`bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold px-3.5 py-1.5 min-h-[38px] rounded-full select-none whitespace-nowrap border-none flex items-center gap-1.5 outline-none ${
+                  onManageFlags ? 'cursor-pointer active:scale-95 transition-all' : ''
                 }`}
               >
                 <Tag className="w-3.5 h-3.5" />
@@ -249,31 +264,30 @@ export default function RecipeHeader({
         )}
         {history && history.count > 0 && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400 dark:text-gray-500 font-medium mt-1 select-none">
-            {(
-              <button
-                type="button"
-                onClick={() => {
-                  const el = document.getElementById('cook-history');
-                  if (el) {
-                    const stickyTopHeight = parseInt(
-                      getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
-                      10
-                    );
-                    const offset = stickyTopHeight + 80;
-                    const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-                    window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
-                  }
-                }}
-                className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer outline-none bg-transparent p-0 border-none transition-colors"
-              >
-                <span>{t('app.gamification.cookedChip', { count: history.count })}</span>
-                {history.lastCookedAt && (
-                  <span className="text-gray-400 dark:text-gray-500 font-normal">
-                    · {t('app.gamification.cookedChipLast', { when: formatRelative(history.lastCookedAt, language) })}
-                  </span>
-                )}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                hapticLight();
+                const el = document.getElementById('cook-history');
+                if (el) {
+                  const stickyTopHeight = parseInt(
+                    getComputedStyle(document.documentElement).getPropertyValue('--app-sticky-top') || '0',
+                    10
+                  );
+                  const offset = stickyTopHeight + 80;
+                  const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+                  window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
+                }
+              }}
+              className="inline-flex items-center gap-1 py-1 px-1.5 -ml-1.5 font-bold text-emerald-600 dark:text-emerald-400 hover:underline active:scale-95 cursor-pointer outline-none bg-transparent border-none transition-all"
+            >
+              <span>{t('app.gamification.cookedChip', { count: history.count })}</span>
+              {history.lastCookedAt && (
+                <span className="text-gray-400 dark:text-gray-500 font-normal">
+                  · {t('app.gamification.cookedChipLast', { when: formatRelative(history.lastCookedAt, language) })}
+                </span>
+              )}
+            </button>
           </div>
         )}
       </div>

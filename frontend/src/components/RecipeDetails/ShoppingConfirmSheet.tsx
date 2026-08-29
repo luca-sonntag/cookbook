@@ -3,6 +3,7 @@ import { Button, Drawer } from '@heroui/react';
 import { Check, Salad } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { getCategoryTheme } from '../../i18n';
+import { hapticLight, hapticNotification } from '../../utils/haptics';
 import type { Ingredient, Recipe } from '../../types';
 import IngredientIcon from '../IngredientIcon';
 
@@ -47,6 +48,7 @@ export default function ShoppingConfirmSheet({
   }, [isOpen, sortedIngredients]);
 
   const toggleItem = (id: string) => {
+    hapticLight();
     setSelectedIds((prev) => ({
       ...prev,
       [id]: !prev[id],
@@ -54,6 +56,7 @@ export default function ShoppingConfirmSheet({
   };
 
   const handleConfirm = () => {
+    hapticNotification('success');
     const itemsToAdd: Ingredient[] = [];
     sortedIngredients.forEach(({ group, originalIdx }) => {
       group.items.forEach((ing, idx) => {
@@ -137,12 +140,12 @@ export default function ShoppingConfirmSheet({
                               <div
                                 key={uniqueId}
                                 onClick={() => toggleItem(uniqueId)}
-                                className="flex items-center gap-3 py-2 px-2.5 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors active:scale-[0.99]"
+                                className="flex items-center gap-3 py-2.5 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors active:scale-[0.99]"
                               >
-                                <div className={`w-6 h-6 rounded-xl border-none flex items-center justify-center flex-shrink-0 transition-all ${
-                                  isChecked ? 'bg-emerald-500 text-white' : 'bg-gray-200/80 dark:bg-gray-700/80'
+                                <div className={`w-7 h-7 rounded-xl border-none flex items-center justify-center flex-shrink-0 transition-all ${
+                                  isChecked ? 'bg-emerald-500 text-white shadow-xs' : 'bg-gray-200/80 dark:bg-gray-700/80'
                                 }`}>
-                                  {isChecked && <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />}
+                                  {isChecked && <Check className="w-4 h-4 text-white stroke-[3px]" />}
                                 </div>
 
                                 <IngredientIcon

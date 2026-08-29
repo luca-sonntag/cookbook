@@ -5,6 +5,7 @@ import RecipeInstructionText from '../RecipeInstructionText';
 import { useI18n } from '../../context/I18nContext';
 import { useAuth } from '../../context/AuthContext';
 import PremiumCrownBadge from '../PremiumCrownBadge';
+import { hapticLight, hapticMedium } from '../../utils/haptics';
 
 interface RecipeInstructionsProps {
   recipe: Recipe;
@@ -93,10 +94,13 @@ export default function RecipeInstructions({
               </div>
 
               <Button
-                className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all flex-shrink-0 self-start"
-                onPress={onStartCooking}
+                className="relative bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-12 min-h-[48px] px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all flex-shrink-0 self-start cursor-pointer border-none"
+                onPress={() => {
+                  hapticMedium();
+                  onStartCooking();
+                }}
               >
-                <Play className="w-4 h-4 fill-white ml-0.5" />
+                <Play className="w-4.5 h-4.5 fill-white ml-0.5" />
                 <span>{t('recipe.startCooking')}</span>
                 {!isPremium && <PremiumCrownBadge />}
               </Button>
@@ -148,21 +152,23 @@ export default function RecipeInstructions({
               return (
                 <div
                   key={step.step}
-                  onClick={() => toggleStep(step.step)}
+                  onClick={() => {
+                    hapticLight();
+                    toggleStep(step.step);
+                  }}
                   aria-pressed={isChecked}
-                  className={`flex items-stretch gap-4 px-5 sm:px-6 cursor-pointer transition-colors duration-200 ${
+                  className={`flex items-stretch gap-4 px-5 sm:px-6 cursor-pointer transition-all duration-200 active:scale-[0.99] ${
                     isActive
                       ? 'bg-emerald-500/[0.08] dark:bg-emerald-500/[0.12]'
                       : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.03]'
                   }`}
                 >
-                  {/* Marker column: spacer, marker, connector — no vertical
-                      padding, so the rail meets the next step without a break. */}
+                  {/* Marker column: spacer, marker, connector */}
                   <div className={railColumn}>
                     <div className={`${railBase} h-4 ${isFirst ? 'invisible' : railTone(prevChecked)}`} />
 
                     <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 ${
+                      className={`w-7.5 h-7.5 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 ${
                         isChecked
                           ? 'bg-emerald-500 text-white shadow-sm'
                           : isActive
@@ -171,8 +177,8 @@ export default function RecipeInstructions({
                       }`}
                     >
                       {isChecked
-                        ? <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                        : <span className="text-[11px] font-bold tabular-nums">{step.step}</span>
+                        ? <Check className="w-4 h-4 stroke-[2.5]" />
+                        : <span className="text-xs font-bold tabular-nums">{step.step}</span>
                       }
                     </div>
 

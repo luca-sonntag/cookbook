@@ -2,6 +2,7 @@ import { Drawer, Button } from '@heroui/react';
 import { Flame, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { useI18n } from '../../context/I18nContext';
 import { useAdOverlay } from '../../context/OverlayStackContext';
+import { hapticLight } from '../../utils/haptics';
 import type { Ingredient } from '../../types';
 import IngredientIcon from '../IngredientIcon';
 
@@ -102,11 +103,14 @@ export default function IngredientNutritionSheet({
                   </div>
                   <button
                     type="button"
-                    onClick={onClose}
-                    className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white shrink-0 active:scale-95 transition-all cursor-pointer"
+                    onClick={() => {
+                      hapticLight();
+                      onClose();
+                    }}
+                    className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white shrink-0 active:scale-95 transition-all cursor-pointer border-none"
                     aria-label="Close"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4.5 h-4.5" />
                   </button>
                 </div>
 

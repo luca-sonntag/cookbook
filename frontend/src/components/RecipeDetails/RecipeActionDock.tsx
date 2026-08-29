@@ -5,6 +5,7 @@ import FloatingActionBar from '../FloatingActionBar';
 import PremiumCrownBadge from '../PremiumCrownBadge';
 import CookedButton from '../CookedButton';
 import { useHideOnScroll } from '../../hooks/useHideOnScroll';
+import { hapticLight, hapticMedium } from '../../utils/haptics';
 
 interface RecipeActionDockProps {
   totalStepsCount: number;
@@ -54,7 +55,10 @@ export default function RecipeActionDock({
       {/* Start Cooking Button */}
       {showStart && (
         <button
-          onClick={onStartCooking}
+          onClick={() => {
+            hapticMedium();
+            onStartCooking();
+          }}
           className={itemPrimary}
           title={t('recipe.startCooking')}
           aria-label={t('recipe.startCooking')}
@@ -70,7 +74,10 @@ export default function RecipeActionDock({
       {/* Plan Button */}
       {showPlan && (
         <button
-          onClick={onPlanClick}
+          onClick={() => {
+            hapticLight();
+            onPlanClick?.();
+          }}
           className={itemNeutral}
           title={t('recipe.dockPlan')}
           aria-label={t('recipe.dockPlan')}
@@ -85,7 +92,10 @@ export default function RecipeActionDock({
       {/* Remix Button */}
       {showRemix && (
         <button
-          onClick={onRemixClick}
+          onClick={() => {
+            hapticLight();
+            onRemixClick?.();
+          }}
           className={itemNeutral}
           title={t('recipe.dockChat')}
           aria-label={t('recipe.dockChat')}
@@ -101,7 +111,10 @@ export default function RecipeActionDock({
       {/* Add to Shopping List Button */}
       {showShopping && (
         <button
-          onClick={onAddToCart}
+          onClick={() => {
+            hapticLight();
+            onAddToCart?.();
+          }}
           className={
             isAdded
               ? `${itemBase} text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/15`
