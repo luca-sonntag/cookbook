@@ -25,10 +25,10 @@ export const CookingModeStepContent: React.FC<CookingModeStepContentProps> = ({
       key={cookingStepIndex}
       className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain flex flex-col items-center py-2 sm:py-3 px-0.5 sm:px-2 animate-fade-in"
     >
-      {/* Cohesive Step Card - Visible background & elegant elevation */}
-      <div className="w-full max-w-3xl bg-gray-100/90 dark:bg-gray-900/80 rounded-[28px] sm:rounded-[32px] overflow-hidden shadow-sm shadow-black/[0.04] dark:shadow-black/30 border-none flex flex-col my-auto shrink-0 transition-all">
+      {/* Cohesive Step Content - Clean Flat seamless container */}
+      <div className="w-full max-w-3xl flex flex-col my-auto shrink-0 transition-all">
         {/* Step Header & Instruction Text - Left-aligned for natural reading flow & visual harmony */}
-        <div className="p-5 sm:p-7 flex flex-col gap-3.5 text-left">
+        <div className="px-2 py-4 sm:px-4 sm:py-6 flex flex-col gap-3.5 text-left">
           {/* Step Badge */}
           <div className="w-8 h-8 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-sm shadow-xs select-none shrink-0">
             {currentStep.step}
