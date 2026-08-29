@@ -205,15 +205,12 @@ export function useMealPlanner(
           },
           body: JSON.stringify({ isCooked: nextCooked }),
         });
-        toast.info(
-          nextCooked ? t('mealPlanner.markAsCooked') : t('mealPlanner.markAsUncooked'),
-        );
       } catch (err) {
         console.error('Failed to toggle cooked state:', err);
         fetchPlans();
       }
     },
-    [getAccessToken, toast, t, fetchPlans],
+    [getAccessToken, fetchPlans],
   );
 
   // Move entry to tomorrow
