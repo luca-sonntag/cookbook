@@ -6,6 +6,21 @@ Dieses Dokument protokolliert veralteten Code, ersetzte Heuristiken, alte Hilfsf
 
 ## 📜 Chronologische Übersicht
 
+### 2026-08-30: 3-Monats-Holiday-Lockout & starre Uhrzeit-Empfehlungen durch Hybrid-Planungs- & Discovery-Engine ersetzt
+
+* **Ersetzter Code / Anti-Pattern:**
+  - 3-monatige Grillsaison (`grill_season` von Juni bis August) in `getActiveHolidays()` (`shared/src/season.ts`) mit dauerhaftem Top-Score (90–100 Punkte). Dadurch wurden im Sommer alle anderen Themen (Comfort Food, Brunch, Feierabendküche, Wiederentdeckungen) 3 Monate lang komplett blockiert/überstimmt.
+  - Starre tageszeitliche Zeitfenster (z. B. Feierabendküche nur Mo–Do 15–22 Uhr; Wochenende nur ab 14 Uhr). Da Nutzer Koch- und Planungs-Apps mit Vorlaufzeit (Einkaufszettel, Wochenplaner) und meist abends nutzen, führte dies zu Monotonie und fehlender Inspiration.
+* **Ersetzt durch:**
+  - **Hybrides Planungs- & Discovery-Modell ([`shared/src/recommendations.ts`](file:///c:/Users/lucas/source/repos/cookbook/shared/src/recommendations.ts)):**
+    - **Vorausschauende Wochentags-Planung:** Sonntag & Montag (Wochenstart & Schnelle Küche $\le 30$ Min.), Freitag (Wochenend-Start & Comfort Food), Samstag (Brunch am Vormittag / Grillen & Kochprojekte am Nachmittag).
+    - **Tägliche thematische Entdeckung:** Dienstag (Saisonaler Frische-Genuss), Mittwoch (Wiederentdeckte Schätze), Donnerstag (Pasta & Schnelle Lieblinge).
+    - **Echte Kurzzeit-Feiertage:** Valentinstag, Silvester, Halloween, Weihnachten erhalten nur an ihren 2–5 echten Kerntagen Top-Priorität (Score 95+).
+    - **Stabile Fallback-Kaskade:** Hat ein Nutzer weniger als 2 Treffer für das primäre Tagesthema, greift automatisch das nächste Thema (Saisonal $\to$ Wiederentdeckt $\to$ Favoriten).
+* **Betroffene Dateien:** `shared/src/season.ts`, `shared/src/recommendations.ts`, `shared/src/recommendations.test.ts`, `frontend/src/i18n.ts`, `docs/OBSOLETE.md`.
+
+---
+
 ### 2026-08-26: BLS 4.0 (Bundeslebensmittelschlüssel) durch Open Food Facts (OFF) DACH SQLite-Index ersetzt
 
 * **Ersetzter Code / Anti-Pattern:**
