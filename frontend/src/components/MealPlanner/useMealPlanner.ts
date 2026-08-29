@@ -6,28 +6,9 @@ import { useToast } from '../../context/ToastContext';
 import { useI18n } from '../../context/I18nContext';
 import { apiUrl } from '../../api';
 import { hapticLight, hapticMedium } from '../../utils/haptics';
+import { getMonday, formatDateIso, addDays, scaleIngredientGroups } from './mealPlannerUtils';
 
-export function getMonday(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-export function formatDateIso(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-export function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-}
+export { getMonday, formatDateIso, addDays };
 
 export function useMealPlanner(
   history: SavedRecipe[],
@@ -76,6 +57,37 @@ export function useMealPlanner(
 
   useEffect(() => {
     fetchPlans();
+  }, [fetchPlans]);
+
+  // Listen to external cook & sync events (e.g. from RecipeDetails or CookingMode)
+  useEffect(() => {
+    const handleRecipeCooked = (e: Event) => {
+      const customEvent = e as CustomEvent<{ recipeId?: string }>;
+      const cookedRecipeId = customEvent.detail?.recipeId;
+      if (cookedRecipeId) {
+        const todayIso = formatDateIso(new Date());
+        setMealPlans((prev) =>
+          prev.map((p) =>
+            p.recipeId === cookedRecipeId && p.planDate === todayIso
+              ? { ...p, isCooked: true }
+              : p,
+          ),
+        );
+      }
+      fetchPlans();
+    };
+
+    const handleMealPlansUpdated = () => {
+      fetchPlans();
+    };
+
+    window.addEventListener('app:recipe-cooked', handleRecipeCooked);
+    window.addEventListener('meal-plans-updated', handleMealPlansUpdated);
+
+    return () => {
+      window.removeEventListener('app:recipe-cooked', handleRecipeCooked);
+      window.removeEventListener('meal-plans-updated', handleMealPlansUpdated);
+    };
   }, [fetchPlans]);
 
   // Navigation handlers
@@ -277,18 +289,8 @@ export function useMealPlanner(
         if (!fullRecipe || !fullRecipe.ingredients) continue;
 
         const baseServings = fullRecipe.servings ? Number(fullRecipe.servings) : 2;
-        const scaleFactor = (entry.servings || baseServings) / baseServings;
-
-        // Flatten & scale ingredients
-        const scaledIngredients: Ingredient[] = [];
-        for (const group of fullRecipe.ingredients) {
-          for (const item of group.items) {
-            scaledIngredients.push({
-              ...item,
-              amount: (item.amount || 0) * scaleFactor,
-            });
-          }
-        }
+        const targetServings = entry.servings || baseServings;
+        const scaledIngredients = scaleIngredientGroups(fullRecipe.ingredients, targetServings, baseServings);
 
         if (scaledIngredients.length > 0) {
           addRecipeIngredients(scaledIngredients, entry.recipeId, fullRecipe.title || 'Rezept');

@@ -19,7 +19,7 @@ import { useToast } from '../../context/ToastContext';
 import { useAdOverlay } from '../../context/OverlayStackContext';
 import { apiUrl } from '../../api';
 import type { MealType, Recipe } from '../../types';
-import { formatDateIso, addDays, getMonday } from './useMealPlanner';
+import { formatDateIso, addDays, getMonday } from './mealPlannerUtils';
 import { getTotalTime } from '../../hooks/useSavedCatalog';
 import CachedImage from '../CachedImage';
 import ServingsStepper from '../ServingsStepper';

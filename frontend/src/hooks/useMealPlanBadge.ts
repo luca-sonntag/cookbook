@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiUrl } from '../api';
-import { getMonday, formatDateIso, addDays } from '../components/MealPlanner/useMealPlanner';
+import { getMonday, formatDateIso, addDays } from '../components/MealPlanner/mealPlannerUtils';
 
 interface UseMealPlanBadgeProps {
   user: { id: string } | null;
