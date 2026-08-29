@@ -205,3 +205,26 @@ export async function deleteMealPlan(id: string, userId: string): Promise<void> 
 
   if (error) throw wrapError('deleteMealPlan', error);
 }
+
+export async function markMealPlansCookedForRecipe(
+  userId: string,
+  recipeId: string,
+  dateStr?: string,
+): Promise<number> {
+  const targetDate = dateStr ?? new Date().toISOString().split('T')[0];
+  const { data, error } = await getClient()
+    .from('meal_plans')
+    .update({
+      is_cooked: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId)
+    .eq('recipe_id', recipeId)
+    .eq('plan_date', targetDate)
+    .eq('is_cooked', false)
+    .select('id');
+
+  if (error) throw wrapError('markMealPlansCookedForRecipe', error);
+  return (data as Array<{ id: string }> | null)?.length ?? 0;
+}
+

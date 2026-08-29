@@ -14,6 +14,7 @@ import {
   setRecipeCollections,
   getCookHistoryForRecipe,
   uploadCookPhoto,
+  markMealPlansCookedForRecipe,
   getClient,
 } from '../db.js';
 import { AppError, sendAppError } from '../errors.js';
@@ -520,6 +521,13 @@ recipeRoutes.post('/recipes/:id/cooked', async (req: Request, res: Response): Pr
       viaCookingMode: !!viaCookingMode,
       timerElapsed: !!timerElapsed,
     });
+
+    // Automatically synchronize today's meal plan entry for this recipe if planned
+    try {
+      await markMealPlansCookedForRecipe(req.userId!, id);
+    } catch (mealPlanErr) {
+      console.warn('Failed to auto-mark meal plan entry as cooked:', mealPlanErr);
+    }
 
     res.status(200).json({ success: true, ...result });
   } catch (error: unknown) {
