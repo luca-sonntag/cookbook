@@ -26,11 +26,6 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
       .filter((url): url is string => Boolean(url));
   }, [history]);
 
-  const totalXp = useMemo(() => {
-    if (!history) return 0;
-    return history.items.reduce((sum, item) => sum + (item.xpAwarded ?? 0), 0);
-  }, [history]);
-
   if (!history || history.count === 0) {
     return (
       <div className="rounded-3xl bg-white dark:bg-gray-900 p-6 text-center border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] space-y-2">
@@ -63,20 +58,13 @@ export default function CookHistoryTimeline({ history }: CookHistoryTimelineProp
   return (
     <div className="rounded-3xl bg-white dark:bg-gray-900 p-4 sm:p-5 border-none shadow-[0_2px_6px_rgba(0,0,0,0.03)] space-y-3">
       {/* Clean section header */}
-      <div className="flex items-center justify-between pb-0.5">
-        <div className="flex items-center gap-2">
-          <h4 className="text-base font-extrabold text-gray-900 dark:text-white">
-            {t('app.gamification.cookedTimelineTitle')}
-          </h4>
-          <span className="text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
-            {history.count}×
-          </span>
-        </div>
-        {totalXp > 0 && (
-          <span className="inline-flex items-center text-xs font-black text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/15 px-2.5 py-1 rounded-full">
-            +{totalXp} XP
-          </span>
-        )}
+      <div className="flex items-center gap-2 pb-0.5">
+        <h4 className="text-base font-extrabold text-gray-900 dark:text-white">
+          {t('app.gamification.cookedTimelineTitle')}
+        </h4>
+        <span className="text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+          {history.count}×
+        </span>
       </div>
 
       {/* History cards timeline */}
