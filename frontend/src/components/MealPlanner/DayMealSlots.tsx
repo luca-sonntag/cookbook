@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Coffee, Utensils, Moon, Apple, Plus } from 'lucide-react';
 import type { DayMealSlotsProps } from './types';
 import type { MealType } from '../../types';
@@ -48,18 +48,25 @@ export const DayMealSlots: React.FC<DayMealSlotsProps> = ({
 }) => {
   const { t } = useI18n();
 
+  // Show planned/filled slots at the top, followed by empty quick-add slots
+  const orderedSlots = useMemo(() => {
+    const filled = SLOTS.filter((s) => entries.some((e) => e.mealType === s.type));
+    const empty = SLOTS.filter((s) => !entries.some((e) => e.mealType === s.type));
+    return [...filled, ...empty];
+  }, [entries]);
+
   if (entries.length === 0) {
     return <EmptyDayState onAddRecipeToSlot={onAddRecipeToSlot} />;
   }
 
   return (
     <div className="space-y-3 pt-1 pb-24">
-      {SLOTS.map((slot) => {
+      {orderedSlots.map((slot) => {
         const slotEntries = entries.filter((e) => e.mealType === slot.type);
         const slotTitle = t(slot.titleKey);
 
         return (
-          <div key={slot.type} className="space-y-1.5">
+          <div key={slot.type} className="space-y-1.5 animate-fade-in">
             {slotEntries.length > 0 ? (
               <>
                 {/* Slot Header */}
